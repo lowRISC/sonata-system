@@ -113,9 +113,31 @@ We choose a Xilinx Artix 7 FPGA because it has a typical amount of memory for em
 
 ## FPGA configuration architecture
 
-### Hardware IP blocks
+The FPGA configuration is the part of the architecture that is programmed into the FPGA.
+This is written in a hardware description language.
+Although it is considered hardware it can be reprogrammed because of the FPGA, which is why it has a separate section from the physical board design.
 
-### Memory bus and layout
+### Interoperate
+
+For the interoperable requirement, we need to make sure our hardware design can interact with that of OpenTitan Earl Grey.
+Since OpenTitan Earl Grey uses a TileLink Uncached Lightweigh (TL-UL) bus, we use the same in the Sonata system to ease designing a bridge interface.
+
+Another part of the Sonata system is an finite state machine (FSM) that controls the boot flow of CHERIoT Ibex.
+Initially this FSM will control how the CHERIoT Ibex boots from ROM.
+The boot control interface that this FSM uses should be designed in such a way that it can eventually be controlled and driven by OpenTitan Earl Grey.
+
+### Hardware IP blocks
+To support all the peripherals that are on the FPGA boards, we need corresponding hardware IP blocks for Ibex to be able to interact with them:
+- I2C for QWIIC
+- SPI for flash
+- Ethernet
+- GPIO for buttons and LEDs
+
+There might be other IP blocks necessary for interacting with headers such as an analogue to digital converter.
+
+We also need to modify CHERIoT Ibex to output the CHERIoT mode and exception codes so that these can be hardwired to the appropriate LEDs.
+
+### Memory layout
 
 ## Software architecture
 
