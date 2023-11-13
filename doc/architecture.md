@@ -139,6 +139,19 @@ We also need to modify CHERIoT Ibex to output the CHERIoT mode and exception cod
 
 ### Memory layout
 
+For all registers in this section, the functionality is mapped onto the least significant bits of registers and each register is 32 bits wide.
+
+| Base address | Size    | Functionality |
+|--------------|---------|---------------|
+| 0x0010_0000  |  64 KiB | Internal SRAM |
+| 0x1a11_0000  |   4 KiB | Debug module  |
+| 0x8000_0000  |   4 KiB | GPIO          |
+| 0x8000_1000  |   4 KiB | UART          |
+| 0x8000_2000  |   4 KiB | Timer         |
+| 0x8000_3000  |   4 KiB | I2C host      |
+| 0x8000_4000  |   4 KiB | SPI host      |
+| 0x8000_5000  |   4 KiB | Ethernet      |
+
 ## Software architecture
 
 In order to make the Sonata system usable, we need to facilitate running software on it.
