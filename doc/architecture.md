@@ -152,6 +152,28 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_4000  |   4 KiB | SPI host      |
 | 0x8000_5000  |   4 KiB | Ethernet      |
 
+#### GPIO
+
+| Offset | Register |
+|--------|----------|
+| 0x00   | Output   |
+| 0x04   | Input    |
+| 0x08   | Debounced input |
+
+The output register displays the specified value onto the boards output:
+
+| Bit offset | Description |
+|------------|-------------|
+| 7-0        | LEDs        |
+
+Both input registers:
+
+| Bit offset | Description |
+|------------|-------------|
+| 13-9       | Joystick (left, down, up, right, press) |
+| 8          | Button |
+| 7-0        | DIP switches |
+
 ## Software architecture
 
 In order to make the Sonata system usable, we need to facilitate running software on it.
