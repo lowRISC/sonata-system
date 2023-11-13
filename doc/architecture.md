@@ -160,3 +160,17 @@ We will provide at least some of these applications in bare-metal mode where the
 
 The [CHERIoT RTOS work](https://github.com/microsoft/cheriot-rtos) will need some reworking in terms of memory layout and drivers to work on the Sonata system.
 We envision this not being particularly difficult for someone with software knowledge, but will initially be left out of scope of our work.
+
+## Conclusion
+
+The Sonata system focuses on being:
+- Usable
+- Connectable
+- Extendable
+- Debuggable
+- CHERI visible
+- Interactable
+- Affordable
+- Integratable
+
+The goal of the Sunburst project is to get CHERIoT hardware into the hands of engineers and Sonata is a crucial step in that process.
