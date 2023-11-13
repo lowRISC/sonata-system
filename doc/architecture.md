@@ -174,6 +174,26 @@ Both input registers:
 | 8          | Button |
 | 7-0        | DIP switches |
 
+#### SPI host
+
+| Offset | Register |
+|--------|----------|
+| 0x00   | Transmit |
+| 0x04   | Status   |
+
+The transmit register is used to write data to the SPI one byte at a time:
+
+| Bit offset | Description |
+|------------|-------------|
+| 7-0        | Write data  |
+
+Status register:
+
+| Bit offset  | Description |
+|-------------|-------------|
+| 1           | FIFO empty  |
+| 0           | FIFO full   |
+
 ## Software architecture
 
 In order to make the Sonata system usable, we need to facilitate running software on it.
