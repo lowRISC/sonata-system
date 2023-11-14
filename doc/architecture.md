@@ -343,6 +343,8 @@ Status register:
 | 1           | FIFO empty  |
 | 0           | FIFO full   |
 
+#### Ethernet
+
 ## Software architecture
 
 In order to make the Sonata system usable, we need to facilitate running software on it.
