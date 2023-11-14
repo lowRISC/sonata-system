@@ -1,0 +1,22 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+    name: "lowrisc_ip",
+    target_dir: "lowrisc_ip",
+
+    upstream: {
+        url: "https://github.com/lowRISC/opentitan"
+        rev: "master"
+    }
+
+    mapping: [
+        {from: "util/tlgen.py", to: "util/tlgen.py"},
+        {from: "util/tlgen",    to: "util/tlgen"},
+        {from: "util/reggen",   to: "util/reggen"},
+        {from: "hw/ip/tlul",    to: "ip/tlul"},
+
+        {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
+        {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
+    ]
+}
