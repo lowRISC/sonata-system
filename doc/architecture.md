@@ -152,6 +152,8 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_4000  |   4 KiB | SPI host      |
 | 0x8000_5000  |   4 KiB | Ethernet      |
 
+#### Debug module
+
 #### GPIO
 
 | Offset | Register |
