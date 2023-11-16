@@ -1,0 +1,12 @@
+diff --git a/tlul.core b/tlul.core
+index 080acc3..ca3fd9d 100644
+--- a/tlul.core
++++ b/tlul.core
+@@ -13,7 +13,6 @@ filesets:
+       - lowrisc:tlul:adapter_sram
+       - lowrisc:tlul:adapter_reg
+       - lowrisc:tlul:sram2tlul
+-      - lowrisc:tlul:lc_gate
+ 
+ targets:
+   default:
