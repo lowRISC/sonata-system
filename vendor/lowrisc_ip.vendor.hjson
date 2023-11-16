@@ -4,6 +4,7 @@
 {
     name: "lowrisc_ip",
     target_dir: "lowrisc_ip",
+    patch_dir: "patches/lowrisc_ip",
 
     upstream: {
         url: "https://github.com/lowRISC/opentitan"
@@ -14,7 +15,7 @@
         {from: "util/tlgen.py", to: "util/tlgen.py"},
         {from: "util/tlgen",    to: "util/tlgen"},
         {from: "util/reggen",   to: "util/reggen"},
-        {from: "hw/ip/tlul",    to: "ip/tlul"},
+        {from: "hw/ip/tlul",    to: "ip/tlul", patch_dir: "tlul"},
 
         {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
         {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
