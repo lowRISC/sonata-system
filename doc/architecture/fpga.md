@@ -53,3 +53,9 @@ For all registers in this section, the functionality is mapped onto the least si
 [HyperRAM]: ../ip/ram.md
 [DMA]: ../ip/dma.md
 [ADC]: ../ip/adc.md
+
+## Clocking infrastructure
+
+The whole system is driven by the same clock with the exception of the HyperRAM controller.
+Optionally the HyperRAM controller can be clocked higher than the rest of the chip.
+To accommodate this, we introduce a synchronization interface with primitive FIFOs.
