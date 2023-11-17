@@ -59,3 +59,30 @@ For all registers in this section, the functionality is mapped onto the least si
 The whole system is driven by the same clock with the exception of the HyperRAM controller.
 Optionally the HyperRAM controller can be clocked higher than the rest of the chip.
 To accommodate this, we introduce a synchronization interface with primitive FIFOs.
+
+## Memory architecture
+
+We have a few different types of memory in the Sonata system: FPGA SRAM, HyerRAM and flash.
+With CHERI we need to think about capability tags and revocation tags.
+Any memory that needs to contain capabilities must have one capability tag per 32 bits.
+Any memory that needs to be revocable must have one revocation tag per 32 bits.
+
+### Capability tags
+
+All capability tags live in SRAM.
+All SRAM that is allocated for code and data will have corresponding capability tags.
+Any data stored to HyperRAM and flash are not expected to be tagged.
+
+We envision that code can live in HyperRAM with an instruction cache for improved performance.
+However, this does require code to be able to live in untagged memory.
+This should be fine as CHERI capabilities are derived an manipulated at runtime, but does require toolchain changes to LLVM and corresponding RTOS (see [software architecture](software.md)).
+
+### Revocation tags
+
+Revocation tags are essential in providing temporal memory safety in CHERI.
+This only covers a subset of memory that is likely to be used by the heap.
+Setting the revocation bit effectively stops any capability with that base address from being loaded from memory.
+This is a temporary step as the revocation engine scans through memory to invalidate all capabilities to this address.
+Once the complete memory is scanned, the revocation bit can be unset and the memory can be reused.
+
+In Sonata only a subset of the SRAM is tagged with revocation bits.
