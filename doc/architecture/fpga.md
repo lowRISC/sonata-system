@@ -16,9 +16,10 @@ The boot control interface that this FSM uses should be designed in such a way t
 ## Hardware IP blocks
 To support all the peripherals that are on the FPGA boards, we need corresponding hardware IP blocks for Ibex to be able to interact with them:
 - I2C for QWIIC
-- SPI for flash
+- SPI for the LCD screen
 - Ethernet
 - GPIO for buttons and LEDs
+- HyperRAM controller
 
 There might be other IP blocks necessary for interacting with headers such as an analogue to digital converter.
 
@@ -38,6 +39,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_3000  |   4 KiB | [I2C host]     |
 | 0x8000_4000  |   4 KiB | [SPI host]     |
 | 0x8000_5000  |   4 KiB | [Ethernet]     |
+| 0x8000_6000  |   4 KiB | [HyperRAM]     |
 
 [Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
@@ -46,3 +48,4 @@ For all registers in this section, the functionality is mapped onto the least si
 [I2C host]: ../ip/i2c.md
 [SPI host]: ../ip/spi.md
 [Ethernet]: ../ip/eth.md
+[HyperRAM]: ../ip/ram.md
