@@ -40,6 +40,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_4000  |   4 KiB | [SPI host]     |
 | 0x8000_5000  |   4 KiB | [Ethernet]     |
 | 0x8000_6000  |   4 KiB | [HyperRAM]     |
+| 0x8000_7000  |   4 KiB | [DMA]          |
 
 [Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
@@ -49,3 +50,4 @@ For all registers in this section, the functionality is mapped onto the least si
 [SPI host]: ../ip/spi.md
 [Ethernet]: ../ip/eth.md
 [HyperRAM]: ../ip/ram.md
+[DMA]: ../ip/dma.md
