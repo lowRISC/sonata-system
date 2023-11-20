@@ -31,8 +31,9 @@ For all registers in this section, the functionality is mapped onto the least si
 
 | Base address | Size    | Functionality  |
 |--------------|---------|----------------|
-| 0x0010_0000  |  64 KiB | Internal SRAM  |
+| 0x0010_0000  | 128 KiB | Internal SRAM  |
 | 0x1a11_0000  |   4 KiB | [Debug module] |
+| 0x200f_e000  |  16 KiB | Revocation tags |
 | 0x8000_0000  |   4 KiB | [GPIO]         |
 | 0x8000_1000  |   4 KiB | [UART]         |
 | 0x8000_2000  |   4 KiB | [Timer]        |
@@ -72,6 +73,7 @@ Any memory that needs to be revocable must have one revocation tag per 32 bits.
 All capability tags live in SRAM.
 All SRAM that is allocated for code and data will have corresponding capability tags.
 Any data stored to HyperRAM and flash are not expected to be tagged.
+Since capability tags are out of band information and do not need to be memory mapped, we can store these within the error correction bits that are available on the FPGA's memory.
 
 We envision that code can live in HyperRAM with an instruction cache for improved performance.
 However, this does require code to be able to live in untagged memory.
@@ -85,4 +87,10 @@ Setting the revocation bit effectively stops any capability with that base addre
 This is a temporary step as the revocation engine scans through memory to invalidate all capabilities to this address.
 Once the complete memory is scanned, the revocation bit can be unset and the memory can be reused.
 
-In Sonata only a subset of the SRAM is tagged with revocation bits.
+In Sonata, the revocation tags only cover a subset of mapped memory.
+They should apply to memory regions that are most likely to be used as heap, it is likely this will cover all of internal SRAM and some of HyperRAM.
+Unlike capability tags, revocation tags need to be memory mapped so the memory allocator can manipulate them.
+
+In CHERIoT Ibex the size of memory allocated for this is defined by `TSMapSize` which indicates how many 32-bit words can be used for revocation bits.
+The default value for this is `1,024`, which corresponds to 8 KiB.
+In CHERIoT Safe the size of the revocation tag memory is 16 KiB.
