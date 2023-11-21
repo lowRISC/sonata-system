@@ -6,7 +6,8 @@ We need a compiler toolchain to bootstrap this whole system.
 ## Toolchain
 
 The toolchain will build on top of the work already done on CHERIoT, which uses a [fork of LLVM](https://github.com/CHERIoT-Platform/llvm-project).
-We do not envision needing to change anything here because we are taking the CHERIoT ISA as it is and not making any functional changes to CHERIoT Ibex.
+Through Sonata, we are not proposing any changes to the CHERIoT instruction set.
+We may need some changes to allow code to be stored in memory that does not have associated tags.
 
 ## Applications
 
@@ -18,4 +19,3 @@ We will provide at least some of these applications in bare-metal mode where the
 ## Operating system
 
 The [CHERIoT RTOS work](https://github.com/microsoft/cheriot-rtos) will need some reworking in terms of memory layout and drivers to work on the Sonata system.
-We envision this not being particularly difficult for someone with software knowledge, but will initially be left out of scope of our work.

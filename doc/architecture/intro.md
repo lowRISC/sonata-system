@@ -30,8 +30,8 @@ If they are using the board as a demonstrator they will want to show off the pro
 Like most physical boards, it is nice for it to be as interactive as possible.
 This means being able to accept user input and respond to them visibly and in an *interactable* way.
 
-Beyond the physical Sonata board, we expect the soft design that is used to configure the FPGA to also be *integratable* into a bigger design.
-For example, we envision it being connected to OpenTitan Earl Greg through a bridge interface.
+Beyond the physical Sonata board, we expect the soft design that is used to configure the FPGA to also be *integrable* into a bigger design.
+For example, we envision it being connected to OpenTitan Earl Grey through a bridge interface.
 
 In short, these are our general requirements:
 - Usable
@@ -40,8 +40,8 @@ In short, these are our general requirements:
 - Connectable
 - Extendable
 - CHERI visible
-- Interactable
-- Integratable
+- Interactive
+- Integrable
 
 ## Detailed specifications
 
