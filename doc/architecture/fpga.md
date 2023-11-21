@@ -23,7 +23,7 @@ To support all the peripherals that are on the FPGA boards, we need correspondin
 
 There might be other IP blocks necessary for interacting with headers such as an analogue to digital converter.
 
-We also need to modify CHERIoT Ibex to output the CHERIoT mode and exception codes so that these can be hardwired to the appropriate LEDs.
+We also need some modifications to CHERIoT Ibex, which are detailed in [its own page](../ip/ibex.md).
 
 ## Memory layout
 
