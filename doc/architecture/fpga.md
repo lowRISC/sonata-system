@@ -58,6 +58,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [ADC]: ../ip/adc.md
 [PWM]: ../ip/pwm.md
 [PLIC]: ../ip/plic.md
+[Pinmux]: ../ip/pinmux.md
 
 ## Clocking infrastructure
 
