@@ -43,6 +43,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_7000  |   4 KiB | [DMA]          |
 | 0x8000_8000  |   4 KiB | [ADC]          |
 | 0x8000_9000  |   4 KiB | [PWM]          |
+| 0x8000_A000  |   4 KiB | [Pinmux]       |
 | 0xA000_0000  |  64 MiB | [PLIC]         |
 | 0xF000_0000  |   4 KiB | [Debug module] |
 
@@ -99,3 +100,20 @@ Unlike capability tags, revocation tags need to be memory mapped so the memory a
 In CHERIoT Ibex the size of memory allocated for this is defined by `TSMapSize` which indicates how many 32-bit words can be used for revocation bits.
 The default value for this is `1,024`, which corresponds to 8 KiB.
 In CHERIoT Safe the size of the revocation tag memory is 16 KiB.
+
+### List of SRAM blocks
+
+Here's a list of blocks by size that we need to allocate in SRAM.
+The XC7A35T has 100 blocks of 18 kilobit block RAM, [see datasheet](https://www.mouser.com/datasheet/2/903/ds180_7Series_Overview-1591537.pdf).
+In total that gives use 225 KiB of block RAM, but we may not efficiently map onto 18 kilobit blocks and thus lose some memory.
+The block RAM usage in the table below was calculated using Vivado 2023.2's block memory generator.
+
+| Type                   | Size    | Width | Depth  | RAM Blocks |
+|------------------------|---------|-------|--------|------------|
+| Internal memory        | 128 KiB |    33 | 32,768 |         60 |
+| Revocation tags        |  16 KiB |    32 |  4,096 |          8 |
+| RAM capability tags    |  32 KiB |    32 |  8,192 |         15 |
+| Instruction cache data |   4 KiB |    64 |    512 |          2 |
+| Instruction cache tags |   1 KiB |    22 |    512 |          1 |
+| Total                  | 181 KiB |       |        |         86 |
+| Available              | 225 KiB |       |        |        100 |
