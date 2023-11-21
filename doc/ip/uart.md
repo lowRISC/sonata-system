@@ -1,26 +1,13 @@
-# UART
+# Universal asynchronous receiver/transmitter (UART)
 
-| Offset | Register |
-|--------|----------|
-| 0x00   | Receive |
-| 0x04   | Transmit |
-| 0x08   | Status |
+The Sonata system uses [the OpenTitan UART](https://opentitan.org/book/hw/ip/uart/index.html).
+You can find [the register definitions here](https://opentitan.org/book/hw/ip/uart/doc/registers.html).
 
-Receive data:
+There are multiple UART instances in Sonata to connect to any of the following targets:
+- USB
+- RS-232
+- mikroBUS
+- Arduino shield
+- Raspberry Pi hat
 
-| Bit offset | Description |
-|------------|-------------|
-| 7-0        | Received byte |
-
-Transmit data:
-
-| Bit offset | Description |
-|------------|-------------|
-| 7-0        | Byte to write to UART |
-
-Status:
-
-| Bit offset | Description |
-|------------|-------------|
-| 1          | Transmit FIFO full |
-| 0          | Receive FIFO empty |
+By default, Sonata includes 3 UART blocks, each with an offset of `0x100` from each other.
