@@ -32,7 +32,6 @@ For all registers in this section, the functionality is mapped onto the least si
 | Base address | Size    | Functionality  |
 |--------------|---------|----------------|
 | 0x0010_0000  | 128 KiB | Internal SRAM  |
-| 0x1a11_0000  |   4 KiB | [Debug module] |
 | 0x200f_e000  |  16 KiB | Revocation tags |
 | 0x8000_0000  |   4 KiB | [GPIO]         |
 | 0x8000_1000  |   4 KiB | [UART]         |
@@ -45,6 +44,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_8000  |   4 KiB | [ADC]          |
 | 0x8000_9000  |   4 KiB | [PWM]          |
 | 0xA000_0000  |  64 MiB | [PLIC]         |
+| 0xF000_0000  |   4 KiB | [Debug module] |
 
 [Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
