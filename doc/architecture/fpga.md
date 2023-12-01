@@ -4,16 +4,17 @@ The FPGA configuration is the part of the architecture that is programmed into t
 This is written in a hardware description language.
 Although it is considered hardware it can be reprogrammed because of the FPGA, which is why it has a separate section from the physical board design.
 
+The FPGA image is parameterizable to enable custom setups.
+It should be easy, for example, to change the number of UART, SPI and I2C instances.
+We will provide pre-built images for common configurations.
+
 ## Interoperate
 
 For the interoperable requirement, we need to make sure our hardware design can interact with that of OpenTitan Earl Grey.
-Since OpenTitan Earl Grey uses a TileLink Uncached Lightweigh (TL-UL) bus, we use the same in the Sonata system to ease designing a bridge interface.
-
-Another part of the Sonata system is an finite state machine (FSM) that controls the boot flow of CHERIoT Ibex.
-Initially this FSM will control how the CHERIoT Ibex boots from ROM.
-The boot control interface that this FSM uses should be designed in such a way that it can eventually be controlled and driven by OpenTitan Earl Grey.
+Since OpenTitan Earl Grey uses a TileLink Uncached Lightweight (TL-UL) bus, we use the same in the Sonata system to ease designing a bridge interface.
 
 ## Hardware IP blocks
+
 To support all the peripherals that are on the FPGA boards, we need corresponding hardware IP blocks for Ibex to be able to interact with them:
 - I2C for QWIIC
 - SPI for the LCD screen and ethernet
@@ -21,8 +22,9 @@ To support all the peripherals that are on the FPGA boards, we need correspondin
 - HyperRAM controller
 
 There might be other IP blocks necessary for interacting with headers such as an analogue to digital converter.
-
 We also need some modifications to CHERIoT Ibex, which are detailed in [its own page](../ip/ibex.md).
+
+Wherever possible, we reuse existing, high-quality, open-source hardware IP blocks that are fit for purpose.
 
 ## Memory layout
 
@@ -32,18 +34,20 @@ For all registers in this section, the functionality is mapped onto the least si
 |--------------|---------|----------------|
 | 0x0010_0000  | 128 KiB | Internal SRAM  |
 | 0x200f_e000  |  16 KiB | Revocation tags |
+| 0x4000_0000  |   1 MiB | Tagged RAM     |
+| 0x4010_0000  |   7 MiB | Untagged RAM   |
 | 0x8000_0000  |   4 KiB | [GPIO]         |
-| 0x8000_1000  |   4 KiB | [UART]         |
+| 0x8000_1000  |   4 KiB | [PWM]          |
 | 0x8000_2000  |   4 KiB | [Timer]        |
-| 0x8000_3000  |   4 KiB | [I2C host]     |
-| 0x8000_4000  |   4 KiB | [SPI host]     |
-| 0x8000_6000  |   4 KiB | [HyperRAM]     |
-| 0x8000_7000  |   4 KiB | [DMA]          |
-| 0x8000_8000  |   4 KiB | [ADC]          |
-| 0x8000_9000  |   4 KiB | [PWM]          |
-| 0x8000_A000  |   4 KiB | [Pinmux]       |
-| 0xA000_0000  |  64 MiB | [PLIC]         |
-| 0xF000_0000  |   4 KiB | [Debug module] |
+| 0x8000_3000  |   4 KiB | [HyperRAM]     |
+| 0x8000_4000  |   4 KiB | [DMA]          |
+| 0x8000_5000  |   4 KiB | [ADC]          |
+| 0x8000_6000  |   4 KiB | [Pinmux]       |
+| 0x8100_0000  |   1 MiB | [UART]         |
+| 0x8110_0000  |   1 MiB | [I2C host]     |
+| 0x8120_4000  |   1 MiB | [SPI host]     |
+| 0x8400_0000  |  64 MiB | [PLIC]         |
+| 0xB000_0000  |   4 KiB | [Debug module] |
 
 [Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
@@ -66,7 +70,7 @@ To accommodate this, we introduce a synchronization interface with primitive FIF
 
 ## Memory architecture
 
-We have a few different types of memory in the Sonata system: FPGA SRAM, HyerRAM and flash.
+We have a few different types of memory in the Sonata system: FPGA SRAM, HyperRAM and flash.
 With CHERI we need to think about capability tags and revocation tags.
 Any memory that needs to contain capabilities must have one capability tag per 32 bits.
 Any memory that needs to be revocable must have one revocation tag per 32 bits.
@@ -80,7 +84,7 @@ Since capability tags are out of band information and do not need to be memory m
 
 We envision that code can live in HyperRAM with an instruction cache for improved performance.
 However, this does require code to be able to live in untagged memory.
-This should be fine as CHERI capabilities are derived an manipulated at runtime, but does require toolchain changes to LLVM and corresponding RTOS (see [software architecture](software.md)).
+This should be fine as CHERI capabilities are derived and manipulated at runtime, but does require toolchain changes to LLVM and the corresponding RTOS (see [software architecture](software.md)).
 
 ### Revocation tags
 
@@ -101,7 +105,7 @@ In CHERIoT Safe the size of the revocation tag memory is 16 KiB.
 ### List of SRAM blocks
 
 Here's a list of blocks by size that we need to allocate in SRAM.
-The XC7A35T has 100 blocks of 18 kilobit block RAM, [see datasheet](https://www.mouser.com/datasheet/2/903/ds180_7Series_Overview-1591537.pdf).
+The XC7A35T has 100 blocks of 18 kilobit block RAM, [see datasheet](https://docs.xilinx.com/v/u/en-US/ds180_7Series_Overview).
 In total that gives use 225 KiB of block RAM, but we may not efficiently map onto 18 kilobit blocks and thus lose some memory.
 The block RAM usage in the table below was calculated using Vivado 2023.2's block memory generator.
 
