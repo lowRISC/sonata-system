@@ -43,6 +43,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_6000  |   4 KiB | [HyperRAM]     |
 | 0x8000_7000  |   4 KiB | [DMA]          |
 | 0x8000_8000  |   4 KiB | [ADC]          |
+| 0x8000_9000  |   4 KiB | [PWM]          |
 | 0xA000_0000  |  64 MiB | [PLIC]         |
 
 [Debug module]: ../ip/dm.md
@@ -55,6 +56,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [HyperRAM]: ../ip/ram.md
 [DMA]: ../ip/dma.md
 [ADC]: ../ip/adc.md
+[PWM]: ../ip/pwm.md
 [PLIC]: ../ip/plic.md
 
 ## Clocking infrastructure
