@@ -5,27 +5,25 @@ The DMA in Sonata is a simple linear source to destination design.
 You define a source address, a destination address and number of bytes.
 The DMA cannot preserve capability tags across the boundary, so any tags will be lost in this process.
 One thing that is important to consider is that a process without a capability to a piece of memory must not be able to use the DMA as a way to gain access to it.
-The driver in the operating system must thus enforce that any memory being copied by the DMA is requested by a process that has access to that piece of memory.
-If a user cannot find a suitable way to perform this security check in software, they can build an image without the DMA engine present.
 
-To make a capability aware DMA is a bit more complicated and beyond the scope of Sonata.
-There is a [position paper](https://www.cl.cam.ac.uk/research/security/ctsrd/pdfs/2020hasp-cheri-dma.pdf) available where a number of different approaches are laid out.
+This DMA controller will check the capability tag and do bounds and permission checking before performing an operation.
 
-| Offset | Register            |
-|--------|---------------------|
-| 0x00   | Source address      |
-| 0x04   | Destination address |
-| 0x08   | Byte count          |
-| 0x0C   | Status              |
-| 0x10   | Control             |
+| Offset | Register                    |
+|--------|-----------------------------|
+| 0x00   | Source capability high      |
+| 0x04   | Source capability low       |
+| 0x08   | Destination capability high |
+| 0x0C   | Destination capability low  |
+| 0x10   | Byte count                  |
+| 0x14   | Status                      |
+| 0x18   | Control                     |
 
-## Source address
+## Source and destination capabilities
 
-A 32 bit source address.
+The high part of these capabilities are actually 33 bit registers and they take over the capability tag bit that is present on the bus.
+The rest of the high part includes the permissions, seal and bounds.
 
-## Destination address
-
-A 32 bit destination address.
+The low part of these capabilities contain a 32 bit address.
 
 ## Byte count
 
