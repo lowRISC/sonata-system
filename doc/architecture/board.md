@@ -1,5 +1,7 @@
 # Physical board architecture
 
+![The Sonata Board](img/board-sonata.png)
+
 This section focusses on what needs to be physically present on the board and explicitly leaves the configuration of the FPGA and the software for later sections.
 
 ## Configuration
