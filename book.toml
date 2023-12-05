@@ -1,0 +1,6 @@
+[book]
+authors = ["Greg Chadwick"]
+language = "en"
+multilingual = false
+src = "."
+title = "Sonata System Documentation"
