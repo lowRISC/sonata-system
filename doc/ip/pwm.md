@@ -1,4 +1,4 @@
-# Pulse width modulation
+# Pulse width modulation (PWM)
 
 Pulse width modulation allows you to create a block wave with a certain duty cycle.
 It is useful for use cases like dimming LEDs.
