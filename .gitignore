@@ -1,1 +1,4 @@
-book
+book/
+build/
+.venv/
+target/
