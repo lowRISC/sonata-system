@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// This is the top level SystemVerilog file that connects the IO on the board to the Ibex Demo System.
+// This is the top level SystemVerilog file that connects the IO on the board to the Sonata System.
 module top_artya7 (
   // These inputs are defined in data/pins_artya7.xdc
   input               IO_CLK,
@@ -22,13 +22,13 @@ module top_artya7 (
 
   logic clk_sys, rst_sys_n;
 
-  // Instantiating the Ibex Demo System.
-  ibex_demo_system #(
+  // Instantiating the Sonata System.
+  sonata_system #(
     .GpiWidth(8),
     .GpoWidth(8),
     .PwmWidth(12),
     .SRAMInitFile(SRAMInitFile)
-  ) u_ibex_demo_system (
+  ) u_sonata_system (
     //input
     .clk_sys_i(clk_sys),
     .rst_sys_ni(rst_sys_n),

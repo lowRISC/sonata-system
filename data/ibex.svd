@@ -6,7 +6,7 @@
 -->
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd">
   <vendor>lowRISC</vendor>
-  <name>Ibex Demo System</name>
+  <name>Sonata System</name>
   <version>0.1</version>
   <description>
     Single-core 3-stage pipeline RISC-V processor,

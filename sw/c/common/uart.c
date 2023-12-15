@@ -4,7 +4,7 @@
 
 #include "uart.h"
 
-#include "demo_system.h"
+#include "sonata_system.h"
 #include "dev_access.h"
 
 void uart_enable_rx_int(void) {

@@ -2,12 +2,12 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ibex_demo_system.h"
+#include "sonata_system.h"
 
 int main(int argc, char **argv) {
-  DemoSystem demo_system(
-      "TOP.ibex_demo_system.u_ram.u_ram.gen_generic.u_impl_generic",
+  SonataSystem sonata_system(
+      "TOP.sonata_system.u_ram.u_ram.gen_generic.u_impl_generic",
       1024 * 1024);
 
-  return demo_system.Main(argc, argv);
+  return sonata_system.Main(argc, argv);
 }

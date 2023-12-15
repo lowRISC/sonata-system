@@ -2,12 +2,12 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef DEMO_SYSTEM_H_
-#define DEMO_SYSTEM_H_
+#ifndef SONATA_SYSTEM_H_
+#define SONATA_SYSTEM_H_
 
 #include <stdint.h>
 
-#include "demo_system_regs.h"
+#include "sonata_system_regs.h"
 #include "gpio.h"
 #include "uart.h"
 

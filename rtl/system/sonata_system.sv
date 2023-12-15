@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// The Ibex demo system, which instantiates and connects the following blocks:
+// The Sonata system, which instantiates and connects the following blocks:
 // - Memory bus.
 // - Ibex top module.
 // - RAM memory to contain code and data.
@@ -11,7 +11,7 @@
 // - Timer.
 // - Debug module.
 // - SPI for driving LCD screen
-module ibex_demo_system #(
+module sonata_system #(
   parameter int GpiWidth     = 8,
   parameter int GpoWidth     = 16,
   parameter int PwmWidth     = 12,
@@ -393,7 +393,7 @@ module ibex_demo_system #(
 
   `ifdef VERILATOR
     simulator_ctrl #(
-      .LogName("ibex_demo_system.log")
+      .LogName("sonata_system.log")
     ) u_simulator_ctrl (
       .clk_i     (clk_sys_i),
       .rst_ni    (rst_sys_ni),

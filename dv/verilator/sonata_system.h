@@ -5,15 +5,15 @@
 #include "verilated_toplevel.h"
 #include "verilator_memutil.h"
 
-class DemoSystem {
+class SonataSystem {
  public:
-  DemoSystem(const char *ram_hier_path, int ram_size_words);
-  virtual ~DemoSystem() {}
+  SonataSystem(const char *ram_hier_path, int ram_size_words);
+  virtual ~SonataSystem() {}
   virtual int Main(int argc, char **argv);
 
 
  protected:
-  ibex_demo_system _top;
+  sonata_system _top;
   VerilatorMemUtil _memutil;
   MemArea _ram;
 

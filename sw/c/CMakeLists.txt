@@ -4,7 +4,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/gcc_toolchain.cmake")
 endif()
 
-project(demo_system_sw LANGUAGES C ASM)
+project(sonata_system_sw LANGUAGES C ASM)
 
 if(CMAKE_BUILD_TYPE STREQUAL "")
   get_property(helpstring CACHE CMAKE_BUILD_TYPE PROPERTY HELPSTRING)

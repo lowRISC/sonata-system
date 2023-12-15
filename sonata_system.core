@@ -2,15 +2,15 @@ CAPI=2:
 # Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-name: "lowrisc:ibex:demo_system_core"
-description: "Ibex Demo System for Arty A7 boards (both, -35 and -100)"
+name: "lowrisc:sonata:design"
+description: "Sonata System: putting CHERIoT into the hands of engineers."
 filesets:
-  files_rtl_demo_system:
+  files_rtl_sonata_system:
     depend:
       - lowrisc:ibex:ibex_top
       - pulp:riscv:debug_module
     files:
-      - rtl/system/ibex_demo_system.sv
+      - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
       - rtl/system/gpio.sv
@@ -24,4 +24,4 @@ filesets:
 targets:
   default:
     filesets:
-      - files_rtl_demo_system
+      - files_rtl_sonata_system

@@ -4,7 +4,7 @@
 
 #include <stdbool.h>
 
-#include "demo_system.h"
+#include "sonata_system.h"
 #include "gpio.h"
 #include "pwm.h"
 #include "timer.h"
