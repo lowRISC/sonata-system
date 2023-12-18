@@ -101,6 +101,14 @@ module sonata_system #(
   logic [31:0]    host_rdata    [NrHosts];
   logic           host_err      [NrHosts];
 
+  //TODO remove these tie-offs once bus support CHERI tags.
+  logic [32:0]    cheri_wdata;
+  //cheri_wdata[32] is marked as unused at the bottom of this file.
+  logic [32:0]    cheri_rdata;
+  assign host_wdata[CoreD] = cheri_wdata[31:0];
+  assign cheri_rdata[32]   = 1'b0;
+  assign cheri_rdata[31:0] = host_rdata[CoreD];
+
   // devices
   logic           device_req    [NrDevices];
   logic [31:0]    device_addr   [NrDevices];
@@ -224,15 +232,13 @@ module sonata_system #(
 
   assign rst_core_n = rst_sys_ni & ~ndmreset_req;
 
-  ibex_top #(
-    .RegFile         ( ibex_pkg::RegFileFPGA                   ),
-    .MHPMCounterNum  ( 10                                      ),
-    .RV32M           ( ibex_pkg::RV32MFast                     ),
-    .RV32B           ( ibex_pkg::RV32BNone                     ),
+  ibexc_top #(
+    .DmHaltAddr      ( DEBUG_START + dm::HaltAddress[31:0]     ),
+    .DmExceptionAddr ( DEBUG_START + dm::ExceptionAddress[31:0]),
     .DbgTriggerEn    ( DbgTriggerEn                            ),
     .DbgHwBreakNum   ( DbgHwBreakNum                           ),
-    .DmHaltAddr      ( DEBUG_START + dm::HaltAddress[31:0]     ),
-    .DmExceptionAddr ( DEBUG_START + dm::ExceptionAddress[31:0])
+    .MHPMCounterNum  ( 10                                      ),
+    .RV32B           ( ibex_pkg::RV32BNone                     )
   ) u_top (
     .clk_i (clk_sys_i),
     .rst_ni(rst_core_n),
@@ -240,6 +246,9 @@ module sonata_system #(
     .test_en_i  ('b0),
     .scan_rst_ni(1'b1),
     .ram_cfg_i  ('b0),
+
+    .cheri_pmode_i (1'b0), // TODO enable capability mode
+    .cheri_tsafe_en_i (1'b0), // TODO enable temporal safety
 
     .hart_id_i(32'b0),
     // First instruction executed is at 0x0 + 0x80
@@ -254,16 +263,26 @@ module sonata_system #(
     .instr_err_i       ('0),
 
     .data_req_o       (host_req[CoreD]),
+    .data_is_cap_o    (), // TODO connect this to memory when CHERI is enabled.
     .data_gnt_i       (host_gnt[CoreD]),
     .data_rvalid_i    (host_rvalid[CoreD]),
     .data_we_o        (host_we[CoreD]),
     .data_be_o        (host_be[CoreD]),
     .data_addr_o      (host_addr[CoreD]),
-    .data_wdata_o     (host_wdata[CoreD]),
+    .data_wdata_o     (cheri_wdata),
     .data_wdata_intg_o(),
-    .data_rdata_i     (host_rdata[CoreD]),
+    .data_rdata_i     (cheri_rdata),
     .data_rdata_intg_i('0),
     .data_err_i       (host_err[CoreD]),
+
+    // TODO fill this in once revocation is enabled
+    .tsmap_cs_o (),
+    .tsmap_addr_o (),
+    .tsmap_rdata_i (32'b0),
+
+    // TODO fill this in
+    .mmreg_corein_i (128'b0),
+    .mmreg_coreout_o (),
 
     .irq_software_i(1'b0),
     .irq_timer_i   (timer_irq),
@@ -484,4 +503,7 @@ module sonata_system #(
       return u_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
     endfunction
   `endif
+
+  logic _unused_ok;
+  assign _unused_ok = cheri_wdata[32];
 endmodule
