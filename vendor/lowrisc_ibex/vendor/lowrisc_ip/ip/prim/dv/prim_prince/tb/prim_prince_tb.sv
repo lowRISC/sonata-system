@@ -32,8 +32,6 @@ module prim_prince_tb;
   localparam int unsigned KeyWidth = 128;
 `endif
 
-  localparam string MSG_ID = $sformatf("%m");
-
   // Max number of half-rounds according to spec.
   // Duplicate parameter definition here to avoid clutter due to long identifier.
   localparam int unsigned NumRoundsHalf = crypto_dpi_prince_pkg::NumRoundsHalf;
@@ -246,6 +244,7 @@ module prim_prince_tb;
 
   initial begin : p_stimuli
     int num_trans;
+    string msg_id = $sformatf("%m");
 
     // The key and plaintext/ciphertext to be fed into PRINCE instances.
     bit [KeyWidth/2-1:0] k0, k1;
@@ -295,9 +294,9 @@ module prim_prince_tb;
     void'($value$plusargs("smoke_test=%0b", smoke_test));
     num_trans = smoke_test ? 1 : $urandom_range(5000, 25000);
     for (int i = 0; i < num_trans; i++) begin
-      `DV_CHECK_STD_RANDOMIZE_FATAL(plaintext, "", MSG_ID)
-      `DV_CHECK_STD_RANDOMIZE_FATAL(k0, "", MSG_ID)
-      `DV_CHECK_STD_RANDOMIZE_FATAL(k1, "", MSG_ID)
+      `DV_CHECK_STD_RANDOMIZE_FATAL(plaintext, "", msg_id)
+      `DV_CHECK_STD_RANDOMIZE_FATAL(k0, "", msg_id)
+      `DV_CHECK_STD_RANDOMIZE_FATAL(k1, "", msg_id)
       test_prince(plaintext, {k1, k0});
     end
 
@@ -309,12 +308,9 @@ module prim_prince_tb;
 
   // TODO: perhaps wrap this in a macro?
   initial begin
-    bit poll_for_stop;
-    int unsigned poll_for_stop_interval_ns;
-
-    poll_for_stop = 1'b1;
+    bit poll_for_stop = 1'b1;
+    int unsigned poll_for_stop_interval_ns = 1000;
     void'($value$plusargs("poll_for_stop=%0b", poll_for_stop));
-    poll_for_stop_interval_ns = 1000;
     void'($value$plusargs("poll_for_stop_interval_ns=%0d", poll_for_stop_interval_ns));
     if (poll_for_stop) dv_utils_pkg::poll_for_stop(.interval_ns(poll_for_stop_interval_ns));
   end

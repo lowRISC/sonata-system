@@ -30,7 +30,7 @@ jobs:
 - job: lint_dv
   displayName: Run quality checks (Lint and DV)
   pool:
-    vmImage: "ubuntu-20.04"
+    vmImage: "ubuntu-18.04"
   steps:
   - bash: |
       ci/install-build-deps.sh
@@ -91,10 +91,7 @@ jobs:
   - bash: |
       # Build CoreMark without performance counter dump for co-simulation testing
       make -C ./examples/sw/benchmarks/coremark SUPPRESS_PCOUNT_DUMP=1
-      make -C ./examples/sw/simple_system/pmp_smoke_test
-      make -C ./examples/sw/simple_system/dit_test
-      make -C ./examples/sw/simple_system/dummy_instr_test
-    displayName: Build tests for verilator co-simulation
+    displayName: Build CoreMark
 
   # Run Ibex RTL CI per supported configuration
   - template : ci/ibex-rtl-ci-steps.yml
@@ -103,10 +100,9 @@ jobs:
         # Note: Try to keep the list of configurations in sync with the one used
         # in Private CI.
         - small
+        - experimental-maxperf-pmp
+        - experimental-maxperf-pmp-bmfull
         - opentitan
-        - maxperf
-        - maxperf-pmp-bmbalanced
-        - maxperf-pmp-bmfull
         - experimental-branch-predictor
 
   # Run lint on simple system

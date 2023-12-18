@@ -26,11 +26,6 @@ module prim_subreg
   // output to HW and Reg Read
   output logic          qe,
   output logic [DW-1:0] q,
-
-  // ds and qs have slightly different timing.
-  // ds is the data that will be written into the flop,
-  // while qs is the current flop value exposed to software.
-  output logic [DW-1:0] ds,
   output logic [DW-1:0] qs
 );
 
@@ -52,15 +47,36 @@ module prim_subreg
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
+      qe <= 1'b0;
+    end else begin
+      qe <= we;
+    end
+  end
+
+  logic wr_en_buf;
+  prim_buf #(
+    .Width(1)
+  ) u_wr_en_buf (
+    .in_i(wr_en),
+    .out_o(wr_en_buf)
+  );
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
       q <= RESVAL;
-    end else if (wr_en) begin
+    end else if (wr_en_buf) begin
       q <= wr_data;
     end
   end
 
-  // feed back out for consolidation
-  assign ds = wr_en ? wr_data : qs;
-  assign qe = wr_en;
-  assign qs = q;
+  logic [DW-1:0] q_buf;
+  prim_buf #(
+    .Width(DW)
+  ) u_q_buf (
+    .in_i(q),
+    .out_o(q_buf)
+  );
+
+  assign qs = q_buf;
 
 endmodule

@@ -11,8 +11,6 @@ module prim_generic_buf #(
   output logic [Width-1:0] out_o
 );
 
-  logic [Width-1:0] inv;
-  assign inv = ~in_i;
-  assign out_o = ~inv;
+  assign out_o = in_i;
 
 endmodule

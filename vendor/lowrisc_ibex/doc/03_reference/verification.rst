@@ -1,5 +1,3 @@
-.. _verification:
-
 Verification
 ============
 
@@ -18,14 +16,6 @@ At a high level, this testbench uses the open source `RISCV-DV random instructio
 <https://github.com/google/riscv-dv>`_ to generate compiled instruction binaries, loads them into a
 simple memory model, stimulates the Ibex core to run this program in memory, and then compares the
 core trace log against a golden model ISS trace log to check for correctness of execution.
-
-Verification maturity is tracked via :ref:`verification_stages` that are `defined by the OpenTitan project <https://docs.opentitan.org/doc/project/development_stages/#hardware-verification-stages-v>`_.
-
-Ibex has achieved **V2S** for the ``opentitan`` configuration, broadly this means verification almost complete (over 90% code and functional coverage hit with over 90% regression pass rate with test plan and coverage plan fully implemented) but not yet closed.
-
-Nightly regression results, including a coverage summary and details of test failures, for the ``opentitan`` Ibex configuration are published at https://ibex.reports.lowrisc.org/opentitan/latest/report.html. Below is a summary of these results:
-
-.. image:: https://ibex.reports.lowrisc.org/opentitan/latest/summary.svg
 
 Testbench Architecture
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -106,20 +96,16 @@ In order to run the co-simulation flow, you'll need:
 
 - The Spike RISC-V instruction set simulator
 
-  lowRISC maintains a `lowRISC-specific Spike fork <LRSpike_>`_, needed to model:
-  + Cosimulation (needed for verification)
-  + Some custom CSRs
-  + Custom NMI behavior
-
-  Ibex verification should work with the Spike version that is tagged as ``ibex-cosim-v0.3``.
-  Other, later, versions called ``ibex-cosim-v*`` may also work but there's no guarantee of backwards compatibility.
-
   Spike must be built with the ``--enable-commitlog`` and ``--enable-misaligned`` options.
   ``--enable-commitlog`` is needed to produce log output to track the instructions that were executed.
   ``--enable-misaligned`` tells Spike to simulate a core that handles misaligned accesses in hardware (rather than jumping to a trap handler).
 
+  Ibex supports v.1.0.0 of the RISC-V Bit-Manipulation Extension together with the remaining sub-extensions of draft v.0.93 of the bitmanip spec.
+  lowRISC maintains a `lowRISC-specific branch of Spike <LRSpike_>`_ that matches the supported Bitmanip specification plus some custom CSRs.
+  This branch must also be used in order to to simulate the core with the Icache enabled.
+
   Note that Ibex used to support the commercial OVPsim simulator.
-  This is not currently possible because OVPsim doesn't support the co-simulation approach that we use.
+  This is not currently possble because OVPsim doesn't support the co-simulation approach that we use.
 
 - A working RISC-V toolchain (to compile / assemble the generated programs before simulating them).
 
@@ -136,9 +122,8 @@ to tell the RISCV-DV code where to find them:
     export RISCV_GCC="$RISCV_TOOLCHAIN/bin/riscv32-unknown-elf-gcc"
     export RISCV_OBJCOPY="$RISCV_TOOLCHAIN/bin/riscv32-unknown-elf-objcopy"
     export SPIKE_PATH=/path/to/spike/bin
-    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/path/to/spike/lib/pkgconfig
 
-.. _LRSpike: https://github.com/lowRISC/riscv-isa-sim
+.. _LRSpike: https://github.com/lowRISC/riscv-isa-sim/tree/ibex_cosim
 .. _riscv-toolchain-source: https://github.com/riscv/riscv-gnu-toolchain
 .. _riscv-toolchain-releases: https://github.com/lowRISC/lowrisc-toolchains/releases
 .. _bitmanip-patches: https://github.com/lowRISC/lowrisc-toolchains#how-to-generate-the-bitmanip-patches
@@ -166,7 +151,7 @@ proper interrupt handler, entered Debug Mode properly, updated any CSRs correctl
 handshaking mechanism provided by the RISCV-DV instruction generator is heavily used, which
 effectively allows the core to send status information to the testbench during program execution for
 any analysis that is required to increase verification effectiveness.
-This mechanism is explained in detail at https://github.com/google/riscv-dv/blob/master/docs/source/handshake.rst.
+This mechanism is explained in detail at https://github.com/google/riscv-dv/blob/master/HANDSHAKE.md.
 As a sidenote, the signature address that this testbench uses for the handshaking is ``0x8ffffffc``.
 Additionally, as is mentioned in the RISCV-DV documentation of this handshake, a small set of API
 tasks are provided in `dv/uvm/core_ibex/tests/core_ibex_base_test.sv
@@ -216,8 +201,14 @@ The entirety of this flow is controlled by the Makefile found at
    # Generate the assembly tests only
    make gen
 
+   # Pass addtional options to the generator
+   make GEN_OPTS="xxxx"  ...
+
    # Compile and run RTL simulation
    make TEST=xxx compile,rtl_sim
+
+   # Use a different ISS (default is spike)
+   make ... ISS=ovpsim
 
    # Run a full regression with coverage
    make COV=1

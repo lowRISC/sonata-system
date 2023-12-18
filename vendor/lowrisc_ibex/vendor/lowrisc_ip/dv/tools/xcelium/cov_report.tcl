@@ -12,10 +12,6 @@
 # The supplied env var may have quotes or spaces that needs to be trimmed.
 set cov_report_dir [string trim $::env(cov_report_dir) " \"'"]
 
-# Set the input merged coverage database directory using the env var 'cov_merge_db_dir'.
-# The supplied env var may have quotes or spaces that needs to be trimmed.
-set cov_merge_db_dir [string trim $::env(cov_merge_db_dir) " \"'"]
-
 # Set the DUT name.
 set dut [string trim $::env(DUT_TOP)]
 set dut_uc [string toupper $dut]
@@ -51,6 +47,3 @@ report_metrics \
   -assertionStatus \
   -allAssertionCounters \
   -all
-
-# rank the test runs
-rank -runfile $cov_merge_db_dir/runs.txt -html -out $cov_report_dir/grading

@@ -5,24 +5,20 @@
 #ifndef SPIKE_COSIM_H_
 #define SPIKE_COSIM_H_
 
-#include <stdint.h>
-
-#include <deque>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "cosim.h"
 #include "riscv/devices.h"
 #include "riscv/log_file.h"
 #include "riscv/processor.h"
 #include "riscv/simif.h"
 
-#define IBEX_MARCHID 22
+#include <stdint.h>
+#include <deque>
+#include <memory>
+#include <string>
+#include <vector>
 
 class SpikeCosim : public simif_t, public Cosim {
  private:
-  std::unique_ptr<isa_parser_t> isa_parser;
   std::unique_ptr<processor_t> processor;
   std::unique_ptr<log_file_t> log;
   bus_t bus;
@@ -61,37 +57,20 @@ class SpikeCosim : public simif_t, public Cosim {
                                       const uint8_t *bytes);
 
   bool pc_is_mret(uint32_t pc);
-  bool pc_is_load(uint32_t pc, uint32_t &rd_out);
-
-  bool pc_is_debug_ebreak(uint32_t pc);
-  bool check_debug_ebreak(uint32_t write_reg, uint32_t pc, bool sync_trap);
 
   bool check_gpr_write(const commit_log_reg_t::value_type &reg_change,
                        uint32_t write_reg, uint32_t write_reg_data);
-
-  bool check_suppress_reg_write(uint32_t write_reg, uint32_t pc,
-                                uint32_t &suppressed_write_reg);
 
   void on_csr_write(const commit_log_reg_t::value_type &reg_change);
 
   void leave_nmi_mode();
 
-  bool change_cpuctrlsts_sync_exc_seen(bool flag);
-  void set_cpuctrlsts_double_fault_seen();
-  void handle_cpuctrl_exception_entry();
-
-  void initial_proc_setup(uint32_t start_pc, uint32_t start_mtvec,
-                          uint32_t mhpm_counter_num);
-
-  void early_interrupt_handle();
-
-  unsigned int insn_cnt;
+  int insn_cnt;
 
  public:
   SpikeCosim(const std::string &isa_string, uint32_t start_pc,
              uint32_t start_mtvec, const std::string &trace_log_path,
-             bool secure_ibex, bool icache_en, uint32_t pmp_num_regions,
-             uint32_t pmp_granularity, uint32_t mhpm_counter_num);
+             bool secure_ibex, bool icache_en);
 
   // simif_t implementation
   virtual char *addr_to_mem(reg_t addr) override;
@@ -107,19 +86,11 @@ class SpikeCosim : public simif_t, public Cosim {
                           const uint8_t *data_in) override;
   bool backdoor_read_mem(uint32_t addr, size_t len, uint8_t *data_out) override;
   bool step(uint32_t write_reg, uint32_t write_reg_data, uint32_t pc,
-            bool sync_trap, bool suppress_reg_write) override;
-
-  bool check_retired_instr(uint32_t write_reg, uint32_t write_reg_data,
-                           uint32_t dut_pc, bool suppress_reg_write);
-  bool check_sync_trap(uint32_t write_reg, uint32_t pc,
-                       uint32_t initial_spike_pc);
+            bool sync_trap) override;
   void set_mip(uint32_t mip) override;
   void set_nmi(bool nmi) override;
-  void set_nmi_int(bool nmi_int) override;
   void set_debug_req(bool debug_req) override;
   void set_mcycle(uint64_t mcycle) override;
-  void set_csr(const int csr_num, const uint32_t new_val) override;
-  void set_ic_scr_key_valid(bool valid) override;
   void notify_dside_access(const DSideAccessInfo &access_info) override;
   // The spike co-simulator assumes iside and dside accesses within a step are
   // disjoint. If both access the same address within a step memory faults may
@@ -129,7 +100,7 @@ class SpikeCosim : public simif_t, public Cosim {
   void set_iside_error(uint32_t addr) override;
   const std::vector<std::string> &get_errors() override;
   void clear_errors() override;
-  unsigned int get_insn_cnt() override;
+  int get_insn_cnt() override;
 };
 
 #endif  // SPIKE_COSIM_H_

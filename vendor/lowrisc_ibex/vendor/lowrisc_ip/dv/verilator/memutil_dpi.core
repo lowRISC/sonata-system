@@ -25,8 +25,3 @@ targets:
   default:
     filesets:
       - files_cpp
-    tools:
-      vcs:
-        vcs_options:
-          - '-CFLAGS -I../../src/lowrisc_dv_verilator_memutil_dpi_0/cpp'
-          - '-lelf'

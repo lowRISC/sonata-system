@@ -19,8 +19,9 @@
               CSR(s).
             - Repeat the above steps a bunch of times.
             '''
-      stage: V2
+      milestone: V2
       tests: ["{name}{intf}_intr_test"]
     }
   ]
 }
+

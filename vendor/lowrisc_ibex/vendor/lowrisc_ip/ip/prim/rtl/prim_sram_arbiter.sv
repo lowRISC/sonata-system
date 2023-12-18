@@ -140,8 +140,7 @@ module prim_sram_arbiter #(
     .rready_i (sram_ack),
     .rdata_o  (steer),
     .full_o   (),
-    .depth_o  (),     // Not used
-    .err_o    ()
+    .depth_o  ()     // Not used
   );
 
   assign rsp_rvalid_o = steer & {N{sram_rvalid_i}};

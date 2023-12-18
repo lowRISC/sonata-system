@@ -8,7 +8,6 @@ import os
 import re
 import sys
 from collections import defaultdict
-from pathlib import Path
 
 import hjson
 import mistletoe
@@ -17,18 +16,10 @@ from tabulate import tabulate
 
 class Result:
     '''The results for a single test'''
-
-    def __init__(self,
-                 name,
-                 passing=0,
-                 total=0,
-                 job_runtime=None,
-                 simulated_time=None):
+    def __init__(self, name, passing=0, total=0):
         self.name = name
         self.passing = passing
         self.total = total
-        self.job_runtime = job_runtime
-        self.simulated_time = simulated_time
         self.mapped = False
 
 
@@ -38,19 +29,16 @@ class Element():
     This is either a testpoint or a covergroup.
     """
     # Type of the testplan element. Must be set by the extended class.
-    kind = "none"
+    kind = None
 
     # Mandatory fields in a testplan element.
-    fields = ["name", "desc"]
+    fields = ("name", "desc")
 
     def __init__(self, raw_dict):
         """Initialize the testplan element.
 
         raw_dict is the dictionary parsed from the HJSon file.
         """
-        # 'tags' is an optional field in addition to the mandatory self.fields.
-        self.tags = []
-
         for field in self.fields:
             try:
                 setattr(self, field, raw_dict.pop(field))
@@ -60,7 +48,7 @@ class Element():
                                f"{self.fields}\n{e}")
 
         # Set the remaining k-v pairs in raw_dict as instance attributes.
-        for k, v in raw_dict.items():
+        for k, v in raw_dict:
             setattr(self, k, v)
 
         # Verify things are in order.
@@ -78,32 +66,6 @@ class Element():
         if not self.name:
             raise ValueError(f"Error: {self.kind.capitalize()} name cannot "
                              f"be empty:\n{self}")
-
-        # "tags", if updated key must be list.
-        if not isinstance(self.tags, list):
-            raise ValueError(f"'tags' key in {self} is not a list.")
-
-    def has_tags(self, tags: set) -> bool:
-        """Checks if the provided tags match the tags originally set.
-
-        tags is a list of tags that are we are filtering this testpoints with.
-        Tags may be preceded with `-` to exclude the testpoints that contain
-        that tag.
-
-        Vacuously returns true if tags is an empty list.
-        """
-        if not tags:
-            return True
-
-        for tag in tags:
-            if tag.startswith("-"):
-                if tag[1:] in self.tags:
-                    return False
-            else:
-                if tag not in self.tags:
-                    return False
-
-        return True
 
 
 class Covergroup(Element):
@@ -130,14 +92,14 @@ class Testpoint(Element):
     It captures following information:
     - name of the planned test
     - a brief description indicating intent, stimulus and checking procedure
-    - the targeted stage
+    - the targeted milestone
     - the list of actual developed tests that verify it
     """
     kind = "testpoint"
-    fields = Element.fields + ["stage", "tests"]
+    fields = Element.fields + ("milestone", "tests")
 
-    # Verification stages.
-    stages = ("N.A.", "V1", "V2", "V2S", "V3")
+    # Verification milestones.
+    milestones = ("N.A.", "V1", "V2", "V2S", "V3")
 
     def __init__(self, raw_dict):
         super().__init__(raw_dict)
@@ -146,26 +108,16 @@ class Testpoint(Element):
         # testpoint.
         self.test_results = []
 
-        # If tests key is set to ["N/A"], then don't map this testpoint to the
-        # simulation results.
-        self.not_mapped = False
-        if self.tests == ["N/A"]:
-            self.not_mapped = True
-
     def __str__(self):
-        return super().__str__() + (f"  Stage: {self.stage}\n"
+        return super().__str__() + (f"  Milestone: {self.milestone}\n"
                                     f"  Tests: {self.tests}\n")
 
     def _validate(self):
         super()._validate()
-        if self.stage not in Testpoint.stages:
-            raise ValueError(f"Testpoint stage {self.stage} is "
+        if self.milestone not in Testpoint.milestones:
+            raise ValueError(f"Testpoint milestone {self.milestone} is "
                              f"invalid:\n{self}\nLegal values: "
-                             f"Testpoint.stages")
-
-        # "tests" key must be list.
-        if not isinstance(self.tests, list):
-            raise ValueError(f"'tests' key in {self} is not a list.")
+                             f"Testpoint.milestones")
 
     def do_substitutions(self, substitutions):
         '''Substitute {wildcards} in tests
@@ -206,17 +158,6 @@ class Testpoint(Element):
         self.tests is an empty list, indicate 0/1 passing so that it is
         factored into the final total.
         """
-        # If no written tests were indicated for this testpoint, then reuse
-        # the testpoint name to count towards "not run".
-        if not self.tests:
-            self.test_results = [Result(name=self.name)]
-            return
-
-        # Skip if this testpoint is not meant to be mapped to the simulation
-        # results.
-        if self.not_mapped:
-            return
-
         for tr in test_results:
             assert isinstance(tr, Result)
             if tr.name in self.tests:
@@ -228,7 +169,12 @@ class Testpoint(Element):
         tests_mapped = [tr.name for tr in self.test_results]
         for test in self.tests:
             if test not in tests_mapped:
-                self.test_results.append(Result(name=test))
+                self.test_results.append(Result(name=test, passing=0, total=0))
+
+        # If no written tests were indicated for this testpoint, then reuse
+        # the testpoint name to count towards "not run".
+        if not self.tests:
+            self.test_results = [Result(name=self.name, passing=0, total=0)]
 
 
 class Testplan:
@@ -244,7 +190,7 @@ class Testplan:
     def _parse_hjson(filename):
         """Parses an input file with HJson and returns a dict."""
         try:
-            return hjson.load(open(filename, 'r'))
+            return hjson.load(open(filename, 'rU'))
         except IOError as e:
             print(f"IO Error when opening file {filename}\n{e}")
         except hjson.scanner.HjsonDecodeError as e:
@@ -252,7 +198,7 @@ class Testplan:
         sys.exit(1)
 
     @staticmethod
-    def _create_testplan_elements(kind: str, raw_dicts_list: list, tags: set):
+    def _create_testplan_elements(kind, raw_dicts_list):
         """Creates testplan elements from the list of raw dicts.
 
         kind is either 'testpoint' or 'covergroup'.
@@ -267,18 +213,15 @@ class Testplan:
                 print(f"Error: {kind} arg is invalid.\n{e}")
                 sys.exit(1)
             except ValueError as e:
-                print(f"{kind}\n{dict_entry}\n{e}")
+                print(e)
                 sys.exit(1)
 
             if item.name in item_names:
                 print(f"Error: Duplicate {kind} item found with name: "
                       f"{item.name}")
                 sys.exit(1)
-
-            # Filter out the item by tags if provided.
-            if item.has_tags(tags):
-                items.append(item)
-                item_names.add(item.name)
+            items.append(item)
+            item_names.add(item.name)
         return items
 
     @staticmethod
@@ -318,9 +261,7 @@ class Testplan:
     def __init__(self, filename, repo_top=None, name=None):
         """Initialize the testplan.
 
-        filename is the HJson file that captures the testplan. It may be
-        suffixed with tags separated with a colon delimiter to filter the
-        testpoints. For example: path/too/foo_testplan.hjson:bar:baz
+        filename is the HJson file that captures the testplan.
         repo_top is an optional argument indicating the path to top level repo
         / project directory. It is used with filename arg.
         name is an optional argument indicating the name of the testplan / DUT.
@@ -331,13 +272,8 @@ class Testplan:
         self.covergroups = []
         self.test_results_mapped = False
 
-        # Split the filename into filename and tags, if provided.
-        split = str(filename).split(":")
-        filename = Path(split[0])
-        tags = set(split[1:])
-
-        if filename.exists():
-            self._parse_testplan(filename, tags, repo_top)
+        if filename:
+            self._parse_testplan(filename, repo_top)
 
         if name:
             self.name = name
@@ -346,10 +282,10 @@ class Testplan:
             print("Error: the testplan 'name' is not set!")
             sys.exit(1)
 
-        # Represents current progress towards each stage. Stage = N.A.
+        # Represents current progress towards each milestone. Milestone = N.A.
         # is used to indicate the unmapped tests.
         self.progress = {}
-        for key in Testpoint.stages:
+        for key in Testpoint.milestones:
             self.progress[key] = {
                 "total": 0,
                 "written": 0,
@@ -357,53 +293,7 @@ class Testplan:
                 "progress": 0.0,
             }
 
-    @staticmethod
-    def _get_imported_testplan_paths(parent_testplan: Path,
-                                     imported_testplans: list,
-                                     repo_top: Path) -> list:
-        '''Parse imported testplans with correctly set paths.
-
-        Paths of the imported testplans can be set relative to repo_top
-        or relative to the parent testplan importing it. Path anchored to
-        the repo_top has higher precedence. If the path is not relative to
-        either, we check if the path is absolute (which must be avoided!),
-        else we raise an exception.
-
-        parent_testplan is the testplan currently being processed which
-        importing the sub-testplans.
-        imported_testplans is the list of testplans it imports - retrieved
-        directly from its Hjson file.
-        repo_top is the path to the repository's root directory.
-
-        Returns a list of imported testplans with correctly set paths.
-        Raises FileNotFoundError if the relative path to the testplan is
-        not anchored to repo_top or the parent testplan.
-        '''
-        result = []
-        for testplan in imported_testplans:
-            path = repo_top / testplan
-            if path.exists():
-                result.append(path)
-                continue
-
-            path = parent_testplan.parent / testplan
-            if path.exists():
-                result.append(path)
-                continue
-
-            # In version-controlled codebases, references to absolute paths
-            # must not exist. This usecase is supported anyway.
-            path = Path(testplan)
-            if path.exists():
-                result.append(path)
-                continue
-
-            raise FileNotFoundError(f"Testplan {testplan} imported by "
-                                    f"{parent_testplan} does not exist.")
-
-        return result
-
-    def _parse_testplan(self, filename: Path, tags: set, repo_top=None):
+    def _parse_testplan(self, filename, repo_top=None):
         '''Parse testplan Hjson file and create the testplan elements.
 
         It creates the list of testpoints and covergroups extracted from the
@@ -414,15 +304,14 @@ class Testplan:
         '''
         if repo_top is None:
             # Assume dvsim's original location: $REPO_TOP/util/dvsim.
-            repo_top = Path(__file__).parent.parent.parent.resolve()
+            self_path = os.path.dirname(os.path.realpath(__file__))
+            repo_top = os.path.abspath(
+                os.path.join(self_path, os.pardir, os.pardir))
 
         obj = Testplan._parse_hjson(filename)
 
         parsed = set()
-        parent_testplan = Path(filename)
-        imported_testplans = self._get_imported_testplan_paths(
-            parent_testplan, obj.get("import_testplans", []), repo_top)
-
+        imported_testplans = obj.get("import_testplans", [])
         while imported_testplans:
             testplan = imported_testplans.pop(0)
             if testplan in parsed:
@@ -432,20 +321,18 @@ class Testplan:
                 sys.exit(1)
             parsed.add(testplan)
             data = self._parse_hjson(os.path.join(repo_top, testplan))
-            imported_testplans.extend(
-                self._get_imported_testplan_paths(
-                    testplan, data.get("import_testplans", []), repo_top))
+            imported_testplans.extend(data.get("import_testplans", []))
             obj = _merge_dicts(obj, data)
 
         self.name = obj.get("name")
 
         testpoints = obj.get("testpoints", [])
         self.testpoints = self._create_testplan_elements(
-            'testpoint', testpoints, tags)
+            'testpoint', testpoints)
 
         covergroups = obj.get("covergroups", [])
         self.covergroups = self._create_testplan_elements(
-            'covergroup', covergroups, set())
+            'covergroup', covergroups)
 
         if not testpoints and not covergroups:
             print(f"Error: No testpoints or covergroups found in {filename}")
@@ -463,17 +350,15 @@ class Testplan:
         self._sort()
 
     def _sort(self):
-        """Sort testpoints by stage and covergroups by name."""
-        self.testpoints.sort(key=lambda x: x.stage)
+        """Sort testpoints by milestone and covergroups by name."""
+        self.testpoints.sort(key=lambda x: x.milestone)
         self.covergroups.sort(key=lambda x: x.name)
 
-    def get_stage_regressions(self):
+    def get_milestone_regressions(self):
         regressions = defaultdict(set)
         for tp in self.testpoints:
-            if tp.not_mapped:
-                continue
-            if tp.stage in tp.stages[1:]:
-                regressions[tp.stage].update({t for t in tp.tests if t})
+            if tp.milestone in tp.milestones[1:]:
+                regressions[tp.milestone].update({t for t in tp.tests if t})
 
         # Build regressions dict into a hjson like data structure
         return [{
@@ -489,54 +374,39 @@ class Testplan:
         """
         assert fmt in ["pipe", "html"]
 
-        # Map between the requested format and a pair (tabfmt, formatter) where
-        # tabfmt is the "tablefmt" argument for tabulate.tabulate and formatter
-        # converts the input Markdown text to something we can pass to the
-        # formatter.
-        fmt_configs = {
-            # For Markdown output, we pass the input text straight through
-            'pipe': ('pipe', lambda x: x),
-            # For HTML output, we convert the Markdown to HTML using the
-            # mistletoe library. The tablefmt argument should be 'unsafehtml'
-            # in this case because this already escapes things like '<' and
-            # don't want to double-escape them when tabulating.
-            'html': ('unsafehtml', mistletoe.markdown)
-        }
-        tabfmt, formatter = fmt_configs[fmt]
+        def _fmt_text(text, fmt):
+            return mistletoe.markdown(text) if fmt == "html" else text
 
         if self.testpoints:
-            lines = [formatter("\n### Testpoints\n")]
-            header = ["Stage", "Name", "Tests", "Description"]
+            lines = [_fmt_text("\n### Testpoints\n", fmt)]
+            header = ["Milestone", "Name", "Tests", "Description"]
             colalign = ("center", "center", "left", "left")
             table = []
             for tp in self.testpoints:
-                desc = formatter(tp.desc.strip())
-
-                # tests is a list of strings. We want to insert them into a
-                # table and (conveniently) we can put one on each line in both
-                # Markdown and HTML mode by interspersing with '<br>' tags.
+                desc = _fmt_text(tp.desc.strip(), fmt)
+                # TODO(astanin/python-tabulate#126): Tabulate does not
+                # convert \n's to line-breaks.
                 tests = "<br>\n".join(tp.tests)
-
-                table.append([tp.stage, tp.name, tests, desc])
+                table.append([tp.milestone, tp.name, tests, desc])
             lines += [
                 tabulate(table,
                          headers=header,
-                         tablefmt=tabfmt,
+                         tablefmt=fmt,
                          colalign=colalign)
             ]
 
         if self.covergroups:
-            lines += [formatter("\n### Covergroups\n")]
+            lines += [_fmt_text("\n### Covergroups\n", fmt)]
             header = ["Name", "Description"]
             colalign = ("center", "left")
             table = []
             for covergroup in self.covergroups:
-                desc = formatter(covergroup.desc.strip())
+                desc = _fmt_text(covergroup.desc.strip(), fmt)
                 table.append([covergroup.name, desc])
             lines += [
                 tabulate(table,
                          headers=header,
-                         tablefmt=tabfmt,
+                         tablefmt=fmt,
                          colalign=colalign)
             ]
 
@@ -558,15 +428,12 @@ class Testplan:
             """Computes the testplan progress and the sim footprint.
 
             totals is a list of Testpoint items that represent the total number
-            of tests passing for each stage. The sim footprint is simply
+            of tests passing for each milestone. The sim footprint is simply
             the sum total of all tests run in the simulation, counted for each
-            stage and also the grand total.
+            milestone and also the grand total.
             """
-            ms = testpoint.stage
+            ms = testpoint.milestone
             for tr in testpoint.test_results:
-                if not tr:
-                    continue
-
                 if tr.name in tests_seen:
                     continue
 
@@ -578,7 +445,7 @@ class Testplan:
                         self.progress[ms]["passing"] += 1
                     self.progress[ms]["written"] += 1
 
-                # Compute the stage total & the grand total.
+                # Compute the milestone total & the grand total.
                 totals[ms].test_results[0].passing += tr.passing
                 totals[ms].test_results[0].total += tr.total
                 if ms != "N.A.":
@@ -586,13 +453,13 @@ class Testplan:
                     totals["N.A."].test_results[0].total += tr.total
 
         totals = {}
-        # Create testpoints to represent the total for each stage & the
+        # Create testpoints to represent the total for each milestone & the
         # grand total.
-        for ms in Testpoint.stages:
+        for ms in Testpoint.milestones:
             arg = {
                 "name": "N.A.",
                 "desc": f"Total {ms} tests",
-                "stage": ms,
+                "milestone": ms,
                 "tests": [],
             }
             totals[ms] = Testpoint(arg)
@@ -603,7 +470,7 @@ class Testplan:
         arg = {
             "name": "Unmapped tests",
             "desc": "Unmapped tests",
-            "stage": "N.A.",
+            "milestone": "N.A.",
             "tests": [],
         }
         unmapped = Testpoint(arg)
@@ -617,8 +484,8 @@ class Testplan:
         unmapped.test_results = [tr for tr in test_results if not tr.mapped]
         _process_testpoint(unmapped, totals)
 
-        # Add stage totals back into 'testpoints' and sort.
-        for ms in Testpoint.stages[1:]:
+        # Add milestone totals back into 'testpoints' and sort.
+        for ms in Testpoint.milestones[1:]:
             self.testpoints.append(totals[ms])
         self._sort()
 
@@ -627,11 +494,11 @@ class Testplan:
             self.testpoints.append(unmapped)
         self.testpoints.append(totals["N.A."])
 
-        # Compute the progress rate for each stage.
-        for ms in Testpoint.stages:
+        # Compute the progress rate fpr each milestone.
+        for ms in Testpoint.milestones:
             stat = self.progress[ms]
 
-            # Remove stages that are not targeted.
+            # Remove milestones that are not targeted.
             if stat["total"] == 0:
                 self.progress.pop(ms)
                 continue
@@ -674,29 +541,22 @@ class Testplan:
 
         assert self.test_results_mapped, "Have you invoked map_test_results()?"
         header = [
-            "Stage", "Name", "Tests", "Max Job Runtime", "Simulated Time",
-            "Passing", "Total", "Pass Rate"
+            "Milestone", "Name", "Tests", "Passing", "Total", "Pass Rate"
         ]
-        colalign = ('center', ) * 2 + ('left', ) + ('center', ) * 5
+        colalign = ("center", "center", "left", "center", "center", "center")
         table = []
         for tp in self.testpoints:
-            stage = "" if tp.stage == "N.A." else tp.stage
+            milestone = "" if tp.milestone == "N.A." else tp.milestone
             tp_name = "" if tp.name == "N.A." else tp.name
             for tr in tp.test_results:
                 if tr.total == 0 and not map_full_testplan:
                     continue
                 pass_rate = self._get_percentage(tr.passing, tr.total)
-
-                job_runtime = "" if tr.job_runtime is None else str(
-                    tr.job_runtime)
-                simulated_time = "" if tr.simulated_time is None else str(
-                    tr.simulated_time)
-
                 table.append([
-                    stage, tp_name, tr.name, job_runtime, simulated_time,
-                    tr.passing, tr.total, pass_rate
+                    milestone, tp_name, tr.name, tr.passing, tr.total,
+                    pass_rate
                 ])
-                stage = ""
+                milestone = ""
                 tp_name = ""
 
         text = "\n### Test Results\n"
@@ -763,7 +623,7 @@ class Testplan:
         # return the results summary as a dict.
         total = self.testpoints[-1]
         assert total.name == "N.A."
-        assert total.stage == "N.A."
+        assert total.milestone == "N.A."
 
         tr = total.test_results[0]
 
@@ -816,7 +676,7 @@ def _merge_dicts(list1, list2, use_list1_for_defaults=True):
     '''Merge 2 dicts into one
 
     This function takes 2 dicts as args list1 and list2. It recursively merges
-    list2 into list1 and returns list1. The recursion happens when the
+    list2 into list1 and returns list1. The recursion happens when the the
     value of a key in both lists is a dict. If the values of the same key in
     both lists (at the same tree level) are of dissimilar type, then there is a
     conflict and an error is thrown. If they are of the same scalar type, then

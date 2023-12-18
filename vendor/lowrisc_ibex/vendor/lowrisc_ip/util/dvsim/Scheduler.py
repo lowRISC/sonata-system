@@ -4,7 +4,7 @@
 
 import logging as log
 import threading
-from signal import SIGINT, SIGTERM, signal
+from signal import SIGINT, signal
 
 from Launcher import LauncherError
 from StatusPrinter import get_status_printer
@@ -47,8 +47,7 @@ def get_next_item(arr, index):
 
 class Scheduler:
     '''An object that runs one or more Deploy items'''
-
-    def __init__(self, items, launcher_cls, interactive):
+    def __init__(self, items, launcher_cls):
         self.items = items
 
         # 'scheduled[target][cfg]' is a list of Deploy objects for the chosen
@@ -61,7 +60,7 @@ class Scheduler:
         self.add_to_scheduled(items)
 
         # Print status periodically using an external status printer.
-        self.status_printer = get_status_printer(interactive)
+        self.status_printer = get_status_printer()
         self.status_printer.print_header(
             msg="Q: queued, D: dispatched, P: passed, F: failed, K: killed, "
             "T: total")
@@ -130,24 +129,18 @@ class Scheduler:
         stop_now = threading.Event()
         old_handler = None
 
-        def on_signal(signal_received, frame):
-            log.info("Received signal %s. Exiting gracefully.",
-                     signal_received)
+        def on_sigint(signal_received, frame):
+            log.info('Received SIGINT. Exiting gracefully. '
+                     'Send another to force immediate quit '
+                     '(but you may need to manually kill child processes)')
 
-            if signal_received == SIGINT:
-                log.info('Send another to force immediate quit (but you may '
-                         'need to manually kill child processes)')
-
-                # Restore old handler to catch a second SIGINT
-                assert old_handler is not None
-                signal(signal_received, old_handler)
+            # Restore old handler to catch any second signal
+            assert old_handler is not None
+            signal(SIGINT, old_handler)
 
             stop_now.set()
 
-        old_handler = signal(SIGINT, on_signal)
-
-        # Install the SIGTERM handler before scheduling jobs.
-        signal(SIGTERM, on_signal)
+        old_handler = signal(SIGINT, on_sigint)
 
         # Enqueue all items of the first target.
         self._enqueue_successors(None)
@@ -174,7 +167,7 @@ class Scheduler:
         finally:
             signal(SIGINT, old_handler)
 
-        # Cleanup the status printer.
+        # Cleaup the status printer.
         self.status_printer.exit()
 
         # We got to the end without anything exploding. Return the results.
@@ -508,8 +501,6 @@ class Scheduler:
 
             perc = done_cnt / self._total[target] * 100
 
-            running = ", ".join(
-                [f"{item.full_name}" for item in self._running[target]])
             msg = self.msg_fmt.format(len(self._queued[target]),
                                       len(self._running[target]),
                                       len(self._passed[target]),
@@ -519,8 +510,7 @@ class Scheduler:
             self.status_printer.update_target(target=target,
                                               msg=msg,
                                               hms=hms,
-                                              perc=perc,
-                                              running=running)
+                                              perc=perc)
         return done
 
     def _cancel_item(self, item, cancel_successors=True):

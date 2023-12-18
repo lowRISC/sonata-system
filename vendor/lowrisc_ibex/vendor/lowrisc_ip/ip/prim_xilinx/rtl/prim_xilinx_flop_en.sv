@@ -4,19 +4,17 @@
 
 `include "prim_assert.sv"
 
-// Prevent Vivado from performing optimizations on/across this module.
-(* DONT_TOUCH = "yes" *)
 module prim_xilinx_flop_en #(
   parameter int               Width      = 1,
-  // This parmaeter does nothing for prim_xilinx
-  parameter bit               EnSecBuf   = 0,
   parameter logic [Width-1:0] ResetValue = 0
 ) (
   input clk_i,
   input rst_ni,
-  input en_i,
+  // Prevent Vivado from optimizing this signal away.
+  (* keep = "true" *) input en_i,
   input [Width-1:0] d_i,
-  output logic [Width-1:0] q_o
+  // Prevent Vivado from optimizing this signal away.
+  (* keep = "true" *) output logic [Width-1:0] q_o
 );
 
   always_ff @(posedge clk_i or negedge rst_ni) begin

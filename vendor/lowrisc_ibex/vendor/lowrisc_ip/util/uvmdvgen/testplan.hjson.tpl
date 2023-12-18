@@ -20,13 +20,13 @@
             **Checks**:
             - TBD
             '''
-      stage: V1
+      milestone: V1
       tests: ["${name}_smoke"]
     }
     {
       name: feature1
       desc: '''Add more test entries here like above.'''
-      stage: V1
+      milestone: V1
       tests: []
     }
   ]

@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import collections.abc
 import os
 import shlex
 import sys
@@ -18,105 +19,112 @@ class ConfigException(Exception):
     pass
 
 
-class Config:
-    '''An object representing an Ibex configuration'''
-    known_fields = [
-        ('RV32E', bool),
-        ('RV32M', str),
-        ('RV32B', str),
-        ('RegFile', str),
-        ('BranchTargetALU', bool),
-        ('WritebackStage', bool),
-        ('ICache', bool),
-        ('ICacheECC', bool),
-        ('ICacheScramble', bool),
-        ('BranchPredictor', bool),
-        ('DbgTriggerEn', bool),
-        ('SecureIbex', bool),
-        ('PMPEnable', bool),
-        ('PMPGranularity', int),
-        ('PMPNumRegions', int),
-        ('MHPMCounterNum', int),
-        ('MHPMCounterWidth', int)
-    ]
+def _verify_config(name, config_dict):
+    """Checks a config_dict matches expectations.
 
-    def __init__(self, yml):
-        if not isinstance(yml, dict):
-            raise ValueError('Configuration object is not a dict')
+    A config_dict is the dictionary mapping parameters to values for a
+    particular config, it must obey the following rules:
+        - It's a mapping object e.g. OrderedDict
+        - Its values can only be strings, integers or booleans
 
-        yaml_keys = set(yml.keys())
-        known_keys = {fld for (fld, typ) in Config.known_fields}
+    Args:
+        name: The name of the config being checked (used to form useful error
+        messages)
+        config_dict: The config_dict to check, must be a mapping object
 
-        extra_keys = yaml_keys - known_keys
-        if extra_keys:
-            raise ValueError(f'Configuration object has '
-                             f'unknown keys: {extra_keys}')
+    Returns:
+        Nothing, an exception is thrown if an issue is found
 
-        missing_keys = known_keys - yaml_keys
-        if missing_keys:
-            raise ValueError(f'Configuration object has '
-                             f'missing keys: {extra_keys}')
+    Raises:
+        ConfigException: An issue was found with config_dict
+    """
 
-        self.params = yml
+    if not isinstance(config_dict, collections.abc.Mapping):
+        raise ConfigException('Config ' + name +
+                              ' must have dictionary giving parameters')
 
-        self.rv32e = Config.read_bool('RV32E', yml)
-        self.rv32m = Config.read_str('RV32M', yml)
-        self.rv32b = Config.read_str('RV32B', yml)
-        self.reg_file = Config.read_str('RegFile', yml)
-        self.branch_target_alu = Config.read_bool('BranchTargetALU', yml)
-        self.writeback_stage = Config.read_bool('WritebackStage', yml)
-        self.icache = Config.read_bool('ICache', yml)
-        self.icache_ecc = Config.read_bool('ICacheECC', yml)
-        self.icache_scramble = Config.read_bool('ICacheScramble', yml)
-        self.branch_predictor = Config.read_bool('BranchPredictor', yml)
-        self.dbg_trigger_en = Config.read_bool('DbgTriggerEn', yml)
-        self.secure_ibex = Config.read_bool('SecureIbex', yml)
-        self.pmp_enable = Config.read_bool('PMPEnable', yml)
-        self.pmp_granularity = Config.read_int('PMPGranularity', yml)
-        self.pmp_num_regions = Config.read_int('PMPNumRegions', yml)
-        self.mhpm_counter_num = Config.read_int('MHPMCounterNum', yml)
-        self.mhpm_counter_width = Config.read_int('MHPMCounterWidth', yml)
+    for k, v in config_dict.items():
+        if isinstance(v, int):
+            continue
+        if isinstance(v, str):
+            continue
+        if isinstance(v, bool):
+            continue
 
-    @staticmethod
-    def read_bool(fld, yml):
-        val = yml[fld]
-        if isinstance(val, bool):
-            return val
-        if isinstance(val, int):
-            if 0 <= val <= 1:
-                return val != 0
-
-            raise ValueError(f'{fld} value is {val}, which is out of '
-                             'range for a boolean type.')
-        raise ValueError(f'{fld} value is {val!r}, but we expected a bool.')
-
-    @staticmethod
-    def read_int(fld, yml):
-        val = yml[fld]
-        if isinstance(val, int):
-            return val
-        raise ValueError(f'{fld} value is {val!r}, but we expected an int.')
-
-    @staticmethod
-    def read_str(fld, yml):
-        val = yml[fld]
-        if isinstance(val, str):
-            return val
-        raise ValueError(f'{fld} value is {val!r}, but we expected a string.')
+        raise ConfigException('Parameter ' + k + ' for config ' + name +
+                              ' must be string, int or bool got ' +
+                              str(type(v)))
 
 
-class Configs:
-    def __init__(self, yml):
-        if not isinstance(yml, dict):
-            raise ValueError('Configurations dictionary is not a dict')
+def _verify_config_parameters(config_dicts):
+    """Verifies all parameters across config_dicts match expectations.
 
-        self.configs = {}
-        for cfg_name, cfg_yaml in yml.items():
-            try:
-                self.configs[cfg_name] = Config(cfg_yaml)
-            except ValueError as err:
-                raise ValueError(f'Error when reading '
-                                 f'{cfg_name!r} config: {err}') from None
+    Each configuration must obey the following fules:
+        - Each config has the same set of parameters specified
+
+    Args:
+        config_dicts: A dictionary of configurations, maps from configuration
+        name to a configuration (itself a dictionary)
+
+    Returns:
+        Nothing, an exception is thrown if an issue is found
+
+    Raises:
+        ConfigException: An issue was found with config_dicts
+    """
+
+    parameters = set()
+
+    first = True
+
+    for name, config_dict in config_dicts.items():
+        parameters_this_config = set()
+
+        for parameter, value in config_dict.items():
+            if first:
+                parameters.add(parameter)
+
+            parameters_this_config.add(parameter)
+
+        if first:
+            first = False
+        else:
+            parameter_difference = parameters ^ parameters_this_config
+            if parameter_difference:
+                raise ConfigException('Config ' + name +
+                                      ' has differing parameters ' +
+                                      ','.join(parameter_difference))
+
+
+def get_config_dicts(config_file):
+    """Extracts a dictionary of configuration dictionaries from a file object
+
+    Given a file object parses YAML from it to obtain a dictionary of
+    configurations
+
+    Args:
+        config_file: A file object for a file containing the YAML configuration
+        file
+
+    Returns:
+        A dictionary of configurations, maps from a configuration name to a
+        configuration (itself a dictionary mapping parameters to values)
+
+    Raises:
+        ConfigException: An issue was found with the configuration file
+    """
+
+    try:
+        config_yaml = yaml.load(config_file, Loader=yaml.SafeLoader)
+    except yaml.YAMLError as e:
+        raise ConfigException('Could not decode yaml:\n' + str(e))
+
+    for k, v in config_yaml.items():
+        _verify_config(k, v)
+
+    _verify_config_parameters(config_yaml)
+
+    return config_yaml
 
 
 class FusesocOpts:
@@ -125,34 +133,21 @@ class FusesocOpts:
             'fusesoc_opts', help=('Outputs options for fusesoc'))
         output_argparser.set_defaults(output_fn=self.output)
 
-    def output(self, config, args):
+    def output(self, config_dict, args):
         fusesoc_cmd = []
-        for fld, typ in Config.known_fields:
-            val = config.params[fld]
-            fusesoc_cmd.append(shlex.quote(f'--{fld}={val}'))
+        for parameter, value in config_dict.items():
+            if isinstance(value, bool):
+                # For fusesoc boolean parameters are set to true if given on the
+                # command line otherwise false. It doesn't support an explicit
+                # --param=True style
+                if value:
+                    fusesoc_cmd.append(shlex.quote('--' + parameter))
+            else:
+                fusesoc_cmd.append(
+                    shlex.quote('--' + parameter + '=' + str(value)))
 
         return ' '.join(fusesoc_cmd)
 
-class QueryOpts:
-    def setup_args(self, arg_subparser):
-        output_argparser = arg_subparser.add_parser(
-            'query_fields', help=('Query config fields'))
-        output_argparser.add_argument(
-            'fields', type=str, nargs='+',
-            help='Which fields to query the value of')
-
-        output_argparser.set_defaults(output_fn=self.output)
-
-    def output(self, config, args):
-        query_result = []
-        for fld in args.fields:
-            if fld in config.params:
-                val = config.params[fld]
-                query_result.append(f'{fld}={val}')
-            else:
-                query_result.append(f'{fld} not found in config')
-
-        return '\n'.join(query_result)
 
 class SimOpts:
     def __init__(self, cmd_name, description, param_set_fn, define_set_fn,
@@ -180,7 +175,7 @@ class SimOpts:
             default='')
         output_argparser.set_defaults(output_fn=self.output)
 
-    def output(self, config, args):
+    def output(self, config_dict, args):
         if (args.ins_hier_path != ''):
             ins_hier_path = args.ins_hier_path + self.hierarchy_sep
         else:
@@ -188,22 +183,24 @@ class SimOpts:
 
         sim_opts = []
 
-        for fld, typ in Config.known_fields:
-            val = config.params[fld]
+        for parameter, value in config_dict.items():
+            if isinstance(value, str):
+                parameter_define = args.string_define_prefix + parameter
+                define_set_str = self.define_set_fn(parameter_define, value)
 
-            if typ is str:
-                parameter_define = args.string_define_prefix + fld
-                define_opts = self.define_set_fn(parameter_define, val)
-                sim_opts += [shlex.quote(arg) for arg in define_opts]
+                if define_set_str:
+                    sim_opts.append(shlex.quote(define_set_str))
             else:
-                assert typ in [bool, int]
+                if isinstance(value, bool):
+                    val_str = '1' if value else '0'
+                else:
+                    val_str = str(value)
 
-                # Explicitly convert to 0/1 (handling genuine booleans)
-                val_as_int = int(val)
+                param_set_str = self.param_set_fn(ins_hier_path + parameter,
+                                                  val_str)
 
-                full_param = ins_hier_path + fld
-                param_opts = self.param_set_fn(full_param, str(val_as_int))
-                sim_opts += [shlex.quote(arg) for arg in param_opts]
+                if param_set_str:
+                    sim_opts.append(shlex.quote(param_set_str))
 
         return ' '.join(sim_opts)
 
@@ -226,56 +223,55 @@ def parse_config(config_name, config_filename):
 
         config_filename: Name of the configuration filename to be parsed
 
-    Returns: the chosen Ibex config as a Config object.
+    Returns: the chosen Ibex config as a YAML object.
 
-    Raises an exception if there is an error loading or parsing the YAML, or if
-    the YAML doesn't define a configuration with the requested name.
+    Raises a ConfigException if there are any error while parsing the YAML.
 
+    Raises a FileNotFoundError if there are errors opening the chosen config file.
     """
-    with open(config_filename) as config_file:
-        try:
-            yml = yaml.load(config_file, Loader=yaml.SafeLoader)
-        except yaml.YAMLError as err:
-            raise ConfigException(f'Could not decode yaml: {err}')
-
     try:
-        configs = Configs(yml)
-    except ValueError as err:
-        raise ConfigException(f'{config_filename!r}: {err}') from None
+        config_file = open(config_filename)
+        config_dicts = get_config_dicts(config_file)
 
-    config = configs.configs.get(config_name)
-    if config is None:
-        raise ValueError(f'Configuration {config_name!r} not found '
-                         'in YAML at {config_filename!r}.')
-
-    return config
+        if config_name not in config_dicts:
+            print('ERROR: configuration {!r} not found in {!r}.'.format(
+                  config_name, config_filename), file=sys.stderr)
+            sys.exit(1)
+        return config_dicts[config_name]
+    except ConfigException as ce:
+        print('ERROR: failure to process configuration from {!r} {!r}.'.format(
+              config_filename, ce), file=sys.stderr)
+        sys.exit(1)
+    except FileNotFoundError:
+        print('ERROR: could not find configuration file {!r}.'.format(
+              config_filename), file=sys.stderr)
+        sys.exit(1)
 
 
 def main():
     outputters = [
         FusesocOpts(),
-        QueryOpts(),
         SimOpts('vcs_opts', 'VCS compile',
-                lambda p, v: ['-pvalue+' + p + '=' + v],
-                lambda d, v: ['+define+' + d + '=' + v], '.'),
+                lambda p, v: '-pvalue+' + p + '=' + v,
+                lambda d, v: '+define+' + d + '=' + v, '.'),
         SimOpts('riviera_sim_opts', 'Riviera simulate',
-                lambda p, v: ['-g/' + p + '=' + v],
-                lambda d, v: [], '/'),
+                lambda p, v: '-g/' + p + '=' + v,
+                lambda d, v: None, '/'),
         SimOpts('riviera_compile_opts', 'Riviera compile',
-                lambda p, v: [],
-                lambda d, v: ['+define+' + d + '=' + v], '/'),
+                lambda p, v: None,
+                lambda d, v: '+define+' + d + '=' + v, '/'),
         SimOpts('questa_sim_opts', 'Questa simulate',
-                lambda p, v: ['-g/' + p + '=' + v],
-                lambda d, v: [], '/'),
+                lambda p, v: '-g/' + p + '=' + v,
+                lambda d, v: None, '/'),
         SimOpts('questa_compile_opts', 'Questa compile',
-                lambda p, v: [],
-                lambda d, v: ['+define+' + d + '=' + v], '/'),
+                lambda p, v: None,
+                lambda d, v: '+define+' + d + '=' + v, '/'),
         SimOpts('xlm_opts', 'Xcelium compile',
-                lambda p, v: ['-defparam',  p + '=' + v],
-                lambda d, v: ['-define', d + '=' + v], '.'),
+                lambda p, v: '-defparam ' + p + '=' + v,
+                lambda d, v: '-define ' + d + '=' + v, '.'),
         SimOpts('dsim_compile_opts', 'DSim compile',
-                lambda p, v: ['+define+' + p + '=' + v],
-                lambda d, v: [], '/'),
+                lambda p, v: '+define+' + p + '=' + v,
+                lambda d, v: None, '/'),
     ]
 
     argparser = argparse.ArgumentParser(description=(

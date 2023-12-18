@@ -14,4 +14,3 @@ Read on for more information Ibex in general: what standards it implements, what
    compliance
    targets
    licensing
-   verification_overview

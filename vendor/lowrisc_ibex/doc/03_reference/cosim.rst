@@ -16,21 +16,25 @@ Only VCS is supported as a simulator, though no VCS specific functionality is re
 To run the co-simulation system, a particular version of Spike is required (see the Setup and Usage section, below).
 
 The RISC-V Formal Interface (RVFI) is used to provide information about retired instructions and instructions that produce synchronous traps for checking.
-The RVFI has been extended to provide interrupt and debug information and the value of various CSRs that are harder to model (e.g. ``mcycle``).
+The RVFI has been extended to provide interrupt and debug information and the value of the ``mcycle`` CSR.
 These extended signals have the prefix ``rvfi_ext``
+
+The co-simulation system is EXPERIMENTAL.
+It is disabled by default in the UVM DV environment currently, however it is intended to become the primary checking method for the UVM testbench.
 
 Setup and Usage
 ---------------
 
-Clone the `lowRISC fork of Spike <https://github.com/lowRISC/riscv-isa-sim>`_ and check out the ``ibex-cosim-v0.5`` tag.
+Clone the `lowRISC fork of Spike <https://github.com/lowRISC/riscv-isa-sim>`_ and check out the ``ibex-cosim-v0.1`` tag.
 Other, later, versions called ``ibex-cosim-v*`` may also work but there's no guarantee of backwards compatibility.
 Follow the Spike build instructions to build and install Spike.
+The build will install multiple header files and libraries, it is recommended a custom install location (using ``--prefix=<path>`` with ``configure``) is used to avoid cluttering system directories.
 The ``--enable-commitlog`` and ``--enable-misaligned`` options must be passed to ``configure``.
-We recommend using a custom install location (using ``--prefix=<path>`` with ``configure``) to avoid cluttering system directories.
-Note that, if you do this, you will also need to add an entry to ``PKG_CONFIG_PATH`` so that ``pkg-config`` can tell us how to build against the installed Spike libraries.
 
-To build/run the UVM DV environment with the co-simulator, add the ``COSIM=1`` argument to the make command.
-To build Simple System with the co-simulator, build the ``lowrisc:ibex:ibex_simple_system_cosim`` core.
+Once built, the ``IBEX_COSIM_ISS_ROOT`` environment variable must be set to the Spike root install directory (as given by ``--prefix=<path>`` to ``configure``) in order to build either the UVM DV environment or Simple System with co-simulation support.
+
+To build/run the UVM DV environment with the co-simulator add the ``COSIM=1`` argument to the make command.
+To build Simple System with the co-simulator build the ``lowrisc:ibex:ibex_simple_system_cosim`` core.
 
 Quick Build and Run Instructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,6 +55,9 @@ Build and install the co-simulator
   ../configure --enable-commitlog --enable-misaligned --prefix=/opt/spike-cosim
   sudo make -j8 install
 
+  # Setup IBEX_COSIM_ISS_ROOT so build flow can find the co-simulator
+  export IBEX_COSIM_ISS_ROOT=/opt/spike-cosim
+
 Run the UVM DV regression with co-simulation enabled
 
 .. code-block:: bash
@@ -70,6 +77,9 @@ Build and run Simple System with the co-simulation enabled
   # co-simulator system doesn't produce matching performance counters in spike so
   # any read of those CSRs results in a mismatch and a failure.
   make -C ./examples/sw/benchmarks/coremark SUPPRESS_PCOUNT_DUMP=1
+
+  # Spike's libsoftfloat.so needs to be accessible so add it to LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/opt/spike-cosim/lib:$LD_LIBRARY_PATH
 
   # Run coremark binary with co-simulation checking
   build/lowrisc_ibex_ibex_simple_system_cosim_0/sim-verilator/Vibex_simple_system --meminit=ram,examples/sw/benchmarks/coremark/coremark.elf
@@ -133,15 +143,7 @@ The DV environment is responsible for determining when to call ``set_mip``, ``se
 
 The state of the incoming interrupts and debug request is sampled when an instruction moves from IF to ID/EX.
 The sampled state is tracked with the rest of the RVFI pipeline and used to call ``set_mip``, ``set_debug_req`` and ``set_nmi`` when the instruction is output by the RVFI.
-
-A complication occurs when more than one interrupt or debug requests occur between individual instruction fetches.
-One interrupt or debug request may take priority over another when they all occur together but when they occur in time is important as well.
-If interrupt and debug request notification is associated exclusively with retired instructions the co-simulation system cannot correctly prioritise multiple interrupts and debug requests.
-To deal with this the RVFI can also signal an interrupt event not associated with an instruction by setting ``rvfi_ext_irq_valid`` without setting ``rvfi_valid``.
-When this is set the interrupt related RVFI signals are valid and provide the interrupt state.
-The RVFI is used in this way, as opposed to a separate notification interface, so the interrupt notifications are ordered relative to the retired instructions.
-
-See the comments in :file:`rtl/ibex_core.sv`, around the ``new_debug_req``, ``new_nmi``, ``new_irq`` and ``rvfi_irq_valid`` signals for further details.
+See the comments in :file:`rtl/ibex_core.sv`, around the ``new_debug_req``, ``new_nmi`` and ``new_irq`` signals for further details.
 
 Memory Access Checking and Bus Errors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

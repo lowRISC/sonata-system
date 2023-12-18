@@ -5,29 +5,18 @@
 `include "prim_assert.sv"
 
 module prim_sparse_fsm_flop #(
+  parameter type              StateEnumT = logic,
   parameter int               Width      = 1,
-  parameter type              StateEnumT = logic [Width-1:0],
-  parameter logic [Width-1:0] ResetValue = '0,
-  // This should only be disabled in special circumstances, for example
-  // in non-comportable IPs where an error does not trigger an alert.
-  parameter bit               EnableAlertTriggerSVA = 1
-`ifdef SIMULATION
-  ,
-  // In case this parameter is set to a non-empty string, the
-  // prim_sparse_fsm_flop_if will also force the signal with this name
-  // in the parent module that instantiates prim_sparse_fsm_flop.
-  parameter string            CustomForceName = ""
-`endif
+  parameter logic [Width-1:0] ResetValue = 0
 ) (
-  input             clk_i,
-  input             rst_ni,
-  input  StateEnumT state_i,
-  output StateEnumT state_o
+  input                    clk_i,
+  input                    rst_ni,
+  input        [Width-1:0] state_i,
+  output logic [Width-1:0] state_o
 );
 
-  logic unused_err_o;
+  logic unused_valid_st;
 
-  logic [Width-1:0] state_raw;
   prim_flop #(
     .Width(Width),
     .ResetValue(ResetValue)
@@ -35,24 +24,14 @@ module prim_sparse_fsm_flop #(
     .clk_i,
     .rst_ni,
     .d_i(state_i),
-    .q_o(state_raw)
+    .q_o(state_o)
   );
-  assign state_o = StateEnumT'(state_raw);
 
   `ifdef INC_ASSERT
-  assign unused_err_o = is_undefined_state(state_o);
-
-  function automatic logic is_undefined_state(StateEnumT sig);
-    // This is written with a vector in order to make it amenable to x-prop analysis.
-    logic is_defined = 1'b0;
-    for (int i = 0, StateEnumT t = t.first(); i < t.num(); i += 1, t = t.next()) begin
-      is_defined |= (sig === t);
-    end
-    return ~is_defined;
-  endfunction
-
+    StateEnumT tmp;
+    assign unused_valid_st = $cast(tmp, state_o);
   `else
-    assign unused_err_o = 1'b0;
+    assign unused_valid_st = 1'b1;
   `endif
 
   // If ASSERT_PRIM_FSM_ERROR_TRIGGER_ALERT is declared, the unused_assert_connected signal will
@@ -61,7 +40,16 @@ module prim_sparse_fsm_flop #(
   `ifdef INC_ASSERT
   logic unused_assert_connected;
 
-  `ASSERT_INIT_NET(AssertConnected_A, unused_assert_connected === 1'b1 || !EnableAlertTriggerSVA)
+  // ASSERT_INIT can only be used for paramters/constants in FPV.
+  `ifdef SIMULATION
+  `ASSERT_INIT(AssertConnected_A, unused_assert_connected === 1'b1)
+  `endif
   `endif
 
 endmodule
+
+`define ASSERT_PRIM_FSM_ERROR_TRIGGER_ALERT(NAME_, PRIM_HIER_, ALERT_, MAX_CYCLES_ = 5) \
+  `ASSERT(NAME_, $fell(PRIM_HIER_.unused_valid_st) |-> ##[1:MAX_CYCLES_] $rose(ALERT_.alert_p)) \
+  `ifdef INC_ASSERT \
+  assign PRIM_HIER_.unused_assert_connected = 1'b1; \
+  `endif
