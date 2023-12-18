@@ -96,8 +96,7 @@ module spi_top #(
     .rdata_o(tx_fifo_rdata),
 
     .full_o(tx_fifo_full),
-    .depth_o(tx_fifo_depth),
-    .err_o() // Unused
+    .depth_o(tx_fifo_depth)
   );
 
   spi_host #(

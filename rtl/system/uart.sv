@@ -146,8 +146,7 @@ module uart #(
     .rdata_o (rx_fifo_rdata),
 
     .full_o (),
-    .depth_o(),
-    .err_o  ()
+    .depth_o()
   );
 
   assign uart_irq_o = !rx_fifo_empty;
@@ -251,8 +250,7 @@ module uart #(
     .rdata_o (tx_fifo_rdata),
 
     .full_o (tx_fifo_full),
-    .depth_o(),
-    .err_o  ()
+    .depth_o()
   );
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
