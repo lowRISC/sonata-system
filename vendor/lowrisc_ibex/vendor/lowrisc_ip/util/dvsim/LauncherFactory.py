@@ -8,7 +8,6 @@ import os
 from Launcher import Launcher
 from LocalLauncher import LocalLauncher
 from LsfLauncher import LsfLauncher
-from SgeLauncher import SgeLauncher
 
 try:
     from edacloudlauncher.EdaCloudLauncher import EdaCloudLauncher
@@ -41,9 +40,6 @@ def set_launcher_type(is_local=False):
 
     elif launcher == "lsf":
         _LAUNCHER_CLS = LsfLauncher
-
-    elif launcher == "sge":
-        _LAUNCHER_CLS = SgeLauncher
 
     # These custom launchers are site specific. They may not be committed to
     # the open source repo.

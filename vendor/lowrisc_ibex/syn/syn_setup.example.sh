@@ -8,8 +8,7 @@ if [ $# -eq 1 ]; then
   export LR_SYNTH_OUT_DIR=$1
 elif [ $# -eq 0 ]; then
   export LR_SYNTH_OUT_DIR_PREFIX="syn_out/ibex"
-  LR_SYNTH_OUT_DIR=$(date +"${LR_SYNTH_OUT_DIR_PREFIX}_%d_%m_%Y_%H_%M_%S")
-  export LR_SYNTH_OUT_DIR
+  export LR_SYNTH_OUT_DIR=$(date +"${LR_SYNTH_OUT_DIR_PREFIX}_%d_%m_%Y_%H_%M_%S")
 else
   echo "Usage $0 [synth_out_dir]"
   exit 1

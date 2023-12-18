@@ -10,6 +10,5 @@ It is aimed at hardware developers integrating Ibex into a design, and software 
 
    system_requirements
    getting_started
-   configuration
    integration
    examples

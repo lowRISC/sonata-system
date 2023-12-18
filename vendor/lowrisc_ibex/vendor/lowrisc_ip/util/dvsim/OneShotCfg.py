@@ -47,6 +47,7 @@ class OneShotCfg(FlowCfg):
         self.scratch_path = ""
         self.build_dir = ""
         self.run_dir = ""
+        self.sw_build_dir = ""
         self.pass_patterns = []
         self.fail_patterns = []
         self.name = ""

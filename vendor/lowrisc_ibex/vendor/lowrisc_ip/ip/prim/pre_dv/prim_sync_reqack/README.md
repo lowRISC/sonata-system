@@ -1,4 +1,4 @@
-REQ/ACK Synchronizer Verilator Testbench
+REQ/ACK Syncronizer Verilator Testbench
 =======================================
 
 This directory contains a basic, scratch Verilator testbench targeting

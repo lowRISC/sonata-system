@@ -18,8 +18,6 @@ VERBOSITY=
 # The number of seeds to run for each selected test. Defaults to 1.
 RESEED=1
 
-SIM=xcelium
-
 # Specify the seed for the test to run. If this is empty, dvsim.py
 # will pick random seeds. By default, we make runs reproducible, so
 # force the seed if RESEED is 1.
@@ -35,16 +33,15 @@ scratch-root   := $(ibex-top)/build
 dvsim-py       := $(ibex-top)/vendor/lowrisc_ip/util/dvsim/dvsim.py
 dvsim-std-args := --scratch-root $(scratch-root)
 
-waves-arg      := $(if $(filter-out 0,$(WAVES)),--waves shm,)
+waves-arg      := $(if $(filter-out 0,$(WAVES)),--waves,)
 coverage-arg   := $(if $(filter-out 0,$(COVERAGE)),-c,)
 verbosity-arg  := $(if $(VERBOSITY),--verbosity $(VERBOSITY),)
 reseed-arg     := --reseed $(RESEED)
 seed-arg       := $(if $(SEED),--fixed-seed $(SEED),)
 tests-arg      := $(if $(TESTS),--items $(TESTS))
-tool-arg       := -t $(SIM)
 
 dvsim-mk-args := \
-  $(tool-arg) $(waves-arg) $(coverage-arg) $(verbosity-arg) \
+  $(waves-arg) $(coverage-arg) $(verbosity-arg) \
   $(reseed-arg) $(seed-arg) $(tests-arg)
 
 .PHONY: run

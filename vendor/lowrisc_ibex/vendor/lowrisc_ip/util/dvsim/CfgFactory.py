@@ -10,7 +10,6 @@ from CfgJson import load_hjson
 
 import FormalCfg
 import CdcCfg
-import RdcCfg
 import LintCfg
 import SimCfg
 import SynCfg
@@ -42,7 +41,6 @@ def _load_cfg(path, initial_values):
                            .format(path))
 
     classes = [
-        RdcCfg.RdcCfg,
         CdcCfg.CdcCfg,
         LintCfg.LintCfg,
         SynCfg.SynCfg,

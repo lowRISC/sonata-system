@@ -79,10 +79,10 @@ def main():
         help="""CIP has alerts. Create alerts interface in tb""")
 
     parser.add_argument(
-        "-ne",
-        "--num-edn",
-        default=0,
-        type=int,
+        "-he",
+        "--has-edn",
+        default=False,
+        action='store_true',
         help="""CIP has EDN connection. Create edn pull interface in tb""")
 
     parser.add_argument(

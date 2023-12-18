@@ -60,11 +60,8 @@ def main():
             # TODO(https://github.com/olofk/edalize/issues/90):
             # this is a workaround until we actually have native Edalize
             # support for JasperGold and "formal" targets
-            # TODO(#10071) remove countermeasure waiver.
             ("flow_warning",
-             r"^(?!WARNING: Unknown item formal in section Target)"
-             r"(?!WARNING: Countermeasure.*)"
-             r"WARNING: .*"),
+             r"^(?!WARNING: Unknown item formal in section Target)WARNING: .*"),
             ("flow_warning", r"^.*Warning: .* "),
             ("flow_warning", r"^W .*"),
             ("lint_warning", r"^.*\[Style:.*")

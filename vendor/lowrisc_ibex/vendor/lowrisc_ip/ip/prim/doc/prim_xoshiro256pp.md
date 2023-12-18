@@ -1,4 +1,6 @@
-# Primitive Component: XoShiRo256++
+---
+title: "Primitive Component: XoShiRo256++"
+---
 
 # Overviewtitle
 
@@ -58,10 +60,10 @@ state-update function contains a lockup protection which re-seeds the state with
 
 When the seed enable signal `seed_en_i` is raised, the internal state of xoshiro256++ is updated
 with the value provided at the 256b input 'seed_i'.
-The state is internally updated in every clock cycle whenever the enable signal `xoshiro_en_i` is raised.
+The state is internaly updated in every clock cycle whenever the enable signal `xoshiro_en_i` is raised.
 The timing diagram below visualizes this process.
 
-```wavejson
+{{< wavejson >}}
 {
   signal: [
     {name: 'clk', wave: 'p......|....'},
@@ -71,4 +73,4 @@ The timing diagram below visualizes this process.
     {name: 'state', wave: 'x.3..45|678.', data: 'Seed'}
   ]
 }
-```
+{{< /wavejson >}}
