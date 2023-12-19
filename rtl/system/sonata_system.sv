@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // The Sonata system, which instantiates and connects the following blocks:
-// - Memory bus.
+// - TileLink Uncached Lightweight (TL-UL) bus.
 // - Ibex top module.
 // - RAM memory to contain code and data.
 // - GPIO driving logic.
@@ -29,47 +29,26 @@ module sonata_system #(
   output logic                spi_tx_o,
   output logic                spi_sck_o
 );
-  localparam logic [31:0] MEM_SIZE      = 64 * 1024; // 64 KiB
-  localparam logic [31:0] MEM_START     = 32'h00100000;
-  localparam logic [31:0] MEM_MASK      = ~(MEM_SIZE-1);
 
-  localparam logic [31:0] GPIO_SIZE     =  4 * 1024; //  4 KiB
-  localparam logic [31:0] GPIO_START    = 32'h80000000;
-  localparam logic [31:0] GPIO_MASK     = ~(GPIO_SIZE-1);
+  //////////////////////////////////////////////
+  // Signals, types and parameters for system //
+  //////////////////////////////////////////////
 
-  localparam logic [31:0] DEBUG_START   = 32'h1a110000;
-  localparam logic [31:0] DEBUG_SIZE    = 64 * 1024; // 64 KiB
-  localparam logic [31:0] DEBUG_MASK    = ~(DEBUG_SIZE-1);
+  localparam int unsigned MemSize       = 64 * 1024; // 64 KiB
+  localparam int unsigned SRAMAddrWidth = $clog2(MemSize);
+  localparam int unsigned DebugStart    = 32'h1a110000;
+  localparam int unsigned PwmCtrSize    = 8;
+  localparam int unsigned BusAddrWidth  = 32;
+  localparam int unsigned BusByteEnable = 4;
+  localparam int unsigned BusDataWidth  = 32;
+  localparam int unsigned RegAddrWidth  = 8;
 
-  localparam logic [31:0] UART_SIZE     =  4 * 1024; //  4 KiB
-  localparam logic [31:0] UART_START    = 32'h80001000;
-  localparam logic [31:0] UART_MASK     = ~(UART_SIZE-1);
-
-  localparam logic [31:0] TIMER_SIZE    =  4 * 1024; //  4 KiB
-  localparam logic [31:0] TIMER_START   = 32'h80002000;
-  localparam logic [31:0] TIMER_MASK    = ~(TIMER_SIZE-1);
-
-  localparam logic [31:0] PWM_SIZE      =  4 * 1024; //  4 KiB
-  localparam logic [31:0] PWM_START     = 32'h80003000;
-  localparam logic [31:0] PWM_MASK      = ~(PWM_SIZE-1);
-  localparam int PwmCtrSize = 8;
-
-  parameter logic [31:0] SPI_SIZE       = 1 * 1024; // 1kB
-  parameter logic [31:0] SPI_START      = 32'h80004000;
-  parameter logic [31:0] SPI_MASK       = ~(SPI_SIZE-1);
-
-  parameter logic [31:0] SIM_CTRL_SIZE  = 1 * 1024; // 1kB
-  parameter logic [31:0] SIM_CTRL_START = 32'h20000;
-  parameter logic [31:0] SIM_CTRL_MASK  = ~(SIM_CTRL_SIZE-1);
-
-  // debug functionality is optional
-  localparam bit DBG = 1;
-  localparam int unsigned DbgHwBreakNum = (DBG == 1) ?    2 :    0;
-  localparam bit          DbgTriggerEn  = (DBG == 1) ? 1'b1 : 1'b0;
+  // debug functionality is disabled
+  localparam int unsigned DbgHwBreakNum = 0;
+  localparam bit          DbgTriggerEn  = 1'b0;
 
   typedef enum int {
-    CoreD,
-    DbgHost
+    CoreD
   } bus_host_e;
 
   typedef enum int {
@@ -78,13 +57,11 @@ module sonata_system #(
     Pwm,
     Uart,
     Timer,
-    Spi,
-    SimCtrl,
-    DbgDev
+    Spi
   } bus_device_e;
 
-  localparam int NrDevices = DBG ? 8 : 7;
-  localparam int NrHosts = DBG ? 2 : 1;
+  localparam int NrDevices = 6;
+  localparam int NrHosts = 1;
 
   // interrupts
   logic timer_irq;
@@ -101,7 +78,7 @@ module sonata_system #(
   logic [31:0]    host_rdata    [NrHosts];
   logic           host_err      [NrHosts];
 
-  //TODO remove these tie-offs once bus support CHERI tags.
+  // TODO remove these tie-offs once bus support CHERI tags.
   logic [32:0]    cheri_wdata;
   //cheri_wdata[32] is marked as unused at the bottom of this file.
   logic [32:0]    cheri_rdata;
@@ -112,63 +89,41 @@ module sonata_system #(
   // devices
   logic           device_req    [NrDevices];
   logic [31:0]    device_addr   [NrDevices];
-  logic           device_we     [NrDevices];
+  logic           device_re     [NrDevices]; // read enable
+  logic           device_we     [NrDevices]; // write enable
   logic [ 3:0]    device_be     [NrDevices];
   logic [31:0]    device_wdata  [NrDevices];
   logic           device_rvalid [NrDevices];
   logic [31:0]    device_rdata  [NrDevices];
   logic           device_err    [NrDevices];
 
+  // Generate requests from read and write enables
+  assign device_req[Gpio]  = device_re[Gpio]  | device_we[Gpio];
+  assign device_req[Pwm]   = device_re[Pwm]   | device_we[Pwm];
+  assign device_req[Uart]  = device_re[Uart]  | device_we[Uart];
+  assign device_req[Timer] = device_re[Timer] | device_we[Timer];
+  assign device_req[Spi]   = device_re[Spi]   | device_we[Spi];
+
   // Instruction fetch signals
   logic        core_instr_req;
+  logic        core_instr_req_filtered;
   logic        core_instr_gnt;
   logic        core_instr_rvalid;
   logic [31:0] core_instr_addr;
   logic [31:0] core_instr_rdata;
-  logic        core_instr_sel_dbg;
+  logic        core_instr_err;
 
   logic        mem_instr_req;
+  logic        mem_instr_rvalid;
+  logic [31:0] mem_instr_addr;
   logic [31:0] mem_instr_rdata;
-  logic        dbg_instr_req;
 
-  logic        dbg_device_req;
-  logic [31:0] dbg_device_addr;
-  logic        dbg_device_we;
-  logic [ 3:0] dbg_device_be;
-  logic [31:0] dbg_device_wdata;
-  logic        dbg_device_rvalid;
-  logic [31:0] dbg_device_rdata;
+  assign core_instr_req_filtered =
+      core_instr_req & ((core_instr_addr & ~(tl_main_pkg::ADDR_MASK_SRAM)) == tl_main_pkg::ADDR_SPACE_SRAM);
 
   // Internally generated resets cause IMPERFECTSCH warnings
   /* verilator lint_off IMPERFECTSCH */
   logic        rst_core_n;
-  logic        ndmreset_req;
-  logic        dm_debug_req;
-
-  // Device address mapping
-  logic [31:0] cfg_device_addr_base [NrDevices];
-  logic [31:0] cfg_device_addr_mask [NrDevices];
-
-  assign cfg_device_addr_base[Ram]     = MEM_START;
-  assign cfg_device_addr_mask[Ram]     = MEM_MASK;
-  assign cfg_device_addr_base[Gpio]    = GPIO_START;
-  assign cfg_device_addr_mask[Gpio]    = GPIO_MASK;
-  assign cfg_device_addr_base[Pwm]     = PWM_START;
-  assign cfg_device_addr_mask[Pwm]     = PWM_MASK;
-  assign cfg_device_addr_base[Uart]    = UART_START;
-  assign cfg_device_addr_mask[Uart]    = UART_MASK;
-  assign cfg_device_addr_base[Timer]   = TIMER_START;
-  assign cfg_device_addr_mask[Timer]   = TIMER_MASK;
-  assign cfg_device_addr_base[Spi]     = SPI_START;
-  assign cfg_device_addr_mask[Spi]     = SPI_MASK;
-  assign cfg_device_addr_base[SimCtrl] = SIM_CTRL_START;
-  assign cfg_device_addr_mask[SimCtrl] = SIM_CTRL_MASK;
-
-  if (DBG) begin : g_dbg_device_cfg
-    assign cfg_device_addr_base[DbgDev] = DEBUG_START;
-    assign cfg_device_addr_mask[DbgDev] = DEBUG_MASK;
-    assign device_err[DbgDev] = 1'b0;
-  end
 
   // Tie-off unused error signals
   assign device_err[Ram]     = 1'b0;
@@ -176,61 +131,369 @@ module sonata_system #(
   assign device_err[Pwm]     = 1'b0;
   assign device_err[Uart]    = 1'b0;
   assign device_err[Spi]     = 1'b0;
-  assign device_err[SimCtrl] = 1'b0;
 
-  bus #(
-    .NrDevices    ( NrDevices ),
-    .NrHosts      ( NrHosts   ),
-    .DataWidth    ( 32        ),
-    .AddressWidth ( 32        )
-  ) u_bus (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
+  /////////////////////////////////////////////
+  // Instantiate TL-UL crossbar and adapters //
+  /////////////////////////////////////////////
 
-    .host_req_i          (host_req     ),
-    .host_gnt_o          (host_gnt     ),
-    .host_addr_i         (host_addr    ),
-    .host_we_i           (host_we      ),
-    .host_be_i           (host_be      ),
-    .host_wdata_i        (host_wdata   ),
-    .host_rvalid_o       (host_rvalid  ),
-    .host_rdata_o        (host_rdata   ),
-    .host_err_o          (host_err     ),
+  // Host interfaces
+  tlul_pkg::tl_h2d_t tl_ibex_ins_h2d;
+  tlul_pkg::tl_d2h_t tl_ibex_ins_d2h;
 
-    .device_req_o        (device_req   ),
-    .device_addr_o       (device_addr  ),
-    .device_we_o         (device_we    ),
-    .device_be_o         (device_be    ),
-    .device_wdata_o      (device_wdata ),
-    .device_rvalid_i     (device_rvalid),
-    .device_rdata_i      (device_rdata ),
-    .device_err_i        (device_err   ),
+  tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d_d;
+  tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h_d;
+  tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d_q;
+  tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h_q;
 
-    .cfg_device_addr_base,
-    .cfg_device_addr_mask
+  // Device interfaces
+  tlul_pkg::tl_h2d_t tl_sram_h2d;
+  tlul_pkg::tl_d2h_t tl_sram_d2h;
+  tlul_pkg::tl_h2d_t tl_gpio_h2d;
+  tlul_pkg::tl_d2h_t tl_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_uart_h2d;
+  tlul_pkg::tl_d2h_t tl_uart_d2h;
+  tlul_pkg::tl_h2d_t tl_timer_h2d;
+  tlul_pkg::tl_d2h_t tl_timer_d2h;
+  tlul_pkg::tl_h2d_t tl_pwm_h2d;
+  tlul_pkg::tl_d2h_t tl_pwm_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_d2h;
+
+  xbar_main xbar (
+    .clk_sys_i (clk_sys_i),
+    .rst_sys_ni(rst_sys_ni),
+
+    // Host interfaces
+    .tl_ibex_lsu_i(tl_ibex_lsu_h2d_q),
+    .tl_ibex_lsu_o(tl_ibex_lsu_d2h_q),
+
+    // Device interfaces
+    .tl_sram_o (tl_sram_h2d),
+    .tl_sram_i (tl_sram_d2h),
+    .tl_gpio_o (tl_gpio_h2d),
+    .tl_gpio_i (tl_gpio_d2h),
+    .tl_uart_o (tl_uart_h2d),
+    .tl_uart_i (tl_uart_d2h),
+    .tl_timer_o(tl_timer_h2d),
+    .tl_timer_i(tl_timer_d2h),
+    .tl_pwm_o  (tl_pwm_h2d),
+    .tl_pwm_i  (tl_pwm_d2h),
+    .tl_spi_o  (tl_spi_h2d),
+    .tl_spi_i  (tl_spi_d2h),
+
+    .scanmode_i(prim_mubi_pkg::MuBi4False)
   );
 
-  assign mem_instr_req =
-      core_instr_req & ((core_instr_addr & cfg_device_addr_mask[Ram]) == cfg_device_addr_base[Ram]);
+  // TL-UL host adapter(s)
 
-  assign dbg_instr_req =
-      core_instr_req & ((core_instr_addr & cfg_device_addr_mask[DbgDev]) == cfg_device_addr_base[DbgDev]);
+  tlul_adapter_host ibex_ins_host_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
 
-  assign core_instr_gnt = mem_instr_req | (dbg_instr_req & ~device_req[DbgDev]);
+    .req_i       (core_instr_req_filtered),
+    .gnt_o       (core_instr_gnt),
+    .addr_i      (core_instr_addr),
+    .we_i        ('0),
+    .wdata_i     ('0),
+    .wdata_intg_i('0),
+    .be_i        ('0),
+    .instr_type_i(prim_mubi_pkg::MuBi4True),
 
-  always @(posedge clk_sys_i or negedge rst_sys_ni) begin
-    if (!rst_sys_ni) begin
-      core_instr_rvalid  <= 1'b0;
-      core_instr_sel_dbg <= 1'b0;
-    end else begin
-      core_instr_rvalid  <= core_instr_gnt;
-      core_instr_sel_dbg <= dbg_instr_req;
-    end
-  end
+    .valid_o     (core_instr_rvalid),
+    .rdata_o     (core_instr_rdata),
+    .rdata_intg_o(),
+    .err_o       (core_instr_err),
+    .intg_err_o  (),
 
-  assign core_instr_rdata = core_instr_sel_dbg ? dbg_device_rdata : mem_instr_rdata;
+    .tl_o(tl_ibex_ins_h2d),
+    .tl_i(tl_ibex_ins_d2h)
+  );
 
-  assign rst_core_n = rst_sys_ni & ~ndmreset_req;
+  tlul_adapter_host ibex_lsu_host_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .req_i       (host_req[CoreD]),
+    .gnt_o       (host_gnt[CoreD]),
+    .addr_i      (host_addr[CoreD]),
+    .we_i        (host_we[CoreD]),
+    .wdata_i     (host_wdata[CoreD]),
+    .wdata_intg_i('0),
+    .be_i        (host_be[CoreD]),
+    .instr_type_i(prim_mubi_pkg::MuBi4False),
+
+    .valid_o     (host_rvalid[CoreD]),
+    .rdata_o     (host_rdata[CoreD]),
+    .rdata_intg_o(),
+    .err_o       (host_err[CoreD]),
+    .intg_err_o  (),
+
+    .tl_o(tl_ibex_lsu_h2d_d),
+    .tl_i(tl_ibex_lsu_d2h_d)
+  );
+
+  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
+  tlul_fifo_sync #(
+    .ReqPass  ( 0 ),
+    .RspPass  ( 0 ),
+    .ReqDepth ( 2 ),
+    .RspDepth ( 2 )
+  ) tl_ibex_lsu_fifo (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_h_i(tl_ibex_lsu_h2d_d),
+    .tl_h_o(tl_ibex_lsu_d2h_d),
+    .tl_d_o(tl_ibex_lsu_h2d_q),
+    .tl_d_i(tl_ibex_lsu_d2h_q),
+
+    .spare_req_i(1'b0),
+    .spare_req_o(),
+    .spare_rsp_i(1'b0),
+    .spare_rsp_o()
+  );
+
+  // TL-UL device adapters
+
+  tlul_adapter_sram #(
+    .SramAw( SRAM_ADDRESS_WIDTH ),
+    .EnableRspIntgGen( 1 )
+  ) sram_inst_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_ibex_ins_h2d),
+    .tl_o(tl_ibex_ins_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4True),
+
+    // SRAM interface
+    .req_o(mem_instr_req),
+    .req_type_o(),
+    .gnt_i(mem_instr_req),
+    .we_o(),
+    .addr_o(mem_instr_addr[SRAM_ADDRESS_WIDTH-1:0]),
+    .wdata_o(),
+    .wmask_o(),
+    .intg_error_o(),
+    .rdata_i(mem_instr_rdata),
+    .rvalid_i(mem_instr_rvalid),
+    .rerror_i(2'b00)
+  );
+
+  assign mem_instr_addr[31:SRAM_ADDRESS_WIDTH] = '0;
+
+  logic [31:0] sram_data_bit_enable;
+  logic [1:0]  sram_data_read_error;
+
+  tlul_adapter_sram #(
+    .SramAw( SRAM_ADDRESS_WIDTH ),
+    .EnableRspIntgGen( 1 )
+  ) sram_data_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_sram_h2d),
+    .tl_o(tl_sram_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+
+    // SRAM interface
+    .req_o(device_req[Ram]),
+    .req_type_o(),
+    .gnt_i(device_req[Ram]),
+    .we_o(device_we[Ram]),
+    .addr_o(device_addr[Ram][SRAM_ADDRESS_WIDTH-1:0]),
+    .wdata_o(device_wdata[Ram]),
+    .wmask_o(sram_data_bit_enable),
+    .intg_error_o(),
+    .rdata_i(device_rdata[Ram]),
+    .rvalid_i(device_rvalid[Ram]),
+    .rerror_i(sram_data_read_error)
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Ram][BusAddrWidth-1:SRAMAddrWidth] = '0;
+
+  // Translate bit-level enable signals to Byte-level.
+  assign device_be[Ram][0] = |sram_data_bit_enable[ 7: 0];
+  assign device_be[Ram][1] = |sram_data_bit_enable[15: 8];
+  assign device_be[Ram][2] = |sram_data_bit_enable[23:16];
+  assign device_be[Ram][3] = |sram_data_bit_enable[31:24];
+
+  // Internal to the TLUL SRAM adapter, 2'b10 is an uncorrectable error and 2'b00 is no error.
+  // The following line converts the single bit error into this two bit format:
+  assign sram_data_read_error = {device_err[Ram], 1'b0};
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen( 1 ),
+    .AccessLatency   ( 1 )
+  ) gpio_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_gpio_h2d),
+    .tl_o(tl_gpio_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface
+    .re_o   (device_re[Gpio]),
+    .we_o   (device_we[Gpio]),
+    .addr_o (device_addr[Gpio][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[Gpio]),
+    .be_o   (device_be[Gpio]),
+    .busy_i ('0),
+    // The following two signals are expected
+    // to be returned in AccessLatency cycles.
+    .rdata_i(device_rdata[Gpio]),
+    // This can be a write or read error.
+    .error_i(device_err[Gpio])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Gpio][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen( 1 ),
+    .AccessLatency   ( 1 )
+  ) pwm_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_pwm_h2d),
+    .tl_o(tl_pwm_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface
+    .re_o   (device_re[Pwm]),
+    .we_o   (device_we[Pwm]),
+    .addr_o (device_addr[Pwm][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[Pwm]),
+    .be_o   (device_be[Pwm]),
+    .busy_i ('0),
+    // The following two signals are expected
+    // to be returned in AccessLatency cycles.
+    .rdata_i(device_rdata[Pwm]),
+    // This can be a write or read error.
+    .error_i(device_err[Pwm])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Pwm][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen( 1 ),
+    .AccessLatency   ( 1 )
+  ) uart_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_uart_h2d),
+    .tl_o(tl_uart_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface
+    .re_o   (device_re[Uart]),
+    .we_o   (device_we[Uart]),
+    .addr_o (device_addr[Uart][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[Uart]),
+    .be_o   (device_be[Uart]),
+    .busy_i ('0),
+    // The following two signals are expected
+    // to be returned in AccessLatency cycles.
+    .rdata_i(device_rdata[Uart]),
+    // This can be a write or read error.
+    .error_i(device_err[Uart])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Uart][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen( 1 ),
+    .AccessLatency   ( 1 )
+  ) timer_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_timer_h2d),
+    .tl_o(tl_timer_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface
+    .re_o   (device_re[Timer]),
+    .we_o   (device_we[Timer]),
+    .addr_o (device_addr[Timer][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[Timer]),
+    .be_o   (device_be[Timer]),
+    .busy_i ('0),
+    // The following two signals are expected
+    // to be returned in AccessLatency cycles.
+    .rdata_i(device_rdata[Timer]),
+    // This can be a write or read error.
+    .error_i(device_err[Timer])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Timer][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen( 1 ),
+    .AccessLatency   ( 1 )
+  ) spi_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface
+    .tl_i(tl_spi_h2d),
+    .tl_o(tl_spi_d2h),
+
+    // Control interface
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface
+    .re_o   (device_re[Spi]),
+    .we_o   (device_we[Spi]),
+    .addr_o (device_addr[Spi][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[Spi]),
+    .be_o   (device_be[Spi]),
+    .busy_i ('0),
+    // The following two signals are expected
+    // to be returned in AccessLatency cycles.
+    .rdata_i(device_rdata[Spi]),
+    // This can be a write or read error.
+    .error_i(device_err[Spi])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[Spi][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  //////////////////////////////////////////////
+  // Core and hardware IP block instantiation //
+  //////////////////////////////////////////////
+
+  assign rst_core_n = rst_sys_ni;
 
   ibexc_top #(
     .DmHaltAddr      ( DEBUG_START + dm::HaltAddress[31:0]     ),
@@ -260,7 +523,7 @@ module sonata_system #(
     .instr_addr_o      (core_instr_addr),
     .instr_rdata_i     (core_instr_rdata),
     .instr_rdata_intg_i('0),
-    .instr_err_i       ('0),
+    .instr_err_i       (core_instr_err),
 
     .data_req_o       (host_req[CoreD]),
     .data_is_cap_o    (), // TODO connect this to memory when CHERI is enabled.
@@ -295,7 +558,7 @@ module sonata_system #(
     .scramble_nonce_i    ('0),
     .scramble_req_o      (),
 
-    .debug_req_i        (dm_debug_req),
+    .debug_req_i        (),
     .crash_dump_o       (),
     .double_fault_seen_o(),
 
@@ -308,6 +571,8 @@ module sonata_system #(
 
   ram_2p #(
       .Depth       ( MEM_SIZE / 4 ),
+      .AddrOffsetA ( 0 ),
+      .AddrOffsetB ( 0 ),
       .MemInitFile ( SRAMInitFile )
   ) u_ram (
     .clk_i       (clk_sys_i),
@@ -324,9 +589,9 @@ module sonata_system #(
     .b_req_i     (mem_instr_req),
     .b_we_i      (1'b0),
     .b_be_i      (4'b0),
-    .b_addr_i    (core_instr_addr),
+    .b_addr_i    (mem_instr_addr),
     .b_wdata_i   (32'b0),
-    .b_rvalid_o  (),
+    .b_rvalid_o  (mem_instr_rvalid),
     .b_rdata_o   (mem_instr_rdata)
   );
 
@@ -410,23 +675,6 @@ module sonata_system #(
     .byte_data_o() // unused
   );
 
-  `ifdef VERILATOR
-    simulator_ctrl #(
-      .LogName("sonata_system.log")
-    ) u_simulator_ctrl (
-      .clk_i     (clk_sys_i),
-      .rst_ni    (rst_sys_ni),
-
-      .req_i     (device_req[SimCtrl]),
-      .we_i      (device_we[SimCtrl]),
-      .be_i      (device_be[SimCtrl]),
-      .addr_i    (device_addr[SimCtrl]),
-      .wdata_i   (device_wdata[SimCtrl]),
-      .rvalid_o  (device_rvalid[SimCtrl]),
-      .rdata_o   (device_rdata[SimCtrl])
-    );
-  `endif
-
   timer #(
     .DataWidth    ( 32 ),
     .AddressWidth ( 32 )
@@ -445,57 +693,6 @@ module sonata_system #(
     .timer_intr_o  (timer_irq)
   );
 
-  assign dbg_device_req        = device_req[DbgDev] | dbg_instr_req;
-  assign dbg_device_we         = device_req[DbgDev] & device_we[DbgDev];
-  assign dbg_device_addr       = device_req[DbgDev] ? device_addr[DbgDev] : core_instr_addr;
-  assign dbg_device_be         = device_be[DbgDev];
-  assign dbg_device_wdata      = device_wdata[DbgDev];
-  assign device_rvalid[DbgDev] = dbg_device_rvalid;
-  assign device_rdata[DbgDev]  = dbg_device_rdata;
-
-  always @(posedge clk_sys_i or negedge rst_sys_ni) begin
-    if (!rst_sys_ni) begin
-      dbg_device_rvalid <= 1'b0;
-    end else begin
-      dbg_device_rvalid <= device_req[DbgDev];
-    end
-  end
-
-  if (DBG) begin : g_dm_top
-    dm_top #(
-      .NrHarts ( 1 )
-    ) u_dm_top (
-      .clk_i             (clk_sys_i),
-      .rst_ni            (rst_sys_ni),
-      .testmode_i        (1'b0),
-      .ndmreset_o        (ndmreset_req),
-      .dmactive_o        (),
-      .debug_req_o       (dm_debug_req),
-      .unavailable_i     (1'b0),
-
-      // bus device with debug memory (for execution-based debug)
-      .device_req_i      (dbg_device_req),
-      .device_we_i       (dbg_device_we),
-      .device_addr_i     (dbg_device_addr),
-      .device_be_i       (dbg_device_be),
-      .device_wdata_i    (dbg_device_wdata),
-      .device_rdata_o    (dbg_device_rdata),
-
-      // bus host (for system bus accesses, SBA)
-      .host_req_o        (host_req[DbgHost]),
-      .host_add_o        (host_addr[DbgHost]),
-      .host_we_o         (host_we[DbgHost]),
-      .host_wdata_o      (host_wdata[DbgHost]),
-      .host_be_o         (host_be[DbgHost]),
-      .host_gnt_i        (host_gnt[DbgHost]),
-      .host_r_valid_i    (host_rvalid[DbgHost]),
-      .host_r_rdata_i    (host_rdata[DbgHost])
-    );
-  end else begin
-    assign dm_debug_req = 1'b0;
-    assign ndmreset_req = 1'b0;
-  end
-
   `ifdef VERILATOR
     export "DPI-C" function mhpmcounter_get;
 
@@ -506,4 +703,12 @@ module sonata_system #(
 
   logic _unused_ok;
   assign _unused_ok = cheri_wdata[32];
+
+  for (genvar i = 0; i < NrDevices; i++) begin : gen_unused
+    logic _unused_rvalid;
+    assign _unused_rvalid = device_rvalid[i];
+  end : gen_unused
+
+  logic  _unused_read_enable;
+  assign _unused_read_enable = device_re[Ram];
 endmodule
