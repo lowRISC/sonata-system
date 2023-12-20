@@ -6,27 +6,28 @@
 module pwm_wrapper #(
   parameter int PwmWidth   = 12,
   parameter int PwmCtrSize = 8,
-  parameter int BusWidth   = 32
+  parameter int AddrWidth  = 32,
+  parameter int DataWidth  = 32
 ) (
-  input  logic                clk_i,
-  input  logic                rst_ni,
+  input  logic clk_i,
+  input  logic rst_ni,
 
   // IO for device bus.
-  input  logic                device_req_i,
-  input  logic [BusWidth-1:0] device_addr_i,
-  input  logic                device_we_i,
-  input  logic [         3:0] device_be_i,
-  input  logic [BusWidth-1:0] device_wdata_i,
-  output logic                device_rvalid_o,
-  output logic [BusWidth-1:0] device_rdata_o,
+  input  logic                 device_req_i,
+  input  logic [AddrWidth-1:0] device_addr_i,
+  input  logic                 device_we_i,
+  input  logic [3:0]           device_be_i,
+  input  logic [DataWidth-1:0] device_wdata_i,
+  output logic                 device_rvalid_o,
+  output logic [DataWidth-1:0] device_rdata_o,
 
   // Collected output of all PWMs.
   output logic [PwmWidth-1:0] pwm_o
 );
 
-  localparam int unsigned AddrWidth = 10;
-  localparam int unsigned PwmIdxOffset = $clog2(BusWidth / 8) + 1;
-  localparam int unsigned PwmIdxWidth = AddrWidth - PwmIdxOffset;
+  localparam int unsigned RegAddr = 10;
+  localparam int unsigned PwmIdxOffset = $clog2(DataWidth / 8) + 1;
+  localparam int unsigned PwmIdxWidth = RegAddr - PwmIdxOffset;
 
   // Generate PwmWidth number of PWMs.
   for (genvar i = 0; i < PwmWidth; i++) begin : gen_pwm
@@ -44,10 +45,10 @@ module pwm_wrapper #(
     // Each PWM has a 64-bit block. The most significant 32 bits are the counter and the least
     // significant 32 bits are the pulse width.
     assign counter_en     = device_req_i & device_we_i
-                                         & (device_addr_i[AddrWidth-1:PwmIdxOffset] == pwm_idx)
+                                         & (device_addr_i[RegAddr-1:PwmIdxOffset] == pwm_idx)
                                          & device_addr_i[PwmIdxOffset-1];
     assign pulse_width_en = device_req_i & device_we_i
-                                         & (device_addr_i[AddrWidth-1:PwmIdxOffset] == pwm_idx)
+                                         & (device_addr_i[RegAddr-1:PwmIdxOffset] == pwm_idx)
                                          & ~device_addr_i[PwmIdxOffset-1];
 
     always @(posedge clk_i or negedge rst_ni) begin
