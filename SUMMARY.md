@@ -20,4 +20,5 @@
     - [Pinmux](doc/ip/pinmux.md)
   - [Software](doc/architecture/software.md)
 
+- [Getting started](doc/guide/getting-started.md)
 
