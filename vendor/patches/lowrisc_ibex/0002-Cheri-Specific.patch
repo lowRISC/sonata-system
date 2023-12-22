@@ -1,0 +1,29 @@
+diff --git a/ibex_top.core b/ibex_top.core
+index 7bd0b89..bf675e6 100644
+--- a/ibex_top.core
++++ b/ibex_top.core
+@@ -19,8 +19,8 @@ filesets:
+       - rtl/ibex_register_file_fpga.sv # FPGA
+       - rtl/ibex_register_file_latch.sv # ASIC
+       - rtl/cheri_regfile.sv # generic FF-based
+       - rtl/ibex_lockstep.sv
+-      - rtl/ibex_top.sv
++      - rtl/ibexc_top.sv
+     file_type: systemVerilogSource
+ 
+   files_lint_verilator:
+diff --git a/rtl/ibexc_top.sv b/rtl/ibexc_top.sv
+index aff9d8e..d2bf1ad 100644
+--- a/rtl/ibexc_top.sv
++++ b/rtl/ibexc_top.sv
+@@ -370,8 +370,8 @@ module ibex_top import ibex_pkg::*; import cheri_pkg::*; #(
+ `endif
+ 
+     .fetch_enable_i(fetch_enable_buf),
+-    .alert_minor_o(),
+-    .alert_major_o(),
++    .alert_minor_o(alert_minor_o),
++    .alert_major_o(alert_major_o),
+     .icache_inval_o(),
+     .core_busy_o   (core_busy_d),
+     .ic_scr_key_valid_i (1'b0),

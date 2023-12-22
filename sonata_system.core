@@ -1,0 +1,30 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:sonata:design"
+description: "Sonata System: putting CHERIoT into the hands of engineers."
+filesets:
+  files_rtl_sonata_system:
+    depend:
+      - lowrisc:ibex:ibex_top
+      - pulp:riscv:debug_module
+      - lowrisc:ip:xbar_main
+      - lowrisc:tlul:adapter_host
+      - lowrisc:tlul:adapter_reg
+    files:
+      - rtl/system/sonata_system.sv
+      - rtl/system/dm_top.sv
+      - rtl/system/debounce.sv
+      - rtl/system/gpio.sv
+      - rtl/system/pwm.sv
+      - rtl/system/pwm_wrapper.sv
+      - rtl/system/uart.sv
+      - rtl/system/spi_host.sv
+      - rtl/system/spi_top.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - files_rtl_sonata_system

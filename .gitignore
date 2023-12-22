@@ -1,1 +1,6 @@
-book
+book/
+build/
+.venv/
+target/
+*.fst
+sonata_system_pcount.csv

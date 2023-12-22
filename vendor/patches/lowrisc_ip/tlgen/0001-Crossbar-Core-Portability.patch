@@ -1,0 +1,17 @@
+diff --git a/xbar.core.tpl b/xbar.core.tpl
+index 0161d75..c3a0e3d 100644
+--- a/xbar.core.tpl
++++ b/xbar.core.tpl
+@@ -11,10 +11,9 @@ filesets:
+   files_rtl:
+     depend:
+       - lowrisc:ip:tlul
+-      - lowrisc:ip:lc_ctrl_pkg
+     files:
+-      - rtl/autogen/tl_${xbar.name}_pkg.sv
+-      - rtl/autogen/xbar_${xbar.name}.sv
++      - tl_${xbar.name}_pkg.sv
++      - xbar_${xbar.name}.sv
+     file_type: systemVerilogSource
+ 
+ 
