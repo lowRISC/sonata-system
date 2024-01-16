@@ -172,9 +172,13 @@ Then run this command:
 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system
 ```
 
+For the Arty A7 use the `synth_artya7` target.
+
 ### Programming
 
 Programming the FPGA:
 ```sh
-openFPGALoader -b arty_a7_35t build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
+openFPGALoader -c ft4232 build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
 ```
+
+For the Arty A7 use `-b arty_a7_35t` instead of `-c ft4232`.
