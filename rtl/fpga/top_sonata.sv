@@ -75,7 +75,7 @@ module top_sonata (
     .uart_rx_i(ser0_rx),
     .uart_tx_o(ser0_tx),
 
-    .pwm_o({CheriErr, led_legacy, led_cheri, led_halted}),
+    .pwm_o({cheriErr, led_legacy, led_cheri, led_halted}),
 
     .spi_rx_i (1'b0),
     .spi_tx_o (lcd_copi),
