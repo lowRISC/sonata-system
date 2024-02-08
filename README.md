@@ -7,7 +7,7 @@ It is designed for use on FPGA and specifically targets the [Sonata FPGA board](
 It is under active development and the first full RTL release is not yet complete.
 In the meantime, please read the [architecture specfication](https://lowrisc.org/sonata-system/doc/architecture/intro.html).
 
-Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/).
+Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
 
 ## Building Documentation
 
