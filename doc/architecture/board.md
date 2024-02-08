@@ -69,3 +69,7 @@ In terms of output, we have:
 
 In order to meet the 'affordable' requirement, we choose a low-end FPGA to reduce the costs.
 We choose a Xilinx Artix 7 FPGA because it has a typical amount of memory for embedded use-cases while being able to clock the design higher than similarly priced alternatives and being supported by many tools.
+
+## Technical details
+
+If you want to know more details on what the actual design looks like, please have a look at [NewAE's repository of the Sonata PCB](https://github.com/newaetech/sonata-pcb).
