@@ -17,6 +17,8 @@ Once mdBook is installed the documentation can be built and viewed with:
 
 ```bash
 mdbook serve --open
+# Avoid FuseSoC using copied files in the book directory
+touch book/FUSESOC_IGNORE
 ```
 
 ## License
