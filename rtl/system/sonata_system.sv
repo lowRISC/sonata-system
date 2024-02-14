@@ -492,7 +492,7 @@ module sonata_system #(
 
   assign rst_core_n = rst_sys_ni;
 
-  ibexc_top #(
+  ibexc_top_tracing #(
     .DmHaltAddr      ( DebugStart + dm::HaltAddress[31:0]      ),
     .DmExceptionAddr ( DebugStart + dm::ExceptionAddress[31:0] ),
     .DbgTriggerEn    ( DbgTriggerEn                            ),
@@ -717,7 +717,7 @@ module sonata_system #(
     export "DPI-C" function mhpmcounter_get;
 
     function automatic longint unsigned mhpmcounter_get(int index);
-      return u_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
+      return u_top.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
     endfunction
   `endif
 

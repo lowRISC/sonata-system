@@ -23,3 +23,15 @@ lint_off -rule IMPERFECTSCH -file "*pulp_riscv_dbg*"
 lint_off -rule DECLFILENAME -file "*pulp_riscv_dbg*"
 lint_off -rule PINMISSING -file "*pulp_riscv_dbg*"
 lint_off -rule UNUSED -file "*ibex_register_file_fpga*"
+
+lint_off -rule UNUSED -file "*ibex_core.sv"
+lint_off -rule UNUSED -file "*cheri_stkz.sv"
+lint_off -rule UNUSED -file "*cheri_tbre.sv"
+lint_off -rule UNUSED -file "*ibex_tracer.sv"
+
+lint_off -rule WIDTH -file "*cheri_stkz.sv"
+lint_off -rule WIDTH -file "*cheri_tbre.sv"
+lint_off -rule WIDTH -file "*ibex_tracer.sv"
+lint_off -rule WIDTH -file "*ibex_core.sv"
+
+lint_off -rule UNDRIVEN -file "*ibexc_top_tracing.sv"
