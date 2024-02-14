@@ -7,7 +7,7 @@ description: "Sonata System: putting CHERIoT into the hands of engineers."
 filesets:
   files_rtl_sonata_system:
     depend:
-      - lowrisc:ibex:ibex_top
+      - lowrisc:ibex:ibex_top_tracing
       - pulp:riscv:debug_module
       - lowrisc:ip:xbar_main
       - lowrisc:tlul:adapter_host
