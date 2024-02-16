@@ -12,16 +12,27 @@
     lowrisc-nix,
   }: let
     system_outputs = system: let
-      sonata_version = "0.0.1";
+      version = "0.0.1";
 
       pkgs = import nixpkgs {
         inherit system;
       };
+      lr_doc = lowrisc-nix.lib.doc {inherit pkgs;};
       lr_pkgs = lowrisc-nix.outputs.packages.${system};
+      fs = pkgs.lib.fileset;
+
+      sonata-documentation = lr_doc.buildMdbookSite {
+        inherit version;
+        pname = "sonata-documentation";
+        src = fs.toSource {
+          root = ./.;
+          fileset = lr_doc.standardMdbookFileset ./.;
+        };
+      };
 
       sonata-simulator = pkgs.stdenv.mkDerivation {
+        inherit version;
         pname = "sonata-system-simulator";
-        version = sonata_version;
         src = ./.;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.python311Packages.pip] ++ (with lr_pkgs; [python_ot verilator_ot]);
@@ -41,7 +52,7 @@
         name = "sonata-system-devshell";
         packages = [pkgs.gtkwave] ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
-      packages = {inherit sonata-simulator;};
+      packages = {inherit sonata-simulator sonata-documentation;};
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
