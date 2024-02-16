@@ -4,3 +4,4 @@ build/
 target/
 *.fst
 sonata_system_pcount.csv
+result
