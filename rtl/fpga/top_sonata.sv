@@ -22,6 +22,7 @@ module top_sonata (
   output logic lcd_copi,
   output logic lcd_clk,
   output logic lcd_cs,
+  output logic lcd_backlight,
 
   output logic ser0_tx,
   input  logic ser0_rx
@@ -56,9 +57,6 @@ module top_sonata (
   // on and 0 for off.
   assign nav_sw_n = ~navSw;
   assign user_sw_n = ~usrSw;
-
-  // No LCD backlight FPGA IO on v0.2 board, so leave this unconnected.
-  logic lcd_backlight;
 
   sonata_system #(
     .GpiWidth    ( 13           ),
