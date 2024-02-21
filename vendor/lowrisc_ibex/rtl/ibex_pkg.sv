@@ -277,6 +277,7 @@ package ibex_pkg;
     RF_WD_CSR
   } rf_wd_sel_e;
 
+
   //////////////
   // IF stage //
   //////////////
@@ -310,21 +311,23 @@ package ibex_pkg;
 
   // Exception cause
   typedef enum logic [5:0] {
-    EXC_CAUSE_IRQ_SOFTWARE_M     = {1'b1, 5'd03},
-    EXC_CAUSE_IRQ_TIMER_M        = {1'b1, 5'd07},
-    EXC_CAUSE_IRQ_EXTERNAL_M     = {1'b1, 5'd11},
-    // EXC_CAUSE_IRQ_FAST_0      = {1'b1, 5'd16},
-    // EXC_CAUSE_IRQ_FAST_14     = {1'b1, 5'd30},
-    EXC_CAUSE_IRQ_NM             = {1'b1, 5'd31}, // == EXC_CAUSE_IRQ_FAST_15
-    EXC_CAUSE_INSN_ADDR_MISA     = {1'b0, 5'd00},
-    EXC_CAUSE_INSTR_ACCESS_FAULT = {1'b0, 5'd01},
-    EXC_CAUSE_ILLEGAL_INSN       = {1'b0, 5'd02},
-    EXC_CAUSE_BREAKPOINT         = {1'b0, 5'd03},
-    EXC_CAUSE_LOAD_ACCESS_FAULT  = {1'b0, 5'd05},
-    EXC_CAUSE_STORE_ACCESS_FAULT = {1'b0, 5'd07},
-    EXC_CAUSE_ECALL_UMODE        = {1'b0, 5'd08},
-    EXC_CAUSE_ECALL_MMODE        = {1'b0, 5'd11},
-    EXC_CAUSE_CHERI_FAULT        = {1'b0, 5'd28}
+    EXC_CAUSE_IRQ_SOFTWARE_M      = {1'b1, 5'd03},
+    EXC_CAUSE_IRQ_TIMER_M         = {1'b1, 5'd07},
+    EXC_CAUSE_IRQ_EXTERNAL_M      = {1'b1, 5'd11},
+    // EXC_CAUSE_IRQ_FAST_0       = {1'b1, 5'd16},
+    // EXC_CAUSE_IRQ_FAST_14      = {1'b1, 5'd30},
+    EXC_CAUSE_IRQ_NM              = {1'b1, 5'd31}, // == EXC_CAUSE_IRQ_FAST_15
+    EXC_CAUSE_INSN_ADDR_MISA      = {1'b0, 5'd00},
+    EXC_CAUSE_INSTR_ACCESS_FAULT  = {1'b0, 5'd01},
+    EXC_CAUSE_ILLEGAL_INSN        = {1'b0, 5'd02},
+    EXC_CAUSE_BREAKPOINT          = {1'b0, 5'd03},
+    EXC_CAUSE_LOAD_ADDR_MISALIGN  = {1'b0, 5'd04},
+    EXC_CAUSE_LOAD_ACCESS_FAULT   = {1'b0, 5'd05},
+    EXC_CAUSE_STORE_ADDR_MISALIGN = {1'b0, 5'd06},
+    EXC_CAUSE_STORE_ACCESS_FAULT  = {1'b0, 5'd07},
+    EXC_CAUSE_ECALL_UMODE         = {1'b0, 5'd08},
+    EXC_CAUSE_ECALL_MMODE         = {1'b0, 5'd11},
+    EXC_CAUSE_CHERI_FAULT         = {1'b0, 5'd28}
   } exc_cause_e;
 
   // Debug cause
@@ -630,4 +633,44 @@ package ibex_pkg;
   // `ibex_core` may need adjusting.
   parameter fetch_enable_t FetchEnableOn  = 4'b1001;
   parameter fetch_enable_t FetchEnableOff = 4'b0110;
+
+  typedef logic [3:0] ibex_mubi_t;
+
+  // Note that if adjusting these parameters it is assumed the bottom bit is set for On and unset
+  // for Off. This allows the use of IbexMuBiOn/IbexMuBiOff to work for both secure and non-secure
+  // Ibex. If this assumption is broken the RTL that uses ibex_mubi_t types such as the fetch_enable
+  // and core_busy signals within `ibex_core` may need adjusting.
+  parameter ibex_mubi_t IbexMuBiOn  = 4'b0101;
+  parameter ibex_mubi_t IbexMuBiOff = 4'b1010;
+
+  //////////////
+  // ID stage //
+  //////////////
+
+  typedef enum logic [3:0] {
+    RESET,
+    BOOT_SET,
+    WAIT_SLEEP,
+    SLEEP,
+    FIRST_FETCH,
+    DECODE,
+    FLUSH,
+    IRQ_TAKEN,
+    DBG_TAKEN_IF,
+    DBG_TAKEN_ID
+  } ctrl_fsm_e;
+
+  //////////////
+  // LSU      //
+  //////////////
+
+  typedef enum logic [3:0]  {
+    IDLE, WAIT_GNT_MIS, WAIT_RVALID_MIS, WAIT_GNT,
+    WAIT_RVALID_MIS_GNTS_DONE,
+    CTX_WAIT_GNT1, CTX_WAIT_GNT2, CTX_WAIT_RESP
+  } ls_fsm_e;
+
+  typedef enum logic [2:0] {CRX_IDLE, CRX_WAIT_RESP1, CRX_WAIT_RESP2} cap_rx_fsm_t;
+
+
 endpackage

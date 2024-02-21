@@ -6,9 +6,6 @@
 // should we merge this with cheri_EX? let's leave it alone for now since we may look into
 // a separate decoder PL stage later
 
-//TODO actually fix lint issues
-/* verilator lint_off UNOPTFLAT */
-
 module cheri_decoder import cheri_pkg::*; # (
   parameter bit CheriPPLBC = 1'b1,
   parameter bit CheriSBND2 = 1'b0
@@ -47,11 +44,11 @@ module cheri_decoder import cheri_pkg::*; # (
   //  - fmt2: R-format, func3(14:12) = 0x0, func7(31:25) = subFunc, etc.
   //  - fmt3: I-format, func3(14:12) = 0x0, func7(31:25) = 0x7f, imm5(24:20) = subFunc
   //  - opcode [6:0] == 0x5b for all CHERI instructions
-  assign unused_opcode   = instr_rdata_i[6:0];
-  assign func3_op = instr_rdata_i[14:12];
-  assign func7_op = instr_rdata_i[31:25];
-  assign imm5_op  = instr_rdata_i[24:20];
-  assign rd_op    = instr_rdata_i[11:7];
+  assign unused_opcode = instr_rdata_i[6:0];
+  assign func3_op      = instr_rdata_i[14:12];
+  assign func7_op      = instr_rdata_i[31:25];
+  assign imm5_op       = instr_rdata_i[24:20];
+  assign rd_op         = instr_rdata_i[11:7];
 
   always_comb begin
     cheri_operator_o = OPDW'('h0);
@@ -114,6 +111,9 @@ module cheri_decoder import cheri_pkg::*; # (
   // register dependency decoding
   // only handled opcode=0x5b case here.
   // Will be qualified and combined with other cases by ibexc_decoder
+  //   - note: rf_reb_b_o actually should be '0' for CSPECIALRW. 
+  //     however that's the only mismatch case so performance loss due to stalling 
+  //     should be small, and so we choose to have simpler decoder for timing
   assign cheri_rf_ren_a_o = 1'b1;
   assign cheri_rf_ren_b_o = (func3_op == 0) && (func7_op != 7'h7f);
 
@@ -128,5 +128,3 @@ module cheri_decoder import cheri_pkg::*; # (
                                    cheri_operator_o[CRRL] | cheri_operator_o[CRAM]));
 
 endmodule
-
-/* verilator lint_off UNOPTFLAT */

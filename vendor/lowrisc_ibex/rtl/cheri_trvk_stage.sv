@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-//TODO actually fix lint issues
-/* verilator lint_off WIDTH */
 /* verilator lint_off UNUSED */
 
 module cheri_trvk_stage #(
@@ -54,18 +52,20 @@ module cheri_trvk_stage #(
 
   logic [31:0] base32;
   logic [31:0] tsmap_ptr;
-  logic  [4:0] bitpos, bitpos_q;    // bit index in a 32-bit word
+  logic  [4:0] bitpos_q; // bit index in a 32-bit word
   logic        range_ok;
   logic  [2:1] range_ok_q;
 
 
-  assign base32    = get_bound33(in_cap_q.base, in_cap_q.base_cor, in_cap_q.exp, in_data_q);
+  assign base32    = 32'(get_bound33(in_cap_q.base, in_cap_q.base_cor, in_cap_q.exp, in_data_q));
   assign tsmap_ptr = (base32 - HeapBase) >> 3;
 
+  /* verilator lint_off WIDTH */
   assign tsmap_addr_o  = tsmap_ptr[15:5];
+  /* verilator lint_on WIDTH */
 
   // not a sealling cap and pointing to valid TSMAP range
-  assign range_ok      = (tsmap_ptr[31:5] <= TSMapSize) && 
+  assign range_ok      = (int'(tsmap_ptr[31:5]) <= TSMapSize) &&
                          ~((in_cap_q.cperms[4:3]==2'b00) && (|in_cap_q.cperms[2:0]));
   assign tsmap_cs_o    = (cpu_op_valid_q[0] | tbre_op_valid_q[0]) & cap_good_q[0];
 
@@ -79,7 +79,7 @@ module cheri_trvk_stage #(
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       cpu_op_active <= 1'b0;
-      trsv_addr  <= 4'h0;
+      trsv_addr  <= 5'h0;
     end else begin
       if (rf_trsv_en_i) cpu_op_active <= 1'b1;
       else if (lsu_resp_valid_i) cpu_op_active <= 1'b0;
@@ -95,7 +95,6 @@ module cheri_trvk_stage #(
                           (lsu_tbre_resp_valid_i & ~lsu_tbre_resp_err_i &  rf_wcap_lsu_i.valid);
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
-    int i;
     if (!rst_ni) begin
       cpu_op_valid_q  <= 0;
       tbre_op_valid_q <= 0;
@@ -135,5 +134,4 @@ module cheri_trvk_stage #(
 
 endmodule
 
-/* verilator lint_on WIDTH */
 /* verilator lint_on UNUSED */

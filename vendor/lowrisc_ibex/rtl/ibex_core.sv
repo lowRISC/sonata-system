@@ -13,9 +13,6 @@
 
 `include "prim_assert.sv"
 
-//TODO actually fix lints
-/* verilator lint_off UNUSED */
-
 /**
  * Top level module of the ibex RISC-V core
  */
@@ -118,6 +115,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   input  logic [31:0]                  tsmap_rdata_i,
   input  logic [MMRegDinW-1:0]         mmreg_corein_i,
   output logic [MMRegDoutW-1:0]        mmreg_coreout_o,
+  output logic                         cheri_fatal_err_o,
 
   // RAMs interface
   output logic [IC_NUM_WAYS-1:0]       ic_tag_req_o,
@@ -200,7 +198,6 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   // IF/ID signals
   logic        dummy_instr_id;
   logic        instr_valid_id;
-  logic        instr_executing_id;
   logic        instr_new_id;
   logic [31:0] instr_rdata_id;                 // Instruction sampled inside IF stage
   logic [31:0] instr_rdata_alu_id;             // Instruction sampled inside IF stage (replicated to
@@ -211,7 +208,10 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   logic        instr_bp_taken_id;
   logic        instr_fetch_err;                // Bus error on instr fetch
   logic        instr_fetch_err_plus2;          // Instruction error is misaligned
+  logic        instr_fetch_cheri_acc_vio;         
+  logic        instr_fetch_cheri_bound_vio;         
   logic        illegal_c_insn_id;              // Illegal compressed instruction sent to ID stage
+
   logic [31:0] pc_if;                          // Program counter in IF stage
   logic [31:0] pc_id;                          // Program counter in ID stage
   logic [31:0] pc_wb;                          // Program counter in WB stage
@@ -257,8 +257,6 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   logic        ctrl_busy;
   logic        if_busy;
   logic        lsu_busy;
-
-  logic        lsu_busy_tbre;
 
   // Register File
   logic [4:0]  rf_raddr_a;
@@ -370,6 +368,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   logic        csr_restore_mret_id;
   logic        csr_restore_dret_id;
   logic        csr_save_cause;
+  logic        csr_mepcc_clrtag;
   logic        csr_mtvec_init;
   logic [31:0] csr_mtvec;
   logic [31:0] csr_mtval;
@@ -427,9 +426,9 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   reg_cap_t      cheri_result_cap;
   logic          cheri_ex_valid;
   logic          cheri_ex_err;
-  logic [10:0]   cheri_ex_err_info;
+  logic [11:0]   cheri_ex_err_info;
   logic          cheri_wb_err;
-  logic [10:0]   cheri_wb_err_info;
+  logic [11:0]   cheri_wb_err_info;
 
   /* verilator lint_off UNOPTFLAT */
   /* verilator lint_off IMPERFECTSCH */
@@ -444,7 +443,6 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   logic          rv32_lsu_sign_ext;
   logic          rv32_lsu_addr_incr_req;
   logic [31:0]   rv32_lsu_addr_last;
-  logic          rv32_lsu_resp_valid;
 
   logic          cheri_csr_access;
   logic [4:0]    cheri_csr_addr;
@@ -564,6 +562,9 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     .instr_bp_taken_o        (instr_bp_taken_id),
     .instr_fetch_err_o       (instr_fetch_err),
     .instr_fetch_err_plus2_o (instr_fetch_err_plus2),
+    .instr_fetch_cheri_acc_vio_o   (instr_fetch_cheri_acc_vio),       
+    .instr_fetch_cheri_bound_vio_o (instr_fetch_cheri_bound_vio),       
+
     .illegal_c_insn_id_o     (illegal_c_insn_id),
     .dummy_instr_id_o        (dummy_instr_id),
     .pc_if_o                 (pc_if),
@@ -679,6 +680,9 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
 
     .instr_fetch_err_i      (instr_fetch_err),
     .instr_fetch_err_plus2_i(instr_fetch_err_plus2),
+    .instr_fetch_cheri_acc_vio_i  (instr_fetch_cheri_acc_vio),       
+    .instr_fetch_cheri_bound_vio_i (instr_fetch_cheri_bound_vio),       
+
     .illegal_c_insn_i       (illegal_c_insn_id),
 
     .pc_id_i(pc_id),
@@ -718,6 +722,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     .csr_restore_mret_id_o(csr_restore_mret_id),  // restore mstatus upon MRET
     .csr_restore_dret_id_o(csr_restore_dret_id),  // restore mstatus upon MRET
     .csr_save_cause_o     (csr_save_cause),
+    .csr_mepcc_clrtag_o   (csr_mepcc_clrtag),
     .csr_mtval_o          (csr_mtval),
     .priv_mode_i          (priv_mode_id),
     .csr_mstatus_tw_i     (csr_mstatus_tw),
@@ -875,8 +880,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
       .TSMapSize            (TSMapSize),
       .CheriPPLBC           (CheriPPLBC),
       .CheriSBND2           (CheriSBND2),
-      .CheriStkZ            (CheriTBRE),
-      .StkZ1Cycle           (1'b1)
+      .CheriStkZ            (CheriTBRE)
     ) u_cheri_ex (
       .clk_i                (clk_i),
       .rst_ni               (rst_ni),
@@ -1097,7 +1101,8 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     .lsu_tbre_resp_is_wr_i   (lsu_resp_is_wr),
     .lsu_tbre_raw_lsw_i      (lsu_tbre_raw_lsw),   
     .lsu_tbre_req_done_i     (lsu_tbre_req_done),   
-    .lsu_tbre_addr_incr_i    (lsu_addr_incr_req),
+    .lsu_tbre_addr_incr_i    (lsu_tbre_addr_incr),
+    .lsu_tbre_sel_i          (lsu_tbre_sel),
     .tbre_lsu_req_o          (tbre_lsu_req),
     .tbre_lsu_is_cap_o       (tbre_lsu_is_cap),
     .tbre_lsu_we_o           (tbre_lsu_we),
@@ -1179,7 +1184,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     .lsu_cheri_err_i  (lsu_cheri_err),
     .lsu_addr_i       (lsu_addr),
 
-    .addr_incr_req_o(lsu_addr_incr_req),
+    .lsu_addr_incr_req_o(lsu_addr_incr_req),
     .addr_last_o    (lsu_addr_last),
 
     .lsu_req_done_o      (lsu_req_done),
@@ -1195,6 +1200,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     .lsu_tbre_req_done_o   (lsu_tbre_req_done),
     .lsu_tbre_resp_valid_o (lsu_tbre_resp_valid),
     .lsu_tbre_resp_err_o   (lsu_tbre_resp_err),
+    .lsu_tbre_addr_incr_req_o(lsu_tbre_addr_incr),
 
     // exception signals
     .load_err_o (lsu_load_err),
@@ -1204,7 +1210,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
 
     .busy_o(lsu_busy),
 
-    .busy_tbre_o(lsu_busy_tbre),
+    .busy_tbre_o(),
 
     .perf_load_o (perf_load),
     .perf_store_o(perf_store)
@@ -1282,9 +1288,6 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
     logic [38:0] wdata_ecc_tmp;
 
     assign rf_wcap_vec  = reg2vec(rf_wcap_wb);
-
-    // need to protect the TRSV/TRVK interfaces ?? QQQ
-
 
     // ECC checkbit generation
     // -- for simplicity just linearly add the parity bits together.
@@ -1421,77 +1424,6 @@ end
   // Major alert - core is unrecoverable
   assign alert_major_o = rf_ecc_err_comb | pc_mismatch_alert | csr_shadow_err;
 
-  // Explict INC_ASSERT block to avoid unused signal lint warnings were asserts are not included
-  `ifdef INC_ASSERT
-  // Signals used for assertions only
-  logic outstanding_load_resp;
-  logic outstanding_store_resp;
-
-  logic outstanding_load_id;
-  logic outstanding_store_id;
-  logic cheri_intl_clbc;
-
-  assign outstanding_load_id  = (id_stage_i.instr_executing & (id_stage_i.lsu_req_dec & ~id_stage_i.lsu_we)) |
-                                (cheri_exec_id & cheri_operator[CLOAD_CAP]);
-  assign outstanding_store_id = (id_stage_i.instr_executing & id_stage_i.lsu_req_dec & id_stage_i.lsu_we) |
-                                (cheri_exec_id & cheri_operator[CSTORE_CAP]);
-  assign cheri_intl_clbc = cheri_operator[CLOAD_CAP] & ~CheriPPLBC & cheri_tsafe_en_i;
-
-  if (WritebackStage) begin : gen_wb_stage
-    // When the writeback stage is present a load/store could be in ID or WB. A Load/store in ID can
-    // see a response before it moves to WB when it is unaligned otherwise we should only see
-    // a response when load/store is in WB.
-    assign outstanding_load_resp  = outstanding_load_wb |
-      (outstanding_load_id  & (load_store_unit_i.split_misaligned_access | cheri_intl_clbc));
-
-    assign outstanding_store_resp = outstanding_store_wb |
-      (outstanding_store_id & load_store_unit_i.split_misaligned_access);
-
-    // When writing back the result of a load, the load must have made it to writeback
-    `ASSERT(NoMemRFWriteWithoutPendingLoad, rf_we_lsu  |-> outstanding_load_wb, clk_i, !rst_ni)
-  end else begin : gen_no_wb_stage
-    // Without writeback stage only look into whether load or store is in ID to determine if
-    // a response is expected.
-    assign outstanding_load_resp  = outstanding_load_id;
-    assign outstanding_store_resp = outstanding_store_id;
-
-    `ASSERT(NoMemRFWriteWithoutPendingLoad, rf_we_lsu |-> outstanding_load_resp, clk_i, !rst_ni)
-  end
-  
-  if (~CheriTBRE) begin
-  `ASSERT(NoMemResponseWithoutPendingAccess,
-    // this doesn't work for CLC since 1st data_rvalid comes back before wb
-    // data_rvalid_i |-> outstanding_load_resp | outstanding_store_resp,  clk_i, !rst_ni)
-    load_store_unit_i.lsu_resp_valid_o |-> outstanding_load_resp | outstanding_store_resp,  clk_i, !rst_ni)
-  end
-  `endif
-
-
-  ////////////////////////
-  // CHERI assertions
-  ////////////////////////
-
-  if (CHERIoTEn) begin : gen_cheri_assert
-    // decoded cheri_operator should be one-hot
-    `ASSERT(CheriOperatorOneHotOnly, $onehot0(cheri_operator))
-
-    // cheri_ex operand forwarding logic should behave the same as ID_stage
-    `ASSERT_IF(CheriFwdCheckA, (g_cheri_ex.u_cheri_ex.rf_rdata_ng_a == id_stage_i.rf_rdata_a_fwd), id_stage_i.instr_executing)
-    `ASSERT_IF(CheriFwdCheckB, (g_cheri_ex.u_cheri_ex.rf_rdata_ng_b == id_stage_i.rf_rdata_b_fwd), id_stage_i.instr_executing)
-
-    if (WritebackStage && ~CheriPPLBC) begin
-    // cheri_ex state machines must be in IDLE state when a new instruction starts
-    `ASSERT(CheriLsuFsmIdle1, instr_id_done |-> (load_store_unit_i.ls_fsm_ns == 0), clk_i, !rst_ni)
-    `ASSERT(CheriLsuFsmIdle2, ((load_store_unit_i.ls_fsm_cs == 0) && load_store_unit_i.lsu_req_i)  |->
-           ((load_store_unit_i.cap_rx_fsm_q==0) | (load_store_unit_i.cap_rx_fsm_q==2)), clk_i, !rst_ni)
-    `ASSERT_IF(CheriLsuFsmWaitResp, (load_store_unit_i.cap_rx_fsm_q != 7), 1'b1)
-    end
-
-    // only writes to regfile when wb_done
-    if (WritebackStage) begin
-      `ASSERT(CheriWrRegs, rf_we_wb |-> instr_done_wb, clk_i, !rst_ni)
-    end
-  end
   ////////////////////////
   // RF (Register File) //
   ////////////////////////
@@ -1607,6 +1539,7 @@ end
     .csr_restore_mret_i(csr_restore_mret_id),
     .csr_restore_dret_i(csr_restore_dret_id),
     .csr_save_cause_i  (csr_save_cause),
+    .csr_mepcc_clrtag_i   (csr_mepcc_clrtag),
     .csr_mcause_i      (exc_cause),
     .csr_mtval_i       (csr_mtval),
     .illegal_csr_insn_o(illegal_csr_insn_id),
@@ -1632,18 +1565,10 @@ end
     .cheri_branch_target_i  (branch_target_ex_cheri),
     .pcc_cap_i              (pcc_cap_w),
     .pcc_cap_o              (pcc_cap_r),
-    .csr_dbg_tclr_fault_o   (csr_dbg_tclr_fault)
+    .csr_dbg_tclr_fault_o   (csr_dbg_tclr_fault),
+    .cheri_fatal_err_o      (cheri_fatal_err_o)
   );
 
-
-  // These assertions are in top-level as instr_valid_id required as the enable term
-  `ASSERT(IbexCsrOpValid, instr_valid_id |-> csr_op inside {
-      CSR_OP_READ,
-      CSR_OP_WRITE,
-      CSR_OP_SET,
-      CSR_OP_CLEAR
-      })
-  `ASSERT_KNOWN_IF(IbexCsrWdataIntKnown, cs_registers_i.csr_wdata_int, csr_op_en)
 
   if (PMPEnable) begin : g_pmp
     logic [33:0] pmp_req_addr [PMP_NUM_CHAN];
@@ -2308,5 +2233,3 @@ end
   `ASSERT_INIT(IllegalParamSecure, !(SecureIbex && (RV32M == RV32MNone)))
 
 endmodule
-
-/* verilator lint_on UNUSED */

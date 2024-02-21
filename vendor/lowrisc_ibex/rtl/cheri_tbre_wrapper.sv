@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-//TODO actually fix lint errors
 /* verilator lint_off UNUSED */
 
 module cheri_tbre_wrapper import cheri_pkg::*; #(
@@ -29,6 +28,7 @@ module cheri_tbre_wrapper import cheri_pkg::*; #(
   input  logic [32:0]   lsu_tbre_raw_lsw_i,   
   input  logic          lsu_tbre_req_done_i,   
   input  logic          lsu_tbre_addr_incr_i,
+  input  logic          lsu_tbre_sel_i,
   output logic          tbre_lsu_req_o,
   output logic          tbre_lsu_is_cap_o,
   output logic          tbre_lsu_we_o,
@@ -83,7 +83,8 @@ module cheri_tbre_wrapper import cheri_pkg::*; #(
 
   logic          tbre_stat, tbre_err, stkz_err;
 
-  assign mmreg_coreout_o = {{(MMRegDoutW-3){1'b0}}, stkz_err, tbre_err, tbre_stat};
+  assign mmreg_coreout_o = {{(MMRegDoutW-10){1'b0}}, 2'b00, 2'b00, stkz_err, stkz_active_o,
+                                                    2'b00,  tbre_err, tbre_stat};
 
   if (CHERIoTEn & CheriTBRE) begin : g_tbre
     logic [65:0] tbre_ctrl_vec;
@@ -180,35 +181,40 @@ module cheri_tbre_wrapper import cheri_pkg::*; #(
   //  reuse the obimux logic
   //
   logic [nMSTR-1:0] mstr_arbit, mstr_arbit_q, mstr_arbit_comb;
-  logic [nMSTR-1:0] mstr_req, mstr_gnt;
+  logic [nMSTR-1:0] mstr_req;
   logic             req_pending, req_pending_q;
   logic             slv_req, slv_gnt;
 
   assign slv_req = |mstr_req;
-  assign mstr_gnt = {nMSTR{slv_gnt}} & mstr_arbit_comb;
 
   // arbitration by strict priority assignment - mst_req[0] == highest priority
   for (genvar i = 0; i < nMSTR; i++) begin
     logic [7:0] pri_mask;
     assign pri_mask = 8'hff >> (8-i);      // max 8 masters, should be enough 
-    //TODO assert that nMSTR is les than or equal to 8
-    /* verilator lint_off WIDTH */
-    assign mstr_arbit[i] = mstr_req[i] & ~(|(mstr_req & pri_mask));
-    /* verilator lint_on WIDTH */
+    assign mstr_arbit[i] = mstr_req[i] & ~(|(mstr_req & pri_mask[nMSTR-1:0]));
   end
 
-  // make the next arbiration decision immediately when receiving grant so that
-  // the address/wdata/ctrl can be hold steady when presenting the next request 
-  // to the slave (otherwise may violate the obi protocol?)
+  // Handling delayed-gnt case. 
+  // make the next arbiration decision immediately if any master_req active
+  // If slv_gnt doesn't happen in the same cycle, register the  decision till 
+  // slv_gant so that the address/wdata/ctrl can be hold steady when presenting 
+  // the next request to the slave. 
+  // Corner case:
+  // -- adding the lsu_tbre_sel term to req_pending (allow the arbitration to
+  //    change when LSU is handling CPU requests.
+  //    this is needed since TBRE could cancel write requests in the case of
+  //    a pipeline hazard (cpu write to the same location TBRE is working on)
+  
   assign mstr_arbit_comb = req_pending_q ? mstr_arbit_q : mstr_arbit;
-  assign req_pending = |mstr_req & ~slv_gnt;
+  assign req_pending = |mstr_req & ~slv_gnt & ~req_pending_q & lsu_tbre_sel_i;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if(~rst_ni) begin
       req_pending_q  <= 1'b0;
       mstr_arbit_q   <= 0;
     end else begin
-      req_pending_q <= req_pending;
+      if (slv_gnt) req_pending_q <= 1'b0;
+      else if (req_pending) req_pending_q <= 1'b1;
       if (req_pending) mstr_arbit_q <= mstr_arbit;
     end
   end
