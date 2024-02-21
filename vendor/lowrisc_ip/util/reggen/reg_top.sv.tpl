@@ -148,10 +148,7 @@ module ${mod_name} (
 
 %endif
   // Integrity check errors
-  output logic intg_err_o,
-
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+  output logic intg_err_o
 );
 
   import ${lblock}${alias_impl}_reg_pkg::* ;
@@ -404,7 +401,7 @@ module ${mod_name} (
 
   % endif
   assign reg_rdata = reg_rdata_next ;
-  assign reg_error = (devmode_i & addrmiss) | wr_err | intg_err;
+  assign reg_error = addrmiss | wr_err | intg_err;
 
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
@@ -566,6 +563,7 @@ ${reg_hdr}
         flds_no_we |= (not f.swaccess.needs_we()) << f_idx
       if flds_no_we != 0:
         flds_we_masked = f"&({sr_name}_flds_we | {len(sr.fields)}'h{flds_no_we:x})"
+        unused_flds_we_masked = f"^({sr_name}_flds_we & {len(sr.fields)}'h{flds_no_we:x})"
       else:
         flds_we_masked = f"&{sr_name}_flds_we"
       f"" if flds_no_we != 0 else ""
@@ -573,6 +571,8 @@ ${reg_hdr}
         % if sr.hwext and flds_no_we != 2**len(sr.fields)-1:
           % if flds_no_we != 0:
   // This ignores QEs that are set to constant 0 due to read-only fields.
+  logic unused_${sr_name}_flds_we;
+  assign unused_${sr_name}_flds_we = ${unused_flds_we_masked};
           % endif
   assign ${sr_name}_qe = ${flds_we_masked};
         % elif flds_no_we != 2**len(sr.fields)-1:
@@ -832,10 +832,6 @@ ${rdata_gen(f, r.name.lower() + "_" + f.name.lower())}\
   logic unused_be;
   assign unused_wdata = ^reg_wdata;
   assign unused_be = ^reg_be;
-% else:
-  // devmode_i is not used if there are no registers
-  logic unused_devmode;
-  assign unused_devmode = ^devmode_i;
 % endif
 % if rb.all_regs:
 

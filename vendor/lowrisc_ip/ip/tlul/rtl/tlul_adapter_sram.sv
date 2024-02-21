@@ -54,9 +54,11 @@ module tlul_adapter_sram
   output logic                we_o,
   output logic [SramAw-1:0]   addr_o,
   output logic [DataOutW-1:0] wdata_o,
+  output logic                wdata_cap_o,
   output logic [DataOutW-1:0] wmask_o,
   output logic                intg_error_o,
   input        [DataOutW-1:0] rdata_i,
+  input                       rdata_cap_i,
   input                       rvalid_i,
   input        [1:0]          rerror_i // 2 bit error [1]: Uncorrectable, [0]: Correctable
 );
@@ -192,6 +194,7 @@ module tlul_adapter_sram
 
   typedef struct packed {
     logic [top_pkg::TL_DW-1:0] data ;
+    logic                      data_cap ;
     logic [DataIntgWidth-1:0]  data_intg ;
     logic                      error ;
   } rsp_t ;
@@ -289,6 +292,10 @@ module tlul_adapter_sram
   assign d_data = (vld_rd_rsp & ~d_error) ? rspfifo_rdata.data   // valid read
                                           : error_blanking_data; // write or TL-UL error
 
+  logic d_cap;
+  assign d_cap = (vld_rd_rsp & ~d_error) ? rspfifo_rdata.data_cap // valid read
+                                         : 0;                     // write or TL-UL error
+
   // If this a write response with data fields set to 0, we have to set all ECC bits correctly
   // since we are using an inverted Hsiao code.
   logic [DataIntgWidth-1:0] data_intg;
@@ -304,7 +311,7 @@ module tlul_adapter_sram
       d_source : (d_valid) ? reqfifo_rdata.source : '0,
       d_sink   : 1'b0,
       d_data   : d_data,
-      d_user   : '{default: '0, data_intg: data_intg},
+      d_user   : '{default: '0, data_intg: data_intg, capability: d_cap},
       d_error  : d_valid && d_error,
       a_ready  : (gnt_i | error_internal) & reqfifo_wready & sramreqfifo_wready
   };
@@ -344,6 +351,9 @@ module tlul_adapter_sram
   logic [WidthMult-1:0][top_pkg::TL_DW-1:0] wmask_int;
   logic [WidthMult-1:0][top_pkg::TL_DW-1:0] wdata_int;
 
+  // Capability portion
+  logic wcap_int;
+
   // Integrity portion
   logic [WidthMult-1:0][DataIntgWidth-1:0] wmask_intg;
   logic [WidthMult-1:0][DataIntgWidth-1:0] wdata_intg;
@@ -351,12 +361,14 @@ module tlul_adapter_sram
   always_comb begin
     wmask_int = '0;
     wdata_int = '0;
+    wcap_int  = '0;
 
     if (tl_i_int.a_valid) begin
       for (int i = 0 ; i < top_pkg::TL_DW/8 ; i++) begin
         wmask_int[woffset][8*i +: 8] = {8{tl_i_int.a_mask[i]}};
         wdata_int[woffset][8*i +: 8] = (tl_i_int.a_mask[i] && we_o) ? tl_i_int.a_data[8*i+:8] : '0;
       end
+      wcap_int = we_o ? tl_i_int.a_user.capability : 1'b0;
     end
   end
 
@@ -384,6 +396,7 @@ module tlul_adapter_sram
 
   assign wmask_o = wmask_combined;
   assign wdata_o = wdata_combined;
+  assign wdata_cap_o = wcap_int;
 
   assign reqfifo_wvalid = a_ack ; // Push to FIFO only when granted
   assign reqfifo_wdata  = '{
@@ -439,6 +452,7 @@ module tlul_adapter_sram
 
   assign rspfifo_wdata  = '{
     data      : rdata_tlword[top_pkg::TL_DW-1:0],
+    data_cap  : rdata_cap_i,
     data_intg : EnableDataIntgPt ? rdata_tlword[DataWidth-1 -: DataIntgWidth] : '0,
     error     : rerror_i[1] // Only care for Uncorrectable error
   };
@@ -546,6 +560,7 @@ module tlul_adapter_sram
   `ASSERT_KNOWN(WeOutKnown_A,    we_o   )
   `ASSERT_KNOWN(AddrOutKnown_A,  addr_o )
   `ASSERT_KNOWN(WdataOutKnown_A, wdata_o)
+  `ASSERT_KNOWN(WcapOutKnown_A,  wdata_cap_o)
   `ASSERT_KNOWN(WmaskOutKnown_A, wmask_o)
 
 endmodule

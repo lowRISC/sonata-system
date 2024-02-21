@@ -65,7 +65,7 @@ ${hdr}
       ## We are inhomogeneous, which means there is more than one different
       ## field. Generate a reg2hw typedef that packs together all the fields of
       ## the register.
-      % for f in r0.fields:
+      % for f in reversed(r0.fields):
 <%
           field_q_width = f.get_n_bits(r0.hwext, r0.hwre, ["q"])
 %>\
@@ -271,16 +271,30 @@ value = "{}'h {:x}".format(aw, r.offset)
     reg_width = reg.get_width()
     reg_msb = reg_width - 1
     reg_resval = "{}'h {:x}".format(reg_width, reg.resval)
+    resval_str = "parameter logic [{}:0] {} = {};".format(reg_msb, reg_resname(reg), reg_resval)
 %>\
-  parameter logic [${reg_msb}:0] ${reg_resname(reg)} = ${reg_resval};
+    % if len(resval_str) > 100-2:
+  parameter logic [${reg_msb}:0]
+      ${reg_resname(reg)} =
+      ${reg_resval};
+    % else:
+  ${resval_str}
+    % endif
     % for field in reg.fields:
       % if field.resval is not None:
 <%
     field_width = field.bits.width()
     field_msb = field_width - 1
     field_resval = "{}'h {:x}".format(field_width, field.resval)
+    resval_str = "parameter logic [{}:0] {} = {};".format(field_msb, field_resname(reg, field), field_resval)
 %>\
-  parameter logic [${field_msb}:0] ${field_resname(reg, field)} = ${field_resval};
+        % if len(resval_str) > 100-2:
+  parameter logic [${field_msb}:0]
+      ${field_resname(reg, field)} =
+      ${field_resval};
+        % else:
+  ${resval_str}
+        % endif
       % endif
     % endfor
   % endfor
@@ -301,14 +315,17 @@ value = "{}'h {:x}".format(aw, r.offset)
 
     offset_type = 'logic [{}-1:0]'.format(aw_name)
     size_type = 'int unsigned'
+    idx_type = 'int unsigned'
     max_type_len = max(len(offset_type), len(size_type))
 
     offset_type += ' ' * (max_type_len - len(offset_type))
     size_type += ' ' * (max_type_len - len(size_type))
+    idx_type += ' ' * (max_type_len - len(idx_type))
 
 %>\
   parameter ${offset_type} ${win_pfx}_OFFSET = ${base_txt_val};
   parameter ${size_type} ${win_pfx}_SIZE   = ${size_txt_val};
+  parameter ${idx_type} ${win_pfx}_IDX    = ${i};
 % endfor
 % endif
 </%def>\
