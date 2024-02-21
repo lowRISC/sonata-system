@@ -6,9 +6,9 @@ This guide helps you to get started with Sonata development.
 
 - [Vivado](https://www.xilinx.com/support/download.html)
 - [OpenFPGALoader](https://github.com/trabucayre/openFPGALoader)
-- [rv32imc GCC toolchain](https://github.com/lowRISC/lowrisc-toolchains/releases)
-  (For example: `lowrisc-toolchain-rv32imcb-20220524-1.tar.xz`)
+- [CHERIoT toolchain](https://github.com/CHERIoT-Platform/llvm-project/tree/cheriot)
 - cmake
+- ninja
 - python3 - Additional python dependencies in python-requirements.txt installed with pip
 - openocd (version 0.11.0 or above)
 - screen
@@ -28,12 +28,32 @@ pip3 install -r python-requirements.txt
 
 ## Software
 
+### Toolchain
+If these instructions ever go out of date, you should be able to find the up to date instructions to build the toolchain [from the CI YAML file](https://github.com/CHERIoT-Platform/llvm-project/blob/cheriot/.cirrus.yml).
+
+Here are the insructions I used to build the LLVM toolchain:
+```sh
+# Checkout the repository
+git clone --depth 1 https://github.com/CHERIoT-Platform/llvm-project cheriot-llvm
+cd cheriot-llvm
+git checkout cheriot
+# Create build directory
+export LLVM_PATH=$(pwd)
+mkdir -p builds/cheriot-llvm
+cd builds/cheriot-llvm
+# Build the toolchain
+cmake ${LLVM_PATH}/llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" -DCMAKE_INSTALL_PREFIX=install -DLLVM_ENABLE_UNWIND_TABLES=NO -DLLVM_TARGETS_TO_BUILD=RISCV -DLLVM_DISTRIBUTION_COMPONENTS="clang;clangd;lld;llvm-objdump;llvm-objcopy" -G Ninja
+export NINJA_STATUS='%p [%f:%s/%t] %o/s, %es'
+ninja install-distribution
+```
+
+### Building capability sanity check
+You will need a copy of [CHERIoT RTOS](https://github.com/microsoft/cheriot-rtos/tree/main) for this section.
+
 Building the software:
 ```sh
-mkdir sw/c/build
-pushd sw/c/build
-cmake ..
-make
+pushd sw/cpp/cheri_sanity
+make CHERIOT_LLVM_ROOT=/path/to/cheriot-llvm/bin CHERIOT_RTOS_SDK=/path/to/cheriot-rtos/sdk
 popd
 ```
 
@@ -52,7 +72,24 @@ fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc
 
 Running the simulator can be accomplished with the following command, where you can change the `meminit` argument to a different program if you wish:
 ```sh
-./build/lowrisc_sonata_system_0/sim-verilator/Vsonata_system -t --meminit=ram,./sw/c/build/test/memory_test
+./build/lowrisc_sonata_system_0/sim-verilator/Vsonata_system -t --meminit=ram,./sw/cpp/cheri_sanity/boot.elf
+```
+
+I recommend that you make the following change to the sanity check to see quicker changes in simulation:
+```diff
+diff --git a/sw/cpp/cheri_sanity/boot.cc b/sw/cpp/cheri_sanity/boot.cc
+index 547abb3..7f7781d 100644
+--- a/sw/cpp/cheri_sanity/boot.cc
++++ b/sw/cpp/cheri_sanity/boot.cc
+@@ -32,7 +32,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
+        uint32_t switchValue = 0;
+        while (true) {
+                gpioValue ^= GPIO_VALUE;
+-               for (int i = 0; i < 5000000; i++) {
++               for (int i = 0; i < 5; i++) {
+                        switchValue = *((volatile uint32_t *) gpi);
+                        switchValue <<= 4; // shift input onto LEDs and skipping LCD pins
+                        *((volatile uint32_t *) gpo) = gpioValue ^ switchValue;
 ```
 
 ### Debugging
