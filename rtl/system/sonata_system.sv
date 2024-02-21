@@ -528,8 +528,9 @@ module sonata_system #(
     .tsmap_rdata_i(32'b0),
 
     // TODO fill this in.
-    .mmreg_corein_i (128'b0),
-    .mmreg_coreout_o(),
+    .mmreg_corein_i  (128'b0),
+    .mmreg_coreout_o (),
+    .cheri_fatal_err_o(),
 
     .irq_software_i(1'b0),
     .irq_timer_i   (timer_irq),
