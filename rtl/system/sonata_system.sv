@@ -12,8 +12,8 @@
 // - Debug module.
 // - SPI for driving LCD screen.
 module sonata_system #(
-  parameter int unsigned GpiWidth = 8,
-  parameter int unsigned GpoWidth = 16,
+  parameter int unsigned GpiWidth = 13,
+  parameter int unsigned GpoWidth = 24,
   parameter int unsigned PwmWidth = 12,
   parameter SRAMInitFile          = ""
 ) (
