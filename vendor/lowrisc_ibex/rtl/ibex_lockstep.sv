@@ -571,6 +571,7 @@ module ibex_lockstep import ibex_pkg::*; import cheri_pkg::*; #(
     .tsmap_rdata_i       (shadow_inputs_q[0].tsmap_rdata),
     .mmreg_corein_i      (shadow_inputs_q[0].mmreg_corein),
     .mmreg_coreout_o     (shadow_outputs_d.mmreg_coreout),  
+    .cheri_fatal_err_o   (), // TODO actually check this output
 
     .ic_tag_req_o        (shadow_outputs_d.ic_tag_req),
     .ic_tag_write_o      (shadow_outputs_d.ic_tag_write),

@@ -18,7 +18,7 @@
 `include "prim_assert.sv"
 `include "dv_fcov_macros.svh"
 
-module ibex_load_store_unit import cheri_pkg::*; #(
+module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   parameter bit CHERIoTEn = 1'b1,
   parameter bit MemCapFmt = 1'b0,
   parameter bit CheriTBRE = 1'b0
@@ -59,7 +59,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
 
   input  logic [31:0]  lsu_addr_i,           // address computed in ALU          -> from ID/EX
 
-  output logic         addr_incr_req_o,      // request address increment for
+  output logic         lsu_addr_incr_req_o,  // request address increment for
                                               // misaligned accesses              -> to ID/EX
   output logic [31:0]  addr_last_o,          // address of last transaction      -> to controller
                                               // -> mtval
@@ -77,6 +77,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   input  logic         tbre_lsu_req_i,
   input  logic         cpu_lsu_dec_i,
   output logic         lsu_tbre_sel_o,        // request-side selection signal
+  output logic         lsu_tbre_addr_incr_req_o,  // request address increment for
   output logic [32:0]  lsu_tbre_raw_lsw_o,
   output logic         lsu_tbre_req_done_o,
   output logic         lsu_tbre_resp_valid_o, // response from transaction -> to TBRE 
@@ -135,16 +136,10 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   logic         outstanding_resp_q, resp_wait;
   logic         lsu_resp_valid;
   logic         lsu_go;
-
-  typedef enum logic [3:0]  {
-    IDLE, WAIT_GNT_MIS, WAIT_RVALID_MIS, WAIT_GNT,
-    WAIT_RVALID_MIS_GNTS_DONE,
-    CTX_WAIT_GNT1, CTX_WAIT_GNT2, CTX_WAIT_RESP
-  } ls_fsm_e;
+  logic         addr_incr_req;
 
   ls_fsm_e ls_fsm_cs, ls_fsm_ns;
 
-  typedef enum logic [2:0] {CRX_IDLE, CRX_WAIT_RESP1, CRX_WAIT_RESP2} cap_rx_fsm_t;
   cap_rx_fsm_t cap_rx_fsm_q, cap_rx_fsm_d;
 
   logic         cap_lsw_err_q;
@@ -286,7 +281,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   // errors, mtval needs the (first) failing address.  Where an aligned access or the first half of
   // a misaligned access sees an error provide the calculated access address. For the second half of
   // a misaligned access provide the word aligned address of the second half.
-  assign addr_last_d = addr_incr_req_o ? data_addr_w_aligned : data_addr;
+  assign addr_last_d = addr_incr_req ? data_addr_w_aligned : data_addr;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -414,7 +409,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
     ls_fsm_ns       = ls_fsm_cs;
 
     data_req_o          = 1'b0;
-    addr_incr_req_o     = 1'b0;
+    addr_incr_req     = 1'b0;
     handle_misaligned_d = handle_misaligned_q;
     pmp_err_d           = pmp_err_q;
     lsu_err_d           = lsu_err_q;
@@ -503,7 +498,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
         // push out second request
         data_req_o = 1'b1;
         // tell ID/EX stage to update the address
-        addr_incr_req_o = 1'b1;
+        addr_incr_req = 1'b1;
 
         // first part rvalid is received, or gets a PMP error
         if (data_rvalid_i || pmp_err_q) begin
@@ -531,7 +526,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
 
       WAIT_GNT: begin
         // tell ID/EX stage to update the address
-        addr_incr_req_o = handle_misaligned_q;
+        addr_incr_req = handle_misaligned_q;
         data_req_o      = 1'b1;
         if (data_gnt_i || pmp_err_q) begin
           ctrl_update         = 1'b1;
@@ -545,7 +540,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
       WAIT_RVALID_MIS_GNTS_DONE: begin
         // tell ID/EX stage to update the address (to make sure the
         // second address can be captured correctly for mtval and PMP checking)
-        addr_incr_req_o = 1'b1;
+        addr_incr_req = 1'b1;
         // Wait for the first rvalid, second request is already granted
         if (data_rvalid_i) begin
           // Update the pmp error for the second part
@@ -563,7 +558,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
 
       CTX_WAIT_GNT1: begin
         if (cheri_pmode_i) begin
-          addr_incr_req_o = 1'b0;
+          addr_incr_req = 1'b0;
           data_req_o      = 1'b1;
           if (data_gnt_i) begin
             ls_fsm_ns = CTX_WAIT_GNT2;
@@ -577,7 +572,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
 
       CTX_WAIT_GNT2: begin
         if (cheri_pmode_i) begin
-          addr_incr_req_o = 1'b1;
+          addr_incr_req = 1'b1;
           data_req_o      = 1'b1;
           if (data_gnt_i && (data_rvalid_i || (cap_rx_fsm_q == CRX_WAIT_RESP2))) ls_fsm_ns = IDLE;
           else if (data_gnt_i) ls_fsm_ns = CTX_WAIT_RESP;
@@ -588,7 +583,7 @@ module ibex_load_store_unit import cheri_pkg::*; #(
 
       CTX_WAIT_RESP: begin        // only needed if mem allows 2 active req 
         if (cheri_pmode_i) begin
-          addr_incr_req_o = 1'b0;
+          addr_incr_req = 1'b1; // stay 1 to reduce unnecessary addr toggling
           data_req_o      = 1'b0;
           if (data_rvalid_i) ls_fsm_ns = IDLE;
         end else begin
@@ -630,6 +625,9 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   assign lsu_req_done_o      = lsu_req_done & (~lsu_is_intl_i) & (~cur_req_is_tbre);
   assign lsu_req_done_intl_o = lsu_req_done & (lsu_is_intl_i)  & (~cur_req_is_tbre) & cheri_pmode_i;
   assign lsu_tbre_req_done_o = lsu_req_done & cur_req_is_tbre & cheri_pmode_i;
+
+  assign lsu_addr_incr_req_o      = addr_incr_req & ~cur_req_is_tbre;
+  assign lsu_tbre_addr_incr_req_o = addr_incr_req & cur_req_is_tbre;
 
   assign cur_req_is_tbre = CHERIoTEn & cheri_pmode_i & CheriTBRE & ((ls_fsm_cs == IDLE) ? 
                            (tbre_req_good & ~resp_wait) : req_is_tbre_q);
@@ -692,7 +690,8 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   // Outputs //
   /////////////
   logic all_resp;
-  assign data_or_pmp_err    = lsu_err_q | data_err_i | pmp_err_q | (cheri_pmode_i & (cheri_err_q | cap_lsw_err_q));
+  assign data_or_pmp_err    = lsu_err_q | data_err_i | pmp_err_q | (cheri_pmode_i & 
+                              (cheri_err_q | (resp_is_cap_q & cap_lsw_err_q)));
 
   assign all_resp           = data_rvalid_i | pmp_err_q | (cheri_pmode_i & cheri_err_q);
   assign lsu_resp_valid     = all_resp & (ls_fsm_cs == IDLE) ;
@@ -750,40 +749,5 @@ module ibex_load_store_unit import cheri_pkg::*; #(
   assign busy_o = (ls_fsm_cs != IDLE);
   // assign busy_tbre_o = (ls_fsm_cs != IDLE) & cur_req_is_tbre;
   assign busy_tbre_o = (ls_fsm_cs != IDLE) & cheri_pmode_i & req_is_tbre_q;
-  // assign busy_tbre_o = 1'b0;
-
-  //////////
-  // FCOV //
-  //////////
-
-  `DV_FCOV_SIGNAL(logic, ls_error_exception, (load_err_o | store_err_o) & ~pmp_err_q)
-  `DV_FCOV_SIGNAL(logic, ls_pmp_exception, (load_err_o | store_err_o) & pmp_err_q)
-
-  ////////////////
-  // Assertions //
-  ////////////////
-
-  // Selectors must be known/valid.
-  `ASSERT(IbexDataTypeKnown, (lsu_req_i | busy_o) |-> !$isunknown(lsu_type_i))
-  `ASSERT(IbexDataOffsetKnown, (lsu_req_i | busy_o) |-> !$isunknown(data_offset))
-  `ASSERT_KNOWN(IbexRDataOffsetQKnown, rdata_offset_q)
-  `ASSERT_KNOWN(IbexDataTypeQKnown, data_type_q)
-  `ASSERT(IbexLsuStateValid, ls_fsm_cs inside {
-      IDLE, WAIT_GNT_MIS, WAIT_RVALID_MIS, WAIT_GNT,
-      WAIT_RVALID_MIS_GNTS_DONE,
-      CTX_WAIT_GNT1, CTX_WAIT_GNT2, CTX_WAIT_RESP })
-
-  // Address must not contain X when request is sent.
-  `ASSERT(IbexDataAddrUnknown, data_req_o |-> !$isunknown(data_addr_o))
-
-  // Address must be word aligned when request is sent.
-  `ASSERT(IbexDataAddrUnaligned, data_req_o |-> (data_addr_o[1:0] == 2'b00))
-
-  // tbre_req_good and CPU req can't be active at the same time
-  // `ASSERT(TBREReqOverlap, $onehot0({lsu_req_i, tbre_req_good}))  -- no longer valid w/ stkZ.
-  // QQQ - we should look out for atomicity of access (no address/wdata change in the middle of a
-  //  transaction, etc.
-  
-
 
 endmodule

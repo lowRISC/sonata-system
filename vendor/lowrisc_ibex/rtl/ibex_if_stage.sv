@@ -16,7 +16,6 @@
 
 `include "prim_assert.sv"
 
-//TODO actually fix lints
 /* verilator lint_off UNUSED */
 
 module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
@@ -81,6 +80,8 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
   output logic                        instr_fetch_err_plus2_o,  // bus error misaligned
   output logic                        illegal_c_insn_id_o,      // compressed decoder thinks this
                                                                 // is an invalid instr
+  output logic                        instr_fetch_cheri_acc_vio_o,         
+  output logic                        instr_fetch_cheri_bound_vio_o,         
   output logic                        dummy_instr_id_o,         // Instruction is a dummy
   output logic [31:0]                 pc_if_o,
   output logic [31:0]                 pc_id_o,
@@ -174,7 +175,7 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
   logic        [7:0] unused_boot_addr;
   logic        [7:0] unused_csr_mtvec;
 
-  logic              cheri_acc_vio;
+  logic              cheri_acc_vio, cheri_bound_vio;
 
   assign unused_boot_addr = boot_addr_i[7:0];
   assign unused_csr_mtvec = csr_mtvec_i[7:0];
@@ -345,32 +346,35 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
   // An error can come from the instruction address, or the next instruction address for unaligned,
   // uncompressed instructions.
   assign if_instr_pmp_err = pmp_err_if_i |
-                            (if_instr_addr[2] & ~instr_is_compressed & pmp_err_if_plus2_i);
+                            (if_instr_addr[1] & ~instr_is_compressed & pmp_err_if_plus2_i);
 
   // Combine bus errors and pmp errors
-  assign if_instr_err = if_instr_bus_err | if_instr_pmp_err | cheri_acc_vio;
+  assign if_instr_err = if_instr_bus_err | if_instr_pmp_err | cheri_acc_vio | cheri_bound_vio;
 
   // Capture the second half of the address for errors on the second part of an instruction
-  assign if_instr_err_plus2 = ((if_instr_addr[2] & ~instr_is_compressed & pmp_err_if_plus2_i) |
+  assign if_instr_err_plus2 = ((if_instr_addr[1] & ~instr_is_compressed & pmp_err_if_plus2_i) |
                                fetch_err_plus2) & ~pmp_err_if_i;
 
   // let's only check this in pure-cap mode. otherwise jalr/ret gives so much headache
   // pre-calculate headroom to improve memory read timing
-  logic [2:0]  instr_len;
+  logic [2:0]  unused_instr_len;
   logic [32:0] instr_hdrm;
   logic        hdrm_ge4, hdrm_ge2, hdrm_ok;
 
-  assign instr_len  = (fetch_valid & ~fetch_err & instr_is_compressed) ? 2 : 4;
+  assign unused_instr_len  = (fetch_valid & ~fetch_err & instr_is_compressed) ? 2 : 4;
   assign instr_hdrm = pcc_cap_i.top33 - if_instr_addr;
   assign hdrm_ge4   = (instr_hdrm >= 4);
   assign hdrm_ge2   = (instr_hdrm >= 2);
   assign hdrm_ok    = instr_is_compressed ? hdrm_ge2 : hdrm_ge4;
 
   // only issue cheri_acc_vio on valid fetches
+  assign cheri_bound_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & fetch_valid & ~fetch_err & pcc_cap_i.valid  &
+                           ((if_instr_addr < pcc_cap_i.base32) || instr_hdrm[32] || ~hdrm_ok);
+
+  // we still check seal/perm here to be safe, however by ISA those can't happen at fetch time 
+  // since they are check elsewhere already
   assign cheri_acc_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & fetch_valid & ~fetch_err &
-                        ((if_instr_addr < pcc_cap_i.base32) || instr_hdrm[32] || ~hdrm_ok  ||
-                         ~pcc_cap_i.perms[PERM_EX] || ~pcc_cap_i.valid || 
-                         (pcc_cap_i.otype!=0));
+                         (~pcc_cap_i.perms[PERM_EX] || ~pcc_cap_i.valid || (pcc_cap_i.otype!=0));
 
   // compressed instruction decoding, or more precisely compressed instruction
   // expander
@@ -484,6 +488,8 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
         instr_is_compressed_id_o <= '0;
         illegal_c_insn_id_o      <= '0;
         pc_id_o                  <= '0;
+        instr_fetch_cheri_acc_vio_o   <= '0;
+        instr_fetch_cheri_bound_vio_o <= '0;
       end else if (if_id_pipe_reg_we) begin
         instr_rdata_id_o         <= instr_out;
         // To reduce fan-out and help timing from the instr_rdata_id flops they are replicated.
@@ -494,6 +500,8 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
         instr_is_compressed_id_o <= instr_is_compressed_out;
         illegal_c_insn_id_o      <= illegal_c_instr_out;
         pc_id_o                  <= pc_if_o;
+        instr_fetch_cheri_acc_vio_o    <= cheri_acc_vio; 
+        instr_fetch_cheri_bound_vio_o  <= cheri_bound_vio; 
       end
     end
   end else begin : g_instr_rdata_nr
@@ -508,6 +516,8 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
         instr_is_compressed_id_o <= instr_is_compressed_out;
         illegal_c_insn_id_o      <= illegal_c_instr_out;
         pc_id_o                  <= pc_if_o;
+        instr_fetch_cheri_acc_vio_o    <= cheri_acc_vio; 
+        instr_fetch_cheri_bound_vio_o  <= cheri_bound_vio; 
       end
     end
   end

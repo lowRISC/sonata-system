@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-//TODO actually fix the lint errors
-/* verilator lint_off WIDTH */
+
 /* verilator lint_off UNUSED */
 
 package cheri_pkg;
@@ -157,7 +156,7 @@ package cheri_pkg;
   `define TEST_IMSK(P, M) (&((P) | ~(M)))
 
   // compress perms field to memory representation
-  function automatic logic [CPERMS_W-1:0] compress_perms (logic [PERMS_W-1:0] perms, logic [1:0] qqq);   // qqq is a place holder, just to compatible with the old encoding for now.
+  function automatic logic [CPERMS_W-1:0] compress_perms (logic [PERMS_W-1:0] perms, logic [1:0] unused_qqq);   // unused_qqq is a place holder, just to compatible with the old encoding for now.
     logic [CPERMS_W-1:0] cperms;
 
     // test all types encoding and determine encoding (Robert's priority order)
@@ -325,7 +324,7 @@ package cheri_pkg;
     if ((tmp24 != 0) || (chktop & ~top_lt) || (chkbase & tmp33[32]))
       out_cap.valid = 1'b0;
 
-    ptrmi9           = newptr >> in_cap.exp;
+    ptrmi9           = BOT_W'(newptr >> in_cap.exp);
     tmp4             = update_temp_fields(out_cap.top, out_cap.base, ptrmi9);
     out_cap.top_cor  = tmp4[3:2];
     out_cap.base_cor = tmp4[1:0];
@@ -334,7 +333,7 @@ package cheri_pkg;
   endfunction
 
 
-  // utillity function
+  // utility function
   // return the size (bit length) of input number without leading zeros
   function automatic logic [5:0] get_size(logic [31:0] din);
     logic  [5:0] count;
@@ -348,13 +347,13 @@ package cheri_pkg;
     else begin
       count[5] = 1'b0;
       count[4] = a32[15];
-      b32 = count[4] ? a32[31:16] : a32[15:0];
+      b32[15:0] = count[4] ? a32[31:16] : a32[15:0];
       count[3] = b32[7];
-      b32 = count[3] ?  b32[15:8]: b32[7:0];
+      b32[ 7:0] = count[3] ? b32[15:8] : b32[7:0];
       count[2] = b32[3];
-      b32 = count[2] ?  b32[7:4] : b32[3:0];
+      b32[ 3:0] = count[2] ?  b32[7:4] : b32[3:0];
       count[1] = b32[1];
-      b32 = count[1] ? b32[3:2] : b32[1:0];
+      b32[ 1:0] = count[1] ?  b32[3:2] : b32[1:0];
       count[0] = b32[0];
     end
 
@@ -366,12 +365,14 @@ package cheri_pkg;
   // break up into 2 parts to enable 2-cycle option
   function automatic bound_req_t prep_bound_req (logic [31:0] addr, logic [31:0] length);
     bound_req_t result;
+    logic [5:0] size_result;
+
     result.top33req = {1'b0, addr} + {1'b0, length};    // "requested" 33-bit top
 
-    result.exp1     = get_size({23'h0, length[31:9]});
-    result.exp1     = (result.exp1 >= RESETCEXP) ? RESETEXP : result.exp1;
-    result.exp2     = result.exp1+1;
-    result.exp2     = (result.exp2 >= RESETCEXP) ? RESETEXP : result.exp2;
+    size_result     = get_size({9'h0, length[31:9]});
+    result.exp1     = (size_result >= 6'(RESETCEXP)) ? EXP_W'(RESETEXP) : EXP_W'(size_result);
+    size_result     += 1;
+    result.exp2     = (size_result >= 6'(RESETCEXP)) ? EXP_W'(RESETEXP) : EXP_W'(size_result);
 
     return result;
   endfunction
@@ -382,7 +383,7 @@ package cheri_pkg;
 
     logic [EXP_W-1:0] exp1, exp2, expr;
     logic [32:0]      top33req;
-    logic [9:0]       base1, base2, top1, top2, len1, len2;
+    logic [BOT_W:0]   base1, base2, top1, top2, len1, len2;
     logic [32:0]      mask1, mask2;
     logic             ovrflw, topoff1, topoff2, topoff;
     logic             baseoff1, baseoff2, baseoff;
@@ -396,10 +397,10 @@ package cheri_pkg;
 
     // 1st path
     mask1    = {33{1'b1}} << exp1;
-    base1    = addr >> exp1;
+    base1    = (BOT_W+1)'(addr >> exp1);
     topoff1  = |(top33req & ~mask1);
-    baseoff1 = |(addr & ~mask1);
-    top1     = (top33req >> exp1) + topoff1;
+    baseoff1 = |({1'b0, addr} & ~mask1);
+    top1     = (BOT_W+1)'(top33req >> exp1) + (BOT_W+1)'(topoff1);
     len1     = top1 - base1;
     tophi1   = (top1[8:0] >= base1[8:0]);
 
@@ -408,28 +409,28 @@ package cheri_pkg;
 
     // 2nd path in parallel
     mask2    = {33{1'b1}} << exp2;
-    base2    = addr >> exp2;
+    base2    = (BOT_W+1)'(addr >> exp2);
     topoff2  = |(top33req & ~mask2);
-    baseoff2 = |(addr & ~mask2);
-    top2     = (top33req >> exp2) + topoff2;
+    baseoff2 = |({1'b0, addr} & ~mask2);
+    top2     = (BOT_W+1)'(top33req >> exp2) + (BOT_W+1)'(topoff2);
     len2     = top2 - base2;
     tophi2   = (top2[8:0] >= base2[8:0]);
 
     // select results
     if (~ovrflw) begin
       out_cap.exp   = exp1;
-      out_cap.top   = top1;
-      out_cap.base  = base1;
-      out_cap.maska = mask1;
+      out_cap.top   = top1[TOP_W-1:0];
+      out_cap.base  = base1[BOT_W-1:0];
+      out_cap.maska = mask1[31:0];
       out_cap.rlen  = {22'h0, len1} << exp1;
       topoff        = topoff1;
       baseoff       = baseoff1;
       tophi         = tophi1;
     end else begin
       out_cap.exp   = exp2;
-      out_cap.top   = top2;
-      out_cap.base  = base2;
-      out_cap.maska = mask2;
+      out_cap.top   = top2[TOP_W-1:0];
+      out_cap.base  = base2[BOT_W-1:0];
+      out_cap.maska = mask2[31:0];
       out_cap.rlen  = {22'h0, len2} << exp2;
       topoff        = topoff2;
       baseoff       = baseoff2;
@@ -442,15 +443,20 @@ $display("--- set_bounds: exact = %x, ovrflw = %x, exp1 = %x, exp2 = %x, exp = %
 $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, base2, top2);
 `endif
 
-    // Note in this case always addr >= base, but top < base or address is possible
-    //   so - addr_hi = FALSE, top_cor can only be either either 0 or +1;
+    // top/base correction values
+    //   Note the new base == addr >> exp, so addr_hi == FALSE, thus base_cor == 0
+    //   as such, top_cor can only be either either 0 or +1;
     out_cap.top_cor  = tophi ? 2'b00 : 2'b01;
     out_cap.base_cor = 2'b00;
 
     if (req_exact & (topoff | baseoff)) out_cap.valid = 1'b0;
 
     // we used the "requested top" to verify the results against original bounds
-    if (top33req > in_cap.top33 ) out_cap.valid = 1'b0;
+    // also compare address >= old base 32 to handle exp=24 case
+    //   exp = 24 case: can have addr < base (not covered by representibility checking);
+    //   other exp cases: always addr >= base when out_cap.tag == 1
+    if ((top33req > in_cap.top33) || (addr < in_cap.base32)) 
+      out_cap.valid = 1'b0;
 
     return out_cap;
   endfunction
@@ -510,7 +516,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     full_cap.rsvd     = reg_cap.rsvd;
 
     full_cap.top33  = get_bound33(reg_cap.top, reg_cap.top_cor, reg_cap.exp, addr);
-    full_cap.base32 = get_bound33(reg_cap.base, reg_cap.base_cor, reg_cap.exp, addr);
+    full_cap.base32 = 32'(get_bound33(reg_cap.base, reg_cap.base_cor, reg_cap.exp, addr));
     // full_cap  = update_bounds(full_cap, addr);   // for some reason this increases area 
 
     full_cap.maska    = 0;
@@ -552,10 +558,10 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     pcc_fullcap.base32   = in_pcap.base32;
     pcc_fullcap.otype    = in_pcap.otype;
     pcc_fullcap.perms    = in_pcap.perms;
-    pcc_fullcap.top_cor  = 1'b0;          // will be updated by set_address()
-    pcc_fullcap.base_cor = 1'b0;
-    pcc_fullcap.top      = in_pcap.top33  >> (in_pcap.exp);
-    pcc_fullcap.base     = in_pcap.base32 >> (in_pcap.exp);
+    pcc_fullcap.top_cor  = 2'b0;          // will be updated by set_address()
+    pcc_fullcap.base_cor = 2'b0;
+    pcc_fullcap.top      = TOP_W'(in_pcap.top33  >> (in_pcap.exp));
+    pcc_fullcap.base     = BOT_W'(in_pcap.base32 >> (in_pcap.exp));
     pcc_fullcap.cperms   = in_pcap.cperms;
     pcc_fullcap.maska    = 0;             // not used in pcc_cap
     pcc_fullcap.rsvd     = in_pcap.rsvd;
@@ -580,13 +586,16 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     return pcc_cap;
   endfunction
 
-  function automatic reg_cap_t pcc2regcap (pcc_cap_t pcc_cap, logic [31:0] address);
+  function automatic reg_cap_t pcc2mepcc (pcc_cap_t pcc_cap, logic [31:0] address, logic clrtag);
     reg_cap_t  reg_cap;
     full_cap_t tfcap0, tfcap1;
 
     tfcap0  = pcc2fullcap(pcc_cap);
+    // we really only need to update_temp_files here 
+    // (representability check is unnecessary due to fetch time bound check). will remove later
     tfcap1  = set_address(tfcap0, address, 0, 0);
     reg_cap = full2regcap(tfcap1);
+    if (clrtag) reg_cap.valid = 1'b0;
 
     return reg_cap;
   endfunction
@@ -605,7 +614,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
 
   function automatic reg_cap_t mem2regcap_fmt0 (logic [32:0] msw, logic [32:0] addr33, logic [3:0] clrperm);
     reg_cap_t regcap;
-    logic [31:0] tmp32;
+    logic [EXP_W-1:0] tmp5;
     logic [3:0]  tmp4;
     logic [CPERMS_W-1:0] cperms_mem;
     logic [BOT_W-1:0]    addrmi9;
@@ -615,9 +624,9 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     valid_in      = msw[32] & addr33[32];
     regcap.valid  = valid_in & ~clrperm[3];   
 
-    tmp32    = msw[CEXP_LO+:CEXP_W];
-    if (tmp32 == RESETCEXP) tmp32 = RESETEXP;
-    regcap.exp    = tmp32;
+    tmp5 = {1'b0, msw[CEXP_LO+:CEXP_W]};
+    if (tmp5 == EXP_W'(RESETCEXP)) tmp5 = RESETEXP;
+    regcap.exp = tmp5;
 
     regcap.top    = msw[TOP_LO+:TOP_W];
     regcap.base   = msw[BASE_LO+:BOT_W];
@@ -626,7 +635,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     sealed = (regcap.otype != OTYPE_UNSEALED);
     cperms_mem      = msw[CPERMS_LO+:CPERMS_W];
     regcap.cperms   = mask_clcperms(cperms_mem, clrperm, valid_in, sealed);
-    addrmi9         = {1'b0, addr33[31:0]} >> regcap.exp;   // ignore the tag valid bit 
+    addrmi9         = BOT_W'({1'b0, addr33[31:0]} >> regcap.exp); // ignore the tag valid bit
     tmp4            = update_temp_fields(regcap.top, regcap.base, addrmi9);
     regcap.top_cor  = tmp4[3:2];
     regcap.base_cor = tmp4[1:0];
@@ -661,7 +670,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
 
   function automatic reg_cap_t mem2regcap_fmt1 (logic [32:0] msw, logic [32:0] lsw, logic [3:0] clrperm);
     reg_cap_t regcap;
-    logic [31:0] tmp32;
+    logic [3:0]  tmp4;
     logic        sealed;
     logic [8:0]  addrmi9;
     logic [CPERMS_W-1:0] cperms_mem;
@@ -673,7 +682,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     regcap.exp    = (lsw[30:27] == RESETCEXP) ?  RESETEXP : {1'b0, lsw[30:27]};
     regcap.base   = lsw[26:18];
     regcap.top    = lsw[17:9];
-    addrmi9       = (lsw[30:27] == RESETCEXP) ? lsw[8:1] : lsw[8:0];
+    addrmi9       = (lsw[30:27] == RESETCEXP) ? {1'b0, lsw[8:1]} : lsw[8:0];
 
     regcap.otype  = msw[25:23];
     sealed        = (regcap.otype != OTYPE_UNSEALED);
@@ -683,9 +692,9 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     regcap.cperms = mask_clcperms(cperms_mem, clrperm, valid_in, sealed);
     regcap.rsvd   = lsw[31];
 
-    tmp32 = update_temp_fields(regcap.top, regcap.base, addrmi9);
-    regcap.top_cor  = tmp32[3:2];
-    regcap.base_cor = tmp32[1:0];
+    tmp4 = update_temp_fields(regcap.top, regcap.base, addrmi9);
+    regcap.top_cor  = tmp4[3:2];
+    regcap.base_cor = tmp4[1:0];
 
     return regcap;
 
@@ -697,15 +706,15 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     logic [31:0] mask1, mask2;
 
     if (reg_cap.exp == RESETEXP) begin
-      addrhi   = 33'h0;
+      addrhi   = 32'h0;
       addrmi   = {lsw[8:0], 23'h0};
-      addrlo   = msw[22:0];
+      addrlo   = {9'h0, msw[22:0]};
     end else begin
-      addrmi   = lsw[8:0] << reg_cap.exp;
-      mask1    = {33{1'b1}} << reg_cap.exp;
+      addrmi   = {23'h0, lsw[8:0]} << reg_cap.exp;
+      mask1    = {32{1'b1}} << reg_cap.exp;
       mask2    = mask1 << 9;
-      addrhi   = (msw[22:0] << 9) & mask2;
-      addrlo   = msw[22:0] & (~mask1);
+      addrhi   = ({9'h0, msw[22:0]} << 9) & mask2;
+      addrlo   = {9'h0, msw[22:0]} & (~mask1);
     end
 
     addr33 = {lsw[32], addrhi | addrmi |addrlo};
@@ -731,12 +740,12 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
       lsw[30:27] = RESETCEXP;
       lsw[8:0]   = addr[31:23];
     end else begin
-      mask1    = {33{1'b1}} << reg_cap.exp;
+      mask1    = {32{1'b1}} << reg_cap.exp;
       mask2    = mask1 << 9;
 
-      msw[22:0]  = (addr & ~mask1) | ((addr & mask2) >> 9);
+      msw[22:0]  = 23'((addr & ~mask1) | ((addr & mask2) >> 9));
       lsw[30:27] = reg_cap.exp[CEXP_W-1:0];
-      lsw[8:0]   = addr >> reg_cap.exp;
+      lsw[8:0]   = 9'(addr >> reg_cap.exp);
     end
 
     return {msw, lsw};
@@ -863,14 +872,12 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
   function automatic logic [4:0] vio_cause_enc (logic bound_vio, logic[W_PVIO-1:0] perm_vio_vec);
     logic [4:0] vio_cause;
     
-    if (bound_vio)
-      vio_cause = 5'h1;
-    else if (perm_vio_vec[PVIO_TAG])
+    if (perm_vio_vec[PVIO_TAG])
       vio_cause = 5'h2;
     else if (perm_vio_vec[PVIO_SEAL])
       vio_cause = 5'h3;
     else if (perm_vio_vec[PVIO_EX])
-      vio_cause = 5'h3;
+      vio_cause = 5'h11;
     else if (perm_vio_vec[PVIO_LD])
       vio_cause = 5'h12;
     else if (perm_vio_vec[PVIO_SD])
@@ -881,6 +888,8 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
       vio_cause = 5'h16;
     else if (perm_vio_vec[PVIO_ASR])
       vio_cause = 5'h18;
+    else if (bound_vio)
+      vio_cause = 5'h1;
     else
       vio_cause = 5'h0;
 
@@ -889,5 +898,4 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
  
 endpackage
 
-/* verilator lint_on WIDTH */
 /* verilator lint_on UNUSED */

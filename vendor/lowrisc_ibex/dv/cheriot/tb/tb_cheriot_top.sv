@@ -1,5 +1,7 @@
+// Copyright Microsoft Corporation
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
+
 //`define BOOT_ADDR 32'h8000_0000
 `define BOOT_ADDR 32'h8000_0000
 
@@ -10,12 +12,10 @@ import prim_ram_1p_pkg::*;
 module tb_cheriot_top (
   input  logic         clk_i,
   input  logic         rstn_i,
-  input  logic [31:0]  instr_rdata_dii_i,
-  output logic [31:0]  instr_pc_o,
-  output logic         instr_ack_o
+  input  logic [31:0]  dii_insn_i,
+  output logic [31:0]  dii_pc_o,
+  output logic         dii_ack_o
   );
-
-  localparam MEM_AW = 14;
 
   logic        instr_req;
   logic        instr_gnt;
@@ -25,6 +25,7 @@ module tb_cheriot_top (
   logic [31:0] instr_rdata_mem;
   logic [6:0]  instr_rdata_intg;
   logic        instr_err;
+  logic        instr_err_enable;
 
   logic        data_req;
   logic        data_gnt;
@@ -36,17 +37,24 @@ module tb_cheriot_top (
   logic [32:0] data_rdata;
   logic [6:0]  data_rdata_intg;
   logic        data_err;
+  logic        data_err_enable;
 
   logic        irq_external;
+  logic        irq_software;
+  logic        irq_timer;
+  logic [2:0]  irq_vec, intr_ack;
+  logic        intr_enable;
 
   logic        cheri_pmode;
   logic        cheri_tsafe_en;
 
-  // Memory map
-  //   0x2000_0000 - 0x2000_ffff: instr_mem
-  //   0x2001_0000 - 0x2001_ffff: data_mem
-  //   0x2004_0000 - 0x2004_0fff: tsmap (shadow memory)
-  //   0x2100_0600 - interrupt injection
+  logic        tsmap_cs;
+  logic [15:0] tsmap_addr;
+  logic [31:0] tsmap_rdata;
+
+  logic [127:0] mmreg_corein;
+  logic [63:0]  mmreg_coreout;
+
 `ifndef VERILATOR
   `ifdef CHERI0
     defparam dut.u_ibex_top.CHERIoTEn = 1'b0;
@@ -116,12 +124,6 @@ module tb_cheriot_top (
     assign cheri_tsafe_en = 1;
   `endif
 
-  `ifdef MEM_RNDW
-    assign mem_rndw = 1'b1;             // only a display flag
-  `else
-    assign mem_rndw = 1'b0;
-  `endif
- 
   `ifdef MULT_1CYCLE  
     defparam dut.u_ibex_top.u_ibex_core.RV32M = RV32MSingleCycle;
   `endif
@@ -133,11 +135,11 @@ module tb_cheriot_top (
   `ifdef RV32B
     defparam dut.u_ibex_top.RV32B = 3;
   `endif
- `endif // verilator
+ `endif // ifndef verilator
 
   ibex_top_tracing #(
                      .HeapBase        (32'h8000_0000),
-                     .TSMapBase       (32'h8004_0000),
+                     .TSMapBase       (32'h8003_0000),
                      .TSMapSize       (1024),
                      .DmHaltAddr      (`BOOT_ADDR + 'h40),
                      .DmExceptionAddr (`BOOT_ADDR + 'h44),
@@ -172,14 +174,14 @@ module tb_cheriot_top (
     .data_rdata_i         (data_rdata),
     .data_rdata_intg_i    (data_rdata_intg),
     .data_err_i           (data_err    ),
-    .tsmap_cs_o           (),
-    .tsmap_addr_o         (),
-    .tsmap_rdata_i        (32'h0 ),
+    .tsmap_cs_o           (tsmap_cs),
+    .tsmap_addr_o         (tsmap_addr),
+    .tsmap_rdata_i        (tsmap_rdata),
     .tsmap_rdata_intg_i   (7'h0),
-    .mmreg_corein_i       (128'h0),
-    .mmreg_coreout_o      (),
-    .irq_software_i       (1'b0),
-    .irq_timer_i          (1'b0        ),
+    .mmreg_corein_i       (mmreg_corein),
+    .mmreg_coreout_o      (mmreg_coreout),
+    .irq_software_i       (irq_software),
+    .irq_timer_i          (irq_timer   ),
     .irq_external_i       (irq_external),
     .irq_fast_i           (15'h0       ),
     .irq_nm_i             (1'b0        ), 
@@ -194,7 +196,7 @@ module tb_cheriot_top (
     .data_is_cap_o        ()
   );
 
-  assign irq_external = 1'b0;
+  assign {irq_timer, irq_software,  irq_external} = irq_vec; 
 
   assign data_rdata_intg  = 7'h0;
   assign instr_rdata_intg = 7'h0;
@@ -219,48 +221,108 @@ module tb_cheriot_top (
 `endif
 
   // push instructions to ID stage
+  dii_if u_dii_if(
+    .clk_i        (clk_i),
+    .rstn_i       (rstn_i),
+    .dii_insn_0_i (dii_insn_i),
+    .dii_insn_1_i (32'h0),
+    .dii_pc_o     (dii_pc_o),
+    .dii_ack_0_o  (dii_ack_o),
+    .dii_ack_1_o  ()
+  );
+
+
 `ifdef DII_SIM 
-  assign dut.u_ibex_top.u_ibex_core.if_stage_i.gen_prefetch_buffer.prefetch_buffer_i.fifo_i.instr_rdata_dii = instr_rdata_dii_i;
-  assign instr_ack_o = dut.u_ibex_top.u_ibex_core.if_stage_i.gen_prefetch_buffer.prefetch_buffer_i.fifo_i.instr_ack;
-  assign instr_pc_o = dut.u_ibex_top.u_ibex_core.if_stage_i.gen_prefetch_buffer.prefetch_buffer_i.fifo_i.instr_pc;
   assign instr_rdata = 32'h0;
-
 `else
-
   assign instr_rdata = instr_rdata_mem;
 `endif  
+
+  logic [2:0] instr_err_rate, data_err_rate;
+  logic [3:0] instr_gnt_wmax, data_gnt_wmax;
+  logic [3:0] instr_resp_wmax, data_resp_wmax;
+  logic [3:0] intr_intvl;
+  logic [2:0] cap_err_rate;
+  logic       cap_err_enable;
+  logic [3:0] err_enable_vec;
+
+  int unsigned cfg_instr_err_rate, cfg_data_err_rate;
+  int unsigned cfg_instr_gnt_wmax, cfg_data_gnt_wmax;
+  int unsigned cfg_instr_resp_wmax, cfg_data_resp_wmax;
+  int unsigned cfg_intr_intvl;
+  int unsigned cfg_cap_err_rate;
+
+  //
+  // simulation init
+  //
+  initial begin
+    int i;
+
+    // defaults
+    instr_err_rate  = 3'h0;
+    instr_gnt_wmax  = 4'h2;
+    instr_resp_wmax = 4'h2;
+    data_err_rate   = 3'h0;
+    data_gnt_wmax   = 4'h2;
+    data_resp_wmax  = 4'h2;
+    intr_intvl      = 4'h0;
+    cap_err_rate    = 3'h0;
+
+    i = $value$plusargs("INSTR_ERR_RATE=%d", cfg_instr_err_rate);
+    if (i == 1) instr_err_rate = cfg_instr_err_rate[2:0];
+    i = $value$plusargs("INSTR_GNT_WMAX=%d", cfg_instr_gnt_wmax);
+    if (i == 1) instr_gnt_wmax = cfg_instr_gnt_wmax[3:0];
+    i = $value$plusargs("INSTR_RESP_WMAX=%d", cfg_instr_resp_wmax);
+    if (i == 1) instr_resp_wmax = cfg_instr_resp_wmax[3:0];
+
+    i = $value$plusargs("DATA_ERR_RATE=%d", cfg_data_err_rate);
+    if (i == 1) data_err_rate = cfg_data_err_rate[2:0];
+    i = $value$plusargs("DATA_GNT_WMAX=%d", cfg_data_gnt_wmax);
+    if (i == 1) data_gnt_wmax = cfg_data_gnt_wmax[3:0];
+    i = $value$plusargs("DATA_RESP_WMAX=%d", cfg_data_resp_wmax);
+    if (i == 1) data_resp_wmax = cfg_data_resp_wmax[3:0];
+
+    i = $value$plusargs("INTR_INTVL=%d", cfg_intr_intvl);
+    if (i == 1) intr_intvl = cfg_intr_intvl[3:0];
+
+    i = $value$plusargs("CAP_ERR_RATE=%d", cfg_cap_err_rate);
+    if (i == 1) cap_err_rate = cfg_cap_err_rate[2:0];
+
+    @(posedge rstn_i);
+    repeat (10) @(posedge clk_i);    // wait after the hardware mtvec init
+  end
+
+  
+  assign instr_err_enable = err_enable_vec[0];
+  assign data_err_enable  = err_enable_vec[1];
+  assign intr_enable      = err_enable_vec[2];
+  assign cap_err_enable   = err_enable_vec[3];
 
   //
   // RAMs 
   //
-
-  mem_model #(
-    .MEM_AW    (MEM_AW),
-    .MEM_DW    (32),
-    .GNT_WMAX  (2),
-    .RESP_WMAX (2)
-  ) u_instr_mem (
+  instr_mem_model u_instr_mem (
     .clk             (clk_i         ), 
     .rst_n           (rstn_i        ),
-    .data_req        (instr_req     ),
-    .data_we         (1'b0      ),
-    .data_be         (4'b1111       ),
-    .data_addr       (instr_addr    ),
-    .data_wdata      (32'h0   ),
-    .data_gnt        (instr_gnt     ),
-    .data_rvalid     (instr_rvalid  ),
-    .data_rdata      (instr_rdata_mem),
-    .data_err        (instr_err     )
+    .ERR_RATE        (instr_err_rate),
+    .GNT_WMAX        (instr_gnt_wmax),
+    .RESP_WMAX       (instr_resp_wmax),
+    .err_enable      (instr_err_enable),
+    .instr_req       (instr_req     ),
+    .instr_addr      (instr_addr    ),
+    .instr_gnt       (instr_gnt     ),
+    .instr_rvalid    (instr_rvalid  ),
+    .instr_rdata     (instr_rdata_mem),
+    .instr_err       (instr_err     )
   );
 
-  mem_model #(
-    .MEM_AW (MEM_AW),
-    .MEM_DW    (33),
-    .GNT_WMAX  (2),
-    .RESP_WMAX (2)
-  ) u_data_mem (
+  data_mem_model u_data_mem (
     .clk             (clk_i        ), 
     .rst_n           (rstn_i       ),
+    .ERR_RATE        (data_err_rate),
+    .GNT_WMAX        (data_gnt_wmax),
+    .RESP_WMAX       (data_resp_wmax),
+    .err_enable      (data_err_enable),
     .data_req        (data_req     ),
     .data_we         (data_we      ),
     .data_be         (data_be      ),
@@ -269,8 +331,39 @@ module tb_cheriot_top (
     .data_gnt        (data_gnt     ),
     .data_rvalid     (data_rvalid  ),
     .data_rdata      (data_rdata   ),
-    .data_err        (data_err     )
+    .data_err        (data_err     ),
+    .tsmap_cs        (tsmap_cs),
+    .tsmap_addr      (tsmap_addr),
+    .tsmap_rdata     (tsmap_rdata),
+    .mmreg_corein    (mmreg_corein),
+    .mmreg_coreout   (mmreg_coreout),
+    .err_enable_vec  (err_enable_vec),
+    .intr_ack        (intr_ack     )  
   );
+
+  //
+  // random interrupt generator
+  //
+  intr_gen u_intr_gen (
+    .clk             (clk_i        ), 
+    .rst_n           (rstn_i       ),
+    .INTR_INTVL      (intr_intvl   ),
+    .intr_en         (intr_enable  ),
+    .intr_ack        (intr_ack     ),  
+    .irq_o           (irq_vec      )
+  );
+
+  //
+  // random cap error injection
+  //
+  cap_err_gen u_cap_err_gen ( 
+    .clk             (clk_i        ),
+    .rst_n           (rstn_i       ),
+    .ERR_RATE        (cap_err_rate ),
+    .err_enable      (cap_err_enable),
+    .err_active      ( )
+  );
+
 
 endmodule
 
