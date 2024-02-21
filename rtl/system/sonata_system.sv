@@ -74,18 +74,20 @@ module sonata_system #(
   logic                     host_we    [NrHosts];
   logic [BusByteEnable-1:0] host_be    [NrHosts];
   logic [BusDataWidth-1:0]  host_wdata [NrHosts];
+  logic                     host_wcap  [NrHosts];
   logic                     host_rvalid[NrHosts];
   logic [BusDataWidth-1:0]  host_rdata [NrHosts];
+  logic                     host_rcap  [NrHosts];
   logic                     host_err   [NrHosts];
 
   // TODO remove these tie-offs once bus support CHERI tags.
   logic [BusDataWidth:0] cheri_wdata; // No minus one for the tag.
-  // cheri_wdata[32] is marked as unused at the bottom of this file.
   logic [BusDataWidth:0] cheri_rdata; // No minus one for the tag.
 
   assign host_wdata[CoreD]             = cheri_wdata[BusDataWidth-1:0];
-  assign cheri_rdata[BusDataWidth]     = 1'b0;
+  assign host_wcap[CoreD]              = cheri_wdata[BusDataWidth];
   assign cheri_rdata[BusDataWidth-1:0] = host_rdata[CoreD];
+  assign cheri_rdata[BusDataWidth]     = host_rcap[CoreD];
 
   // Bus signals for devices.
   logic                     device_req   [NrDevices];
@@ -94,8 +96,10 @@ module sonata_system #(
   logic                     device_we    [NrDevices]; // Write enable.
   logic [BusByteEnable-1:0] device_be    [NrDevices];
   logic [BusDataWidth-1:0]  device_wdata [NrDevices];
+  logic                     device_wcap  [NrDevices];
   logic                     device_rvalid[NrDevices];
   logic [BusDataWidth-1:0]  device_rdata [NrDevices];
+  logic                     device_rcap  [NrDevices];
   logic                     device_err   [NrDevices];
 
   // Generate requests from read and write enables.
@@ -118,6 +122,7 @@ module sonata_system #(
   logic                    mem_instr_rvalid;
   logic [BusAddrWidth-1:0] mem_instr_addr;
   logic [BusDataWidth-1:0] mem_instr_rdata;
+  logic                    unused_mem_instr_rcap;
 
   assign core_instr_req_filtered =
       core_instr_req & ((core_instr_addr & ~(tl_main_pkg::ADDR_MASK_SRAM)) == tl_main_pkg::ADDR_SPACE_SRAM);
@@ -194,12 +199,14 @@ module sonata_system #(
     .addr_i      (core_instr_addr),
     .we_i        ('0),
     .wdata_i     ('0),
+    .wdata_cap_i ('0),
     .wdata_intg_i('0),
     .be_i        ('0),
     .instr_type_i(prim_mubi_pkg::MuBi4True),
 
     .valid_o     (core_instr_rvalid),
     .rdata_o     (core_instr_rdata),
+    .rdata_cap_o (), // Instructions should not have capability tag set.
     .rdata_intg_o(),
     .err_o       (core_instr_err),
     .intg_err_o  (),
@@ -217,12 +224,14 @@ module sonata_system #(
     .addr_i      (host_addr[CoreD]),
     .we_i        (host_we[CoreD]),
     .wdata_i     (host_wdata[CoreD]),
+    .wdata_cap_i (host_wcap[CoreD]),
     .wdata_intg_i('0),
     .be_i        (host_be[CoreD]),
     .instr_type_i(prim_mubi_pkg::MuBi4False),
 
     .valid_o     (host_rvalid[CoreD]),
     .rdata_o     (host_rdata[CoreD]),
+    .rdata_cap_o (host_rcap[CoreD]),
     .rdata_intg_o(),
     .err_o       (host_err[CoreD]),
     .intg_err_o  (),
@@ -275,9 +284,11 @@ module sonata_system #(
     .we_o(),
     .addr_o(mem_instr_addr[SRAMAddrWidth-1:0]),
     .wdata_o(),
+    .wdata_cap_o(),
     .wmask_o(),
     .intg_error_o(),
     .rdata_i(mem_instr_rdata),
+    .rdata_cap_i(1'b0),
     .rvalid_i(mem_instr_rvalid),
     .rerror_i(2'b00)
   );
@@ -308,9 +319,11 @@ module sonata_system #(
     .we_o        (device_we[Ram]),
     .addr_o      (device_addr[Ram][SRAMAddrWidth-1:0]),
     .wdata_o     (device_wdata[Ram]),
+    .wdata_cap_o (device_wcap[Ram]),
     .wmask_o     (sram_data_bit_enable),
     .intg_error_o(),
     .rdata_i     (device_rdata[Ram]),
+    .rdata_cap_i (device_rcap[Ram]),
     .rvalid_i    (device_rvalid[Ram]),
     .rerror_i    (sram_data_read_error)
   );
@@ -494,7 +507,7 @@ module sonata_system #(
     .scan_rst_ni(1'b1),
     .ram_cfg_i  ('b0),
 
-    .cheri_pmode_i (1'b0),    // TODO enable capability mode.
+    .cheri_pmode_i (1'b1),
     .cheri_tsafe_en_i (1'b0), // TODO enable temporal safety.
 
     .hart_id_i(32'b0),
@@ -554,8 +567,10 @@ module sonata_system #(
     .core_sleep_o          ()
   );
 
+  localparam int RamDepth = MemSize / 4;
+
   ram_2p #(
-      .Depth       ( MemSize / 4  ),
+      .Depth       ( RamDepth     ),
       .AddrOffsetA ( 0            ),
       .AddrOffsetB ( 0            ),
       .MemInitFile ( SRAMInitFile )
@@ -578,6 +593,27 @@ module sonata_system #(
     .b_wdata_i (BusDataWidth'(0)),
     .b_rvalid_o(mem_instr_rvalid),
     .b_rdata_o (mem_instr_rdata)
+  );
+
+  prim_ram_2p #(
+    .Width ( 1        ),
+    .Depth ( RamDepth )
+  ) u_cap_ram (
+    .clk_a_i   (clk_sys_i),
+    .clk_b_i   (clk_sys_i),
+    .cfg_i     ('0),
+    .a_req_i   (device_req[Ram]),
+    .a_write_i (&device_we[Ram]),
+    .a_addr_i  (device_addr[Ram][$clog2(RamDepth)-1+2:2]),
+    .a_wdata_i (device_wcap[Ram]),
+    .a_wmask_i (&device_we[Ram]),
+    .a_rdata_o (device_rcap[Ram]),
+    .b_req_i   (mem_instr_req),
+    .b_write_i (1'b0),
+    .b_wmask_i (1'b0),
+    .b_addr_i  (mem_instr_addr[$clog2(RamDepth)-1+2:2]),
+    .b_wdata_i (1'b0),
+    .b_rdata_o (unused_mem_instr_rcap)
   );
 
   gpio #(
@@ -685,13 +721,16 @@ module sonata_system #(
     endfunction
   `endif
 
-  logic _unused_ok;
-  assign _unused_ok = cheri_wdata[BusDataWidth]; // No minus one because it applies to tag.
-
-  for (genvar i = 0; i < NrDevices; i++) begin : gen_unused
+  for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device
     logic _unused_rvalid;
     assign _unused_rvalid = device_rvalid[i];
-  end : gen_unused
+    if (i != Ram) begin
+      logic _unused_wcap;
+      logic _unused_rcap;
+      assign _unused_wcap = device_wcap[i];
+      assign _unused_rcap = device_rcap[i];
+    end
+  end : gen_unused_device
 
   logic  _unused_read_enable;
   assign _unused_read_enable = device_re[Ram];
