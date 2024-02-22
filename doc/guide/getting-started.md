@@ -96,7 +96,7 @@ index 547abb3..7f7781d 100644
 
 If you want to look at the internal design in more details, you can explore the waveforms produced by the simulation using [GTKWave](http://gtkwave.sourceforge.net/):
 ```sh
-gtkwave sim.fst
+gtkwave sim.fst data/pc_and_gpo.gtkw
 ```
 
 ## FPGA
