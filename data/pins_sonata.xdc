@@ -11,7 +11,10 @@ create_clock -period 40.000 -name mainClk -waveform {0.000 20.000} [get_ports ma
 set_property -dict { PACKAGE_PIN P15 IOSTANDARD LVCMOS33 } [get_ports mainClk];
 
 ## Reset
-set_property -dict { PACKAGE_PIN R11 IOSTANDARD LVCMOS33 } [get_ports {nrst}];
+## PCB revision 0.3 and above
+set_property -dict { PACKAGE_PIN T5 IOSTANDARD LVCMOS33 } [get_ports {nrst}];
+## PCB revision 0.2 and below
+#set_property -dict { PACKAGE_PIN R11 IOSTANDARD LVCMOS33 } [get_ports {nrst}];
 
 ## General purpose LEDs
 set_property -dict { PACKAGE_PIN B13 IOSTANDARD LVCMOS33 } [get_ports {usrLed[0]}];
