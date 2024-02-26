@@ -5,9 +5,8 @@
 module clkgen_sonata (
     input IO_CLK,
     output IO_CLK_BUF,
-    input IO_RST_N,
     output clk_sys,
-    output rst_sys_n
+    output locked
 );
   logic locked_pll;
   logic io_clk_buf;
@@ -16,7 +15,7 @@ module clkgen_sonata (
   logic clk_fb_buf;
   logic clk_fb_unbuf;
 
-  // input buffer
+  // Input buffer
   IBUF io_clk_ibuf(
     .I (IO_CLK),
     .O (io_clk_buf)
@@ -56,12 +55,12 @@ module clkgen_sonata (
     .DRDY                (),
     .DWE                 (1'b0),
     // Other control and status signals
-    .LOCKED              (locked_pll),
+    .LOCKED              (locked),
     .PWRDWN              (1'b0),
     // Do not reset PLL on external reset, otherwise ILA disconnects at a reset
     .RST                 (1'b0));
 
-  // output buffering
+  // Output buffering
   BUFG clk_fb_bufg (
     .I (clk_fb_unbuf),
     .O (clk_fb_buf)
@@ -74,10 +73,6 @@ module clkgen_sonata (
 
   assign IO_CLK_BUF = io_clk_buf;
 
-  // outputs
-  // clock
+  // Clock output
   assign clk_sys = clk_50_buf;
-
-  // reset
-  assign rst_sys_n = locked_pll & IO_RST_N;
 endmodule
