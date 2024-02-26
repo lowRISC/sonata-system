@@ -29,29 +29,17 @@ module top_sonata (
 );
   parameter SRAMInitFile = "";
 
-  logic top_rst_n;
   logic main_clk_buf;
-  logic clk_sys, rst_sys_n;
+  logic clk_sys;
+  logic rst_sys_n;
   logic [7:0] reset_counter;
+  logic pll_locked;
+  logic rst_btn;
 
   logic [4:0] nav_sw_n;
   logic [7:0] user_sw_n;
 
-  initial begin
-    reset_counter = 0;
-  end
-
-  always_ff @(posedge main_clk_buf) begin
-    if (reset_counter != 8'hff) begin
-      reset_counter <= reset_counter + 8'd1;
-    end
-  end
-
-  assign top_rst_n = reset_counter < 8'd5   ? 1'b1 :
-                     reset_counter < 8'd200 ? 1'b0 :
-                                              nrst ;
-
-  assign led_bootok = 1'b1;
+  assign led_bootok = rst_sys_n;
 
   // Switch inputs have pull-ups and switches pull to ground when on. Invert here so CPU sees 1 for
   // on and 0 for off.
@@ -81,12 +69,20 @@ module top_sonata (
   );
 
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
-  clkgen_sonata clkgen(
+  clkgen_sonata u_clkgen(
     .IO_CLK    (mainClk),
     .IO_CLK_BUF(main_clk_buf),
-    .IO_RST_N  (top_rst_n),
     .clk_sys,
-    .rst_sys_n
+    .locked    (pll_locked)
   );
 
+  // Produce reset signal at beginning of time and when button pressed.
+  assign rst_btn = ~nrst;
+
+  rst_ctrl u_rst_ctrl (
+    .clk_i       (main_clk_buf),
+    .pll_locked_i(pll_locked),
+    .rst_btn_i   (rst_btn),
+    .rst_no      (rst_sys_n)
+  );
 endmodule
