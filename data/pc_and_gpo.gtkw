@@ -2,10 +2,10 @@
 [*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
 [*] Thu Feb 22 11:04:03 2024
 [*]
-[dumpfile] "/home/mvdmaas/tmp/sonata-system/sim.fst"
+[dumpfile] "./sim.fst"
 [dumpfile_mtime] "Thu Feb 22 11:00:38 2024"
 [dumpfile_size] 4036105
-[savefile] "/home/mvdmaas/tmp/sonata-system/data/pc_and_gpo.gtkw"
+[savefile] "./data/pc_and_gpo.gtkw"
 [timestart] 0
 [size] 1684 1370
 [pos] -101 -101
