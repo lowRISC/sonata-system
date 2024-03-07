@@ -12,14 +12,15 @@
 // - Debug module.
 // - SPI for driving LCD screen.
 module sonata_system #(
+  parameter int unsigned SysClkFreq    = 50_000_000,
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = ""
 ) (
-  input logic clk_sys_i,
-  input logic rst_sys_ni,
+  input logic                 clk_sys_i,
+  input logic                 rst_sys_ni,
 
   input  logic [GpiWidth-1:0] gp_i,
   output logic [GpoWidth-1:0] gp_o,
@@ -37,7 +38,23 @@ module sonata_system #(
   output logic td_o,    // JTAG test data output pad
 
   output logic [CheriErrWidth-1:0] cheri_err_o,
-  output logic                     cheri_en_o
+  output logic                     cheri_en_o,
+
+  // I2C bus 0
+  input  logic                i2c0_scl_i,
+  output logic                i2c0_scl_o,
+  output logic                i2c0_scl_en_o,
+  input  logic                i2c0_sda_i,
+  output logic                i2c0_sda_o,
+  output logic                i2c0_sda_en_o,
+
+  // I2C bus 1
+  input  logic                i2c1_scl_i,
+  output logic                i2c1_scl_o,
+  output logic                i2c1_scl_en_o,
+  input  logic                i2c1_sda_i,
+  output logic                i2c1_sda_o,
+  output logic                i2c1_sda_en_o
 );
 
   ///////////////////////////////////////////////
@@ -172,12 +189,16 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_timer_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
   tlul_pkg::tl_d2h_t tl_pwm_d2h;
+  tlul_pkg::tl_h2d_t tl_i2c0_h2d;
+  tlul_pkg::tl_d2h_t tl_i2c0_d2h;
+  tlul_pkg::tl_h2d_t tl_i2c1_h2d;
+  tlul_pkg::tl_d2h_t tl_i2c1_d2h;
   tlul_pkg::tl_h2d_t tl_spi_h2d;
   tlul_pkg::tl_d2h_t tl_spi_d2h;
 
   xbar_main xbar (
-    .clk_sys_i (clk_sys_i),
-    .rst_sys_ni(rst_sys_ni),
+    .clk_sys_i   (clk_sys_i),
+    .rst_sys_ni  (rst_sys_ni),
 
     // Host interfaces.
     .tl_ibex_lsu_i(tl_ibex_lsu_h2d_q),
@@ -196,6 +217,10 @@ module sonata_system #(
     .tl_timer_i(tl_timer_d2h),
     .tl_pwm_o  (tl_pwm_h2d),
     .tl_pwm_i  (tl_pwm_d2h),
+    .tl_i2c0_o (tl_i2c0_h2d),
+    .tl_i2c0_i (tl_i2c0_d2h),
+    .tl_i2c1_o (tl_i2c1_h2d),
+    .tl_i2c1_i (tl_i2c1_d2h),
     .tl_spi_o  (tl_spi_h2d),
     .tl_spi_i  (tl_spi_d2h),
 
@@ -579,6 +604,76 @@ module sonata_system #(
     .gp_o
   );
 
+  i2c u_i2c0(
+      .clk_i                    (clk_sys_i),
+      .rst_ni                   (rst_sys_ni),
+      .ram_cfg_i                ('b0),
+
+      // Bus Interface
+      .tl_i                     (tl_i2c0_h2d),
+      .tl_o                     (tl_i2c0_d2h),
+
+      // Generic IO
+      .cio_scl_i                (i2c0_scl_i),
+      .cio_scl_o                (i2c0_scl_o),
+      .cio_scl_en_o             (i2c0_scl_en_o),
+      .cio_sda_i                (i2c0_sda_i),
+      .cio_sda_o                (i2c0_sda_o),
+      .cio_sda_en_o             (i2c0_sda_en_o),
+
+      // Interrupts
+      .intr_fmt_threshold_o     (),
+      .intr_rx_threshold_o      (),
+      .intr_acq_threshold_o     (),
+      .intr_rx_overflow_o       (),
+      .intr_nak_o               (),
+      .intr_scl_interference_o  (),
+      .intr_sda_interference_o  (),
+      .intr_stretch_timeout_o   (),
+      .intr_sda_unstable_o      (),
+      .intr_cmd_complete_o      (),
+      .intr_tx_stretch_o        (),
+      .intr_tx_threshold_o      (),
+      .intr_acq_full_o          (),
+      .intr_unexp_stop_o        (),
+      .intr_host_timeout_o      ()
+  );
+
+  i2c u_i2c1(
+      .clk_i                    (clk_sys_i),
+      .rst_ni                   (rst_sys_ni),
+      .ram_cfg_i                ('b0),
+
+      // Bus Interface
+      .tl_i                     (tl_i2c1_h2d),
+      .tl_o                     (tl_i2c1_d2h),
+
+      // Generic IO
+      .cio_scl_i                (i2c1_scl_i),
+      .cio_scl_o                (i2c1_scl_o),
+      .cio_scl_en_o             (i2c1_scl_en_o),
+      .cio_sda_i                (i2c1_sda_i),
+      .cio_sda_o                (i2c1_sda_o),
+      .cio_sda_en_o             (i2c1_sda_en_o),
+
+      // Interrupts
+      .intr_fmt_threshold_o     (),
+      .intr_rx_threshold_o      (),
+      .intr_acq_threshold_o     (),
+      .intr_rx_overflow_o       (),
+      .intr_nak_o               (),
+      .intr_scl_interference_o  (),
+      .intr_sda_interference_o  (),
+      .intr_stretch_timeout_o   (),
+      .intr_sda_unstable_o      (),
+      .intr_cmd_complete_o      (),
+      .intr_tx_stretch_o        (),
+      .intr_tx_threshold_o      (),
+      .intr_acq_full_o          (),
+      .intr_unexp_stop_o        (),
+      .intr_host_timeout_o      ()
+  );
+
   pwm_wrapper #(
     .PwmWidth   ( PwmWidth   ),
     .PwmCtrSize ( PwmCtrSize )
@@ -621,9 +716,9 @@ module sonata_system #(
   );
 
   spi_top #(
-    .ClockFrequency ( 50_000_000 ),
-    .CPOL           ( 0          ),
-    .CPHA           ( 1          )
+    .ClockFrequency (SysClkFreq),
+    .CPOL           ( 0        ),
+    .CPHA           ( 1        )
   ) u_spi (
     .clk_i (clk_sys_i),
     .rst_ni(rst_sys_ni),

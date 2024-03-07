@@ -7,16 +7,18 @@
 //
 // Interconnect
 // ibex_lsu
-//   -> s1n_8
-//     -> sm1_9
+//   -> s1n_10
+//     -> sm1_11
 //       -> sram
 //     -> gpio
 //     -> uart
 //     -> timer
 //     -> pwm
+//     -> i2c0
+//     -> i2c1
 //     -> spi
 // dbg_host
-//   -> sm1_9
+//   -> sm1_11
 //     -> sram
 
 module xbar_main (
@@ -40,6 +42,10 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_timer_i,
   output tlul_pkg::tl_h2d_t tl_uart_o,
   input  tlul_pkg::tl_d2h_t tl_uart_i,
+  output tlul_pkg::tl_h2d_t tl_i2c0_o,
+  input  tlul_pkg::tl_d2h_t tl_i2c0_i,
+  output tlul_pkg::tl_h2d_t tl_i2c1_o,
+  input  tlul_pkg::tl_d2h_t tl_i2c1_i,
   output tlul_pkg::tl_h2d_t tl_spi_o,
   input  tlul_pkg::tl_d2h_t tl_spi_i,
 
@@ -54,78 +60,92 @@ module xbar_main (
   logic unused_scanmode;
   assign unused_scanmode = ^scanmode_i;
 
-  tl_h2d_t tl_s1n_8_us_h2d ;
-  tl_d2h_t tl_s1n_8_us_d2h ;
+  tl_h2d_t tl_s1n_10_us_h2d ;
+  tl_d2h_t tl_s1n_10_us_d2h ;
 
 
-  tl_h2d_t tl_s1n_8_ds_h2d [6];
-  tl_d2h_t tl_s1n_8_ds_d2h [6];
+  tl_h2d_t tl_s1n_10_ds_h2d [8];
+  tl_d2h_t tl_s1n_10_ds_d2h [8];
 
   // Create steering signal
-  logic [2:0] dev_sel_s1n_8;
+  logic [3:0] dev_sel_s1n_10;
 
 
-  tl_h2d_t tl_sm1_9_us_h2d [2];
-  tl_d2h_t tl_sm1_9_us_d2h [2];
+  tl_h2d_t tl_sm1_11_us_h2d [2];
+  tl_d2h_t tl_sm1_11_us_d2h [2];
 
-  tl_h2d_t tl_sm1_9_ds_h2d ;
-  tl_d2h_t tl_sm1_9_ds_d2h ;
+  tl_h2d_t tl_sm1_11_ds_h2d ;
+  tl_d2h_t tl_sm1_11_ds_d2h ;
 
 
 
-  assign tl_sm1_9_us_h2d[0] = tl_s1n_8_ds_h2d[0];
-  assign tl_s1n_8_ds_d2h[0] = tl_sm1_9_us_d2h[0];
+  assign tl_sm1_11_us_h2d[0] = tl_s1n_10_ds_h2d[0];
+  assign tl_s1n_10_ds_d2h[0] = tl_sm1_11_us_d2h[0];
 
-  assign tl_gpio_o = tl_s1n_8_ds_h2d[1];
-  assign tl_s1n_8_ds_d2h[1] = tl_gpio_i;
+  assign tl_gpio_o = tl_s1n_10_ds_h2d[1];
+  assign tl_s1n_10_ds_d2h[1] = tl_gpio_i;
 
-  assign tl_uart_o = tl_s1n_8_ds_h2d[2];
-  assign tl_s1n_8_ds_d2h[2] = tl_uart_i;
+  assign tl_uart_o = tl_s1n_10_ds_h2d[2];
+  assign tl_s1n_10_ds_d2h[2] = tl_uart_i;
 
-  assign tl_timer_o = tl_s1n_8_ds_h2d[3];
-  assign tl_s1n_8_ds_d2h[3] = tl_timer_i;
+  assign tl_timer_o = tl_s1n_10_ds_h2d[3];
+  assign tl_s1n_10_ds_d2h[3] = tl_timer_i;
 
-  assign tl_pwm_o = tl_s1n_8_ds_h2d[4];
-  assign tl_s1n_8_ds_d2h[4] = tl_pwm_i;
+  assign tl_pwm_o = tl_s1n_10_ds_h2d[4];
+  assign tl_s1n_10_ds_d2h[4] = tl_pwm_i;
 
-  assign tl_spi_o = tl_s1n_8_ds_h2d[5];
-  assign tl_s1n_8_ds_d2h[5] = tl_spi_i;
+  assign tl_i2c0_o = tl_s1n_10_ds_h2d[5];
+  assign tl_s1n_10_ds_d2h[5] = tl_i2c0_i;
 
-  assign tl_sm1_9_us_h2d[1] = tl_dbg_host_i;
-  assign tl_dbg_host_o = tl_sm1_9_us_d2h[1];
+  assign tl_i2c1_o = tl_s1n_10_ds_h2d[6];
+  assign tl_s1n_10_ds_d2h[6] = tl_i2c1_i;
 
-  assign tl_s1n_8_us_h2d = tl_ibex_lsu_i;
-  assign tl_ibex_lsu_o = tl_s1n_8_us_d2h;
+  assign tl_spi_o = tl_s1n_10_ds_h2d[7];
+  assign tl_s1n_10_ds_d2h[7] = tl_spi_i;
 
-  assign tl_sram_o = tl_sm1_9_ds_h2d;
-  assign tl_sm1_9_ds_d2h = tl_sram_i;
+  assign tl_sm1_11_us_h2d[1] = tl_dbg_host_i;
+  assign tl_dbg_host_o = tl_sm1_11_us_d2h[1];
+
+  assign tl_s1n_10_us_h2d = tl_ibex_lsu_i;
+  assign tl_ibex_lsu_o = tl_s1n_10_us_d2h;
+
+  assign tl_sram_o = tl_sm1_11_ds_h2d;
+  assign tl_sm1_11_ds_d2h = tl_sram_i;
 
   always_comb begin
     // default steering to generate error response if address is not within the range
-    dev_sel_s1n_8 = 3'd6;
-    if ((tl_s1n_8_us_h2d.a_address &
+    dev_sel_s1n_10 = 4'd8;
+    if ((tl_s1n_10_us_h2d.a_address &
          ~(ADDR_MASK_SRAM)) == ADDR_SPACE_SRAM) begin
-      dev_sel_s1n_8 = 3'd0;
+      dev_sel_s1n_10 = 4'd0;
 
-    end else if ((tl_s1n_8_us_h2d.a_address &
+    end else if ((tl_s1n_10_us_h2d.a_address &
                   ~(ADDR_MASK_GPIO)) == ADDR_SPACE_GPIO) begin
-      dev_sel_s1n_8 = 3'd1;
+      dev_sel_s1n_10 = 4'd1;
 
-    end else if ((tl_s1n_8_us_h2d.a_address &
+    end else if ((tl_s1n_10_us_h2d.a_address &
                   ~(ADDR_MASK_UART)) == ADDR_SPACE_UART) begin
-      dev_sel_s1n_8 = 3'd2;
+      dev_sel_s1n_10 = 4'd2;
 
-    end else if ((tl_s1n_8_us_h2d.a_address &
+    end else if ((tl_s1n_10_us_h2d.a_address &
                   ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
-      dev_sel_s1n_8 = 3'd3;
+      dev_sel_s1n_10 = 4'd3;
 
-    end else if ((tl_s1n_8_us_h2d.a_address &
+    end else if ((tl_s1n_10_us_h2d.a_address &
                   ~(ADDR_MASK_PWM)) == ADDR_SPACE_PWM) begin
-      dev_sel_s1n_8 = 3'd4;
+      dev_sel_s1n_10 = 4'd4;
 
-    end else if ((tl_s1n_8_us_h2d.a_address &
+    end else if ((tl_s1n_10_us_h2d.a_address &
+                  ~(ADDR_MASK_I2C0)) == ADDR_SPACE_I2C0) begin
+      dev_sel_s1n_10 = 4'd5;
+
+    end else if ((tl_s1n_10_us_h2d.a_address &
+                  ~(ADDR_MASK_I2C1)) == ADDR_SPACE_I2C1) begin
+      dev_sel_s1n_10 = 4'd6;
+
+    end else if ((tl_s1n_10_us_h2d.a_address &
                   ~(ADDR_MASK_SPI)) == ADDR_SPACE_SPI) begin
-      dev_sel_s1n_8 = 3'd5;
+      dev_sel_s1n_10 = 4'd7;
 end
   end
 
@@ -134,17 +154,17 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqDepth (24'h0),
-    .DRspDepth (24'h0),
-    .N         (6)
-  ) u_s1n_8 (
+    .DReqDepth (32'h0),
+    .DRspDepth (32'h0),
+    .N         (8)
+  ) u_s1n_10 (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
-    .tl_h_i       (tl_s1n_8_us_h2d),
-    .tl_h_o       (tl_s1n_8_us_d2h),
-    .tl_d_o       (tl_s1n_8_ds_h2d),
-    .tl_d_i       (tl_s1n_8_ds_d2h),
-    .dev_select_i (dev_sel_s1n_8)
+    .tl_h_i       (tl_s1n_10_us_h2d),
+    .tl_h_o       (tl_s1n_10_us_d2h),
+    .tl_d_o       (tl_s1n_10_ds_h2d),
+    .tl_d_i       (tl_s1n_10_ds_d2h),
+    .dev_select_i (dev_sel_s1n_10)
   );
   tlul_socket_m1 #(
     .HReqDepth (8'h0),
@@ -152,13 +172,13 @@ end
     .DReqDepth (4'h0),
     .DRspDepth (4'h0),
     .M         (2)
-  ) u_sm1_9 (
+  ) u_sm1_11 (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
-    .tl_h_i       (tl_sm1_9_us_h2d),
-    .tl_h_o       (tl_sm1_9_us_d2h),
-    .tl_d_o       (tl_sm1_9_ds_h2d),
-    .tl_d_i       (tl_sm1_9_ds_d2h)
+    .tl_h_i       (tl_sm1_11_us_h2d),
+    .tl_h_o       (tl_sm1_11_us_d2h),
+    .tl_d_o       (tl_sm1_11_ds_h2d),
+    .tl_d_i       (tl_sm1_11_ds_d2h)
   );
 
 endmodule

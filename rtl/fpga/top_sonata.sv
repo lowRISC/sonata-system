@@ -17,22 +17,29 @@ module top_sonata (
   input  logic [4:0] navSw,
   input  logic [7:0] usrSw,
 
-  output logic lcd_rst,
-  output logic lcd_dc,
-  output logic lcd_copi,
-  output logic lcd_clk,
-  output logic lcd_cs,
-  output logic lcd_backlight,
+  output logic       lcd_rst,
+  output logic       lcd_dc,
+  output logic       lcd_copi,
+  output logic       lcd_clk,
+  output logic       lcd_cs,
+  output logic       lcd_backlight,
 
-  output logic rgbled0,
+  output logic       rgbled0,
 
-  output logic ser0_tx,
-  input  logic ser0_rx,
+  output logic       ser0_tx,
+  input  logic       ser0_rx,
 
-  input  logic tck_i,
-  input  logic tms_i,
-  input  logic td_i,
-  output logic td_o
+  // I2C buses
+  inout  logic       scl0,
+  inout  logic       sda0,
+
+  output logic       scl1,
+  output logic       sda1,
+
+  input  logic       tck_i,
+  input  logic       tms_i,
+  input  logic       td_i,
+  output logic       td_o
 );
   parameter SRAMInitFile = "";
 
@@ -55,6 +62,19 @@ module top_sonata (
 
   logic cheri_en;
 
+  logic scl0_o, scl0_oe;
+  logic sda0_o, sda0_oe;
+
+  logic scl1_o, scl1_oe;
+  logic sda1_o, sda1_oe;
+
+  // Open Drain drivers onto I2C bus.
+  assign scl0 = scl0_oe ? scl0_o : 1'bZ;
+  assign sda0 = sda0_oe ? sda0_o : 1'bZ;
+
+  assign scl1 = scl1_oe ? scl1_o : 1'bZ;
+  assign sda1 = sda1_oe ? sda1_o : 1'bZ;
+
   sonata_system #(
     .GpiWidth     ( 13           ),
     .GpoWidth     ( 12           ),
@@ -62,23 +82,40 @@ module top_sonata (
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
   ) u_sonata_system (
-    .clk_sys_i (clk_sys),
-    .rst_sys_ni(rst_sys_n),
+    // Main system clock and reset
+    .clk_sys_i      (clk_sys),
+    .rst_sys_ni     (rst_sys_n),
 
-    .gp_i({user_sw_n, nav_sw_n}),
-    .gp_o({usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
+    .gp_i           ({user_sw_n, nav_sw_n}),
+    .gp_o           ({usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
-    .uart_rx_i(ser0_rx),
-    .uart_tx_o(ser0_tx),
+    .uart_rx_i      (ser0_rx),
+    .uart_tx_o      (ser0_tx),
 
     .pwm_o(),
 
-    .spi_rx_i (1'b0),
-    .spi_tx_o (lcd_copi),
-    .spi_sck_o(lcd_clk),
+    .spi_rx_i       (1'b0),
+    .spi_tx_o       (lcd_copi),
+    .spi_sck_o      (lcd_clk),
 
-    .cheri_err_o(cheriErr),
-    .cheri_en_o (cheri_en),
+    .cheri_err_o    (cheriErr),
+    .cheri_en_o     (cheri_en),
+
+    // I2C bus 0
+    .i2c0_scl_i     (scl0),
+    .i2c0_scl_o     (scl0_o),
+    .i2c0_scl_en_o  (scl0_oe),
+    .i2c0_sda_i     (sda0),
+    .i2c0_sda_o     (sda0_o),
+    .i2c0_sda_en_o  (sda0_oe),
+
+    // I2C bus 1
+    .i2c1_scl_i     (scl1),
+    .i2c1_scl_o     (scl1_o),
+    .i2c1_scl_en_o  (scl1_oe),
+    .i2c1_sda_i     (sda1),
+    .i2c1_sda_o     (sda1_o),
+    .i2c1_sda_en_o  (sda1_oe),
 
     .tck_i,
     .tms_i,

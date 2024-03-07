@@ -10,6 +10,21 @@ module top_verilator (input logic clk_i, rst_ni);
 
   logic uart_sys_rx, uart_sys_tx;
 
+  logic scl0_o, scl0_oe;
+  logic sda0_o, sda0_oe;
+
+  logic scl1_o, scl1_oe;
+  logic sda1_o, sda1_oe;
+
+  // Nothing else driving the buses at present.
+  wire scl0 = scl0_oe ? scl0_o : 1'b1;
+  wire scl1 = scl1_oe ? scl0_o : 1'b1;
+  wire sda0 = sda0_oe ? sda0_o : 1'b1;
+  wire sda1 = sda1_oe ? sda1_o : 1'b1;
+
+  wire unused_ = ^{scl0_o, scl0_oe, sda0_o, sda0_oe,
+                   scl1_o, scl1_oe, sda1_o, sda1_oe};
+
   // Instantiating the Sonata System.
   sonata_system u_sonata_system (
     // Clock and Reset
@@ -31,6 +46,22 @@ module top_verilator (input logic clk_i, rst_ni);
     // CHERI output
     .cheri_err_o(),
     .cheri_en_o (),
+
+    // I2C bus 0
+    .i2c0_scl_i     (scl0),
+    .i2c0_scl_o     (scl0_o),
+    .i2c0_scl_en_o  (scl0_oe),
+    .i2c0_sda_i     (sda0),
+    .i2c0_sda_o     (sda0_o),
+    .i2c0_sda_en_o  (sda0_oe),
+
+    // I2C bus 1
+    .i2c1_scl_i     (scl1),
+    .i2c1_scl_o     (scl1_o),
+    .i2c1_scl_en_o  (scl1_oe),
+    .i2c1_sda_i     (sda1),
+    .i2c1_sda_o     (sda1_o),
+    .i2c1_sda_en_o  (sda1_oe),
 
     // User JTAG
     .tck_i  (),
