@@ -43,7 +43,23 @@ module top_artya7 #(
 
     .spi_rx_i (SPI_RX),
     .spi_tx_o (SPI_TX),
-    .spi_sck_o(SPI_SCK)
+    .spi_sck_o(SPI_SCK),
+
+    // I2C bus 0
+    .i2c0_scl_i     (1'b1),
+    .i2c0_scl_o     (),
+    .i2c0_scl_en_o  (),
+    .i2c0_sda_i     (1'b1),
+    .i2c0_sda_o     (),
+    .i2c0_sda_en_o  (),
+
+    // I2C bus 1
+    .i2c1_scl_i     (1'b1),
+    .i2c1_scl_o     (),
+    .i2c1_scl_en_o  (),
+    .i2c1_sda_i     (1'b1),
+    .i2c1_sda_o     (),
+    .i2c1_sda_en_o  ()
   );
 
   // Generating the system clock and reset for the FPGA.

@@ -83,6 +83,37 @@ set_property -dict { PACKAGE_PIN N5  IOSTANDARD LVCMOS33 } [get_ports lcd_backli
 set_property -dict { PACKAGE_PIN C17 IOSTANDARD LVCMOS33 } [get_ports ser0_tx];
 set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVCMOS33 } [get_ports ser0_rx];
 
+# QWIIC and Arduino Shield
+# set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports sda0];
+# set_property -dict { PACKAGE_PIN V9 IOSTANDARD LVCMOS33 } [get_ports scl0];
+
+# QWIIC
+# set_property -dict { PACKAGE_PIN V7 IOSTANDARD LVCMOS33 } [get_ports sda1];
+# set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 } [get_ports scl1];
+
+# mikroBUS Click
+# set_property -dict { PACKAGE_PIN V1 IOSTANDARD LVCMOS33 } [get_ports sda0];
+# set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports scl0];
+
+# R-Pi Header
+
+# GPIO/I2C bus
+set_property -dict { PACKAGE_PIN L13 IOSTANDARD LVCMOS33 } [get_ports sda1];
+# rev 0.3+
+set_property -dict { PACKAGE_PIN M16 IOSTANDARD LVCMOS33 } [get_ports scl1];
+# rev <= 0.2
+# set_property -dict { PACKAGE_PIN K18 IOSTANDARD LVCMOS33 } [get_ports scl1];
+
+# I2C - Enable the internal pull-up resistors, if there are no external resistors on the PCB.
+# for the rev <= 0.2 boards
+# set_property PULLUP true [get_ports sda1]
+# set_property PULLUP true [get_ports scl1]
+# rev 0.5+ have on-board pull ups
+
+# ID_SC/SD - I2C bus for HAT ID EEPROM; pull-ups are on the HAT itself
+set_property -dict { PACKAGE_PIN T15 IOSTANDARD LVCMOS33 } [get_ports scl0];
+set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports sda0];
+
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 

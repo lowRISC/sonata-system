@@ -9,8 +9,9 @@ filesets:
     depend:
       - lowrisc:ibex:ibex_top_tracing
       - pulp:riscv:debug_module
-      - lowrisc:ip:xbar_main
+      - lowrisc:ip:i2c
       - lowrisc:ip:uart
+      - lowrisc:ip:xbar_main
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:

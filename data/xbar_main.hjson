@@ -77,6 +77,26 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "i2c0", // I2C bus 0
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x82000000",
+        size_byte: "0x00001000",
+      }],
+    },
+    { name:  "i2c1", // I2C bus 1
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x82001000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "spi", // Serial peripheral interface
       type:  "device",
       clock: "clk_sys_i",
@@ -89,7 +109,7 @@
     },
   ],
   connections: {
-    ibex_lsu: ["sram", "gpio", "uart", "timer", "pwm", "spi"],
+    ibex_lsu: ["sram", "gpio", "uart", "timer", "pwm", "i2c0", "i2c1", "spi"],
     dbg_host: ["sram"],
   },
 }
