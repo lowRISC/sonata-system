@@ -68,6 +68,8 @@ Use the following FuseSoC command to build the simulator binary:
 fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system
 ```
 
+*To enable tracing append, `--verilator_options='+define+RVFI'` to the command above.*
+
 ### Running
 
 Running the simulator can be accomplished with the following command, where you can change the `meminit` argument to a different program if you wish:
