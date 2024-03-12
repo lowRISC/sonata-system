@@ -22,8 +22,11 @@ start:
 	// Call the C++ entry point
 	la_abs           t0, rom_loader_entry
 	csetaddr         cra, cra, t0
+	// Store capability to stack
 	csc              cra, 0(csp)
+	// Load capability from stack
 	clc              cra, 0(csp)
+	// Clear capability from stack
 	csc              cnull, 0(csp)
 	cjalr            cra
 
