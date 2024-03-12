@@ -497,9 +497,9 @@ module sonata_system #(
     .DmExceptionAddr ( DebugStart + dm::ExceptionAddress[31:0] ),
     .DbgTriggerEn    ( DbgTriggerEn                            ),
     .DbgHwBreakNum   ( DbgHwBreakNum                           ),
-    .MHPMCounterNum  ( 10                                      ),
-    .RV32B           ( ibex_pkg::RV32BNone                     )
-  ) u_top (
+    .MHPMCounterNum  ( 13                                      ),
+    .RV32B           ( ibex_pkg::RV32BFull                     )
+  ) u_top_tracing (
     .clk_i (clk_sys_i),
     .rst_ni(rst_core_n),
 
@@ -717,7 +717,7 @@ module sonata_system #(
     export "DPI-C" function mhpmcounter_get;
 
     function automatic longint unsigned mhpmcounter_get(int index);
-      return u_top.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
+      return u_top_tracing.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
     endfunction
   `endif
 
