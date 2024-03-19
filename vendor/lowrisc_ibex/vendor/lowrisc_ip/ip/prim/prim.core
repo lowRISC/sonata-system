@@ -21,7 +21,6 @@ filesets:
       - lowrisc:prim:flop_2sync
       - lowrisc:prim:arbiter
       - lowrisc:prim:fifo
-      - lowrisc:prim:alert
       - lowrisc:prim:esc
       - lowrisc:prim:subreg
       - lowrisc:prim:cipher
