@@ -74,7 +74,7 @@ fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc
 
 Running the simulator can be accomplished with the following command, where you can change the `meminit` argument to a different program if you wish:
 ```sh
-./build/lowrisc_sonata_system_0/sim-verilator/Vsonata_system -t --meminit=ram,./sw/cpp/cheri_sanity/boot.elf
+./build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator -t --meminit=ram,./sw/cpp/cheri_sanity/boot.elf
 ```
 
 I recommend that you make the following change to the sanity check to see quicker changes in simulation:

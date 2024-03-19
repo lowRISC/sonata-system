@@ -13,7 +13,7 @@ class SonataSystem {
 
 
  protected:
-  sonata_system _top;
+  top_verilator _top;
   VerilatorMemUtil _memutil;
   MemArea _ram;
 
