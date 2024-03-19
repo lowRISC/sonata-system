@@ -10,6 +10,7 @@ filesets:
       - lowrisc:ibex:ibex_top_tracing
       - pulp:riscv:debug_module
       - lowrisc:ip:xbar_main
+      - lowrisc:ip:uart
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
@@ -19,7 +20,6 @@ filesets:
       - rtl/system/gpio.sv
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
-      - rtl/system/uart.sv
       - rtl/system/spi_host.sv
       - rtl/system/spi_top.sv
     file_type: systemVerilogSource
