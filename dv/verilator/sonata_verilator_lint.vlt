@@ -35,3 +35,6 @@ lint_off -rule WIDTH -file "*ibex_tracer.sv"
 lint_off -rule WIDTH -file "*ibex_core.sv"
 
 lint_off -rule UNDRIVEN -file "*ibexc_top_tracing.sv"
+
+lint_off -rule WIDTH  -file "*uartdpi.sv"
+lint_off -rule UNUSED -file "*uartdpi.sv"

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "Vsonata_system__Syms.h"
+#include "Vtop_verilator__Syms.h"
 #include "ibex_pcounts.h"
 #include "sonata_system.h"
 #include "verilated_toplevel.h"
@@ -36,7 +36,7 @@ int SonataSystem::Main(int argc, char **argv) {
 int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
   VerilatorSimCtrl &simctrl = VerilatorSimCtrl::GetInstance();
 
-  simctrl.SetTop(&_top, &_top.clk_sys_i, &_top.rst_sys_ni,
+  simctrl.SetTop(&_top, &_top.clk_i, &_top.rst_ni,
                  VerilatorSimCtrlFlags::ResetPolarityNegative);
 
   _memutil.RegisterMemoryArea("ram", 0x0, &_ram);
@@ -66,7 +66,7 @@ bool SonataSystem::Finish() {
   // Set the scope to the root scope, the ibex_pcount_string function otherwise
   // doesn't know the scope itself. Could be moved to ibex_pcount_string, but
   // would require a way to set the scope name from here, similar to MemUtil.
-  svSetScope(svGetScopeFromName("TOP.sonata_system"));
+  svSetScope(svGetScopeFromName("TOP.top_verilator.u_sonata_system"));
 
   std::cout << "\nPerformance Counters" << std::endl
             << "====================" << std::endl;
