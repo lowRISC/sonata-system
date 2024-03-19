@@ -65,7 +65,7 @@ module sonata_system #(
 
   // Interrupts.
   logic timer_irq;
-  logic uart_irq;
+  logic uart_rx_watermark_irq;
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
@@ -399,32 +399,6 @@ module sonata_system #(
   // Tie off upper bits of address.
   assign device_addr[Pwm][BusAddrWidth-1:RegAddrWidth] = '0;
 
-  tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
-    .AccessLatency    ( 1 )
-  ) uart_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i(tl_uart_h2d),
-    .tl_o(tl_uart_d2h),
-
-    // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
-
-    // Register interface.
-    .re_o   (device_re[Uart]),
-    .we_o   (device_we[Uart]),
-    .addr_o (device_addr[Uart][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[Uart]),
-    .be_o   (device_be[Uart]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[Uart]),
-    .error_i(device_err[Uart])
-  );
-
   // Tie off upper bits of address.
   assign device_addr[Uart][BusAddrWidth-1:RegAddrWidth] = '0;
 
@@ -548,7 +522,7 @@ module sonata_system #(
     .irq_software_i(1'b0),
     .irq_timer_i   (timer_irq),
     .irq_external_i(1'b0),
-    .irq_fast_i    ({14'b0, uart_irq}),
+    .irq_fast_i    ({14'b0, uart_rx_watermark_irq}),
     .irq_nm_i      (1'b0),
 
     .scramble_key_valid_i('0),
@@ -653,23 +627,27 @@ module sonata_system #(
     .pwm_o
   );
 
-  uart #(
-    .ClockFrequency ( 50_000_000 )
-  ) u_uart (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+  uart u_uart (
+      .clk_i       (clk_sys_i  ),
+      .rst_ni      (rst_sys_ni ),
 
-    .device_req_i   (device_req[Uart]),
-    .device_addr_i  (device_addr[Uart]),
-    .device_we_i    (device_we[Uart]),
-    .device_be_i    (device_be[Uart]),
-    .device_wdata_i (device_wdata[Uart]),
-    .device_rvalid_o(device_rvalid[Uart]),
-    .device_rdata_o (device_rdata[Uart]),
+      .cio_rx_i    (uart_rx_i  ),
+      .cio_tx_o    (uart_tx_o  ),
+      .cio_tx_en_o (           ),
 
-    .uart_rx_i,
-    .uart_irq_o(uart_irq),
-    .uart_tx_o
+      // Inter-module signals
+      .tl_i        (tl_uart_h2d),
+      .tl_o        (tl_uart_d2h),
+
+      // Interrupt
+      .intr_tx_watermark_o  (),
+      .intr_rx_watermark_o  (uart_rx_watermark_irq),
+      .intr_tx_empty_o      (),
+      .intr_rx_overflow_o   (),
+      .intr_rx_frame_err_o  (),
+      .intr_rx_break_err_o  (),
+      .intr_rx_timeout_o    (),
+      .intr_rx_parity_err_o ()
   );
 
   spi_top #(
