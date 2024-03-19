@@ -16,6 +16,7 @@
         {from: "util/tlgen",    to: "util/tlgen", patch_dir: "tlgen"},
         {from: "util/reggen",   to: "util/reggen"},
         {from: "hw/ip/tlul",    to: "ip/tlul", patch_dir: "tlul"},
+        {from: "hw/ip/uart",    to: "ip/uart", patch_dir: "uart"},
 
         {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
         {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
