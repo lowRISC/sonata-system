@@ -1,7 +1,22 @@
-book/
-build/
-.venv/
 target/
-*.fst
-sonata_system_pcount.csv
+
+# FuseSoc builds are placed in build
+build/
+
+# Nix based builds a placed are symlinked to result
 result
+
+# mdBook builds are placed in book
+book/
+
+# Python virtual environments use a .venv directory
+.venv/
+
+# Simulation outputs
+*.fst
+*.log
+sonata_system_pcount.csv
+
+# Files and directories used by clangd
+.cache/
+compile_commands.json
