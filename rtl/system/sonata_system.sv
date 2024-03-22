@@ -12,10 +12,11 @@
 // - Debug module.
 // - SPI for driving LCD screen.
 module sonata_system #(
-  parameter int unsigned GpiWidth = 13,
-  parameter int unsigned GpoWidth = 24,
-  parameter int unsigned PwmWidth = 12,
-  parameter SRAMInitFile          = ""
+  parameter int unsigned GpiWidth      = 13,
+  parameter int unsigned GpoWidth      = 24,
+  parameter int unsigned PwmWidth      = 12,
+  parameter int unsigned CheriErrWidth =  9,
+  parameter SRAMInitFile               = ""
 ) (
   input logic clk_sys_i,
   input logic rst_sys_ni,
@@ -27,7 +28,10 @@ module sonata_system #(
   output logic                uart_tx_o,
   input  logic                spi_rx_i,
   output logic                spi_tx_o,
-  output logic                spi_sck_o
+  output logic                spi_sck_o,
+
+  output logic [CheriErrWidth-1:0] cheri_err_o,
+  output logic                     cheri_en_o
 );
 
   ///////////////////////////////////////////////
@@ -464,6 +468,10 @@ module sonata_system #(
   // Core and hardware IP block instantiation. //
   ///////////////////////////////////////////////
 
+  logic cheri_en;
+
+  assign cheri_en = 1'b1;
+  assign cheri_en_o = cheri_en;
   assign rst_core_n = rst_sys_ni;
 
   ibexc_top_tracing #(
@@ -481,8 +489,9 @@ module sonata_system #(
     .scan_rst_ni(1'b1),
     .ram_cfg_i  ('b0),
 
-    .cheri_pmode_i (1'b1),
+    .cheri_pmode_i (cheri_en),
     .cheri_tsafe_en_i (1'b0), // TODO enable temporal safety.
+    .cheri_err_o (cheri_err_o),
 
     .hart_id_i(32'b0),
     // First instruction executed is at 0x0 + 0x80.

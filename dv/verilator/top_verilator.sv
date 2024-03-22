@@ -26,7 +26,11 @@ module top_verilator (input logic clk_i, rst_ni);
     .pwm_o     ( ),
     .spi_rx_i  (0),
     .spi_tx_o  ( ),
-    .spi_sck_o ( )
+    .spi_sck_o ( ),
+
+    // CHERI output
+    .cheri_err_o ( ),
+    .cheri_en_o  ( )
   );
 
   // Virtual UART
