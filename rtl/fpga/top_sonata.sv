@@ -46,17 +46,20 @@ module top_sonata (
   assign nav_sw_n = ~navSw;
   assign user_sw_n = ~usrSw;
 
+  logic cheri_en;
+
   sonata_system #(
-    .GpiWidth    ( 13           ),
-    .GpoWidth    ( 24           ),
-    .PwmWidth    ( 0            ),
-    .SRAMInitFile( SRAMInitFile )
+    .GpiWidth     ( 13           ),
+    .GpoWidth     ( 12           ),
+    .PwmWidth     (  0           ),
+    .CheriErrWidth(  9           ),
+    .SRAMInitFile ( SRAMInitFile )
   ) u_sonata_system (
     .clk_sys_i (clk_sys),
     .rst_sys_ni(rst_sys_n),
 
     .gp_i({user_sw_n, nav_sw_n}),
-    .gp_o({cheriErr, led_legacy, led_cheri, led_halted, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
+    .gp_o({usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
     .uart_rx_i(ser0_rx),
     .uart_tx_o(ser0_tx),
@@ -65,8 +68,15 @@ module top_sonata (
 
     .spi_rx_i (1'b0),
     .spi_tx_o (lcd_copi),
-    .spi_sck_o(lcd_clk)
+    .spi_sck_o(lcd_clk),
+
+    .cheri_err_o(cheriErr),
+    .cheri_en_o (cheri_en)
   );
+
+  assign led_cheri = cheri_en;
+  assign led_legacy = ~cheri_en;
+  assign led_halted = 1'b0;
 
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
   clkgen_sonata u_clkgen(
