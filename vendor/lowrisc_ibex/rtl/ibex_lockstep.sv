@@ -528,6 +528,7 @@ module ibex_lockstep import ibex_pkg::*; import cheri_pkg::*; #(
 
     .cheri_pmode_i       (shadow_inputs_q[0].cheri_pmode),
     .cheri_tsafe_en_i    (shadow_inputs_q[0].cheri_tsafe_en),
+    .cheri_err_o         (),
 
     .instr_req_o         (shadow_outputs_d.instr_req),
     .instr_gnt_i         (shadow_inputs_q[0].instr_gnt),

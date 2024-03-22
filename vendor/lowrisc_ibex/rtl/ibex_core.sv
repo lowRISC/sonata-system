@@ -68,6 +68,7 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   input  logic [31:0]                  boot_addr_i,
   input  logic                         cheri_pmode_i,
   input  logic                         cheri_tsafe_en_i,
+  output logic [8:0]                   cheri_err_o,
 
   // Instruction memory interface
   output logic                         instr_req_o,
@@ -1460,6 +1461,7 @@ end
     .rst_ni(rst_ni),
 
     .cheri_pmode_i  (cheri_pmode_i),
+    .cheri_err_o    (cheri_err_o),
 
     // Hart ID from outside
     .hart_id_i      (hart_id_i),
