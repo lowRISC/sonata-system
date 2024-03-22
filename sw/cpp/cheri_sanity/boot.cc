@@ -7,7 +7,7 @@
 
 using namespace CHERI;
 
-#define GPIO_VALUE (0xFFFFFFFF)
+#define GPIO_VALUE (0x00000FF0)
 
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
@@ -29,13 +29,17 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
 
 	// Use pointer to flash LEDs
 	uint32_t gpioValue = 0;
+	uint32_t inputValue = 0;
+	uint32_t joystickValue = 0;
 	uint32_t switchValue = 0;
 	while (true) {
 		gpioValue ^= GPIO_VALUE;
 		for (int i = 0; i < 5000000; i++) {
-			switchValue = *((volatile uint32_t *) gpi);
-			switchValue <<= 4; // shift input onto LEDs and skipping LCD pins
-			*((volatile uint32_t *) gpo) = gpioValue ^ switchValue;
+			inputValue = *((volatile uint32_t *) gpi);
+			// Shift right to remove joystick, mask to only get 8 switches and shift left to skip LCD controls.
+			switchValue = ((inputValue >> 5) & 0xFF) << 4;
+			joystickValue = (inputValue & 0x1F) << 4;
+			*((volatile uint32_t *) gpo) = (gpioValue ^ switchValue ^ joystickValue) & GPIO_VALUE;
 		}
 	}
 }
