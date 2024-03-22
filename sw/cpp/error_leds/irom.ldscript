@@ -1,0 +1,13 @@
+SECTIONS
+{
+	. = 0x00100000;
+	_start = .;
+
+	.rom_loader :
+	{
+		error.S.o(.text);
+		error.S.o(.trap);
+		end.S.o(.text);
+		. = ALIGN(4);
+	}
+}
