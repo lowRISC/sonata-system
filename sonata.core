@@ -17,6 +17,7 @@ filesets:
       - rtl/fpga/top_sonata.sv
       - rtl/fpga/clkgen_sonata.sv
       - rtl/fpga/rst_ctrl.sv
+      - rtl/fpga/ws281x_drv.sv
     file_type: systemVerilogSource
 
   files_artya7:
