@@ -127,7 +127,7 @@ module ibex_controller #(
   input  logic                  cheri_ex_err_i,
   input  logic                  cheri_wb_err_i,
   input  logic  [11:0]          cheri_ex_err_info_i,
-  input  logic  [11:0]          cheri_wb_err_info_i,
+  input  logic  [15:0]          cheri_wb_err_info_i,
   input  logic                  cheri_branch_req_i,
   input  logic [31:0]           cheri_branch_target_i
 );
@@ -725,10 +725,10 @@ module ibex_controller #(
               if (instr_fetch_cheri_acc_vio_i) begin  // tag violation
                 exc_cause_o = EXC_CAUSE_CHERI_FAULT;
                 csr_mtval_o = {21'h0, 1'b1, 5'h0, 5'h2};   // s=1, cap_idx=0
-                csr_mepcc_clrtag_o = 1'b1;
               end else if (instr_fetch_cheri_bound_vio_i) begin  // bound violation
                 exc_cause_o = EXC_CAUSE_CHERI_FAULT;
                 csr_mtval_o = {21'h0, 1'b1, 5'h0, 5'h1};   // s=1, cap_idx=0
+                csr_mepcc_clrtag_o = 1'b1;
               end else begin                            // ext memory error
                 exc_cause_o = EXC_CAUSE_INSTR_ACCESS_FAULT;
                 csr_mtval_o = instr_fetch_err_plus2_i ? (pc_id_i + 32'd2) : pc_id_i;
@@ -811,8 +811,13 @@ module ibex_controller #(
             end
             cheri_wb_err_prio: begin
               if (cheri_pmode_i) begin
-                exc_cause_o = EXC_CAUSE_CHERI_FAULT;
-                csr_mtval_o = {21'h0, cheri_wb_err_info_i[10:0]};
+                if (cheri_wb_err_info_i[12]) begin  // illegal SCR addr 
+                  exc_cause_o = EXC_CAUSE_ILLEGAL_INSN;
+                  csr_mtval_o = {21'h0, cheri_wb_err_info_i[10:0]};
+                end else begin
+                  exc_cause_o = EXC_CAUSE_CHERI_FAULT;
+                  csr_mtval_o = {21'h0, cheri_wb_err_info_i[10:0]};
+                end
               end
             end
 
