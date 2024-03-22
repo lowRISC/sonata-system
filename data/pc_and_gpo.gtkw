@@ -1,30 +1,32 @@
 [*]
 [*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
-[*] Thu Feb 22 11:04:03 2024
+[*] Fri Mar 22 15:55:47 2024
 [*]
 [dumpfile] "./sim.fst"
-[dumpfile_mtime] "Thu Feb 22 11:00:38 2024"
-[dumpfile_size] 4036105
+[dumpfile_mtime] "Fri Mar 22 15:54:45 2024"
+[dumpfile_size] 3964560
 [savefile] "./data/pc_and_gpo.gtkw"
-[timestart] 0
+[timestart] 5093
 [size] 1684 1370
-[pos] -101 -101
-*-7.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-7.000000 3723 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
-[treeopen] TOP.sonata_system.
-[treeopen] TOP.sonata_system.u_top.
-[treeopen] TOP.sonata_system.u_top.u_ibex_core.
-[treeopen] TOP.sonata_system.u_top.u_ibex_core.wb_stage_i.
+[treeopen] TOP.top_verilator.
+[treeopen] TOP.top_verilator.u_sonata_system.
+[treeopen] TOP.top_verilator.u_sonata_system.u_top_tracing.
+[treeopen] TOP.top_verilator.u_sonata_system.u_top_tracing.u_ibex_top.
+[treeopen] TOP.top_verilator.u_sonata_system.u_top_tracing.u_ibex_top.u_ibex_core.
+[treeopen] TOP.top_verilator.u_sonata_system.u_top_tracing.u_ibex_top.u_ibex_core.wb_stage_i.
 [sst_width] 264
-[signals_width] 160
+[signals_width] 352
 [sst_expanded] 1
-[sst_vpaned_height] 407
+[sst_vpaned_height] 379
 @28
 [color] 1
-TOP.clk_sys_i
-@23
-TOP.gp_o[23:0]
+TOP.top_verilator.u_sonata_system.clk_sys_i
 @22
-TOP.sonata_system.u_top.u_ibex_core.wb_stage_i.pc_wb_o[31:0]
+TOP.top_verilator.u_sonata_system.gp_o[23:0]
+@23
+TOP.top_verilator.u_sonata_system.u_top_tracing.u_ibex_top.u_ibex_core.wb_stage_i.pc_wb_o[31:0]
 [pattern_trace] 1
 [pattern_trace] 0
