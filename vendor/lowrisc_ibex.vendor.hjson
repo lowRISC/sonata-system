@@ -7,7 +7,7 @@
   patch_dir: "patches/lowrisc_ibex",
 
   upstream: {
-    url: "https://github.com/microsoft/cheriot-ibex.git",
-    rev: "main",
+    url: "https://github.com/lowrisc/cheriot-ibex.git",
+    rev: "sonata-ibex",
   }
 }
