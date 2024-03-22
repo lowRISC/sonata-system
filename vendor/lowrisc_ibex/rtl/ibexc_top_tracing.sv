@@ -34,6 +34,7 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
 
   input  logic                         cheri_pmode_i,
   input  logic                         cheri_tsafe_en_i,
+  output logic [8:0]                   cheri_err_o,
   input  logic [31:0]                  hart_id_i,
   input  logic [31:0]                  boot_addr_i,
 
@@ -174,6 +175,7 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
 
     .cheri_pmode_i,
     .cheri_tsafe_en_i,
+    .cheri_err_o,
     .hart_id_i,
     .boot_addr_i,
 
