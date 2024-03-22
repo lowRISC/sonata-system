@@ -72,6 +72,9 @@ set_property -dict { PACKAGE_PIN N5  IOSTANDARD LVCMOS33 } [get_ports lcd_backli
 set_property -dict { PACKAGE_PIN C17 IOSTANDARD LVCMOS33 } [get_ports ser0_tx];
 set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVCMOS33 } [get_ports ser0_rx];
 
+## RGB LED
+set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
+
 ## Switches
 set_property PULLTYPE PULLUP [get_ports usrSw[*]]
 set_property PULLTYPE PULLUP [get_ports navSw[*]]

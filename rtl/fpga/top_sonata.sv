@@ -24,6 +24,8 @@ module top_sonata (
   output logic lcd_cs,
   output logic lcd_backlight,
 
+  output logic rgbled0,
+
   output logic ser0_tx,
   input  logic ser0_rx
 );
@@ -95,4 +97,35 @@ module top_sonata (
     .rst_btn_i   (rst_btn),
     .rst_no      (rst_sys_n)
   );
+
+  // Drive RGB LEDs to off state
+  logic rgb_led_data_last;
+  logic rgb_led_data_ack;
+  logic rgb_led_data_out;
+
+  always_ff @(posedge main_clk_buf or negedge rst_sys_n) begin
+    if (!rst_sys_n) begin
+      rgb_led_data_last <= 1'b0;
+    end else begin
+      if (rgb_led_data_ack) begin
+        rgb_led_data_last <= ~rgb_led_data_last;
+      end
+    end
+  end
+
+  assign rgbled0 = ~rgb_led_data_out;
+
+  ws281x_drv u_rgb_led_drv (
+    .clk_i(main_clk_buf),
+    .rst_ni(rst_sys_n),
+
+    .go_i(1'b1),
+    .idle_o(),
+    .data_i({8'd0, 8'd0, 8'd0}),
+    .data_valid_i(1'b1),
+    .data_last_i(rgb_led_data_last),
+    .data_ack_o(rgb_led_data_ack),
+    .ws281x_dout_o(rgb_led_data_out)
+  );
+
 endmodule
