@@ -214,7 +214,7 @@ module ibex_id_stage import cheri_pkg::*; #(
   input  logic                      cheri_ex_err_i,
   input  logic [11:0]               cheri_ex_err_info_i,
   input  logic                      cheri_wb_err_i,
-  input  logic [11:0]               cheri_wb_err_info_i,
+  input  logic [15:0]               cheri_wb_err_info_i,
   input  logic                      cheri_branch_req_i,   // from cheri EX
   input  logic [31:0]               cheri_branch_target_i
 );
@@ -728,10 +728,11 @@ module ibex_id_stage import cheri_pkg::*; #(
   // csv_access_o is set when CSR access instruction is present and is used to compute whether a CSR
   // access is illegal. A combinational loop would be created if csr_op_en_o was used along (as
   // asserting it for an illegal csr access would result in a flush that would need to deassert it).
+
   // assign csr_op_en_o             = csr_access_o & instr_executing & instr_id_done_o;
+  // improve timing for CHERIoT mode (instr_id_done has too much logic)
   assign csr_op_en_o             = csr_access_o & instr_executing & 
-                                   ((CHERIoTEn & cheri_pmode_i) ? instr_first_cycle : instr_id_done_o);
-// QQQQQQQ KLIU - this needs to be looked into!!!!
+                                   (CHERIoTEn ? instr_first_cycle : instr_id_done_o);
 
   assign alu_operator_ex_o           = alu_operator;
   assign alu_operand_a_ex_o          = alu_operand_a;
