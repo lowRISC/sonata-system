@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/microsoft/cheriot-ibex.git
-    rev: 5964c4f5a9e00d0147ddf8bfc4813b5ee8c15baa
+    url: https://github.com/lowrisc/cheriot-ibex.git
+    rev: 22327690d525cc59baf56d32b4856307664039cb
   }
 }
