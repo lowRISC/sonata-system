@@ -7,13 +7,15 @@ class uart_intr_vseq extends uart_base_vseq;
   `uvm_object_utils(uart_intr_vseq)
 
   constraint num_trans_c {
-    num_trans inside {[1:5]};
+    num_trans inside {[1:4]};
   }
 
-  // make interrupt easy to predict - lower the freq so that there is enough time to read status
-  // and check
+  // Make interrupts easy to predict and fast to simulate - lower the freq so that there is enough
+  // time to read status and check but enforce a minimum frequency when performing many runs in a
+  // test to keep runtime reasonable.
   constraint baud_rate_extra_c {
     baud_rate <= BaudRate230400;
+    num_trans > 2 -> baud_rate >= BaudRate115200;
   }
 
   `uvm_object_new
@@ -53,44 +55,53 @@ class uart_intr_vseq extends uart_base_vseq;
     case (uart_intr)
       TxWatermark: begin
         int level = ral.fifo_ctrl.txilvl.get_mirrored_value();
-        int watermark_bytes = get_watermark_bytes_by_level(level);
+        int watermark_bytes = get_tx_watermark_bytes_by_level(level);
         if (!en_tx) return;
-        //  when tx is enabled, one extra item is in the data path
-        //  when watermark_bytes==1, watermark interrupt is triggered before item is processed
-        if (en_tx && watermark_bytes > 1) watermark_bytes += 1;
+        // First byte is immediately popped from TX FIFO (for transmission) and watermark based upon
+        // TX FIFO level excluding in-transmission byte. Add 1 to watermark_bytes here to give the
+        // number of bytes required to move over the watermark threshold.
+        watermark_bytes += 1;
         drive_tx_bytes(.num_bytes(watermark_bytes - 1));
-        check_one_intr(.uart_intr(uart_intr), .exp(0));
+        if (level == 0) begin
+          // Need a brief delay while the data byte is popped and the interrupt returns high
+          cfg.clk_rst_vif.wait_clks(1);
+        end
+        check_one_intr(.uart_intr(uart_intr), .exp(1));
         drive_tx_bytes(.num_bytes(1));
+        check_one_intr(.uart_intr(uart_intr), .exp(0));
         // wait until it drops below watermark
         csr_spinwait(.ptr(ral.fifo_status.txlvl),
-                     .exp_data(get_watermark_bytes_by_level(level)),
+                     .exp_data(get_tx_watermark_bytes_by_level(level)),
                      .compare_op(CompareOpLt));
         check_one_intr(.uart_intr(uart_intr), .exp(1));
         cfg.m_uart_agent_cfg.vif.wait_for_tx_idle();
-        // check interrupt is non-sticky
+        // interrupt should remain asserted whilst FIFO level is below watermark, writes to
+        // intr_state to clear have no effect
         csr_wr(.ptr(ral.intr_state), .value(1 << uart_intr));
-        drive_tx_bytes(.num_bytes(watermark_bytes - 1));
+        check_one_intr(.uart_intr(uart_intr), .exp(1));
+        drive_tx_bytes(.num_bytes(watermark_bytes + 1));
         check_one_intr(.uart_intr(uart_intr), .exp(0));
         cfg.m_uart_agent_cfg.vif.wait_for_tx_idle();
       end
 
       RxWatermark: begin
         int level = ral.fifo_ctrl.rxilvl.get_mirrored_value();
-        int watermark_bytes = get_watermark_bytes_by_level(level);
+        int watermark_bytes = get_rx_watermark_bytes_by_level(level);
         drive_rx_bytes(.num_bytes(watermark_bytes - 1));
         check_one_intr(.uart_intr(uart_intr), .exp(0));
         drive_rx_bytes(.num_bytes(1));
         check_one_intr(.uart_intr(uart_intr), .exp(en_rx));
-        // check interrupt is non-sticky
+        // interrupt should remain asserted whilst FIFO level is above watermark, writes to
+        // intr_state to clear have no effect
         csr_wr(.ptr(ral.intr_state), .value(1 << uart_intr));
         drive_rx_bytes(.num_bytes(1));
-        check_one_intr(.uart_intr(uart_intr), .exp(0));
+        check_one_intr(.uart_intr(uart_intr), .exp(en_rx));
       end
 
       TxEmpty: begin
         if (en_tx) begin
-          // when tx is enabled, one extra item is in the data path, total is UART_FIFO_DEPTH + 1
-          drive_tx_bytes(.num_bytes($urandom_range(1, UART_FIFO_DEPTH + 1)));
+          // when tx is enabled, one extra item is in the data path, total is TxFifoDepth + 1
+          drive_tx_bytes(.num_bytes($urandom_range(1, TxFifoDepth + 1)));
           check_one_intr(.uart_intr(uart_intr), .exp(0));
           spinwait_txidle();
           check_one_intr(.uart_intr(uart_intr), .exp(1));
@@ -101,7 +112,7 @@ class uart_intr_vseq extends uart_base_vseq;
       end
 
       RxOverflow: begin
-        drive_rx_bytes(.num_bytes(UART_FIFO_DEPTH));
+        drive_rx_bytes(.num_bytes(RxFifoDepth));
         check_one_intr(.uart_intr(uart_intr), .exp(0));
         drive_rx_bytes(.num_bytes(1));
         check_one_intr(.uart_intr(uart_intr), .exp(en_rx));
@@ -123,6 +134,7 @@ class uart_intr_vseq extends uart_base_vseq;
       //                                             break at RXBLVL char-times
       RxBreakErr: begin
         bit [NumUartIntr-1:0] exp_intr_state;
+        bit [NumUartIntr-1:0] exp_intr_state_mask = '1;
         int level = ral.ctrl.rxblvl.get_mirrored_value();
         int break_bytes = get_break_bytes_by_level(level);
 
@@ -132,6 +144,11 @@ class uart_intr_vseq extends uart_base_vseq;
         clear_fifos(.clear_tx_fifo(0), .clear_rx_fifo(1));
         csr_wr(.ptr(ral.intr_state), .value('hff));
 
+        // Don't attempt to predict Tx/Rx watermark when testing RxBreakErr so we don't need to
+        // predict TX/RX FIFO levels for this test.
+        exp_intr_state_mask[TxWatermark] = 1'b0;
+        exp_intr_state_mask[RxWatermark] = 1'b0;
+
         fork
           begin
              drive_rx_all_0s();
@@ -140,16 +157,18 @@ class uart_intr_vseq extends uart_base_vseq;
             // < 10 cycles 0s, expect no interrupt
             wait_for_baud_clock_cycles(9);
             // check interrupt reg & pin but not affect timing of driving uart RX
-            nonblocking_check_all_intr(.exp(0), .do_clear(0));
+            nonblocking_check_all_intr(.exp(0), .do_clear(0), .exp_mask(exp_intr_state_mask));
             // 10th cycle
             wait_for_baud_clock_cycles(1);
             exp_intr_state[RxFrameErr]  = ~en_parity & en_rx;
-            nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(0));
+            nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(0),
+                .exp_mask(exp_intr_state_mask));
             // 11th cycle
             wait_for_baud_clock_cycles(1);
             exp_intr_state[RxParityErr] = en_parity & en_rx & `GET_PARITY(0, odd_parity);
             exp_intr_state[RxFrameErr]  = en_rx;
-            nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1));
+            nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1),
+                .exp_mask(exp_intr_state_mask));
           end
         join
 
@@ -161,18 +180,20 @@ class uart_intr_vseq extends uart_base_vseq;
         // from 11 to RXBLVL * char - 1
         if (break_bytes > 2) begin // avoid negetive value
           wait_for_baud_clock_cycles(bit_num_per_trans * (break_bytes - 1) - 11);
-          nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1));
+          nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1),
+              .exp_mask(exp_intr_state_mask));
         end
         // RXBLVL * char
         wait_for_baud_clock_cycles(bit_num_per_trans);
         exp_intr_state[RxBreakErr] = en_rx;
-        nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1));
+        nonblocking_check_all_intr(.exp(exp_intr_state), .do_clear(1),
+            .exp_mask(exp_intr_state_mask));
 
         // RXBLVL * char * 2
         wait_for_baud_clock_cycles(bit_num_per_trans * break_bytes);
         // check break intr doesn't occur again
         exp_intr_state[RxBreakErr] = 0;
-        nonblocking_check_all_intr(.exp(exp_intr_state));
+        nonblocking_check_all_intr(.exp(exp_intr_state), .exp_mask(exp_intr_state_mask));
 
         sync_up_rx_from_frame_err(bit_num_per_trans);
         cfg.disable_scb_rx_parity_check = 0;
@@ -181,7 +202,7 @@ class uart_intr_vseq extends uart_base_vseq;
 
       RxTimeout: begin
         bit [TL_DW-1:0] rdata;
-        uint num_bytes   = $urandom_range(1, UART_FIFO_DEPTH);
+        uint num_bytes   = $urandom_range(1, RxFifoDepth);
         uint timeout_val = ral.timeout_ctrl.val.get_mirrored_value();
         bit  en_timeout  = ral.timeout_ctrl.en.get_mirrored_value();
         drive_rx_bytes(num_bytes);
@@ -203,20 +224,23 @@ class uart_intr_vseq extends uart_base_vseq;
         csr_rd(.ptr(ral.rdata),  .value(rdata));
 
         // wait for timeout_val-2 cycles (it's about to timeout) and then
-        // read or drive one uart RX item to reset timeout cnt. More fifo read, less fifo write
+        // read or drive uart RX items to reset timeout cnt. More fifo read, less fifo write
         // Repeat until fifo is empty. Timeout should never occur
         forever begin
-          bit [TL_DW-1:0] status;
+          bit rxempty;
           bit rxfull;
           randcase
-            3: begin // read RX fifo
-              csr_rd(.ptr(ral.status), .value(status));
-              if (get_field_val(ral.status.rxempty, status)) begin
-                break;
-              end
+            5: begin // read one or more RX items (fifo read)
+              csr_rd(.ptr(ral.status.rxempty), .value(rxempty));
+              if (rxempty) break; // exit forever
               // use -2 to have higher tolerance to avoid timeout
               wait_for_baud_clock_cycles(timeout_val - 2);
-              csr_rd(.ptr(ral.rdata),  .value(rdata));
+              // Read more than one byte most of the time to reduce max runtime
+              repeat ($urandom_range(RxFifoDepth >> 2, 1)) begin
+                csr_rd(.ptr(ral.rdata), .value(rdata));
+                csr_rd(.ptr(ral.status.rxempty), .value(rxempty));
+                if (rxempty) break; // exit repeat
+              end
             end
             1: begin // drive one RX item (fifo write)
               // use -2 to have higher tolerance to avoid timeout
@@ -256,24 +280,26 @@ class uart_intr_vseq extends uart_base_vseq;
   endtask : check_one_intr
 
   // check all interrupt state and pin
-  task check_all_intr(bit [NumUartIntr-1:0] exp, bit do_clear = 0);
+  task check_all_intr(bit [NumUartIntr-1:0] exp, bit do_clear = 0,
+      bit [NumUartIntr-1:0] exp_mask = '1);
     bit [NumUartIntr-1:0] act_intr_state;
     bit [NumUartIntr-1:0] exp_pin;
 
     csr_rd(.ptr(ral.intr_state), .value(act_intr_state));
-    if (!cfg.under_reset) `DV_CHECK_EQ(act_intr_state, exp)
+    if (!cfg.under_reset) `DV_CHECK_EQ(act_intr_state & exp_mask, exp)
     exp_pin = exp & en_intr;
-    if (!cfg.under_reset) `DV_CHECK_EQ(cfg.intr_vif.pins[NumUartIntr-1:0], exp_pin, $sformatf(
-        "uart_intr val: %0h, en_intr: %0h", exp, en_intr))
+    if (!cfg.under_reset) `DV_CHECK_EQ(cfg.intr_vif.pins[NumUartIntr-1:0] & exp_mask, exp_pin,
+        $sformatf("uart_intr val: %0h, en_intr: %0h", exp, en_intr))
 
     if (do_clear) begin
       csr_wr(.ptr(ral.intr_state), .value(exp));
     end
   endtask : check_all_intr
 
-  task nonblocking_check_all_intr(bit [NumUartIntr-1:0] exp, bit do_clear = 0);
+  task nonblocking_check_all_intr(bit [NumUartIntr-1:0] exp, bit do_clear = 0,
+      bit [NumUartIntr-1:0] exp_mask = '1);
     fork
-        check_all_intr(exp, do_clear);
+        check_all_intr(exp, do_clear, exp_mask);
     join_none
   endtask : nonblocking_check_all_intr
 
@@ -296,7 +322,7 @@ class uart_intr_vseq extends uart_base_vseq;
   endtask
 
   task wait_for_baud_clock_cycles(uint cycles);
-    #(cfg.m_uart_agent_cfg.vif.uart_clk_period_ns * cycles);
+    #(cfg.m_uart_agent_cfg.vif.uart_clk_period * cycles);
   endtask
 
   task drive_tx_bytes(int num_bytes);

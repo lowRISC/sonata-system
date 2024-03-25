@@ -13,7 +13,10 @@ module uart_reg_top (
   output tlul_pkg::tl_d2h_t tl_o,
   // To HW
   output uart_reg_pkg::uart_reg2hw_t reg2hw, // Write
-  input  uart_reg_pkg::uart_hw2reg_t hw2reg  // Read
+  input  uart_reg_pkg::uart_hw2reg_t hw2reg, // Read
+
+  // Integrity check errors
+  output logic intg_err_o
 );
 
   import uart_reg_pkg::* ;
@@ -38,6 +41,40 @@ module uart_reg_top (
 
   tlul_pkg::tl_h2d_t tl_reg_h2d;
   tlul_pkg::tl_d2h_t tl_reg_d2h;
+
+
+  // incoming payload check
+  logic intg_err;
+  tlul_cmd_intg_chk u_chk (
+    .tl_i(tl_i),
+    .err_o(intg_err)
+  );
+
+  // also check for spurious write enables
+  logic reg_we_err;
+  logic [12:0] reg_we_check;
+  prim_reg_we_check #(
+    .OneHotWidth(13)
+  ) u_prim_reg_we_check (
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .oh_i  (reg_we_check),
+    .en_i  (reg_we && !addrmiss),
+    .err_o (reg_we_err)
+  );
+
+  logic err_q;
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      err_q <= '0;
+    end else if (intg_err || reg_we_err) begin
+      err_q <= 1'b1;
+    end
+  end
+
+  // integrity error output is permanent and should be used for alert generation
+  // register errors are transactional
+  assign intg_err_o = err_q | intg_err | reg_we_err;
 
   // outgoing integrity generation
   tlul_pkg::tl_d2h_t tl_o_pre;
@@ -79,16 +116,14 @@ module uart_reg_top (
   // cdc oversampling signals
 
   assign reg_rdata = reg_rdata_next ;
-  assign reg_error = addrmiss | wr_err;
+  assign reg_error = addrmiss | wr_err | intg_err;
 
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
   logic intr_state_we;
   logic intr_state_tx_watermark_qs;
-  logic intr_state_tx_watermark_wd;
   logic intr_state_rx_watermark_qs;
-  logic intr_state_rx_watermark_wd;
   logic intr_state_tx_empty_qs;
   logic intr_state_tx_empty_wd;
   logic intr_state_rx_overflow_qs;
@@ -187,15 +222,16 @@ module uart_reg_top (
   //   F[tx_watermark]: 0:0
   prim_subreg #(
     .DW      (1),
-    .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .SwAccess(prim_subreg_pkg::SwAccessRO),
+    .RESVAL  (1'h1),
+    .Mubi    (1'b0)
   ) u_intr_state_tx_watermark (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
 
     // from register interface
-    .we     (intr_state_we),
-    .wd     (intr_state_tx_watermark_wd),
+    .we     (1'b0),
+    .wd     ('0),
 
     // from internal hardware
     .de     (hw2reg.intr_state.tx_watermark.de),
@@ -204,6 +240,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.tx_watermark.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_tx_watermark_qs)
@@ -212,15 +249,16 @@ module uart_reg_top (
   //   F[rx_watermark]: 1:1
   prim_subreg #(
     .DW      (1),
-    .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .SwAccess(prim_subreg_pkg::SwAccessRO),
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_watermark (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
 
     // from register interface
-    .we     (intr_state_we),
-    .wd     (intr_state_rx_watermark_wd),
+    .we     (1'b0),
+    .wd     ('0),
 
     // from internal hardware
     .de     (hw2reg.intr_state.rx_watermark.de),
@@ -229,6 +267,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_watermark.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_watermark_qs)
@@ -238,7 +277,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_tx_empty (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -254,6 +294,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.tx_empty.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_tx_empty_qs)
@@ -263,7 +304,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_overflow (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -279,6 +321,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_overflow.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_overflow_qs)
@@ -288,7 +331,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_frame_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -304,6 +348,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_frame_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_frame_err_qs)
@@ -313,7 +358,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_break_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -329,6 +375,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_break_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_break_err_qs)
@@ -338,7 +385,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_timeout (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -354,6 +402,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_timeout.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_timeout_qs)
@@ -363,7 +412,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessW1C),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_state_rx_parity_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -379,6 +429,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_state.rx_parity_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_state_rx_parity_err_qs)
@@ -390,7 +441,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_tx_watermark (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -406,6 +458,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.tx_watermark.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_tx_watermark_qs)
@@ -415,7 +468,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_watermark (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -431,6 +485,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_watermark.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_watermark_qs)
@@ -440,7 +495,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_tx_empty (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -456,6 +512,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.tx_empty.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_tx_empty_qs)
@@ -465,7 +522,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_overflow (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -481,6 +539,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_overflow.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_overflow_qs)
@@ -490,7 +549,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_frame_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -506,6 +566,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_frame_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_frame_err_qs)
@@ -515,7 +576,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_break_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -531,6 +593,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_break_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_break_err_qs)
@@ -540,7 +603,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_timeout (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -556,6 +620,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_timeout.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_timeout_qs)
@@ -565,7 +630,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_intr_enable_rx_parity_err (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -581,6 +647,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.intr_enable.rx_parity_err.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (intr_enable_rx_parity_err_qs)
@@ -602,6 +669,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[0]),
     .q      (reg2hw.intr_test.tx_watermark.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.tx_watermark.qe = intr_test_qe;
@@ -617,6 +685,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[1]),
     .q      (reg2hw.intr_test.rx_watermark.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_watermark.qe = intr_test_qe;
@@ -632,6 +701,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[2]),
     .q      (reg2hw.intr_test.tx_empty.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.tx_empty.qe = intr_test_qe;
@@ -647,6 +717,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[3]),
     .q      (reg2hw.intr_test.rx_overflow.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_overflow.qe = intr_test_qe;
@@ -662,6 +733,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[4]),
     .q      (reg2hw.intr_test.rx_frame_err.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_frame_err.qe = intr_test_qe;
@@ -677,6 +749,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[5]),
     .q      (reg2hw.intr_test.rx_break_err.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_break_err.qe = intr_test_qe;
@@ -692,6 +765,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[6]),
     .q      (reg2hw.intr_test.rx_timeout.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_timeout.qe = intr_test_qe;
@@ -707,6 +781,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (intr_test_flds_we[7]),
     .q      (reg2hw.intr_test.rx_parity_err.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.intr_test.rx_parity_err.qe = intr_test_qe;
@@ -726,6 +801,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (alert_test_flds_we[0]),
     .q      (reg2hw.alert_test.q),
+    .ds     (),
     .qs     ()
   );
   assign reg2hw.alert_test.qe = alert_test_qe;
@@ -736,7 +812,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_tx (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -752,6 +829,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.tx.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_tx_qs)
@@ -761,7 +839,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_rx (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -777,6 +856,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.rx.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_rx_qs)
@@ -786,7 +866,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_nf (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -802,6 +883,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.nf.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_nf_qs)
@@ -811,7 +893,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_slpbk (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -827,6 +910,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.slpbk.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_slpbk_qs)
@@ -836,7 +920,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_llpbk (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -852,6 +937,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.llpbk.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_llpbk_qs)
@@ -861,7 +947,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_parity_en (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -877,6 +964,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.parity_en.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_parity_en_qs)
@@ -886,7 +974,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_parity_odd (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -902,6 +991,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.parity_odd.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_parity_odd_qs)
@@ -911,7 +1001,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (2),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (2'h0)
+    .RESVAL  (2'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_rxblvl (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -927,6 +1018,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.rxblvl.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_rxblvl_qs)
@@ -936,7 +1028,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (16),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h0),
+    .Mubi    (1'b0)
   ) u_ctrl_nco (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -952,6 +1045,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ctrl.nco.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ctrl_nco_qs)
@@ -970,6 +1064,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.txfull.re),
     .qe     (),
     .q      (reg2hw.status.txfull.q),
+    .ds     (),
     .qs     (status_txfull_qs)
   );
 
@@ -984,6 +1079,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.rxfull.re),
     .qe     (),
     .q      (reg2hw.status.rxfull.q),
+    .ds     (),
     .qs     (status_rxfull_qs)
   );
 
@@ -998,6 +1094,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.txempty.re),
     .qe     (),
     .q      (reg2hw.status.txempty.q),
+    .ds     (),
     .qs     (status_txempty_qs)
   );
 
@@ -1012,6 +1109,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.txidle.re),
     .qe     (),
     .q      (reg2hw.status.txidle.q),
+    .ds     (),
     .qs     (status_txidle_qs)
   );
 
@@ -1026,6 +1124,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.rxidle.re),
     .qe     (),
     .q      (reg2hw.status.rxidle.q),
+    .ds     (),
     .qs     (status_rxidle_qs)
   );
 
@@ -1040,6 +1139,7 @@ module uart_reg_top (
     .qre    (reg2hw.status.rxempty.re),
     .qe     (),
     .q      (reg2hw.status.rxempty.q),
+    .ds     (),
     .qs     (status_rxempty_qs)
   );
 
@@ -1055,6 +1155,7 @@ module uart_reg_top (
     .qre    (reg2hw.rdata.re),
     .qe     (),
     .q      (reg2hw.rdata.q),
+    .ds     (),
     .qs     (rdata_qs)
   );
 
@@ -1074,7 +1175,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (8),
     .SwAccess(prim_subreg_pkg::SwAccessWO),
-    .RESVAL  (8'h0)
+    .RESVAL  (8'h0),
+    .Mubi    (1'b0)
   ) u_wdata (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1090,6 +1192,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (wdata_flds_we[0]),
     .q      (reg2hw.wdata.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     ()
@@ -1113,7 +1216,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessWO),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_fifo_ctrl_rxrst (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1129,6 +1233,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (fifo_ctrl_flds_we[0]),
     .q      (reg2hw.fifo_ctrl.rxrst.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     ()
@@ -1139,7 +1244,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessWO),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_fifo_ctrl_txrst (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1155,6 +1261,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (fifo_ctrl_flds_we[1]),
     .q      (reg2hw.fifo_ctrl.txrst.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     ()
@@ -1165,7 +1272,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (3),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (3'h0)
+    .RESVAL  (3'h0),
+    .Mubi    (1'b0)
   ) u_fifo_ctrl_rxilvl (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1181,6 +1289,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (fifo_ctrl_flds_we[2]),
     .q      (reg2hw.fifo_ctrl.rxilvl.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (fifo_ctrl_rxilvl_qs)
@@ -1191,7 +1300,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (3),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (3'h0)
+    .RESVAL  (3'h0),
+    .Mubi    (1'b0)
   ) u_fifo_ctrl_txilvl (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1207,6 +1317,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (fifo_ctrl_flds_we[3]),
     .q      (reg2hw.fifo_ctrl.txilvl.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (fifo_ctrl_txilvl_qs)
@@ -1226,6 +1337,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (),
     .q      (),
+    .ds     (),
     .qs     (fifo_status_txlvl_qs)
   );
 
@@ -1240,6 +1352,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (),
     .q      (),
+    .ds     (),
     .qs     (fifo_status_rxlvl_qs)
   );
 
@@ -1249,7 +1362,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ovrd_txen (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1265,6 +1379,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ovrd.txen.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ovrd_txen_qs)
@@ -1274,7 +1389,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_ovrd_txval (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1290,6 +1406,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.ovrd.txval.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (ovrd_txval_qs)
@@ -1307,6 +1424,7 @@ module uart_reg_top (
     .qre    (),
     .qe     (),
     .q      (),
+    .ds     (),
     .qs     (val_qs)
   );
 
@@ -1316,7 +1434,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (24),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (24'h0)
+    .RESVAL  (24'h0),
+    .Mubi    (1'b0)
   ) u_timeout_ctrl_val (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1332,6 +1451,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.timeout_ctrl.val.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (timeout_ctrl_val_qs)
@@ -1341,7 +1461,8 @@ module uart_reg_top (
   prim_subreg #(
     .DW      (1),
     .SwAccess(prim_subreg_pkg::SwAccessRW),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
   ) u_timeout_ctrl_en (
     .clk_i   (clk_i),
     .rst_ni  (rst_ni),
@@ -1357,6 +1478,7 @@ module uart_reg_top (
     // to internal hardware
     .qe     (),
     .q      (reg2hw.timeout_ctrl.en.q),
+    .ds     (),
 
     // to register interface (read)
     .qs     (timeout_ctrl_en_qs)
@@ -1404,10 +1526,6 @@ module uart_reg_top (
 
   // Generate write-enables
   assign intr_state_we = addr_hit[0] & reg_we & !reg_error;
-
-  assign intr_state_tx_watermark_wd = reg_wdata[0];
-
-  assign intr_state_rx_watermark_wd = reg_wdata[1];
 
   assign intr_state_tx_empty_wd = reg_wdata[2];
 
@@ -1502,6 +1620,24 @@ module uart_reg_top (
   assign timeout_ctrl_val_wd = reg_wdata[23:0];
 
   assign timeout_ctrl_en_wd = reg_wdata[31];
+
+  // Assign write-enables to checker logic vector.
+  always_comb begin
+    reg_we_check = '0;
+    reg_we_check[0] = intr_state_we;
+    reg_we_check[1] = intr_enable_we;
+    reg_we_check[2] = intr_test_we;
+    reg_we_check[3] = alert_test_we;
+    reg_we_check[4] = ctrl_we;
+    reg_we_check[5] = 1'b0;
+    reg_we_check[6] = 1'b0;
+    reg_we_check[7] = wdata_we;
+    reg_we_check[8] = fifo_ctrl_we;
+    reg_we_check[9] = 1'b0;
+    reg_we_check[10] = ovrd_we;
+    reg_we_check[11] = 1'b0;
+    reg_we_check[12] = timeout_ctrl_we;
+  end
 
   // Read data return
   always_comb begin
