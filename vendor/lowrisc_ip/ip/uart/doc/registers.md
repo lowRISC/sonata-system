@@ -22,13 +22,13 @@
 ## INTR_STATE
 Interrupt State Register
 - Offset: `0x0`
-- Reset default: `0x0`
+- Reset default: `0x1`
 - Reset mask: `0xff`
 
 ### Fields
 
 ```wavejson
-{"reg": [{"name": "tx_watermark", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_watermark", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "tx_empty", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_overflow", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_frame_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_break_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_timeout", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_parity_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"bits": 24}], "config": {"lanes": 1, "fontsize": 10, "vspace": 150}}
+{"reg": [{"name": "tx_watermark", "bits": 1, "attr": ["ro"], "rotate": -90}, {"name": "rx_watermark", "bits": 1, "attr": ["ro"], "rotate": -90}, {"name": "tx_empty", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_overflow", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_frame_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_break_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_timeout", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"name": "rx_parity_err", "bits": 1, "attr": ["rw1c"], "rotate": -90}, {"bits": 24}], "config": {"lanes": 1, "fontsize": 10, "vspace": 150}}
 ```
 
 |  Bits  |  Type  |  Reset  | Name          | Description                                                                                                    |
@@ -40,8 +40,8 @@ Interrupt State Register
 |   4    |  rw1c  |   0x0   | rx_frame_err  | raised if a framing error has been detected on receive.                                                        |
 |   3    |  rw1c  |   0x0   | rx_overflow   | raised if the receive FIFO has overflowed.                                                                     |
 |   2    |  rw1c  |   0x0   | tx_empty      | raised if the transmit FIFO has emptied and no transmit is ongoing.                                            |
-|   1    |  rw1c  |   0x0   | rx_watermark  | raised if the receive FIFO is past the high-water mark.                                                        |
-|   0    |  rw1c  |   0x0   | tx_watermark  | raised if the transmit FIFO is past the high-water mark.                                                       |
+|   1    |   ro   |   0x0   | rx_watermark  | raised if the receive FIFO is past the high-water mark.                                                        |
+|   0    |   ro   |   0x1   | tx_watermark  | raised if the transmit FIFO is past the high-water mark.                                                       |
 
 ## INTR_ENABLE
 Interrupt Enable Register
@@ -266,8 +266,6 @@ raises tx_watermark interrupt.
 | 0x2     | txlvl4  | 4 characters  |
 | 0x3     | txlvl8  | 8 characters  |
 | 0x4     | txlvl16 | 16 characters |
-| 0x5     | txlvl32 | 32 characters |
-| 0x6     | txlvl64 | 64 characters |
 
 Other values are reserved.
 
@@ -275,17 +273,17 @@ Other values are reserved.
 Trigger level for RX interrupts. If the FIFO depth is greater than or equal to
 the setting, it raises rx_watermark interrupt.
 
-| Value   | Name     | Description    |
-|:--------|:---------|:---------------|
-| 0x0     | rxlvl1   | 1 character    |
-| 0x1     | rxlvl2   | 2 characters   |
-| 0x2     | rxlvl4   | 4 characters   |
-| 0x3     | rxlvl8   | 8 characters   |
-| 0x4     | rxlvl16  | 16 characters  |
-| 0x5     | rxlvl32  | 32 characters  |
-| 0x6     | rxlvl64  | 64 characters  |
-| 0x7     | rxlvl126 | 126 characters |
+| Value   | Name    | Description   |
+|:--------|:--------|:--------------|
+| 0x0     | rxlvl1  | 1 character   |
+| 0x1     | rxlvl2  | 2 characters  |
+| 0x2     | rxlvl4  | 4 characters  |
+| 0x3     | rxlvl8  | 8 characters  |
+| 0x4     | rxlvl16 | 16 characters |
+| 0x5     | rxlvl32 | 32 characters |
+| 0x6     | rxlvl62 | 62 characters |
 
+Other values are reserved.
 
 ### FIFO_CTRL . TXRST
 TX fifo reset. Write 1 to the register resets TX_FIFO. Read returns 0
