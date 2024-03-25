@@ -39,11 +39,12 @@
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --tool=verilator --setup \
-            --build lowrisc:sonata:system
+            --build lowrisc:sonata:system \
+            --verilator_options='+define+RVFI'
         '';
         installPhase = ''
           mkdir -p $out/bin/
-          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vsonata_system $out/bin/
+          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/
         '';
       };
     in {
