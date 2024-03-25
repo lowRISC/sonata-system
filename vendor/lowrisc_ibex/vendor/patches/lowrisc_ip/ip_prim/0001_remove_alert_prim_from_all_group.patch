@@ -1,0 +1,11 @@
+diff --git a/prim.core b/prim.core
+index f348de3..6dc5f67 100644
+--- a/prim.core
++++ b/prim.core
+@@ -24,6 +24,5 @@ filesets:
+       - lowrisc:prim:arbiter
+       - lowrisc:prim:fifo
+-      - lowrisc:prim:alert
+       - lowrisc:prim:esc
+       - lowrisc:prim:subreg
+       - lowrisc:prim:cipher
