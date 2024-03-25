@@ -10,4 +10,4 @@ There are multiple UART instances in Sonata to connect to any of the following t
 - Arduino shield
 - Raspberry Pi hat
 
-By default, Sonata includes 3 UART blocks, each with an offset of `0x100` from each other.
+By default, Sonata includes 3 UART blocks, each with an offset of `0x1000` from each other.
