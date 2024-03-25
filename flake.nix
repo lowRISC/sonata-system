@@ -51,7 +51,9 @@
       formatter = pkgs.alejandra;
       devShells.default = pkgs.mkShell {
         name = "sonata-system-devshell";
-        packages = [pkgs.gtkwave] ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
+        packages =
+          (with pkgs; [screen gtkwave openfpgaloader])
+          ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
       packages = {inherit sonata-simulator sonata-documentation;};
     };
