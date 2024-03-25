@@ -96,7 +96,8 @@ module spi_top #(
     .rdata_o (tx_fifo_rdata),
 
     .full_o (tx_fifo_full),
-    .depth_o(tx_fifo_depth)
+    .depth_o(tx_fifo_depth),
+    .err_o  () // Not connected for now.
   );
 
   spi_host #(
