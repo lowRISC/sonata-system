@@ -13,7 +13,7 @@ In Sonata, there are multiple uses for SPI:
 By default Sonata contains 3 SPI blocks.
 One of which should be used for the LCD, the other two can be configured to be connected to the target using the pin multiplexer.
 
-The offset for each of the blocks is shown below, with each additional block having a `0x100` offset from the previous.
+The offset for each of the blocks is shown below, with each additional block having a `0x1000` offset from the previous.
 
 | Offset | Register |
 |--------|----------|
