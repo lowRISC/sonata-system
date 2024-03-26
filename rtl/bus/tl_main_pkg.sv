@@ -8,17 +8,17 @@ package tl_main_pkg;
 
   localparam logic [31:0] ADDR_SPACE_SRAM  = 32'h 00100000;
   localparam logic [31:0] ADDR_SPACE_GPIO  = 32'h 80000000;
-  localparam logic [31:0] ADDR_SPACE_UART  = 32'h 80001000;
+  localparam logic [31:0] ADDR_SPACE_PWM   = 32'h 80001000;
   localparam logic [31:0] ADDR_SPACE_TIMER = 32'h 80002000;
-  localparam logic [31:0] ADDR_SPACE_PWM   = 32'h 80003000;
-  localparam logic [31:0] ADDR_SPACE_SPI   = 32'h 80004000;
+  localparam logic [31:0] ADDR_SPACE_UART  = 32'h 81000000;
+  localparam logic [31:0] ADDR_SPACE_SPI   = 32'h 83000000;
 
-  localparam logic [31:0] ADDR_MASK_SRAM  = 32'h 0000ffff;
+  localparam logic [31:0] ADDR_MASK_SRAM  = 32'h 0001ffff;
   localparam logic [31:0] ADDR_MASK_GPIO  = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_UART  = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_TIMER = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_PWM   = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_SPI   = 32'h 000003ff;
+  localparam logic [31:0] ADDR_MASK_TIMER = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_UART  = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_SPI   = 32'h 00000fff;
 
   localparam int N_HOST   = 1;
   localparam int N_DEVICE = 6;
@@ -26,9 +26,9 @@ package tl_main_pkg;
   typedef enum int {
     TlSram = 0,
     TlGpio = 1,
-    TlUart = 2,
+    TlPwm = 2,
     TlTimer = 3,
-    TlPwm = 4,
+    TlUart = 4,
     TlSpi = 5
   } tl_device_e;
 

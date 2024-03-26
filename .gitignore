@@ -11,6 +11,7 @@ book/
 
 # Python virtual environments use a .venv directory
 .venv/
+__pycache__
 
 # Simulation outputs
 *.fst

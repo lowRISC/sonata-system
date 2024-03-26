@@ -7,7 +7,7 @@ The registers `0x00` - `0x10` are also not accessible.
 The control register is just hardwired to be in host mode.
 
 For Sonata, we include two I2C blocks.
-The registers of the second I2C block can be accessed with and additional `0x100` offset.
+The registers of the second I2C block can be accessed with and additional `0x1000` offset.
 These can be connected to any of these I2C targets:
 - Two for the QWIIC connectors.
 - One for the mikroBUS.

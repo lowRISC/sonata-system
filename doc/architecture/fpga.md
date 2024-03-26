@@ -44,8 +44,8 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_5000  |   4 KiB | [ADC]          |
 | 0x8000_6000  |   4 KiB | [Pinmux]       |
 | 0x8100_0000  |   1 MiB | [UART]         |
-| 0x8110_0000  |   1 MiB | [I2C host]     |
-| 0x8120_4000  |   1 MiB | [SPI host]     |
+| 0x8200_0000  |   1 MiB | [I2C host]     |
+| 0x8300_0000  |   1 MiB | [SPI host]     |
 | 0x8400_0000  |  64 MiB | [PLIC]         |
 | 0xB000_0000  |   4 KiB | [Debug module] |
 
