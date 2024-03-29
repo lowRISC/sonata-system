@@ -43,8 +43,8 @@ module sram #(
   // TL-UL device adapters
 
   tlul_adapter_sram #(
-    .SramAw           ( AddrWidth ),
-    .EnableRspIntgGen ( 1         )
+    .SramAw           ( AddrWidth - 2 ),
+    .EnableRspIntgGen ( 1             )
   ) sram_b_device_adapter (
     .clk_i,
     .rst_ni,
@@ -61,7 +61,7 @@ module sram #(
     .req_type_o(),
     .gnt_i(mem_b_req),
     .we_o(),
-    .addr_o(mem_b_addr[AddrWidth-1:0]),
+    .addr_o(mem_b_addr[AddrWidth-1:2]),
     .wdata_o(),
     .wdata_cap_o(),
     .wmask_o(),
@@ -73,13 +73,14 @@ module sram #(
   );
 
   assign mem_b_addr[BusAddrWidth-1:AddrWidth] = '0;
+  assign mem_b_addr[1:0] = '0;
 
   logic [BusDataWidth-1:0] sram_data_bit_enable;
   logic [1:0]              sram_data_read_error;
 
   tlul_adapter_sram #(
-    .SramAw           ( AddrWidth ),
-    .EnableRspIntgGen ( 1         )
+    .SramAw           ( AddrWidth - 2 ),
+    .EnableRspIntgGen ( 1             )
   ) sram_a_device_adapter (
     .clk_i,
     .rst_ni,
@@ -96,7 +97,7 @@ module sram #(
     .req_type_o  (),
     .gnt_i       (mem_a_req),
     .we_o        (mem_a_we),
-    .addr_o      (mem_a_addr[AddrWidth-1:0]),
+    .addr_o      (mem_a_addr[AddrWidth-1:2]),
     .wdata_o     (mem_a_wdata),
     .wdata_cap_o (mem_a_wcap),
     .wmask_o     (sram_data_bit_enable),
@@ -107,8 +108,9 @@ module sram #(
     .rerror_i    (sram_data_read_error)
   );
 
-  // Tie off upper bits of address.
+  // Tie off upper and lower bits of address.
   assign mem_a_addr[BusAddrWidth-1:AddrWidth] = '0;
+  assign mem_a_addr[1:0] = '0;
 
   // Translate bit-level enable signals to Byte-level.
   assign mem_a_be[0] = |sram_data_bit_enable[ 7: 0];
@@ -123,10 +125,8 @@ module sram #(
   localparam int RamDepth = 2 ** (AddrWidth - 2);
 
   ram_2p #(
-      .Depth       ( RamDepth ),
-      .AddrOffsetA ( 0        ),
-      .AddrOffsetB ( 0        ),
-      .MemInitFile ( InitFile )
+    .Depth       ( RamDepth ),
+    .MemInitFile ( InitFile )
   ) u_ram (
     .clk_i,
     .rst_ni,
@@ -157,14 +157,14 @@ module sram #(
     .cfg_i     ('0),
     .a_req_i   (mem_a_req),
     .a_write_i (&mem_a_we),
-    .a_addr_i  (mem_a_addr[$clog2(RamDepth)-1+2:2]),
+    .a_addr_i  (mem_a_addr[AddrWidth-1:2]),
     .a_wdata_i (mem_a_wcap),
     .a_wmask_i (&mem_a_we),
     .a_rdata_o (mem_a_rcap),
     .b_req_i   (mem_b_req),
     .b_write_i (1'b0),
     .b_wmask_i (1'b0),
-    .b_addr_i  (mem_b_addr[$clog2(RamDepth)-1+2:2]),
+    .b_addr_i  (mem_b_addr[AddrWidth-1:2]),
     .b_wdata_i (1'b0),
     .b_rdata_o (unused_mem_b_rcap)
   );
