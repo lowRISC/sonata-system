@@ -40,7 +40,8 @@
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --tool=verilator --setup \
             --build lowrisc:sonata:system \
-            --verilator_options='+define+RVFI'
+            --verilator_options="+define+RVFI -j $NIX_BUILD_CORES" \
+            --make_options="-j $NIX_BUILD_CORES"
         '';
         installPhase = ''
           mkdir -p $out/bin/
