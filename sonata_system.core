@@ -22,6 +22,7 @@ filesets:
       - rtl/system/pwm_wrapper.sv
       - rtl/system/spi_host.sv
       - rtl/system/spi_top.sv
+      - rtl/system/sram.sv
     file_type: systemVerilogSource
 
 targets:
