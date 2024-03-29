@@ -56,7 +56,6 @@ module sonata_system #(
   } bus_host_e;
 
   typedef enum int {
-    Ram,
     Gpio,
     Pwm,
     Uart,
@@ -64,7 +63,7 @@ module sonata_system #(
     Spi
   } bus_device_e;
 
-  localparam int NrDevices = 6;
+  localparam int NrDevices = 5;
   localparam int NrHosts = 1;
 
   // Interrupts.
@@ -100,10 +99,8 @@ module sonata_system #(
   logic                     device_we    [NrDevices]; // Write enable.
   logic [BusByteEnable-1:0] device_be    [NrDevices];
   logic [BusDataWidth-1:0]  device_wdata [NrDevices];
-  logic                     device_wcap  [NrDevices];
   logic                     device_rvalid[NrDevices];
   logic [BusDataWidth-1:0]  device_rdata [NrDevices];
-  logic                     device_rcap  [NrDevices];
   logic                     device_err   [NrDevices];
 
   // Generate requests from read and write enables.
@@ -122,19 +119,12 @@ module sonata_system #(
   logic [BusDataWidth-1:0] core_instr_rdata;
   logic                    core_instr_err;
 
-  logic                    mem_instr_req;
-  logic                    mem_instr_rvalid;
-  logic [BusAddrWidth-1:0] mem_instr_addr;
-  logic [BusDataWidth-1:0] mem_instr_rdata;
-  logic                    unused_mem_instr_rcap;
-
   assign core_instr_req_filtered =
       core_instr_req & ((core_instr_addr & ~(tl_main_pkg::ADDR_MASK_SRAM)) == tl_main_pkg::ADDR_SPACE_SRAM);
 
   logic rst_core_n;
 
   // Tie-off unused error signals.
-  assign device_err[Ram]  = 1'b0;
   assign device_err[Gpio] = 1'b0;
   assign device_err[Pwm]  = 1'b0;
   assign device_err[Uart] = 1'b0;
@@ -265,85 +255,18 @@ module sonata_system #(
     .spare_rsp_o()
   );
 
-  // TL-UL device adapters
+  sram #(
+    .AddrWidth ( SRAMAddrWidth ),
+    .InitFile  ( SRAMInitFile  )
+  ) u_sram_top (
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
 
-  tlul_adapter_sram #(
-    .SramAw           ( SRAMAddrWidth ),
-    .EnableRspIntgGen ( 1             )
-  ) sram_inst_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i(tl_ibex_ins_h2d),
-    .tl_o(tl_ibex_ins_d2h),
-
-    // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4True),
-
-    // SRAM interface.
-    .req_o(mem_instr_req),
-    .req_type_o(),
-    .gnt_i(mem_instr_req),
-    .we_o(),
-    .addr_o(mem_instr_addr[SRAMAddrWidth-1:0]),
-    .wdata_o(),
-    .wdata_cap_o(),
-    .wmask_o(),
-    .intg_error_o(),
-    .rdata_i(mem_instr_rdata),
-    .rdata_cap_i(1'b0),
-    .rvalid_i(mem_instr_rvalid),
-    .rerror_i(2'b00)
+    .tl_a_i (tl_sram_h2d),
+    .tl_a_o (tl_sram_d2h),
+    .tl_b_i (tl_ibex_ins_h2d),
+    .tl_b_o (tl_ibex_ins_d2h)
   );
-
-  assign mem_instr_addr[BusAddrWidth-1:SRAMAddrWidth] = '0;
-
-  logic [BusDataWidth-1:0] sram_data_bit_enable;
-  logic [1:0]              sram_data_read_error;
-
-  tlul_adapter_sram #(
-    .SramAw           ( SRAMAddrWidth ),
-    .EnableRspIntgGen ( 1             )
-  ) sram_data_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i(tl_sram_h2d),
-    .tl_o(tl_sram_d2h),
-
-    // Control interface.
-    .en_ifetch_i(prim_mubi_pkg::MuBi4False),
-
-    // SRAM interface.
-    .req_o       (device_req[Ram]),
-    .req_type_o  (),
-    .gnt_i       (device_req[Ram]),
-    .we_o        (device_we[Ram]),
-    .addr_o      (device_addr[Ram][SRAMAddrWidth-1:0]),
-    .wdata_o     (device_wdata[Ram]),
-    .wdata_cap_o (device_wcap[Ram]),
-    .wmask_o     (sram_data_bit_enable),
-    .intg_error_o(),
-    .rdata_i     (device_rdata[Ram]),
-    .rdata_cap_i (device_rcap[Ram]),
-    .rvalid_i    (device_rvalid[Ram]),
-    .rerror_i    (sram_data_read_error)
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[Ram][BusAddrWidth-1:SRAMAddrWidth] = '0;
-
-  // Translate bit-level enable signals to Byte-level.
-  assign device_be[Ram][0] = |sram_data_bit_enable[ 7: 0];
-  assign device_be[Ram][1] = |sram_data_bit_enable[15: 8];
-  assign device_be[Ram][2] = |sram_data_bit_enable[23:16];
-  assign device_be[Ram][3] = |sram_data_bit_enable[31:24];
-
-  // Internal to the TLUL SRAM adapter, 2'b10 is an uncorrectable error and 2'b00 is no error.
-  // The following line converts the single bit error into this two bit format:
-  assign sram_data_read_error = {device_err[Ram], 1'b0};
 
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
@@ -550,55 +473,6 @@ module sonata_system #(
     .core_sleep_o          ()
   );
 
-  localparam int RamDepth = MemSize / 4;
-
-  ram_2p #(
-      .Depth       ( RamDepth     ),
-      .AddrOffsetA ( 0            ),
-      .AddrOffsetB ( 0            ),
-      .MemInitFile ( SRAMInitFile )
-  ) u_ram (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-
-    .a_req_i   (device_req[Ram]),
-    .a_we_i    (device_we[Ram]),
-    .a_be_i    (device_be[Ram]),
-    .a_addr_i  (device_addr[Ram]),
-    .a_wdata_i (device_wdata[Ram]),
-    .a_rvalid_o(device_rvalid[Ram]),
-    .a_rdata_o (device_rdata[Ram]),
-
-    .b_req_i   (mem_instr_req),
-    .b_we_i    (1'b0),
-    .b_be_i    (BusByteEnable'(0)),
-    .b_addr_i  (mem_instr_addr),
-    .b_wdata_i (BusDataWidth'(0)),
-    .b_rvalid_o(mem_instr_rvalid),
-    .b_rdata_o (mem_instr_rdata)
-  );
-
-  prim_ram_2p #(
-    .Width ( 1        ),
-    .Depth ( RamDepth )
-  ) u_cap_ram (
-    .clk_a_i   (clk_sys_i),
-    .clk_b_i   (clk_sys_i),
-    .cfg_i     ('0),
-    .a_req_i   (device_req[Ram]),
-    .a_write_i (&device_we[Ram]),
-    .a_addr_i  (device_addr[Ram][$clog2(RamDepth)-1+2:2]),
-    .a_wdata_i (device_wcap[Ram]),
-    .a_wmask_i (&device_we[Ram]),
-    .a_rdata_o (device_rcap[Ram]),
-    .b_req_i   (mem_instr_req),
-    .b_write_i (1'b0),
-    .b_wmask_i (1'b0),
-    .b_addr_i  (mem_instr_addr[$clog2(RamDepth)-1+2:2]),
-    .b_wdata_i (1'b0),
-    .b_rdata_o (unused_mem_instr_rcap)
-  );
-
   gpio #(
     .GpiWidth ( GpiWidth ),
     .GpoWidth ( GpoWidth )
@@ -711,14 +585,5 @@ module sonata_system #(
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device
     logic _unused_rvalid;
     assign _unused_rvalid = device_rvalid[i];
-    if (i != Ram) begin
-      logic _unused_wcap;
-      logic _unused_rcap;
-      assign _unused_wcap = device_wcap[i];
-      assign _unused_rcap = device_rcap[i];
-    end
   end : gen_unused_device
-
-  logic  _unused_read_enable;
-  assign _unused_read_enable = device_re[Ram];
 endmodule
