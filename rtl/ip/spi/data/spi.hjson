@@ -1,0 +1,233 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+  name:               "spi",
+  human_name:         "SPI",
+  one_line_desc:      "",
+  one_paragraph_desc: "",
+  cip_id:             "1",
+
+  revisions: [
+  {
+    version:            "1.0.0",
+    life_stage:         "L2",
+    design_stage:       "D1",
+    verification_stage: "V1",
+    notes:              ""
+  }
+  ]
+
+  clocking: [
+    {clock: "clk_i", reset: "rst_ni", primary: true},
+  ]
+  bus_interfaces: [
+    { protocol: "tlul", direction: "device" }
+  ],
+  available_input_list: [
+    { name: "spi_cipo",    desc: "SPI Controller in/Peripheral out" },
+  ],
+  available_output_list: [
+    { name: "spi_clk",     desc: "SPI Clock" },
+    { name: "spi_copi",    desc: "SPI Controller out/Peripheral in" },
+  ],
+  interrupt_list: [
+    { name: "rx_full"
+      desc: '''Receive FIFO is full'''
+      type: "status"
+    },
+    { name: "rx_watermark"
+      desc: '''Receive FIFO level is at or above watermark'''
+      type: "status"
+    },
+    { name: "tx_empty"
+      desc: '''Transmit FIFO is empty'''
+      type: "status"
+    },
+    { name: "tx_watermark"
+      desc: '''Transmit FIFO level is at or below watermark'''
+      type: "status"
+    },
+    { name: "complete"
+      desc: '''On-going SPI operation has completed and the block is now idle'''
+      type: "event"
+    }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "CFG",
+      desc:     '''Configuration register. Controls how the SPI block transmits
+                   and receives data. This register can only be modified
+                   whilst the SPI block is idle.
+                 ''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits:   "31",
+          name:   "CPOL",
+          desc:   '''The polarity of the spi_clk signal. When CPOL is 0 clock is
+                     low when idle and the leading edge is positive. When CPOL
+                     is 1 clock is high when idle and the leading edge is
+                     negative''',
+          resval: "0x0"
+        },
+        { bits:   "30",
+          name:   "CPHA",
+          desc:   '''The phase of the spi_clk signal. When CPHA is 0 data is
+                     sampled on the leading edge and changes on the trailing
+                     edge. The first data bit is immediately available before
+                     the first leading edge of the clock when transmission
+                     begins. When CPHA is 1 data is sampled on the trailing edge
+                     and change on the leading edge.''',
+          resval: "0x0"
+        },
+        { bits:   "29",
+          name:   "MSB_FIRST",
+          desc:   '''When set the most significant bit (MSB) is the first bit
+                     sent and received with each byte''',
+          resval: "0x1"
+        },
+        { bits: "15:0",
+          name: "HALF_CLK_PERIOD",
+          desc: '''The length of a half period (i.e. positive edge to negative
+                   edge) of the SPI clock, measured in system clock cycles
+                   reduced by 1. At the standard Sonata 50 MHz system clock a
+                   value of 0 gives a 25 MHz SPI clock, a value of 1 gives a
+                   12.5 MHz SPI clock, a value of 2 gives a 8.33 MHz SPI clock
+                   and so on.''',
+          resval: "0x0"
+        }
+      ]
+    },
+    { name:     "CONTROL",
+      desc:     '''Controls the operation of the SPI block. This register can
+                   only be modified whilst the SPI block is idle.'''
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true",
+      fields: [
+        { bits: "11:8",
+          name: "RX_WATERMARK",
+          desc: '''The watermark level for the receive FIFO, depending on the
+                   value the interrupt will trigger at different points:
+                    * 0 - 1 or more items in the FIFO
+                    * 1 - 2 or more items in the FIFO
+                    * 2 - 4 or more items in the FIFO
+                    * 3 - 8 or more items in the FIFO
+                    * 4 - 16 or more items in the FIFO
+                    * 5 - 32 or more items in the FIFO
+                    * 6 - 56 or more items in the FIFO'''
+          resval: "0x0"
+        },
+        { bits: "7:4",
+          name: "TX_WATERMARK",
+          desc: '''The watermark level for the transmit FIFO, depending on the
+                   value the interrupt will trigger at different points:
+                    * 0 - 1 or fewer items in the FIFO
+                    * 1 - 2 or fewer items in the FIFO
+                    * 2 - 4 or fewer items in the FIFO
+                    * 3 - 8 or fewer items in the FIFO
+                    * 4 - 16 or fewer items in the FIFO'''
+          resval: "0x0"
+        },
+        { bits:   "3",
+          name:   "RX_ENABLE",
+          desc:   '''When set incoming bits are written to the receive FIFO.
+                     When clear incoming bits are ignored.''',
+          resval: "0x0"
+        },
+        { bits:  "2",
+          name:  "TX_ENABLE",
+          desc:  '''When set bytes from the transmit FIFO are sent. When clear
+                    the state of the outgoing spi_cipo is undefined whilst the
+                    SPI clock is running.''',
+          resval: "0x0"
+        },
+        { bits:     "1",
+          name:     "RX_CLEAR",
+          swaccess: "wo",
+          hwaccess: "hro",
+          desc:     '''Write 1 to clear the receive FIFO'''
+        },
+        { bits:     "0",
+          name:     "TX_CLEAR",
+          swaccess: "wo",
+          hwaccess: "hro",
+          desc:     '''Write 1 to clear the transmit FIFO'''
+        }
+      ]
+    },
+    { name:     "STATUS",
+      desc:     '''Status information about the SPI block''',
+      swaccess: "ro"
+      hwaccess: "hwo",
+      hwext:    "true",
+      fields: [
+        { bits: "18",
+          name: "IDLE",
+          desc: '''When set the SPI block is idle and can accept a new start
+                   command.'''
+        },
+        { bits: "17",
+          name: "RX_FIFO_EMPTY",
+          desc: '''When set the receive FIFO is empty and any data read from it
+                   will be undefined.'''
+        },
+        { bits: "16",
+          name: "TX_FIFO_FULL",
+          desc: '''When set the transmit FIFO is full and any data written to it
+                   will be ignored.'''
+        },
+        { bits: "15:8"
+          name: "RX_FIFO_LEVEL",
+          desc: '''Number of items in the receive FIFO'''
+        },
+        { bits: "7:0"
+          name: "TX_FIFO_LEVEL",
+          desc: '''Number of items in the transmit FIFO'''
+        }
+      ]
+    },
+    { name: "START",
+      desc: '''When written begins an SPI operation. Writes are ignored when the
+               SPI block is active.''',
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwqe:     "true",
+      fields: [
+        { bits: "10:0",
+          name: "BYTE_COUNT",
+          desc: '''Number of bytes to receive/transmit in the SPI operation'''
+        }
+      ]
+    },
+    { name: "RX_FIFO",
+      desc: '''Data from the receive FIFO. When read the data is popped from the
+               FIFO. If the FIFO is empty data read is undefined.''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext: "true",
+      hwre: "true",
+      fields: [
+        { bits: "7:0",
+          name: "DATA",
+          desc: '''Byte popped from the FIFO'''
+        }
+      ]
+    },
+    { name: "TX_FIFO",
+      desc: '''Bytes written here are pushed to the transmit FIFO. If the FIFO
+               is full writes are ignored.''',
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwqe:     "true",
+      fields: [
+        { bits: "7:0",
+          name: "DATA",
+          desc: '''Byte to push to the FIFO'''
+        }
+      ]
+    },
+  ]
+}
