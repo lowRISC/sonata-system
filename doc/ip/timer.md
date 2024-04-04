@@ -9,7 +9,7 @@ The time values in this block are 64 bits, which is why it has a high and a low 
 | 0x00   | Time low |
 | 0x04   | Time high |
 | 0x08   | Time compare low |
-| 0x0C   | Time comapre high |
+| 0x0C   | Time compare high |
 
 The processor can set the time by writing to the time low and high registers and then set a time compare value to compare to.
 Internally, the block increments the time by one each clock cycle.
