@@ -63,8 +63,8 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x80002000",
-        size_byte: "0x00001000",
+        base_addr: "0x80040000",
+        size_byte: "0x00010000",
       }],
     },
     { name:  "uart", // Serial input and output
@@ -73,7 +73,7 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x81000000",
+        base_addr: "0x80100000",
         size_byte: "0x00001000",
       }],
     },
@@ -83,7 +83,7 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x82000000",
+        base_addr: "0x80200000",
         size_byte: "0x00001000",
       }],
     },
@@ -93,7 +93,7 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x82001000",
+        base_addr: "0x80201000",
         size_byte: "0x00001000",
       }],
     },
@@ -103,7 +103,7 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x83000000",
+        base_addr: "0x80300000",
         size_byte: "0x00001000",
       }],
     },
@@ -113,7 +113,7 @@
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
-        base_addr: "0x83001000",
+        base_addr: "0x80301000",
         size_byte: "0x00001000",
       }],
     },
