@@ -6,7 +6,7 @@ SECTIONS
 	.rom_loader :
 	{
 		boot.S.o(.text);
-		boot.cc.o(.text .text.* .rodata .rodata.* .data.rel.ro);
+		*.cc.o(.text .text.* .rodata .rodata.* .data.rel.ro);
 		end.S.o(.text);
 		. = ALIGN(4);
 	}

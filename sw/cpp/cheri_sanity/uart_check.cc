@@ -69,13 +69,16 @@ extern "C" void rom_loader_entry(void *rwRoot)
 
   // Create a bounded capability to the UART
   Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address() = 0x81000000;
-  uart.bounds()  = 0x1000;
+  uart.address() = 0x80100000;
+  uart.bounds()  = 0x34;
 
   uart->init();
   uart->blocking_write('h');
   uart->blocking_write('i');
+  uart->blocking_write('\n');
   while (true) {
-    asm("");
+    uart->blocking_write('h');
+    uart->blocking_write('i');
+    uart->blocking_write('\n');
   }
 }
