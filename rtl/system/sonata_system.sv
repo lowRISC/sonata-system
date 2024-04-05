@@ -30,6 +30,12 @@ module sonata_system #(
   output logic                spi_tx_o,
   output logic                spi_sck_o,
 
+  input  logic tck_i,   // JTAG test clock pad
+  input  logic tms_i,   // JTAG test mode select pad
+  input  logic trst_ni, // JTAG test reset pad
+  input  logic td_i,    // JTAG test data input pad
+  output logic td_o,    // JTAG test data output pad
+
   output logic [CheriErrWidth-1:0] cheri_err_o,
   output logic                     cheri_en_o
 );

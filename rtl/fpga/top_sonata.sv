@@ -27,7 +27,12 @@ module top_sonata (
   output logic rgbled0,
 
   output logic ser0_tx,
-  input  logic ser0_rx
+  input  logic ser0_rx,
+
+  input  logic tck_i,
+  input  logic tms_i,
+  input  logic td_i,
+  output logic td_o
 );
   parameter SRAMInitFile = "";
 
@@ -73,7 +78,13 @@ module top_sonata (
     .spi_sck_o(lcd_clk),
 
     .cheri_err_o(cheriErr),
-    .cheri_en_o (cheri_en)
+    .cheri_en_o (cheri_en),
+
+    .tck_i,
+    .tms_i,
+    .trst_ni(rst_sys_n),
+    .td_i,
+    .td_o
   );
 
   assign led_cheri = cheri_en;

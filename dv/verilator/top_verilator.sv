@@ -30,7 +30,14 @@ module top_verilator (input logic clk_i, rst_ni);
 
     // CHERI output
     .cheri_err_o(),
-    .cheri_en_o ()
+    .cheri_en_o (),
+
+    // User JTAG
+    .tck_i  (),
+    .tms_i  (),
+    .trst_ni(rst_ni),
+    .td_i   (),
+    .td_o   ()
   );
 
   // Virtual UART
