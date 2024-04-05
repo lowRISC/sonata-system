@@ -20,6 +20,13 @@
       xbar:  false,
       pipeline: false,
     },
+    { name:  "dbg_host", // Debug module host
+      type:  "host",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      pipeline: false,
+    },
     { name:  "sram", // Internal memory
       type:  "device",
       clock: "clk_sys_i",
@@ -83,5 +90,6 @@
   ],
   connections: {
     ibex_lsu: ["sram", "gpio", "uart", "timer", "pwm", "spi"],
+    dbg_host: ["sram"],
   },
 }
