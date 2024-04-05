@@ -14,6 +14,7 @@ filesets:
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
+      - rtl/system/jtag_id_pkg.sv
       - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
