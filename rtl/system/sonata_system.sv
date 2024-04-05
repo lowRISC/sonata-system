@@ -83,7 +83,6 @@ module sonata_system #(
   logic                     host_rcap  [NrHosts];
   logic                     host_err   [NrHosts];
 
-  // TODO remove these tie-offs once bus support CHERI tags.
   logic [BusDataWidth:0] cheri_wdata; // No minus one for the tag.
   logic [BusDataWidth:0] cheri_rdata; // No minus one for the tag.
 
