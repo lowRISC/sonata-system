@@ -21,16 +21,16 @@ module sram #(
   localparam int unsigned BusByteEnable = 4;
   localparam int unsigned BusDataWidth  = 32;
 
-  logic                     mem_a_req   ;
-  logic [BusAddrWidth-1:0]  mem_a_addr  ;
-  logic                     mem_a_we    ;
-  logic [BusByteEnable-1:0] mem_a_be    ;
-  logic [BusDataWidth-1:0]  mem_a_wdata ;
-  logic                     mem_a_wcap  ;
+  logic                     mem_a_req;
+  logic [BusAddrWidth-1:0]  mem_a_addr;
+  logic                     mem_a_we;
+  logic [BusByteEnable-1:0] mem_a_be;
+  logic [BusDataWidth-1:0]  mem_a_wdata;
+  logic                     mem_a_wcap;
   logic                     mem_a_rvalid;
-  logic [BusDataWidth-1:0]  mem_a_rdata ;
-  logic                     mem_a_rcap  ;
-  logic                     mem_a_err   ;
+  logic [BusDataWidth-1:0]  mem_a_rdata;
+  logic                     mem_a_rcap;
+  logic                     mem_a_err;
 
   logic                    mem_b_req;
   logic                    mem_b_rvalid;
