@@ -20,7 +20,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_UART  = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI   = 32'h 00000fff;
 
-  localparam int N_HOST   = 1;
+  localparam int N_HOST   = 2;
   localparam int N_DEVICE = 6;
 
   typedef enum int {
@@ -33,7 +33,8 @@ package tl_main_pkg;
   } tl_device_e;
 
   typedef enum int {
-    TlIbexLsu = 0
+    TlIbexLsu = 0,
+    TlDbgHost = 1
   } tl_host_e;
 
 endpackage
