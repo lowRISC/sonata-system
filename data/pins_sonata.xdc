@@ -7,8 +7,10 @@
 
 ## Clocks
 create_clock -period 40.000 -name mainClk -waveform {0.000 20.000} [get_ports mainClk]
+create_clock -period 100.000 -name tck_i -waveform {0.000 50.000} [get_ports tck_i]
 
 set_property -dict { PACKAGE_PIN P15 IOSTANDARD LVCMOS33 } [get_ports mainClk];
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i]
 
 ## Reset
 ## PCB revision 0.3 and above
@@ -27,6 +29,15 @@ set_property -dict { PACKAGE_PIN F13 IOSTANDARD LVCMOS33 } [get_ports {usrLed[6]
 set_property -dict { PACKAGE_PIN F14 IOSTANDARD LVCMOS33 } [get_ports {usrLed[7]}];
 
 set_output_delay -clock mainClk 0.000 [get_ports usrLed]
+
+## User JTAG (marked as USR_JTAG on schematic)
+## PCB revision 0.3 and above
+set_property -dict { PACKAGE_PIN E15 IOSTANDARD LVCMOS33 } [get_ports tck_i];
+## PCB revision 0.2 and below
+# set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports tck_i];
+set_property -dict { PACKAGE_PIN H15 IOSTANDARD LVCMOS33 } [get_ports tms_i];
+set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports td_i];
+set_property -dict { PACKAGE_PIN J14 IOSTANDARD LVCMOS33 } [get_ports td_o];
 
 ## Switch and button input
 set_property -dict { PACKAGE_PIN D12 IOSTANDARD LVCMOS33 } [get_ports {usrSw[0]}];
