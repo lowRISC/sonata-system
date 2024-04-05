@@ -104,6 +104,8 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+    flags:
+      use_bscane_tap: true
 
   sim:
     <<: *default_target
