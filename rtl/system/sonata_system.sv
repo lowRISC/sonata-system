@@ -58,7 +58,8 @@ module sonata_system #(
   localparam bit          DbgTriggerEn  = 1'b0;
 
   typedef enum int {
-    CoreD
+    CoreD,
+    DbgHost
   } bus_host_e;
 
   typedef enum int {
@@ -70,7 +71,7 @@ module sonata_system #(
   } bus_device_e;
 
   localparam int NrDevices = 5;
-  localparam int NrHosts = 1;
+  localparam int NrHosts = 2;
 
   // Interrupts.
   logic timer_irq;
@@ -127,7 +128,12 @@ module sonata_system #(
   assign core_instr_req_filtered =
       core_instr_req & ((core_instr_addr & ~(tl_main_pkg::ADDR_MASK_SRAM)) == tl_main_pkg::ADDR_SPACE_SRAM);
 
+  // Reset signals
+  // Internally generated resets cause IMPERFECTSCH warnings
+  /* verilator lint_off IMPERFECTSCH */
   logic rst_core_n;
+  logic ndmreset_req;
+  /* verilator lint_on IMPERFECTSCH */
 
   // Tie-off unused error signals.
   assign device_err[Gpio] = 1'b0;
@@ -148,9 +154,16 @@ module sonata_system #(
   tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d_q;
   tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h_q;
 
+  tlul_pkg::tl_h2d_t tl_dbg_host_h2d_d;
+  tlul_pkg::tl_d2h_t tl_dbg_host_d2h_d;
+  tlul_pkg::tl_h2d_t tl_dbg_host_h2d_q;
+  tlul_pkg::tl_d2h_t tl_dbg_host_d2h_q;
+
   // Device interfaces.
-  tlul_pkg::tl_h2d_t tl_sram_h2d;
-  tlul_pkg::tl_d2h_t tl_sram_d2h;
+  tlul_pkg::tl_h2d_t tl_sram_h2d_d;
+  tlul_pkg::tl_d2h_t tl_sram_d2h_d;
+  tlul_pkg::tl_h2d_t tl_sram_h2d_q;
+  tlul_pkg::tl_d2h_t tl_sram_d2h_q;
   tlul_pkg::tl_h2d_t tl_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_uart_h2d;
@@ -169,10 +182,12 @@ module sonata_system #(
     // Host interfaces.
     .tl_ibex_lsu_i(tl_ibex_lsu_h2d_q),
     .tl_ibex_lsu_o(tl_ibex_lsu_d2h_q),
+    .tl_dbg_host_i(tl_dbg_host_h2d_q),
+    .tl_dbg_host_o(tl_dbg_host_d2h_q),
 
     // Device interfaces.
-    .tl_sram_o (tl_sram_h2d),
-    .tl_sram_i (tl_sram_d2h),
+    .tl_sram_o (tl_sram_h2d_d),
+    .tl_sram_i (tl_sram_d2h_d),
     .tl_gpio_o (tl_gpio_h2d),
     .tl_gpio_i (tl_gpio_d2h),
     .tl_uart_o (tl_uart_h2d),
@@ -239,6 +254,31 @@ module sonata_system #(
     .tl_i(tl_ibex_lsu_d2h_d)
   );
 
+  tlul_adapter_host dbg_host_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .req_i       (host_req[DbgHost]),
+    .gnt_o       (host_gnt[DbgHost]),
+    .addr_i      (host_addr[DbgHost]),
+    .we_i        (host_we[DbgHost]),
+    .wdata_i     (host_wdata[DbgHost]),
+    .wdata_cap_i (host_wcap[DbgHost]),
+    .wdata_intg_i('0),
+    .be_i        (host_be[DbgHost]),
+    .instr_type_i(prim_mubi_pkg::MuBi4False),
+
+    .valid_o     (host_rvalid[DbgHost]),
+    .rdata_o     (host_rdata[DbgHost]),
+    .rdata_cap_o (host_rcap[DbgHost]),
+    .rdata_intg_o(),
+    .err_o       (host_err[DbgHost]),
+    .intg_err_o  (),
+
+    .tl_o(tl_dbg_host_h2d_d),
+    .tl_i(tl_dbg_host_d2h_d)
+  );
+
   // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
   tlul_fifo_sync #(
     .ReqPass  ( 0 ),
@@ -260,6 +300,48 @@ module sonata_system #(
     .spare_rsp_o()
   );
 
+  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
+  tlul_fifo_sync #(
+    .ReqPass  ( 0 ),
+    .RspPass  ( 0 ),
+    .ReqDepth ( 2 ),
+    .RspDepth ( 2 )
+  ) tl_dbg_host_fifo (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_h_i(tl_dbg_host_h2d_d),
+    .tl_h_o(tl_dbg_host_d2h_d),
+    .tl_d_o(tl_dbg_host_h2d_q),
+    .tl_d_i(tl_dbg_host_d2h_q),
+
+    .spare_req_i(1'b0),
+    .spare_req_o(),
+    .spare_rsp_i(1'b0),
+    .spare_rsp_o()
+  );
+
+  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
+  tlul_fifo_sync #(
+    .ReqPass  ( 0 ),
+    .RspPass  ( 0 ),
+    .ReqDepth ( 2 ),
+    .RspDepth ( 2 )
+  ) tl_sram_fifo (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_h_i(tl_sram_h2d_d),
+    .tl_h_o(tl_sram_d2h_d),
+    .tl_d_o(tl_sram_h2d_q),
+    .tl_d_i(tl_sram_d2h_q),
+
+    .spare_req_i(1'b0),
+    .spare_req_o(),
+    .spare_rsp_i(1'b0),
+    .spare_rsp_o()
+  );
+
   sram #(
     .AddrWidth ( SRAMAddrWidth ),
     .InitFile  ( SRAMInitFile  )
@@ -267,8 +349,8 @@ module sonata_system #(
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
 
-    .tl_a_i (tl_sram_h2d),
-    .tl_a_o (tl_sram_d2h),
+    .tl_a_i (tl_sram_h2d_q),
+    .tl_a_o (tl_sram_d2h_q),
     .tl_b_i (tl_ibex_ins_h2d),
     .tl_b_o (tl_ibex_ins_d2h)
   );
@@ -400,7 +482,7 @@ module sonata_system #(
 
   assign cheri_en = 1'b1;
   assign cheri_en_o = cheri_en;
-  assign rst_core_n = rst_sys_ni;
+  assign rst_core_n = rst_sys_ni & ~ndmreset_req;
 
   ibexc_top_tracing #(
     .DmHaltAddr      ( DebugStart + dm::HaltAddress[31:0]      ),
@@ -577,6 +659,43 @@ module sonata_system #(
     .timer_rdata_o (device_rdata[Timer]),
     .timer_err_o   (device_err[Timer]),
     .timer_intr_o  (timer_irq)
+  );
+
+  dm_top #(
+    .NrHarts      ( 1                              ),
+    .IdcodeValue  ( jtag_id_pkg::RV_DM_JTAG_IDCODE )
+  ) u_dm_top (
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
+    .testmode_i   (1'b0),
+    .ndmreset_o   (ndmreset_req),
+    .dmactive_o   (),
+    .debug_req_o  (), // TODO connect to debug_req_i
+    .unavailable_i(1'b0),
+
+    // TODO: Bus device with debug memory (for execution-based debug).
+    .device_req_i  (0),
+    .device_we_i   (0),
+    .device_addr_i (0),
+    .device_be_i   (0),
+    .device_wdata_i(0),
+    .device_rdata_o(),
+
+    // Bus host (for system bus accesses, SBA).
+    .host_req_o    (host_req[DbgHost]),
+    .host_add_o    (host_addr[DbgHost]),
+    .host_we_o     (host_we[DbgHost]),
+    .host_wdata_o  (host_wdata[DbgHost]),
+    .host_be_o     (host_be[DbgHost]),
+    .host_gnt_i    (host_gnt[DbgHost]),
+    .host_r_valid_i(host_rvalid[DbgHost]),
+    .host_r_rdata_i(host_rdata[DbgHost]),
+
+    .tck_i,
+    .tms_i,
+    .trst_ni,
+    .td_i,
+    .td_o
   );
 
   `ifdef VERILATOR

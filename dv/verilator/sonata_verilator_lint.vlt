@@ -18,10 +18,15 @@ lint_off -rule DECLFILENAME -file "*" -match "Filename '*' does not match NOTFOU
 // that a user of a package might not want to use all of the parameters it
 // defines.
 lint_off -rule UNUSED -file "*_pkg.sv" -match "*Parameter is not used*"
+
+// Lint error for PULP debug module.
 lint_off -rule UNUSED -file "*pulp_riscv_dbg*" -match "*not used*"
 lint_off -rule IMPERFECTSCH -file "*pulp_riscv_dbg*"
 lint_off -rule DECLFILENAME -file "*pulp_riscv_dbg*"
 lint_off -rule PINMISSING -file "*pulp_riscv_dbg*"
+lint_off -rule WIDTH -file "*pulp_riscv_dbg/src/dm_mem.sv"
+
+lint_off -rule IMPERFECTSCH -file "*lowrisc_prim_flop_2sync_0/rtl/prim_flop_2sync.sv"
 lint_off -rule UNUSED -file "*ibex_register_file_fpga*"
 
 lint_off -rule UNUSED -file "*ibex_core.sv"
