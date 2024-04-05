@@ -30,7 +30,6 @@ module sram #(
   logic                     mem_a_rvalid;
   logic [BusDataWidth-1:0]  mem_a_rdata;
   logic                     mem_a_rcap;
-  logic                     mem_a_err;
 
   logic                    mem_b_req;
   logic                    mem_b_rvalid;
@@ -38,12 +37,9 @@ module sram #(
   logic [BusDataWidth-1:0] mem_b_rdata;
   logic                    unused_mem_b_rcap;
 
-  assign mem_a_err  = 1'b0;
-
   // TL-UL device adapters
 
   logic [BusDataWidth-1:0] sram_data_bit_enable;
-  logic [1:0]              sram_data_read_error;
 
   tlul_adapter_sram #(
     .SramAw           ( AddrWidth - 2 ),
@@ -72,7 +68,7 @@ module sram #(
     .rdata_i     (mem_a_rdata),
     .rdata_cap_i (mem_a_rcap),
     .rvalid_i    (mem_a_rvalid),
-    .rerror_i    (sram_data_read_error)
+    .rerror_i    (2'b00)
   );
 
   // Tie off upper and lower bits of address.
@@ -84,10 +80,6 @@ module sram #(
   assign mem_a_be[1] = |sram_data_bit_enable[15: 8];
   assign mem_a_be[2] = |sram_data_bit_enable[23:16];
   assign mem_a_be[3] = |sram_data_bit_enable[31:24];
-
-  // Internal to the TLUL SRAM adapter, 2'b10 is an uncorrectable error and 2'b00 is no error.
-  // The following line converts the single bit error into this two bit format:
-  assign sram_data_read_error = {mem_a_err, 1'b0};
 
   tlul_adapter_sram #(
     .SramAw           ( AddrWidth - 2 ),
