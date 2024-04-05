@@ -79,7 +79,7 @@ set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 set_property PULLTYPE PULLUP [get_ports usrSw[*]]
 set_property PULLTYPE PULLUP [get_ports navSw[*]]
 
-## Voltage
+## Voltage and bistream
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
