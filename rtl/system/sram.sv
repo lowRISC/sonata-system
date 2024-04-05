@@ -42,39 +42,6 @@ module sram #(
 
   // TL-UL device adapters
 
-  tlul_adapter_sram #(
-    .SramAw           ( AddrWidth - 2 ),
-    .EnableRspIntgGen ( 1             )
-  ) sram_b_device_adapter (
-    .clk_i,
-    .rst_ni,
-
-    // TL-UL interface.
-    .tl_i(tl_b_i),
-    .tl_o(tl_b_o),
-
-    // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4True),
-
-    // SRAM interface.
-    .req_o(mem_b_req),
-    .req_type_o(),
-    .gnt_i(mem_b_req),
-    .we_o(),
-    .addr_o(mem_b_addr[AddrWidth-1:2]),
-    .wdata_o(),
-    .wdata_cap_o(),
-    .wmask_o(),
-    .intg_error_o(),
-    .rdata_i(mem_b_rdata),
-    .rdata_cap_i(1'b0),
-    .rvalid_i(mem_b_rvalid),
-    .rerror_i(2'b00)
-  );
-
-  assign mem_b_addr[BusAddrWidth-1:AddrWidth] = '0;
-  assign mem_b_addr[1:0] = '0;
-
   logic [BusDataWidth-1:0] sram_data_bit_enable;
   logic [1:0]              sram_data_read_error;
 
@@ -121,6 +88,41 @@ module sram #(
   // Internal to the TLUL SRAM adapter, 2'b10 is an uncorrectable error and 2'b00 is no error.
   // The following line converts the single bit error into this two bit format:
   assign sram_data_read_error = {mem_a_err, 1'b0};
+
+  tlul_adapter_sram #(
+    .SramAw           ( AddrWidth - 2 ),
+    .EnableRspIntgGen ( 1             )
+  ) sram_b_device_adapter (
+    .clk_i,
+    .rst_ni,
+
+    // TL-UL interface.
+    .tl_i(tl_b_i),
+    .tl_o(tl_b_o),
+
+    // Control interface.
+    .en_ifetch_i (prim_mubi_pkg::MuBi4True),
+
+    // SRAM interface.
+    .req_o(mem_b_req),
+    .req_type_o(),
+    .gnt_i(mem_b_req),
+    .we_o(),
+    .addr_o(mem_b_addr[AddrWidth-1:2]),
+    .wdata_o(),
+    .wdata_cap_o(),
+    .wmask_o(),
+    .intg_error_o(),
+    .rdata_i(mem_b_rdata),
+    .rdata_cap_i(1'b0),
+    .rvalid_i(mem_b_rvalid),
+    .rerror_i(2'b00)
+  );
+
+  assign mem_b_addr[BusAddrWidth-1:AddrWidth] = '0;
+  assign mem_b_addr[1:0] = '0;
+
+  // Instantiate RAM blocks
 
   localparam int RamDepth = 2 ** (AddrWidth - 2);
 
