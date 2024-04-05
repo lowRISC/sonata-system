@@ -25,6 +25,7 @@ filesets:
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
       - rtl/system/sram.sv
+      - rtl/system/rv_timer.sv
     file_type: systemVerilogSource
 
 targets:

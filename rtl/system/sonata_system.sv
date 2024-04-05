@@ -823,10 +823,10 @@ module sonata_system #(
     .spi_clk_o (spi_lcd_sck_o)
   );
 
-  timer #(
+  rv_timer #(
     .DataWidth    ( BusDataWidth ),
     .AddressWidth ( BusAddrWidth )
-  ) u_timer (
+  ) u_rv_timer (
     .clk_i (clk_sys_i),
     .rst_ni(rst_sys_ni),
 

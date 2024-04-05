@@ -11,7 +11,6 @@ filesets:
 
   files_sonata:
     depend:
-      - lowrisc:ibex:rv_timer
       - lowrisc:ibex:fpga_xilinx_shared
     files:
       - rtl/fpga/top_sonata.sv
@@ -22,7 +21,6 @@ filesets:
 
   files_artya7:
     depend:
-      - lowrisc:ibex:rv_timer
       - lowrisc:ibex:fpga_xilinx_shared
     files:
       - rtl/fpga/top_artya7.sv
