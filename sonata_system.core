@@ -23,6 +23,7 @@ filesets:
       - rtl/system/spi_host.sv
       - rtl/system/spi_top.sv
       - rtl/system/sram.sv
+      - rtl/system/rv_timer.sv
     file_type: systemVerilogSource
 
 targets:
