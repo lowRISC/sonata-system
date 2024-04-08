@@ -69,7 +69,7 @@ module rst_ctrl #(
     end else begin
       if (pll_locked_i) begin
         if (reset_counter_q < ResetPhase1Count) begin
-          reset_counter_d <= reset_counter_d + 1;
+          reset_counter_d = reset_counter_q + 1;
         end
       end else begin
         reset_counter_d = '0;
