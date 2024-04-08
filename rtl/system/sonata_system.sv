@@ -407,9 +407,9 @@ module sonata_system #(
     .clk_i (clk_sys_i),
     .rst_ni(rst_core_n),
 
-    .test_en_i  ('b0),
+    .test_en_i  (1'b0),
     .scan_rst_ni(1'b1),
-    .ram_cfg_i  ('b0),
+    .ram_cfg_i  (10'b0),
 
     .cheri_pmode_i (cheri_en),
     .cheri_tsafe_en_i (1'b0), // TODO enable temporal safety.
