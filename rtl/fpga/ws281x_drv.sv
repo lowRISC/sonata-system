@@ -18,8 +18,8 @@ module ws281x_drv #(
 
   output logic       ws281x_dout_o
 );
-  localparam int unsigned ClkCounterW = $clog2(ResetClkCnt);
   localparam int unsigned ResetClkCnt = CycleTime * 250;
+  localparam int unsigned ClkCounterW = $clog2(ResetClkCnt);
   localparam int unsigned Tx0HClkCnt = (CycleTime * 3) / 10;
   localparam int unsigned Tx1HClkCnt = (CycleTime * 7) / 10;
 
