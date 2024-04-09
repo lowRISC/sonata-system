@@ -8,8 +8,7 @@ description: "RISC-V Debug Module"
 filesets:
   files_src:
     depend:
-      - lowrisc:prim:fifo
-      - lowrisc:prim:clock_inv
+      - lowrisc:prim:all
     files:
       - vendor/pulp_riscv_dbg/debug_rom/debug_rom.sv
       - vendor/pulp_riscv_dbg/debug_rom/debug_rom_one_scratch.sv
@@ -19,7 +18,6 @@ filesets:
       - vendor/pulp_riscv_dbg/src/dm_mem.sv
       - vendor/pulp_riscv_dbg/src/dmi_cdc.sv
       - vendor/pulp_riscv_dbg/src/dmi_jtag.sv
-      - vendor/lowrisc_ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_sync_reqack.sv
     file_type: systemVerilogSource
 
   files_xilinx_bscane_tap:
