@@ -107,9 +107,19 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "rv_plic", // RISC-V platform interrupt controller
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x84000000",
+        size_byte: "0x04000000",
+      }],
+    },
   ],
   connections: {
-    ibex_lsu: ["sram", "gpio", "uart", "timer", "pwm", "i2c0", "i2c1", "spi"],
+    ibex_lsu: ["sram", "gpio", "uart", "timer", "rv_plic", "pwm", "i2c0", "i2c1", "spi"],
     dbg_host: ["sram"],
   },
 }

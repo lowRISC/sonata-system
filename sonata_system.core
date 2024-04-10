@@ -12,6 +12,7 @@ filesets:
       - lowrisc:ip:i2c
       - lowrisc:ip:uart
       - lowrisc:ip:xbar_main
+      - lowrisc:opentitan:top_earlgrey_rv_plic
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
