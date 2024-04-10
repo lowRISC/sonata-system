@@ -92,7 +92,96 @@ module sonata_system #(
 
   // Interrupts.
   logic timer_irq;
+  logic external_irq;
+
+  logic uart_tx_watermark_irq;
   logic uart_rx_watermark_irq;
+  logic uart_tx_empty_irq;
+  logic uart_rx_overflow_irq;
+  logic uart_rx_frame_err_irq;
+  logic uart_rx_break_err_irq;
+  logic uart_rx_timeout_irq;
+  logic uart_rx_parity_err_irq;
+
+  logic i2c0_fmt_threshold_irq;
+  logic i2c0_rx_threshold_irq;
+  logic i2c0_acq_threshold_irq;
+  logic i2c0_rx_overflow_irq;
+  logic i2c0_nak_irq;
+  logic i2c0_scl_interference_irq;
+  logic i2c0_sda_interference_irq;
+  logic i2c0_stretch_timeout_irq;
+  logic i2c0_sda_unstable_irq;
+  logic i2c0_cmd_complete_irq;
+  logic i2c0_tx_stretch_irq;
+  logic i2c0_tx_threshold_irq;
+  logic i2c0_acq_full_irq;
+  logic i2c0_unexp_stop_irq;
+  logic i2c0_host_timeout_irq;
+
+  logic i2c1_fmt_threshold_irq;
+  logic i2c1_rx_threshold_irq;
+  logic i2c1_acq_threshold_irq;
+  logic i2c1_rx_overflow_irq;
+  logic i2c1_nak_irq;
+  logic i2c1_scl_interference_irq;
+  logic i2c1_sda_interference_irq;
+  logic i2c1_stretch_timeout_irq;
+  logic i2c1_sda_unstable_irq;
+  logic i2c1_cmd_complete_irq;
+  logic i2c1_tx_stretch_irq;
+  logic i2c1_tx_threshold_irq;
+  logic i2c1_acq_full_irq;
+  logic i2c1_unexp_stop_irq;
+  logic i2c1_host_timeout_irq;
+
+  logic [181:0] intr_vector;
+  assign intr_vector = {
+      143'b0, // IDs [39 +: 143]
+
+      i2c1_host_timeout_irq, // IDs [38 +: 1]
+      i2c1_unexp_stop_irq, // IDs [37 +: 1]
+      i2c1_acq_full_irq, // IDs [36 +: 1]
+      i2c1_tx_threshold_irq, // IDs [35 +: 1]
+      i2c1_tx_stretch_irq, // IDs [34 +: 1]
+      i2c1_cmd_complete_irq, // IDs [33 +: 1]
+      i2c1_sda_unstable_irq, // IDs [32 +: 1]
+      i2c1_stretch_timeout_irq, // IDs [31 +: 1]
+      i2c1_sda_interference_irq, // IDs [30 +: 1]
+      i2c1_scl_interference_irq, // IDs [29 +: 1]
+      i2c1_nak_irq, // IDs [28 +: 1]
+      i2c1_rx_overflow_irq, // IDs [27 +: 1]
+      i2c1_acq_threshold_irq, // IDs [26 +: 1]
+      i2c1_rx_threshold_irq, // IDs [25 +: 1]
+      i2c1_fmt_threshold_irq, // IDs [24 +: 1]
+
+      i2c0_host_timeout_irq, // IDs [23 +: 1]
+      i2c0_unexp_stop_irq, // IDs [22 +: 1]
+      i2c0_acq_full_irq, // IDs [21 +: 1]
+      i2c0_tx_threshold_irq, // IDs [20 +: 1]
+      i2c0_tx_stretch_irq, // IDs [19 +: 1]
+      i2c0_cmd_complete_irq, // IDs [18 +: 1]
+      i2c0_sda_unstable_irq, // IDs [17 +: 1]
+      i2c0_stretch_timeout_irq, // IDs [16 +: 1]
+      i2c0_sda_interference_irq, // IDs [15 +: 1]
+      i2c0_scl_interference_irq, // IDs [14 +: 1]
+      i2c0_nak_irq, // IDs [13 +: 1]
+      i2c0_rx_overflow_irq, // IDs [12 +: 1]
+      i2c0_acq_threshold_irq, // IDs [11 +: 1]
+      i2c0_rx_threshold_irq, // IDs [10 +: 1]
+      i2c0_fmt_threshold_irq, // IDs [9 +: 1]
+
+      uart_rx_parity_err_irq, // IDs [8 +: 1]
+      uart_rx_timeout_irq, // IDs [7 +: 1]
+      uart_rx_break_err_irq, // IDs [6 +: 1]
+      uart_rx_frame_err_irq, // IDs [5 +: 1]
+      uart_rx_overflow_irq, // IDs [4 +: 1]
+      uart_tx_empty_irq, // IDs [3 +: 1]
+      uart_rx_watermark_irq, // IDs [2 +: 1]
+      uart_tx_watermark_irq, // IDs [1 +: 1]
+
+      1'b 0 // ID [0 +: 1] is a special case and tied to zero.
+  };
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
@@ -195,6 +284,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_i2c1_d2h;
   tlul_pkg::tl_h2d_t tl_spi_h2d;
   tlul_pkg::tl_d2h_t tl_spi_d2h;
+  tlul_pkg::tl_h2d_t tl_rv_plic_h2d;
+  tlul_pkg::tl_d2h_t tl_rv_plic_d2h;
 
   xbar_main xbar (
     .clk_sys_i   (clk_sys_i),
@@ -207,22 +298,24 @@ module sonata_system #(
     .tl_dbg_host_o(tl_dbg_host_d2h_q),
 
     // Device interfaces.
-    .tl_sram_o (tl_sram_h2d_d),
-    .tl_sram_i (tl_sram_d2h_d),
-    .tl_gpio_o (tl_gpio_h2d),
-    .tl_gpio_i (tl_gpio_d2h),
-    .tl_uart_o (tl_uart_h2d),
-    .tl_uart_i (tl_uart_d2h),
-    .tl_timer_o(tl_timer_h2d),
-    .tl_timer_i(tl_timer_d2h),
-    .tl_pwm_o  (tl_pwm_h2d),
-    .tl_pwm_i  (tl_pwm_d2h),
-    .tl_i2c0_o (tl_i2c0_h2d),
-    .tl_i2c0_i (tl_i2c0_d2h),
-    .tl_i2c1_o (tl_i2c1_h2d),
-    .tl_i2c1_i (tl_i2c1_d2h),
-    .tl_spi_o  (tl_spi_h2d),
-    .tl_spi_i  (tl_spi_d2h),
+    .tl_sram_o    (tl_sram_h2d_d),
+    .tl_sram_i    (tl_sram_d2h_d),
+    .tl_gpio_o    (tl_gpio_h2d),
+    .tl_gpio_i    (tl_gpio_d2h),
+    .tl_uart_o    (tl_uart_h2d),
+    .tl_uart_i    (tl_uart_d2h),
+    .tl_timer_o   (tl_timer_h2d),
+    .tl_timer_i   (tl_timer_d2h),
+    .tl_pwm_o     (tl_pwm_h2d),
+    .tl_pwm_i     (tl_pwm_d2h),
+    .tl_i2c0_o    (tl_i2c0_h2d),
+    .tl_i2c0_i    (tl_i2c0_d2h),
+    .tl_i2c1_o    (tl_i2c1_h2d),
+    .tl_i2c1_i    (tl_i2c1_d2h),
+    .tl_spi_o     (tl_spi_h2d),
+    .tl_spi_i     (tl_spi_d2h),
+    .tl_rv_plic_o (tl_rv_plic_h2d),
+    .tl_rv_plic_i (tl_rv_plic_d2h),
 
     .scanmode_i(prim_mubi_pkg::MuBi4False)
   );
@@ -565,8 +658,8 @@ module sonata_system #(
 
     .irq_software_i(1'b0),
     .irq_timer_i   (timer_irq),
-    .irq_external_i(1'b0),
-    .irq_fast_i    ({14'b0, uart_rx_watermark_irq}),
+    .irq_external_i(external_irq),
+    .irq_fast_i    (15'b0),
     .irq_nm_i      (1'b0),
 
     .scramble_key_valid_i('0),
@@ -622,21 +715,21 @@ module sonata_system #(
       .cio_sda_en_o             (i2c0_sda_en_o),
 
       // Interrupts
-      .intr_fmt_threshold_o     (),
-      .intr_rx_threshold_o      (),
-      .intr_acq_threshold_o     (),
-      .intr_rx_overflow_o       (),
-      .intr_nak_o               (),
-      .intr_scl_interference_o  (),
-      .intr_sda_interference_o  (),
-      .intr_stretch_timeout_o   (),
-      .intr_sda_unstable_o      (),
-      .intr_cmd_complete_o      (),
-      .intr_tx_stretch_o        (),
-      .intr_tx_threshold_o      (),
-      .intr_acq_full_o          (),
-      .intr_unexp_stop_o        (),
-      .intr_host_timeout_o      ()
+      .intr_fmt_threshold_o     (i2c0_fmt_threshold_irq),
+      .intr_rx_threshold_o      (i2c0_rx_threshold_irq),
+      .intr_acq_threshold_o     (i2c0_acq_threshold_irq),
+      .intr_rx_overflow_o       (i2c0_rx_overflow_irq),
+      .intr_nak_o               (i2c0_nak_irq),
+      .intr_scl_interference_o  (i2c0_scl_interference_irq),
+      .intr_sda_interference_o  (i2c0_sda_interference_irq),
+      .intr_stretch_timeout_o   (i2c0_stretch_timeout_irq),
+      .intr_sda_unstable_o      (i2c0_sda_unstable_irq),
+      .intr_cmd_complete_o      (i2c0_cmd_complete_irq),
+      .intr_tx_stretch_o        (i2c0_tx_stretch_irq),
+      .intr_tx_threshold_o      (i2c0_tx_threshold_irq),
+      .intr_acq_full_o          (i2c0_acq_full_irq),
+      .intr_unexp_stop_o        (i2c0_unexp_stop_irq),
+      .intr_host_timeout_o      (i2c0_host_timeout_irq)
   );
 
   i2c u_i2c1(
@@ -657,21 +750,21 @@ module sonata_system #(
       .cio_sda_en_o             (i2c1_sda_en_o),
 
       // Interrupts
-      .intr_fmt_threshold_o     (),
-      .intr_rx_threshold_o      (),
-      .intr_acq_threshold_o     (),
-      .intr_rx_overflow_o       (),
-      .intr_nak_o               (),
-      .intr_scl_interference_o  (),
-      .intr_sda_interference_o  (),
-      .intr_stretch_timeout_o   (),
-      .intr_sda_unstable_o      (),
-      .intr_cmd_complete_o      (),
-      .intr_tx_stretch_o        (),
-      .intr_tx_threshold_o      (),
-      .intr_acq_full_o          (),
-      .intr_unexp_stop_o        (),
-      .intr_host_timeout_o      ()
+      .intr_fmt_threshold_o     (i2c1_fmt_threshold_irq),
+      .intr_rx_threshold_o      (i2c1_rx_threshold_irq),
+      .intr_acq_threshold_o     (i2c1_acq_threshold_irq),
+      .intr_rx_overflow_o       (i2c1_rx_overflow_irq),
+      .intr_nak_o               (i2c1_nak_irq),
+      .intr_scl_interference_o  (i2c1_scl_interference_irq),
+      .intr_sda_interference_o  (i2c1_sda_interference_irq),
+      .intr_stretch_timeout_o   (i2c1_stretch_timeout_irq),
+      .intr_sda_unstable_o      (i2c1_sda_unstable_irq),
+      .intr_cmd_complete_o      (i2c1_cmd_complete_irq),
+      .intr_tx_stretch_o        (i2c1_tx_stretch_irq),
+      .intr_tx_threshold_o      (i2c1_tx_threshold_irq),
+      .intr_acq_full_o          (i2c1_acq_full_irq),
+      .intr_unexp_stop_o        (i2c1_unexp_stop_irq),
+      .intr_host_timeout_o      (i2c1_host_timeout_irq)
   );
 
   pwm_wrapper #(
@@ -705,14 +798,14 @@ module sonata_system #(
       .tl_o        (tl_uart_d2h),
 
       // Interrupt
-      .intr_tx_watermark_o  (),
+      .intr_tx_watermark_o  (uart_tx_watermark_irq),
       .intr_rx_watermark_o  (uart_rx_watermark_irq),
-      .intr_tx_empty_o      (),
-      .intr_rx_overflow_o   (),
-      .intr_rx_frame_err_o  (),
-      .intr_rx_break_err_o  (),
-      .intr_rx_timeout_o    (),
-      .intr_rx_parity_err_o ()
+      .intr_tx_empty_o      (uart_tx_empty_irq),
+      .intr_rx_overflow_o   (uart_rx_overflow_irq),
+      .intr_rx_frame_err_o  (uart_rx_frame_err_irq),
+      .intr_rx_break_err_o  (uart_rx_break_err_irq),
+      .intr_rx_timeout_o    (uart_rx_timeout_irq),
+      .intr_rx_parity_err_o (uart_rx_parity_err_irq)
   );
 
   spi_top #(
@@ -754,6 +847,27 @@ module sonata_system #(
     .timer_rdata_o (device_rdata[Timer]),
     .timer_err_o   (device_err[Timer]),
     .timer_intr_o  (timer_irq)
+  );
+
+  tlul_pkg::tl_h2d_t tl_rv_plic_h2d_fixup;
+  always_comb begin
+    tl_rv_plic_h2d_fixup = tl_rv_plic_h2d;
+    // The address map we selected means that addr[26] is 1.
+    // The non-standard extension of OpenTitan rv_plic however extends the address space to make use of this additional bit.
+    // As a hack clear this bit.
+    tl_rv_plic_h2d_fixup.a_address[26] = 1'b0;
+  end
+
+  rv_plic u_rv_plic (
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
+
+    .irq_o    (external_irq),
+    .irq_id_o (),
+    .tl_i     (tl_rv_plic_h2d_fixup),
+    .tl_o     (tl_rv_plic_d2h),
+
+    .intr_src_i (intr_vector)
   );
 
   dm_top #(
