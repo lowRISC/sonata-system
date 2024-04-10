@@ -20,6 +20,8 @@
         {from: "hw/ip/tlul",    to: "ip/tlul", patch_dir: "tlul"},
         {from: "hw/ip/uart",    to: "ip/uart", patch_dir: "uart"},
 
+        {from: "hw/top_earlgrey/ip_autogen/rv_plic", to: "ip/rv_plic", patch_dir: "rv_plic"},
+
         {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
         {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
 
