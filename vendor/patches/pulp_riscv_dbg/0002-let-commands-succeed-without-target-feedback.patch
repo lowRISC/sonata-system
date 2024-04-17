@@ -1,0 +1,46 @@
+diff --git a/src/dm_mem.sv b/src/dm_mem.sv
+index b14b390..1b3198d 100755
+--- a/src/dm_mem.sv
++++ b/src/dm_mem.sv
+@@ -235,8 +235,8 @@ module dm_mem #(
+     // write data in csr register
+     data_valid_o   = 1'b0;
+     exception      = 1'b0;
+-    halted_aligned     = '0;
+-    going          = 1'b0;
++    halted_aligned = 1'b1;
++    going          = 1'b1;
+ 
+     // The resume ack signal is lowered when the resume request is deasserted
+     if (clear_resumeack_i) begin
+@@ -254,12 +254,6 @@ module dm_mem #(
+           GoingAddr: begin
+             going = 1'b1;
+           end
+-          ResumingAddr: begin
+-            // clear the halted flag as the hart resumed execution
+-            halted_d_aligned[wdata_hartsel] = 1'b0;
+-            // set the resuming flag which needs to be cleared by the debugger
+-            resuming_d_aligned[wdata_hartsel] = 1'b1;
+-          end
+           // an exception occurred during execution
+           ExceptionAddr: exception = 1'b1;
+           // core can write data registers
+@@ -342,7 +336,7 @@ module dm_mem #(
+ 
+     if (ndmreset_i) begin
+       // When harts are reset, they are neither halted nor resuming.
+-      halted_d_aligned   = '0;
++      halted_d_aligned   = 1'b1;
+       resuming_d_aligned = '0;
+     end
+ 
+@@ -533,7 +527,7 @@ module dm_mem #(
+ 
+   always_ff @(posedge clk_i or negedge rst_ni) begin
+     if (!rst_ni) begin
+-      halted_q   <= 1'b0;
++      halted_q   <= 1'b1;
+       resuming_q <= 1'b0;
+     end else begin
+       halted_q   <= SelectableHarts & halted_d;
