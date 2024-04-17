@@ -482,7 +482,7 @@ module sonata_system #(
 
   assign cheri_en = 1'b1;
   assign cheri_en_o = cheri_en;
-  assign rst_core_n = rst_sys_ni & ~ndmreset_req;
+  assign rst_core_n = rst_sys_ni & ~ndmreset_req & ~host_req[DbgHost];
 
   ibexc_top_tracing #(
     .DmHaltAddr      ( DebugStart + dm::HaltAddress[31:0]      ),
