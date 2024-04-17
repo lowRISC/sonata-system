@@ -104,6 +104,8 @@ gtkwave sim.fst data/pc_and_gpo.gtkw
 ## FPGA
 
 The Sonata bitstream is generated using Vivado.
+Make sure you correctly configure the Xilinx JTAG switches (SW1): turn them on if you want to program using the FTDI via the main USB.
+For more information on the board and where to find things please have a look at [the schematics](https://github.com/newaetech/sonata-pcb/blob/main/sonata-schematics-r08.pdf).
 
 ### USB rules for Linux
 
