@@ -50,9 +50,7 @@ module i2c import i2c_reg_pkg::*; (
     .tl_i,
     .tl_o,
     .reg2hw,
-    .hw2reg,
-    // SEC_CM: BUS.INTEGRITY
-    .intg_err_o()
+    .hw2reg
   );
 
   logic scl_int;
