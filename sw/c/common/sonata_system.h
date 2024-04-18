@@ -5,11 +5,15 @@
 #ifndef SONATA_SYSTEM_H_
 #define SONATA_SYSTEM_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "sonata_system_regs.h"
 #include "gpio.h"
 #include "uart.h"
+
+// System Clock Frequency (Hz)
+#define SYSCLK_FREQ (25*1000*1000)
 
 #define UART_IRQ_NUM 16
 #define UART_IRQ (1 << UART_IRQ_NUM)
@@ -24,6 +28,7 @@
 
 #define NUM_PWM_MODULES 12
 
+#define DEFAULT_I2C I2C_FROM_BASE_ADDR(I2C0_BASE)
 #define DEFAULT_SPI SPI_FROM_BASE_ADDR(SPI0_BASE)
 
 /**
@@ -44,13 +49,21 @@ int putchar(int c);
 int getchar(void);
 
 /**
+ * Return an indication of whether a character is printable, rather than a
+ * control character/special code.
+ *
+ * @return Non-zero if the character is printable.
+ */
+int isprint(int c);
+
+/**
  * Immediately halts the simulation
  */
 void sim_halt();
 
 /**
- * Writes string to default UART. Signature matches c stdlib function of
- * the same name.
+ * Writes string and newline to default UART. Signature matches c stdlib
+ * function of the same name.
  *
  * @param str String to output
  * @returns 0 always (never fails so no error)
@@ -58,11 +71,46 @@ void sim_halt();
 int puts(const char *str);
 
 /**
+ * Writes string to default UART.
+ *
+ * @param str String to output
+ * @returns 0 always (never fails so no error)
+ */
+int putstr(const char *str);
+
+/**
  * Writes ASCII hex representation of number to default UART.
  *
  * @param h Number to output in hex
  */
 void puthex(uint32_t h);
+
+/**
+ * Writes shortened ASCII hex representation of a number to default UART.
+ *
+ * @param h Number to output in hex
+ * @param n Number of digits (nibbles) to output
+ */
+void puthexn(uint32_t h, unsigned n);
+
+/**
+ * Writes shortened ASCII hex representation of a number to the supplied
+ * buffer.
+ *
+ * @param buf Buffer to receive ASCII hex string
+ * @param sz  Size of buffer in bytes
+ * @param h   Number to output in hex
+ * @param n   Number of digits (nibbles) to output
+ * @return    Number of digits emitted
+ */
+unsigned snputhexn(char *buf, size_t sz, uint32_t h, unsigned n);
+
+/**
+ * Write ASCII decimal representation of unsigned number to default UART.
+ *
+ * @param d Number to output in decimal
+ */
+void putdec(uint32_t d);
 
 /**
  * Install an exception handler by writing a `j` instruction to the handler in

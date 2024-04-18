@@ -24,12 +24,13 @@ void test_uart_irq_handler(void) {
 }
 
 int main(void) {
-  install_exception_handler(UART_IRQ_NUM, &test_uart_irq_handler);
-  uart_enable_rx_int();
+//  install_exception_handler(UART_IRQ_NUM, &test_uart_irq_handler);
+//  uart_enable_rx_int();
+  uart_init(DEFAULT_UART);
 
   // This indicates how often the timer gets updated.
-  timer_init();
-  timer_enable(5000000);
+//  timer_init();
+//  timer_enable(5000000);
 
   uint64_t last_elapsed_time = get_elapsed_time();
 
@@ -54,15 +55,15 @@ int main(void) {
       set_global_interrupt_enable(0);
 
       // Print this to UART (use the screen command to see it).
-      puts("Hello World! ");
+      putstr("Hello World! ");
       puthex(last_elapsed_time);
-      puts("   Input Value: ");
+      putstr("   Input Value: ");
       uint32_t in_val = read_gpio(GPIO_IN_DBNC);
       puthex(in_val);
       putchar('\n');
 
       // Re-enable interrupts with output complete
-      set_global_interrupt_enable(1);
+//      set_global_interrupt_enable(1);
 
       // Cycling through green LEDs
       if (USE_GPIO_SHIFT_REG) {

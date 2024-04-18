@@ -7,6 +7,20 @@
 #include "dev_access.h"
 #include "uart.h"
 
+static const char hex_udigits[16] = "0123456789ABCDEF";
+static const uint32_t dec_powers[] = {
+  1u,
+  10u,
+  100u,
+  1000u,
+  10000u,
+  100000u,
+  1000000u,
+  10000000u,
+  100000000u,
+  1000000000u
+};
+
 int putchar(int c) {
 #ifdef SIM_CTRL_OUTPUT
   DEV_WRITE(SIM_CTRL_BASE + SIM_CTRL_OUT, c);
@@ -23,27 +37,71 @@ int putchar(int c) {
 
 int getchar(void) { return uart_in(DEFAULT_UART); }
 
-int puts(const char* str) {
+int isprint(int c) {
+  return (c >= 0x20u && c < 0x7fu);
+}
+
+// Bare ASCIIZ string output.
+int putstr(const char* str) {
   while (*str) {
     putchar(*str++);
   }
+  return 0;
+}
 
+// puts appends a newline, as per ISO C implementation.
+int puts(const char* str) {
+  putstr(str);
+  putchar('\n');
   return 0;
 }
 
 void puthex(uint32_t h) {
-  int cur_digit;
-  // Iterate through h taking top 4 bits each time and outputting ASCII of hex
+  puthexn(h, 8u);
+}
+
+unsigned snputhexn(char *buf, size_t sz, uint32_t h, unsigned n) {
+  if (n < 8u) {
+    // Shift the wanted digits to the MSBs.
+    h <<= (8u - n) * 4;
+  } else {
+    n = 8u;
+  }
+  // Truncate to buffer size.
+  if (n > sz) {
+    n = sz;
+  }
+  // Iterate through h taking top 4 bits each time and outputting ASCII hex
   // digit for those 4 bits
-  for (int i = 0; i < 8; i++) {
-    cur_digit = h >> 28;
-
-    if (cur_digit < 10)
-      putchar('0' + cur_digit);
-    else
-      putchar('A' - 10 + cur_digit);
-
+  for (int i = 0; i < n; i++) {
+    buf[i] = hex_udigits[h >> 28];
     h <<= 4;
+  }
+  return n;
+}
+
+void puthexn(uint32_t h, unsigned n) {
+  char buf[8];
+  n = snputhexn(buf, sizeof(buf), h, n);
+  for (unsigned i = 0u; i < n; i++) {
+    putchar(buf[i]);
+  }
+}
+
+void putdec(uint32_t d) {
+  if (d) {
+    int idx = 0;
+    while (idx < sizeof(dec_powers)/sizeof(dec_powers[0]) && dec_powers[idx] <= d) {
+      idx++;
+    }
+    while (idx-- > 0) {
+      unsigned num = d / dec_powers[idx];
+      d -= (num * dec_powers[idx]);
+      putchar('0' + num);
+    }
+  }
+  else {
+    putchar('0');
   }
 }
 
@@ -116,13 +174,13 @@ void set_global_interrupt_enable(uint32_t enable) {
 }
 
 void simple_exc_handler(void) {
-  puts("EXCEPTION!!!\n");
-  puts("============\n");
-  puts("MEPC:   0x");
+  puts("EXCEPTION!!!");
+  puts("============");
+  putstr("MEPC:   0x");
   puthex(get_mepc());
-  puts("\nMCAUSE: 0x");
+  putstr("\nMCAUSE: 0x");
   puthex(get_mcause());
-  puts("\nMTVAL:  0x");
+  putstr("\nMTVAL:  0x");
   puthex(get_mtval());
   putchar('\n');
 
