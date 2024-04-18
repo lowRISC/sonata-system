@@ -7,9 +7,20 @@
 #include "sonata_system.h"
 #include "dev_access.h"
 
+#define BAUD_RATE (115200)
+
 void uart_enable_rx_int(void) {
   enable_interrupts(UART_IRQ);
   set_global_interrupt_enable(1);
+}
+
+int uart_init(uart_t uart) {
+  // NCO = 2^20 * baud rate / cpu frequency
+  uint32_t nco = (uint32_t)(((uint64_t)BAUD_RATE << 20) / SYSCLK_FREQ);
+
+  DEV_WRITE(uart + UART_CTRL_REG, (nco << 16) | 0x3U);
+
+  return 0;
 }
 
 int uart_in(uart_t uart) {
