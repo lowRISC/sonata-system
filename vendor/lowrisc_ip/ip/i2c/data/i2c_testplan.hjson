@@ -1,0 +1,631 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "i2c"
+  import_testplans: ["hw/dv/tools/dvsim/testplans/csr_testplan.hjson",
+                     "hw/dv/tools/dvsim/testplans/alert_test_testplan.hjson",
+                     "hw/dv/tools/dvsim/testplans/intr_test_testplan.hjson",
+                     "hw/dv/tools/dvsim/testplans/tl_device_access_types_testplan.hjson",
+                     "i2c_sec_cm_testplan.hjson"]
+  testpoints: [
+    //-----------------------------------------------
+    // Tests for I2C DUT in HOST mode
+    //-----------------------------------------------
+    {
+      name: host_smoke
+      desc: '''
+            Smoke test in which random (rx/tx) transactions are
+            sent to the DUT and received asynchronously with scoreboard checks.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Enable DUT host
+              - Clear and enable interrupt (if needed)
+              - Program OVRD and FDATA registers
+              - Randomize I2C timing in TIMING[0-4] registers and other parameters such as TL agent
+                delays
+              - Randomize address and data for read/write transactions sent to the agent by the DUT
+
+            Checking:
+              - Check the timing behavior of START, STOP, ACK, NACK, and "repeated" START
+              - Read and write transfer matching
+              - Command complete interrupt (cmd_complete) raised
+            '''
+      stage: V1
+      tests: ["i2c_host_smoke"]
+    }
+    {
+      name: host_error_intr
+      desc: '''
+            Test error interrupts are asserted by the Host DUT due to
+            interference and unstable signals on bus.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - In host transmit mode, device (target/host) forces SDA or SCL signal low within the
+                clock pulse of host SCL that asserts `sda_interference` or `scl_interference`
+                interrupts
+              - In host receiving mode (data or ack bits), SDA signal is changed with the
+                clock pulse of host SCL that asserts `intr_sda_unstable` interrupts
+              - When error interrupt assertions are detected, dut, agent, and scoreboard will be
+                reset on-the-fly then new transaction can be continue programming
+
+            Checking:
+              - Ensure all intr_scl_interference, intr_sda_interference, and
+                intr_sda_unstable interrupts are asserted and stay asserted until cleared
+              - Ensure IP operation get back normal after on-the-fly reset finished
+            '''
+      stage: V2
+      tests: ["i2c_host_error_intr"]
+    }
+    {
+      name: host_stress_all
+      desc: '''
+            Support vseq (context) switching with random reset in between.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Combine above sequences in one test to run sequentially
+                except CSR sequence and i2c_host_rx_oversample_vseq (requires zero_delays)
+              - Randomly add reset between each sequence
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly,
+              - Ensure reset is handled correctly
+            '''
+      stage: V2
+      tests: ["i2c_host_stress_all"]
+    }
+    {
+      name: host_stress_all_with_rand_reset
+      desc: '''
+            Support random reset in parallel with stress_all and tl_errors sequences.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Combine above sequences in one test to run sequentially
+                except CSR sequence and i2c_host_rx_oversample_vseq (requires zero_delays)
+              - Randomly add reset within the sequences then switch to another one
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly
+              - Ensure reset is handled correctly
+            '''
+      stage: V3
+      tests: ["i2c_host_stress_all_with_rand_reset"]
+    }
+    {
+      name: host_perf
+      desc: '''
+            The Host DUT sends and receives transactions at max bandwidth.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Program `TIMINGx` registers based on I2C specification
+              - Reduce access latency for all FIFOs
+              - Issue long read/write back-to-back transactions
+              - Read rx_fifo as soon as read data valid
+              - Clear interrupt quickly
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly
+            '''
+      stage: V2
+      tests: ["i2c_host_perf"]
+    }
+    {
+      name: host_override
+      desc: '''
+            Test SCL/SDA override.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Program OVRD register
+
+            Checking:
+              - Ensure scl_o, sda_o are overridden
+            '''
+      stage: V2
+      tests: ["i2c_host_override"]
+    }
+    {
+      name: host_fifo_watermark
+      desc: '''
+            Test the watermark interrupt of fmt_fifo and rx_fifo.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Program random fmt_fifo and rx_fifo watermark level
+              - Write data quickly to fmt_fifo and rx_fifo for triggering watermark interrupts
+
+            Checking:
+              - Ensure the fmt_fifo and rx_fifo watermark interrupts are asserted (fmt_threshold and rx_threshold)
+              - Ensure the fmt_fifo and rx_fifo watermark interrupts stay asserted until cleared
+              - Ensure receving correct number of fmt_fifo and rx_fifo watermark interrupts
+            '''
+      stage: V2
+      tests: ["i2c_host_fifo_watermark"]
+    }
+    {
+      name: host_fifo_overflow
+      desc: '''
+            Test the overflow interrupt for rx_fifo.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - DUT keeps receiving a number of bytes higher than the depth of rx_fifo
+
+            Checking:
+              - Ensure excess format bytes are dropped
+              - Ensure rx_overflow interrupt are asserted
+            '''
+      stage: V2
+      tests: ["i2c_host_fifo_overflow"]
+    }
+    {
+      name: host_fifo_reset
+      desc: '''
+            Test fmt_fifo and rx_fifo reset.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Fill up the fmt_fifo with data to be sent out
+              - Reset the FIFO randomly after a number of bytes shows up on fmt_fifo
+
+            Checking:
+              - Ensure the remaining entries are not show up after fmt_fifo is reset
+            '''
+      stage: V2
+      tests: ["i2c_host_fifo_reset_fmt", "i2c_host_fifo_reset_rx", "i2c_host_fifo_fmt_empty"]
+    }
+    {
+      name: host_fifo_full
+      desc: '''
+            Test fmt_fifo and rx_fifo in full states.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Send enough read and write requests to fmt_fifo
+              - Hold reading data from rx_fifo until FIFO is full
+
+            Checking:
+              - Check FIFO full states by reading status register
+            '''
+      stage: V2
+      tests: ["i2c_host_fifo_full"]
+    }
+    {
+      name: host_timeout
+      desc: '''
+            Test stretch_timeout interrupts.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Set timeout enable bit of TIMEOUT_CTRL register
+              - Program timeout values (higher than host SCL clock pulse) into TIMEOUT_CTRL register
+              - Configure agent to pull down target (device) SCL after the bit 9 (ACK) is
+                transmitted
+
+            Checking:
+              - Ensure stretch_timeout is asserted and a correct number is received
+
+            '''
+      stage: V2
+      tests: ["i2c_host_stretch_timeout"]
+    }
+    {
+      name: host_rx_oversample
+      desc: '''
+            Host mode: test oversampling on received channel.
+
+            Stimulus:
+              - Use input clock to sample the target SDA (sample with baud rate equal to 1)
+              - Drive scl_rx using input clock
+
+            Checking:
+              - Read rx data oversampled value and ensure it is same as driven value
+            '''
+      stage: V2
+      tests: ["i2c_host_rx_oversample"]
+    }
+    {
+      name: i2c_host_mode_toggle
+      desc: '''
+            Host mode: disable host mode during host mode sequence
+
+            Stimulus:
+              - Host sends an address and data but receives NACK response
+                since agent is reset before transaction is complete and
+                host mode is disabled
+            Checking:
+              - Check if DUT goes to Idle state after Host mode is disabled
+              - Check that transactions process normally after recovery by running a smoketest vseq.
+              - Interrupt nak is raised
+            '''
+      stage: V2
+      tests: ["i2c_host_mode_toggle"]
+    }
+
+    //-----------------------------------------------
+    // Tests for I2C DUT in TARGET mode
+    //-----------------------------------------------
+    {
+      name: target_smoke
+      desc: '''
+            Smoke test in which random (rx/tx) transactions are
+            sent to the DUT and received asynchronously with scoreboard checks.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Enable DUT target
+              - Clear/Enable interrupt (if needed)
+              - Randomize I2C timing in TIMING 0-4 registers and other parameters such as TL agent
+                delays
+              - Generate random addresses which are programmed to the DUT (target)
+                and used for transaction sent by the agent (host)
+
+            Checking:
+              - Check the timing behavior of START, STOP, ACK, NACK, and "repeated" START
+              - Read and write transfer matching
+            '''
+      stage: V1
+      tests: ["i2c_target_smoke"]
+    }
+    {
+      name: target_error_intr
+      desc: '''
+            Test unexp_stop interrupt is asserted by the Target DUT,
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Host agent send STOP after ACK
+
+            Checking:
+              - Ensure all acq_stop is asserted and stay asserted until cleared
+              - Ensure IP operation get back normal after on-the-fly reset finished
+            '''
+      stage: V2
+      tests: ["i2c_target_unexp_stop"]
+    }
+    {
+      name: target_glitch
+      desc: '''
+            Test I2C FSM state transitions in target mode of operation.
+
+            Stimulus:
+              - Configure DUT/Agent in Target/Host mode respectively
+              - Program timing parameters
+              - Assert start_det and stop_det variables in i2c_fsm.sv
+                to trigger transition to AcquireStart and Idle states
+            Checking:
+              - Ensure DUT captures ACQ FIFO data as expected
+              - After every glitch, issue a simple transaction to check if DUT is behaving as expected
+            '''
+      stage: V2
+      tests: ["i2c_target_glitch"]
+    }
+    {
+      name: target_stress_all
+      desc: '''
+            Support vseq (context) switching with random reset in between.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Combine above sequences in one test to run sequentiall except CSR sequence
+              - Randomly add reset between each sequence
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly
+              - Ensure reset is handled correctly
+            '''
+      stage: V2
+      tests: ["i2c_target_stress_all"]
+    }
+    {
+      name: target_stress_all_with_rand_reset
+      desc: '''
+            Support random reset in parallel with stress_all and tl_errors sequences.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Combine above sequences in one test to run sequentially
+                except CSR sequence
+              - Randomly add reset within the sequences then switch to another one
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly
+              - Ensure reset is handled correctly
+            '''
+      stage: V3
+      tests: ["i2c_target_stress_all_with_rand_reset"]
+    }
+    {
+      name: target_perf
+      desc: '''
+            The Host Agent sends and receives transactions at max bandwidth.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Reduce access latency for all FIFOs
+              - Issue long read/write back-to-back transactions
+              - Make all FIFOs accessible without any delay
+              - Clear interrupt quickly
+
+            Checking:
+              - Ensure transactions are transmitted/received correctly
+            '''
+      stage: V2
+      tests: ["i2c_target_perf"]
+    }
+    {
+      name: target_fifo_empty
+      desc: '''
+            Test tx_empty and tx_nonempty interrupt.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Agent sends transaction to the DUT
+
+            Checking:
+              - During read transaction, ensure tx_empty interrupt is asserted when no data left
+                in tx_fifo otherwise tx_empty interrupt must be de-asserted
+            '''
+      stage: V2
+      tests: ["i2c_target_stress_rd", "i2c_target_intr_smoke"]
+    }
+    {
+      name: target_fifo_reset
+      desc: '''
+            Test tx_fifo and acq_fifo reset.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Run read write mixed traffic
+              - Assert reset any period between stop and the next start
+
+            Checking:
+              - Ensure the remaining entries are not show up after each fifio is reset
+            '''
+      stage: V2
+      tests: ["i2c_target_fifo_reset_acq", "i2c_target_fifo_reset_tx"]
+    }
+    {
+      name: target_fifo_full
+      desc: '''
+            Test acq_fifo and tx_fifo in full states.
+
+            Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Send enough read and write requests to acq_fifo
+              - Slow down acq FIFO read process to trigger acq_full interrupt
+
+            Checking:
+              - Check FIFO full states by reading status register
+              - Whether acq_full interrupt raised
+            '''
+      stage: V2
+      tests: ["i2c_target_stress_wr", "i2c_target_stress_rd", "i2c_target_intr_stress_wr"]
+    }
+    {
+      name: target_timeout
+      desc: '''
+            Test host_timeout interrupts.
+
+            Stimulus:
+              - Configure DUT/Agent to Host/Target mode respectively
+              - Set timeout enable bit of HOST_TIMEOUT_CTRL register
+              - Agent stops sending clock during an ongoing transaction
+
+            Checking:
+              - Ensure host_timeout is asserted and a correct number is received
+
+            '''
+      stage: V2
+      tests: ["i2c_target_timeout"]
+    }
+    {
+      name: target_clock_stretch
+      desc: '''
+            Test clock stretch feature of DUT Target mode.
+            For the write and address transaction, when acq_fifo is full, DUT starts to stretch clock.
+            For the read transaction, when dut receives read command, the tx_fifo is empty,
+            DUT starts to stretch clock.
+            Using read / write mixed traffic, trigger stretch condition by slowing down acq / tx
+            FIFO process.
+
+            Checking:
+            Ensure all read /write data received correct on the other side without dropping any data.
+            '''
+      stage: V2
+      tests: ["i2c_target_stretch"]
+    }
+    {
+      name: target_loopback
+      desc: '''
+            Test loopback mode, which is enabled by i2c.CTRL.LLPBK.
+            '''
+      stage: V3
+      tests: [""]
+    }
+    {
+      name: bad_address
+      desc: '''
+            Test sends transactions with a randomized address including two legal (programmed) addresses.
+            Run this test with dut target mode.
+
+            Checking:
+            All transactions with illegal addresses should be dropped silently and should not disturb
+            transactions with legal address
+            '''
+      stage: V2
+      tests: ["i2c_target_bad_addr"]
+    }
+    {
+      name: target_mode_glitch
+      desc: '''
+            Test handling of RStart ot Stop glitches in Target mode
+
+           Stimulus:
+              - Configure DUT/Agent to Target/Host mode respectively
+              - Issue a new request(RStart) to DUT during an active transfer
+              - Stop current request(Stop) to DUT during an active transfer
+              - Continue issuing requests to check if DUT FSM handles the transaction correctly
+
+            Checking:
+            Ensure all transactions including glitches are observed in i2c.ACQDATA FIFO
+            '''
+      stage: V2
+      tests: ["i2c_target_hrst"]
+    }
+  ]
+  covergroups: [
+    {
+      name: i2c_interrupts_cg
+      desc: '''
+            Cover all the interrupts raised during I2C operation in both host and target mode
+            Cross interrupt with INTERRUPT_TEST register
+            '''
+    }
+    {
+      name: i2c_fifo_reset_cg
+      desc: '''
+            Cover the FIFO reset bits in FIFO_CTL register
+            Cross fmt_threshold with FMTRST
+            Cross rx_threshold with RXRST
+            Cross acq_threshold with FMTRST
+            Cross rx_overflow with RXRST
+            Cross acq_overflow with ACQRST
+            Cross tx_threshold with TXRST
+            '''
+    }
+    {
+      name: i2c_fifo_level_cg
+      desc: '''
+             Cover the trigger level for FMT_FIFO and RX_FIFO interupts
+             * Cross fmt_threshold interrupt with FMT_FIFO trigger level
+             * Cross rx_threshold interrupt with RX_FIFO trigger level
+             Cover the FIFO levels in FIFO_STATUS
+            '''
+    }
+    {
+      name: i2c_operating_mode_cg
+      desc: '''
+            * Cover the operating mode (Host/Target) of DUT
+            * Cover the operating mode (Host/Target) of TB
+            * Cross the operating modes of DUT and TB
+            * Cover the SCL frequency
+            * Cross the SCL frequency with operating mode of DUT
+            '''
+    }
+    {
+      name: i2c_rd_wr_cg
+      desc: '''
+            Cover the address match feature of IP
+            * Cross the address match with Host and Target mode of DUT
+            Cover values in Read bytes
+            * Cross with operating mode of I2C
+            Cover values in Write bytes
+            * Cross with operating mode of I2C
+            '''
+    }
+    {
+      name: i2c_status_cg
+      desc: '''
+            Cover the fields in i2c.STATUS register
+            '''
+    }
+    {
+      name: i2c_scl_sca_override_cg
+      desc: '''
+            Cover TX override enable bit TXOVRDEN
+            Cover override value of SCL
+            Cover override value of SDA
+            Cover oversampled value of SCL
+            Cover oversampled value of SDA
+            Cross override value of SCL with override enable
+            Cross override value of SDA with override enable
+            '''
+    }
+    {
+      name: i2c_cmd_complete_cg
+      desc: '''
+            Cover cmd_complete interrupt
+            Cross cmd_complete with Host mode Read and Write operation
+            Cross cmd_complete with Target mode Read and Write operation
+            '''
+    }
+    {
+      name: i2c_fmt_fifo_cg
+      desc: '''
+            Cover the values supported by FDATA register
+            * Data byte (all flags set to zero)
+            * Write address byte
+            * Read address byte
+            * Read a number of bytes from Target with NACK
+            *  Cover values ranging from 1-128 Bytes
+            * Read number of bytes from Target with ACK
+            *  Cover values ranging from 1-128 Bytes
+            * Stop byte
+            * Stop after Start (invalid transmission)
+            * Write address transmission with NAKOK
+            * Data transmission with NAKOK
+            * Stop data with NAKOK
+            Cross bytes with NACK from Target
+            * Cross data byte with NAKOK and NACK from Target
+            * Cross address byte with NAKOK and NACK from Target
+            * Cross data byte with NAKOK and NACK from Target
+            '''
+    }
+    {
+      name: i2c_acq_fifo_cg
+      desc: '''
+            Cover the values supported by ACQDATA
+            * Write address byte
+            * Read address byte
+            * Data byte
+            * ACK before STOP
+            * NACK before STOP
+            * RSTART with previous ACK for READ
+            * RSTART with previous NACK for READ
+            '''
+    }
+    {
+      name: i2c_scl_stretch_cg
+      desc: '''
+            Cover SCL stretch in Host mode
+            * Cover clock stretch after address byte
+            Cover SCL stretch in Target mode
+            Cover Target mode SCL stretch in the following scenario
+            * Read command received in ACQ FIFo and more than one entry in ACQ FIFO
+            '''
+    }
+    {
+      name: i2c_timing_parameters_cg
+      desc: '''
+            Cover different values of Timing parameters supported by I2C IP
+            '''
+    }
+    {
+      name: i2c_protocol_cov_cg
+      desc: '''
+            Cover protocol transitions supported by I2C with single host
+            * Cross protocol transitions with mode of operation of DUT (Host or Target)
+            Cover host mode and target mode enable bits
+            Cover mistimed Start or Stop glitches in target mode
+            Cover the number of bytes read from Target
+            Cover the number of bytes written to Target
+            * Cover number of bytes as buckets instead of covering every value of number of bytes
+            * Cross the number of bytes read in Target and Host mode of DUT
+            * Cross the number of bytes written in Target and Host mode of DUT
+            '''
+    }
+    {
+      name: i2c_b2b_txn_cg
+      desc: '''
+            Cover combination of back to back read and write transfers covered in test suite
+            Instantiate a separate covergroup for host and target mode of operation
+            '''
+    }
+  ]
+}
