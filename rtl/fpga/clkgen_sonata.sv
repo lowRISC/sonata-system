@@ -2,18 +2,37 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module clkgen_sonata (
+module clkgen_sonata  #(
+  // System Clock Frequency is parameterised, allowing it to be adjusted.
+  parameter int unsigned SysClkFreq = 50_000_000,
+
+  // Frequency of IO_CLK input on the FPGA board.
+  parameter int unsigned IOClkFreq = 25_000_000
+) (
+    // Board clock signal
     input IO_CLK,
     output IO_CLK_BUF,
+
+    // System clock
     output clk_sys,
+
+    // USBDEV clock
+    output clk_usb,
+
+    // Indication that the PLL has stabilized and locked
     output locked
 );
-  logic locked_pll;
+  // Required frequency of clk_usb output
+  // - usbdev employs x4 oversampling for a 12Mbps Full Speed connection
+  localparam int USBClkFreq = 48_000_000;
+
   logic io_clk_buf;
-  logic clk_50_buf;
-  logic clk_50_unbuf;
+  logic clk_sys_buf;
+  logic clk_sys_unbuf;
   logic clk_fb_buf;
   logic clk_fb_unbuf;
+  logic clk_usb_buf;
+  logic clk_usb_unbuf;
 
   // Input buffer
   IBUF io_clk_ibuf(
@@ -26,16 +45,21 @@ module clkgen_sonata (
     .COMPENSATION         ("ZHOLD"),
     .STARTUP_WAIT         ("FALSE"),
     .DIVCLK_DIVIDE        (1),
-    .CLKFBOUT_MULT        (33),
+    .CLKFBOUT_MULT        (48),
     .CLKFBOUT_PHASE       (0.000),
-    .CLKOUT0_DIVIDE       (33),
+    // clk_sys output
+    .CLKOUT0_DIVIDE       ((48 * IOClkFreq) / SysClkFreq),
     .CLKOUT0_PHASE        (0.000),
     .CLKOUT0_DUTY_CYCLE   (0.500),
+    // clk_usb output
+    .CLKOUT1_DIVIDE       ((48 * IOClkFreq) / USBClkFreq),
+    .CLKOUT1_PHASE        (0.000),
+    .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKIN1_PERIOD        (40.000)
   ) pll (
     .CLKFBOUT            (clk_fb_unbuf),
-    .CLKOUT0             (clk_50_unbuf),
-    .CLKOUT1             (),
+    .CLKOUT0             (clk_sys_unbuf),
+    .CLKOUT1             (clk_usb_unbuf),
     .CLKOUT2             (),
     .CLKOUT3             (),
     .CLKOUT4             (),
@@ -66,13 +90,19 @@ module clkgen_sonata (
     .O (clk_fb_buf)
   );
 
-  BUFG clk_50_bufg (
-    .I (clk_50_unbuf),
-    .O (clk_50_buf)
+  BUFG clk_sys_bufg (
+    .I (clk_sys_unbuf),
+    .O (clk_sys_buf)
   );
 
-  assign IO_CLK_BUF = io_clk_buf;
+  BUFG clk_usb_bufg (
+    .I (clk_usb_unbuf),
+    .O (clk_usb_buf)
+  );
 
-  // Clock output
-  assign clk_sys = clk_50_buf;
+  // Clock outputs
+  assign IO_CLK_BUF = io_clk_buf;
+  assign clk_sys    = clk_sys_buf;
+  assign clk_usb    = clk_usb_buf;
+
 endmodule

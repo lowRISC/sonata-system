@@ -18,8 +18,13 @@ module sonata_system #(
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = ""
 ) (
+  // Main system clock and reset
   input logic                 clk_sys_i,
   input logic                 rst_sys_ni,
+
+  // USB device clock and reset
+  input logic                 clk_usb_i,
+  input logic                 rst_usb_ni,
 
   input  logic [GpiWidth-1:0] gp_i,
   output logic [GpoWidth-1:0] gp_o,
@@ -61,7 +66,24 @@ module sonata_system #(
   output logic                i2c1_scl_en_o,
   input  logic                i2c1_sda_i,
   output logic                i2c1_sda_o,
-  output logic                i2c1_sda_en_o
+  output logic                i2c1_sda_en_o,
+
+  // Reception from USB host via transceiver
+  input  logic                usb_dp_i,
+  input  logic                usb_dn_i,
+  input  logic                usb_rx_d_i,
+
+  // Transmission to USB host via transceiver
+  output logic                usb_dp_o,
+  output logic                usb_dp_en_o,
+  output logic                usb_dn_o,
+  output logic                usb_dn_en_o,
+
+  // Configuration and control of USB transceiver
+  input  logic                usb_sense_i,
+  output logic                usb_dp_pullup_o,
+  output logic                usb_dn_pullup_o,
+  output logic                usb_rx_enable_o
 );
 
   ///////////////////////////////////////////////
@@ -293,10 +315,14 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_spi_flash_d2h;
   tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
   tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
+  tlul_pkg::tl_h2d_t tl_usbdev_h2d;
+  tlul_pkg::tl_d2h_t tl_usbdev_d2h;
 
   xbar_main xbar (
     .clk_sys_i   (clk_sys_i),
     .rst_sys_ni  (rst_sys_ni),
+    .clk_usb_i   (clk_usb_i),
+    .rst_usb_ni  (rst_usb_ni),
 
     // Host interfaces.
     .tl_ibex_lsu_i(tl_ibex_lsu_h2d_q),
@@ -323,6 +349,8 @@ module sonata_system #(
     .tl_spi_flash_i(tl_spi_flash_d2h),
     .tl_spi_lcd_o  (tl_spi_lcd_h2d),
     .tl_spi_lcd_i  (tl_spi_lcd_d2h),
+    .tl_usbdev_o  (tl_usbdev_h2d),
+    .tl_usbdev_i  (tl_usbdev_d2h),
     .tl_rv_plic_o (tl_rv_plic_h2d),
     .tl_rv_plic_i (tl_rv_plic_d2h),
 
@@ -787,6 +815,74 @@ module sonata_system #(
       .intr_rx_break_err_o  (uart_rx_break_err_irq),
       .intr_rx_timeout_o    (uart_rx_timeout_irq),
       .intr_rx_parity_err_o (uart_rx_parity_err_irq)
+  );
+
+  usbdev #(
+    .Stub ( 1'b0 )
+  ) u_usbdev (
+    .clk_i                  (clk_usb_i),
+    .rst_ni                 (rst_usb_ni),
+
+    // AON Wakeup functionality is not being used
+    .clk_aon_i              (clk_usb_i),
+    .rst_aon_ni             (rst_usb_ni),
+
+    .tl_i                   (tl_usbdev_h2d),
+    .tl_o                   (tl_usbdev_d2h),
+
+    // Data inputs
+    .cio_usb_dp_i           (usb_dp_i),
+    .cio_usb_dn_i           (usb_dn_i),
+    .usb_rx_d_i             (usb_rx_d_i),
+
+    // Data outputs
+    .cio_usb_dp_o           (usb_dp_o),
+    .cio_usb_dp_en_o        (usb_dp_en_o),
+    .cio_usb_dn_o           (usb_dn_o),
+    .cio_usb_dn_en_o        (usb_dn_en_o),
+    .usb_tx_se0_o           (),
+    .usb_tx_d_o             (),
+ 
+    // Non-data I/O
+    .cio_sense_i            (usb_sense_i),
+    .usb_dp_pullup_o        (usb_dp_pullup_o),
+    .usb_dn_pullup_o        (usb_dn_pullup_o),
+    .usb_rx_enable_o        (usb_rx_enable_o),
+    .usb_tx_use_d_se0_o     (),
+
+    // Unused AON/Wakeup functionality
+    .usb_aon_suspend_req_o  (),
+    .usb_aon_wake_ack_o     (),
+
+    .usb_aon_bus_reset_i          (1'b0),
+    .usb_aon_sense_lost_i         (1'b0),
+    .usb_aon_bus_not_idle_i       (1'b0),
+    .usb_aon_wake_detect_active_i (1'b0),
+
+    .usb_ref_val_o          (),
+    .usb_ref_pulse_o        (),
+
+    .ram_cfg_i              ('b0),
+
+    // Interrupts not required
+    .intr_pkt_received_o    (),
+    .intr_pkt_sent_o        (),
+    .intr_powered_o         (),
+    .intr_disconnected_o    (),
+    .intr_host_lost_o       (),
+    .intr_link_reset_o      (),
+    .intr_link_suspend_o    (),
+    .intr_link_resume_o     (),
+    .intr_av_out_empty_o    (),
+    .intr_rx_full_o         (),
+    .intr_av_overflow_o     (),
+    .intr_link_in_err_o     (),
+    .intr_link_out_err_o    (),
+    .intr_rx_crc_err_o      (),
+    .intr_rx_pid_err_o      (),
+    .intr_rx_bitstuff_err_o (),
+    .intr_frame_o           (),
+    .intr_av_setup_empty_o  ()
   );
 
   spi u_spi_flash (

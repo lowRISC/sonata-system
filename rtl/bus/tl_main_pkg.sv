@@ -15,6 +15,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_I2C1      = 32'h 80201000;
   localparam logic [31:0] ADDR_SPACE_SPI_FLASH = 32'h 80300000;
   localparam logic [31:0] ADDR_SPACE_SPI_LCD   = 32'h 80301000;
+  localparam logic [31:0] ADDR_SPACE_USBDEV    = 32'h 80400000;
   localparam logic [31:0] ADDR_SPACE_RV_PLIC   = 32'h 88000000;
 
   localparam logic [31:0] ADDR_MASK_SRAM      = 32'h 0001ffff;
@@ -26,10 +27,11 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_I2C1      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI_FLASH = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI_LCD   = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_USBDEV    = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_RV_PLIC   = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 10;
+  localparam int N_DEVICE = 11;
 
   typedef enum int {
     TlSram = 0,
@@ -41,7 +43,8 @@ package tl_main_pkg;
     TlI2C1 = 6,
     TlSpiFlash = 7,
     TlSpiLcd = 8,
-    TlRvPlic = 9
+    TlUsbdev = 9,
+    TlRvPlic = 10
   } tl_device_e;
 
   typedef enum int {

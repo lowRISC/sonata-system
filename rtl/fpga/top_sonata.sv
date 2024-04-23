@@ -36,6 +36,27 @@ module top_sonata (
   output logic       scl1,
   output logic       sda1,
 
+  // Status input from USB transceiver
+  input  logic       usrusb_vbusdetect,
+
+  // Control of USB transceiver
+  output logic       usrusb_softcn,
+  // Configure the USB transceiver for Full Speed operation.
+  output logic       usrusb_spd,
+
+  // Reception from USB host via transceiver
+  input  logic       usrusb_v_p,
+  input  logic       usrusb_v_n,
+  input  logic       usrusb_rcv,
+
+  // Transmission to USB host via transceiver
+  output logic       usrusb_vpo,
+  output logic       usrusb_vmo,
+
+  // Always driven configuration signals to the USB transceiver.
+  output logic       usrusb_oe,
+  output logic       usrusb_sus,
+
   input  logic       tck_i,
   input  logic       tms_i,
   input  logic       td_i,
@@ -48,11 +69,20 @@ module top_sonata (
   output logic appspi_d3, // HOLD_N or RESET_N
   output logic appspi_cs  // Chip select negated
 );
+  // System clock frequency.
+  parameter int SysClkFreq = 25_000_000;
+
   parameter SRAMInitFile = "";
 
+  // Main system clock and reset
   logic main_clk_buf;
   logic clk_sys;
   logic rst_sys_n;
+
+  // USB device clock and reset
+  logic clk_usb;
+  wire  rst_usb_n = rst_sys_n;
+
   logic [7:0] reset_counter;
   logic pll_locked;
   logic rst_btn;
@@ -66,6 +96,13 @@ module top_sonata (
   // on and 0 for off.
   assign nav_sw_n = ~navSw;
   assign user_sw_n = ~usrSw;
+
+  assign usrusb_spd = 1'b1;  // Full Speed operation.
+
+  logic dp_en_d2p;
+  logic rx_enable_d2p;
+  assign usrusb_oe  = !dp_en_d2p;  // Active low Output Enable.
+  assign usrusb_sus = !rx_enable_d2p;
 
   logic cheri_en;
 
@@ -107,6 +144,10 @@ module top_sonata (
     .clk_sys_i      (clk_sys),
     .rst_sys_ni     (rst_sys_n),
 
+    // USB device clock and reset
+    .clk_usb_i      (clk_usb),
+    .rst_usb_ni     (rst_usb_n),
+
     .gp_i           ({user_sw_n, nav_sw_n}),
     .gp_o           ({appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
@@ -143,6 +184,23 @@ module top_sonata (
     .i2c1_sda_o     (sda1_o),
     .i2c1_sda_en_o  (sda1_oe),
 
+    // Reception from USB host via transceiver
+    .usb_dp_i         (usrusb_v_p),
+    .usb_dn_i         (usrusb_v_n),
+    .usb_rx_d_i       (usrusb_rcv),
+
+    // Transmission to USB host via transceiver
+    .usb_dp_o         (usrusb_vpo),
+    .usb_dp_en_o      (dp_en_d2p),
+    .usb_dn_o         (usrusb_vmo),
+    .usb_dn_en_o      (),
+
+    // Configuration and control of USB transceiver
+    .usb_sense_i      (usrusb_vbusdetect),
+    .usb_dp_pullup_o  (usrusb_softcn),
+    .usb_dn_pullup_o  (),
+    .usb_rx_enable_o  (rx_enable_d2p),
+
     .tck_i,
     .tms_i,
     .trst_ni(rst_sys_n),
@@ -159,10 +217,13 @@ module top_sonata (
   assign led_halted = 1'b0;
 
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
-  clkgen_sonata u_clkgen(
+  clkgen_sonata #(
+    .SysClkFreq(SysClkFreq)
+  ) u_clkgen(
     .IO_CLK    (mainClk),
     .IO_CLK_BUF(main_clk_buf),
     .clk_sys,
+    .clk_usb,
     .locked    (pll_locked)
   );
 
