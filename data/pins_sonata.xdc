@@ -121,6 +121,14 @@ set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 set_property PULLTYPE PULLUP [get_ports usrSw[*]]
 set_property PULLTYPE PULLUP [get_ports navSw[*]]
 
+## SPI Flash
+set_property -dict { PACKAGE_PIN A8  IOSTANDARD LVCMOS33 } [get_ports appspi_clk];
+set_property -dict { PACKAGE_PIN C11 IOSTANDARD LVCMOS33 } [get_ports appspi_d0];
+set_property -dict { PACKAGE_PIN C10 IOSTANDARD LVCMOS33 } [get_ports appspi_d1];
+set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS33 } [get_ports appspi_d2];
+set_property -dict { PACKAGE_PIN A9  IOSTANDARD LVCMOS33 } [get_ports appspi_d3];
+set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports appspi_cs];
+
 ## Voltage and bistream
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

@@ -12,6 +12,7 @@ filesets:
       - lowrisc:ip:i2c
       - lowrisc:ip:uart
       - lowrisc:ip:xbar_main
+      - lowrisc:ip:spi
       - lowrisc:opentitan:top_earlgrey_rv_plic
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
@@ -23,8 +24,6 @@ filesets:
       - rtl/system/gpio.sv
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
-      - rtl/system/spi_host.sv
-      - rtl/system/spi_top.sv
       - rtl/system/sram.sv
     file_type: systemVerilogSource
 

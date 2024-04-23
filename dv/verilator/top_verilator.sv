@@ -40,9 +40,14 @@ module top_verilator (input logic clk_i, rst_ni);
     .gp_i     (0),
     .gp_o     ( ),
     .pwm_o    ( ),
-    .spi_rx_i (0),
-    .spi_tx_o ( ),
-    .spi_sck_o( ),
+
+    .spi_flash_rx_i (0),
+    .spi_flash_tx_o ( ),
+    .spi_flash_sck_o( ),
+
+    .spi_lcd_rx_i (0),
+    .spi_lcd_tx_o ( ),
+    .spi_lcd_sck_o( ),
 
     .cheri_en_i (EnableCHERI),
     // CHERI output

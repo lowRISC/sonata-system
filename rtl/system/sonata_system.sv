@@ -12,7 +12,6 @@
 // - Debug module.
 // - SPI for driving LCD screen.
 module sonata_system #(
-  parameter int unsigned SysClkFreq    = 50_000_000,
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,
   parameter int unsigned PwmWidth      = 12,
@@ -27,9 +26,14 @@ module sonata_system #(
   output logic [PwmWidth-1:0] pwm_o,
   input  logic                uart_rx_i,
   output logic                uart_tx_o,
-  input  logic                spi_rx_i,
-  output logic                spi_tx_o,
-  output logic                spi_sck_o,
+
+  input  logic                spi_flash_rx_i,
+  output logic                spi_flash_tx_o,
+  output logic                spi_flash_sck_o,
+
+  input  logic                spi_lcd_rx_i,
+  output logic                spi_lcd_tx_o,
+  output logic                spi_lcd_sck_o,
 
   input  logic tck_i,   // JTAG test clock pad
   input  logic tms_i,   // JTAG test mode select pad
@@ -86,11 +90,10 @@ module sonata_system #(
     Gpio,
     Pwm,
     Uart,
-    Timer,
-    Spi
+    Timer
   } bus_device_e;
 
-  localparam int NrDevices = 5;
+  localparam int NrDevices = 4;
   localparam int NrHosts = 2;
 
   // Interrupts.
@@ -223,7 +226,6 @@ module sonata_system #(
   assign device_req[Pwm]   = device_re[Pwm]   | device_we[Pwm];
   assign device_req[Uart]  = device_re[Uart]  | device_we[Uart];
   assign device_req[Timer] = device_re[Timer] | device_we[Timer];
-  assign device_req[Spi]   = device_re[Spi]   | device_we[Spi];
 
   // Instruction fetch signals.
   logic                    core_instr_req;
@@ -248,7 +250,6 @@ module sonata_system #(
   assign device_err[Gpio] = 1'b0;
   assign device_err[Pwm]  = 1'b0;
   assign device_err[Uart] = 1'b0;
-  assign device_err[Spi]  = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -285,10 +286,12 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_i2c0_d2h;
   tlul_pkg::tl_h2d_t tl_i2c1_h2d;
   tlul_pkg::tl_d2h_t tl_i2c1_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_d2h;
   tlul_pkg::tl_h2d_t tl_rv_plic_h2d;
   tlul_pkg::tl_d2h_t tl_rv_plic_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_flash_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_flash_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
 
   xbar_main xbar (
     .clk_sys_i   (clk_sys_i),
@@ -315,8 +318,10 @@ module sonata_system #(
     .tl_i2c0_i    (tl_i2c0_d2h),
     .tl_i2c1_o    (tl_i2c1_h2d),
     .tl_i2c1_i    (tl_i2c1_d2h),
-    .tl_spi_o     (tl_spi_h2d),
-    .tl_spi_i     (tl_spi_d2h),
+    .tl_spi_flash_o(tl_spi_flash_h2d),
+    .tl_spi_flash_i(tl_spi_flash_d2h),
+    .tl_spi_lcd_o  (tl_spi_lcd_h2d),
+    .tl_spi_lcd_i  (tl_spi_lcd_d2h),
     .tl_rv_plic_o (tl_rv_plic_h2d),
     .tl_rv_plic_i (tl_rv_plic_d2h),
 
@@ -566,35 +571,6 @@ module sonata_system #(
   // Tie off upper bits of address.
   assign device_addr[Timer][BusAddrWidth-1:RegAddrWidth] = '0;
 
-  tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
-    .AccessLatency    ( 1 )
-  ) spi_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i(tl_spi_h2d),
-    .tl_o(tl_spi_d2h),
-
-    // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
-
-    // Register interface.
-    .re_o   (device_re[Spi]),
-    .we_o   (device_we[Spi]),
-    .addr_o (device_addr[Spi][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[Spi]),
-    .be_o   (device_be[Spi]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[Spi]),
-    .error_i(device_err[Spi])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[Spi][BusAddrWidth-1:RegAddrWidth] = '0;
-
   ///////////////////////////////////////////////
   // Core and hardware IP block instantiation. //
   ///////////////////////////////////////////////
@@ -811,27 +787,40 @@ module sonata_system #(
       .intr_rx_parity_err_o (uart_rx_parity_err_irq)
   );
 
-  spi_top #(
-    .ClockFrequency (SysClkFreq),
-    .CPOL           ( 0        ),
-    .CPHA           ( 1        )
-  ) u_spi (
+  spi u_spi_flash (
     .clk_i (clk_sys_i),
     .rst_ni(rst_sys_ni),
 
-    .device_req_i   (device_req[Spi]),
-    .device_addr_i  (device_addr[Spi]),
-    .device_we_i    (device_we[Spi]),
-    .device_be_i    (device_be[Spi]),
-    .device_wdata_i (device_wdata[Spi]),
-    .device_rvalid_o(device_rvalid[Spi]),
-    .device_rdata_o (device_rdata[Spi]),
+    .tl_i(tl_spi_flash_h2d),
+    .tl_o(tl_spi_flash_d2h),
 
-    .spi_rx_i(spi_rx_i),  // Data received from SPI device.
-    .spi_tx_o(spi_tx_o),  // Data transmitted to SPI device.
-    .sck_o   (spi_sck_o), // Serial clock pin.
+    .intr_rx_full_o     (),
+    .intr_rx_watermark_o(),
+    .intr_tx_empty_o    (),
+    .intr_tx_watermark_o(),
+    .intr_complete_o    (),
 
-    .byte_data_o()
+    .spi_copi_o(spi_flash_tx_o),
+    .spi_cipo_i(spi_flash_rx_i),
+    .spi_clk_o (spi_flash_sck_o)
+  );
+
+  spi u_spi_lcd (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_i(tl_spi_lcd_h2d),
+    .tl_o(tl_spi_lcd_d2h),
+
+    .intr_rx_full_o     (),
+    .intr_rx_watermark_o(),
+    .intr_tx_empty_o    (),
+    .intr_tx_watermark_o(),
+    .intr_complete_o    (),
+
+    .spi_copi_o(spi_lcd_tx_o),
+    .spi_cipo_i(spi_lcd_rx_i),
+    .spi_clk_o (spi_lcd_sck_o)
   );
 
   timer #(
