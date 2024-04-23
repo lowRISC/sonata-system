@@ -26,11 +26,19 @@ module top_verilator (input logic clk_i, rst_ni);
   wire unused_ = ^{scl0_o, scl0_oe, sda0_o, sda0_oe,
                    scl1_o, scl1_oe, sda1_o, sda1_oe};
 
+  // Simplified clocking scheme for simulations.
+  wire clk_usb   = clk_i;
+  wire rst_usb_n = rst_ni;
+
   // Instantiating the Sonata System.
   sonata_system u_sonata_system (
-    // Clock and Reset
-    .clk_sys_i (clk_i ),
-    .rst_sys_ni(rst_ni),
+    // Main system clock and reset
+    .clk_sys_i      (clk_i),
+    .rst_sys_ni     (rst_ni),
+
+    // USB device clock and reset
+    .clk_usb_i      (clk_usb),
+    .rst_usb_ni     (rst_usb_n),
 
     // UART TX and RX
     .uart_rx_i (uart_sys_rx),
@@ -69,6 +77,23 @@ module top_verilator (input logic clk_i, rst_ni);
     .i2c1_sda_i     (sda1),
     .i2c1_sda_o     (sda1_o),
     .i2c1_sda_en_o  (sda1_oe),
+
+    // Reception from USB host via transceiver
+    .usb_dp_i         (1'b0),
+    .usb_dn_i         (1'b0),
+    .usb_rx_d_i       (1'b0),
+
+    // Transmission to USB host via transceiver
+    .usb_dp_o         (),
+    .usb_dp_en_o      (),
+    .usb_dn_o         (),
+    .usb_dn_en_o      (),
+
+    // Configuration and control of USB transceiver
+    .usb_sense_i      (1'b0),
+    .usb_dp_pullup_o  (),
+    .usb_dn_pullup_o  (),
+    .usb_rx_enable_o  (),
 
     // User JTAG
     .tck_i  (),

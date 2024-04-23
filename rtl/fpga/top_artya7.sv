@@ -23,6 +23,10 @@ module top_artya7 #(
 
   logic clk_sys, rst_sys_n;
 
+  // USBDEV is presently not available in this build; requires a PMOD board.
+  wire clk_usb = 1'b0;
+  wire rst_usb_n = 1'b0;
+
   // Instantiating the Sonata System.
   sonata_system #(
     .GpiWidth     ( 8            ),
@@ -30,9 +34,15 @@ module top_artya7 #(
     .PwmWidth     ( 12           ),
     .SRAMInitFile ( SRAMInitFile )
   ) u_sonata_system (
+    // Main system clock and reset
+    .clk_sys_i      (clk_sys),
+    .rst_sys_ni     (rst_sys_n),
+
+    // USB device clock and reset
+    .clk_usb_i      (clk_usb),
+    .rst_usb_ni     (rst_usb_n),
+
     //input
-    .clk_sys_i (clk_sys),
-    .rst_sys_ni(rst_sys_n),
     .gp_i      ({SW, BTN}),
     .uart_rx_i (UART_RX),
 
@@ -59,7 +69,24 @@ module top_artya7 #(
     .i2c1_scl_en_o  (),
     .i2c1_sda_i     (1'b1),
     .i2c1_sda_o     (),
-    .i2c1_sda_en_o  ()
+    .i2c1_sda_en_o  (),
+
+    // Reception from USB host via transceiver
+    .usb_dp_i         (1'b0),
+    .usb_dn_i         (1'b0),
+    .usb_rx_d_i       (1'b0),
+
+    // Transmission to USB host via transceiver
+    .usb_dp_o         (),
+    .usb_dp_en_o      (),
+    .usb_dn_o         (),
+    .usb_dn_en_o      (),
+
+    // Configuration and control of USB transceiver
+    .usb_sense_i      (1'b0),
+    .usb_dp_pullup_o  (),
+    .usb_dn_pullup_o  (),
+    .usb_rx_enable_o  ()
   );
 
   // Generating the system clock and reset for the FPGA.

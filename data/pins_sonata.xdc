@@ -12,6 +12,13 @@ create_clock -period 100.000 -name tck_i -waveform {0.000 50.000} [get_ports tck
 set_property -dict { PACKAGE_PIN P15 IOSTANDARD LVCMOS33 } [get_ports mainClk];
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i]
 
+## Clock Domain Crossings
+set clks_sys_unbuf  [get_clocks -of_objects [get_pin u_clkgen/pll/CLKOUT0]]
+set clks_usb_unbuf  [get_clocks -of_objects [get_pin u_clkgen/pll/CLKOUT1]]
+
+## Set asynchronous clock groups
+set_clock_groups -group ${clks_sys_unbuf} -group ${clks_usb_unbuf} -group mainClk -asynchronous
+
 ## Reset
 ## PCB revision 0.3 and above
 set_property -dict { PACKAGE_PIN T5 IOSTANDARD LVCMOS33 } [get_ports {nrst}];
@@ -64,6 +71,41 @@ set_property -dict { PACKAGE_PIN N2  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[
 set_property -dict { PACKAGE_PIN N1  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[6]}];
 set_property -dict { PACKAGE_PIN M3  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[7]}];
 set_property -dict { PACKAGE_PIN M2  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[8]}];
+
+# USRUSB interface
+set_property -dict { PACKAGE_PIN G1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_spd}];
+set_property -dict { PACKAGE_PIN G6  IOSTANDARD LVCMOS18 } [get_ports {usrusb_v_p}];
+set_property -dict { PACKAGE_PIN F6  IOSTANDARD LVCMOS18 } [get_ports {usrusb_v_n}];
+set_property -dict { PACKAGE_PIN G4  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vpo}];
+set_property -dict { PACKAGE_PIN G3  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vmo}];
+set_property -dict { PACKAGE_PIN J4  IOSTANDARD LVCMOS18 } [get_ports {usrusb_rcv}];
+set_property -dict { PACKAGE_PIN H4  IOSTANDARD LVCMOS18 } [get_ports {usrusb_softcn}];
+set_property -dict { PACKAGE_PIN J3  IOSTANDARD LVCMOS18 } [get_ports {usrusb_oe}];
+set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS18 } [get_ports {usrusb_sus}];
+set_property -dict { PACKAGE_PIN K1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vbusdetect}];
+
+# PMOD0
+# set_property -dict { PACKAGE_PIN H14 IOSTANDARD LVCMOS33 } [get_ports {pmod0_1}];
+# set_property -dict { PACKAGE_PIN F16 IOSTANDARD LVCMOS33 } [get_ports {pmod0_2}];
+# set_property -dict { PACKAGE_PIN F15 IOSTANDARD LVCMOS33 } [get_ports {pmod0_3}];
+# set_property -dict { PACKAGE_PIN G14 IOSTANDARD LVCMOS33 } [get_ports {pmod0_4}];
+# set_property -dict { PACKAGE_PIN J13 IOSTANDARD LVCMOS33 } [get_ports {pmod0_5}];
+# set_property -dict { PACKAGE_PIN E17 IOSTANDARD LVCMOS33 } [get_ports {pmod0_6}];
+# set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 } [get_ports {pmod0_7}];
+# set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 } [get_ports {pmod0_8}];
+
+# PMOD1
+# set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_1}];
+# set_property -dict { PACKAGE_PIN E16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_2}];
+# set_property -dict { PACKAGE_PIN A18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_3}];
+# rev 0.3+
+# set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports {pmod1_4}];
+# rev <= 0.2
+# set_property -dict { PACKAGE_PIN E15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_4}];
+# set_property -dict { PACKAGE_PIN D15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_5}];
+# set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_6}];
+# set_property -dict { PACKAGE_PIN H16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_7}];
+# set_property -dict { PACKAGE_PIN G16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_8}];
 
 ## Status LEDs
 set_property -dict { PACKAGE_PIN K5  IOSTANDARD LVCMOS33 } [get_ports led_legacy];

@@ -7,8 +7,8 @@
 //
 // Interconnect
 // ibex_lsu
-//   -> s1n_12
-//     -> sm1_13
+//   -> s1n_13
+//     -> sm1_14
 //       -> sram
 //     -> gpio
 //     -> uart
@@ -19,13 +19,17 @@
 //     -> i2c1
 //     -> spi_flash
 //     -> spi_lcd
+//     -> asf_15
+//       -> usbdev
 // dbg_host
-//   -> sm1_13
+//   -> sm1_14
 //     -> sram
 
 module xbar_main (
   input clk_sys_i,
+  input clk_usb_i,
   input rst_sys_ni,
+  input rst_usb_ni,
 
   // Host interfaces
   input  tlul_pkg::tl_h2d_t tl_ibex_lsu_i,
@@ -52,6 +56,8 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_spi_flash_i,
   output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
   input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
+  output tlul_pkg::tl_h2d_t tl_usbdev_o,
+  input  tlul_pkg::tl_d2h_t tl_usbdev_i,
   output tlul_pkg::tl_h2d_t tl_rv_plic_o,
   input  tlul_pkg::tl_d2h_t tl_rv_plic_i,
 
@@ -66,106 +72,121 @@ module xbar_main (
   logic unused_scanmode;
   assign unused_scanmode = ^scanmode_i;
 
-  tl_h2d_t tl_s1n_12_us_h2d ;
-  tl_d2h_t tl_s1n_12_us_d2h ;
+  tl_h2d_t tl_s1n_13_us_h2d ;
+  tl_d2h_t tl_s1n_13_us_d2h ;
 
 
-  tl_h2d_t tl_s1n_12_ds_h2d [10];
-  tl_d2h_t tl_s1n_12_ds_d2h [10];
+  tl_h2d_t tl_s1n_13_ds_h2d [11];
+  tl_d2h_t tl_s1n_13_ds_d2h [11];
 
   // Create steering signal
-  logic [3:0] dev_sel_s1n_12;
+  logic [3:0] dev_sel_s1n_13;
 
 
-  tl_h2d_t tl_sm1_13_us_h2d [2];
-  tl_d2h_t tl_sm1_13_us_d2h [2];
+  tl_h2d_t tl_sm1_14_us_h2d [2];
+  tl_d2h_t tl_sm1_14_us_d2h [2];
 
-  tl_h2d_t tl_sm1_13_ds_h2d ;
-  tl_d2h_t tl_sm1_13_ds_d2h ;
+  tl_h2d_t tl_sm1_14_ds_h2d ;
+  tl_d2h_t tl_sm1_14_ds_d2h ;
+
+  tl_h2d_t tl_asf_15_us_h2d ;
+  tl_d2h_t tl_asf_15_us_d2h ;
+  tl_h2d_t tl_asf_15_ds_h2d ;
+  tl_d2h_t tl_asf_15_ds_d2h ;
 
 
 
-  assign tl_sm1_13_us_h2d[0] = tl_s1n_12_ds_h2d[0];
-  assign tl_s1n_12_ds_d2h[0] = tl_sm1_13_us_d2h[0];
+  assign tl_sm1_14_us_h2d[0] = tl_s1n_13_ds_h2d[0];
+  assign tl_s1n_13_ds_d2h[0] = tl_sm1_14_us_d2h[0];
 
-  assign tl_gpio_o = tl_s1n_12_ds_h2d[1];
-  assign tl_s1n_12_ds_d2h[1] = tl_gpio_i;
+  assign tl_gpio_o = tl_s1n_13_ds_h2d[1];
+  assign tl_s1n_13_ds_d2h[1] = tl_gpio_i;
 
-  assign tl_uart_o = tl_s1n_12_ds_h2d[2];
-  assign tl_s1n_12_ds_d2h[2] = tl_uart_i;
+  assign tl_uart_o = tl_s1n_13_ds_h2d[2];
+  assign tl_s1n_13_ds_d2h[2] = tl_uart_i;
 
-  assign tl_timer_o = tl_s1n_12_ds_h2d[3];
-  assign tl_s1n_12_ds_d2h[3] = tl_timer_i;
+  assign tl_timer_o = tl_s1n_13_ds_h2d[3];
+  assign tl_s1n_13_ds_d2h[3] = tl_timer_i;
 
-  assign tl_rv_plic_o = tl_s1n_12_ds_h2d[4];
-  assign tl_s1n_12_ds_d2h[4] = tl_rv_plic_i;
+  assign tl_rv_plic_o = tl_s1n_13_ds_h2d[4];
+  assign tl_s1n_13_ds_d2h[4] = tl_rv_plic_i;
 
-  assign tl_pwm_o = tl_s1n_12_ds_h2d[5];
-  assign tl_s1n_12_ds_d2h[5] = tl_pwm_i;
+  assign tl_pwm_o = tl_s1n_13_ds_h2d[5];
+  assign tl_s1n_13_ds_d2h[5] = tl_pwm_i;
 
-  assign tl_i2c0_o = tl_s1n_12_ds_h2d[6];
-  assign tl_s1n_12_ds_d2h[6] = tl_i2c0_i;
+  assign tl_i2c0_o = tl_s1n_13_ds_h2d[6];
+  assign tl_s1n_13_ds_d2h[6] = tl_i2c0_i;
 
-  assign tl_i2c1_o = tl_s1n_12_ds_h2d[7];
-  assign tl_s1n_12_ds_d2h[7] = tl_i2c1_i;
+  assign tl_i2c1_o = tl_s1n_13_ds_h2d[7];
+  assign tl_s1n_13_ds_d2h[7] = tl_i2c1_i;
 
-  assign tl_spi_flash_o = tl_s1n_12_ds_h2d[8];
-  assign tl_s1n_12_ds_d2h[8] = tl_spi_flash_i;
+  assign tl_spi_flash_o = tl_s1n_13_ds_h2d[8];
+  assign tl_s1n_13_ds_d2h[8] = tl_spi_flash_i;
 
-  assign tl_spi_lcd_o = tl_s1n_12_ds_h2d[9];
-  assign tl_s1n_12_ds_d2h[9] = tl_spi_lcd_i;
+  assign tl_spi_lcd_o = tl_s1n_13_ds_h2d[9];
+  assign tl_s1n_13_ds_d2h[9] = tl_spi_lcd_i;
 
-  assign tl_sm1_13_us_h2d[1] = tl_dbg_host_i;
-  assign tl_dbg_host_o = tl_sm1_13_us_d2h[1];
+  assign tl_asf_15_us_h2d = tl_s1n_13_ds_h2d[10];
+  assign tl_s1n_13_ds_d2h[10] = tl_asf_15_us_d2h;
 
-  assign tl_s1n_12_us_h2d = tl_ibex_lsu_i;
-  assign tl_ibex_lsu_o = tl_s1n_12_us_d2h;
+  assign tl_sm1_14_us_h2d[1] = tl_dbg_host_i;
+  assign tl_dbg_host_o = tl_sm1_14_us_d2h[1];
 
-  assign tl_sram_o = tl_sm1_13_ds_h2d;
-  assign tl_sm1_13_ds_d2h = tl_sram_i;
+  assign tl_s1n_13_us_h2d = tl_ibex_lsu_i;
+  assign tl_ibex_lsu_o = tl_s1n_13_us_d2h;
+
+  assign tl_sram_o = tl_sm1_14_ds_h2d;
+  assign tl_sm1_14_ds_d2h = tl_sram_i;
+
+  assign tl_usbdev_o = tl_asf_15_ds_h2d;
+  assign tl_asf_15_ds_d2h = tl_usbdev_i;
 
   always_comb begin
     // default steering to generate error response if address is not within the range
-    dev_sel_s1n_12 = 4'd10;
-    if ((tl_s1n_12_us_h2d.a_address &
+    dev_sel_s1n_13 = 4'd11;
+    if ((tl_s1n_13_us_h2d.a_address &
          ~(ADDR_MASK_SRAM)) == ADDR_SPACE_SRAM) begin
-      dev_sel_s1n_12 = 4'd0;
+      dev_sel_s1n_13 = 4'd0;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_GPIO)) == ADDR_SPACE_GPIO) begin
-      dev_sel_s1n_12 = 4'd1;
+      dev_sel_s1n_13 = 4'd1;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_UART)) == ADDR_SPACE_UART) begin
-      dev_sel_s1n_12 = 4'd2;
+      dev_sel_s1n_13 = 4'd2;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
-      dev_sel_s1n_12 = 4'd3;
+      dev_sel_s1n_13 = 4'd3;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_RV_PLIC)) == ADDR_SPACE_RV_PLIC) begin
-      dev_sel_s1n_12 = 4'd4;
+      dev_sel_s1n_13 = 4'd4;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_PWM)) == ADDR_SPACE_PWM) begin
-      dev_sel_s1n_12 = 4'd5;
+      dev_sel_s1n_13 = 4'd5;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_I2C0)) == ADDR_SPACE_I2C0) begin
-      dev_sel_s1n_12 = 4'd6;
+      dev_sel_s1n_13 = 4'd6;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_I2C1)) == ADDR_SPACE_I2C1) begin
-      dev_sel_s1n_12 = 4'd7;
+      dev_sel_s1n_13 = 4'd7;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_SPI_FLASH)) == ADDR_SPACE_SPI_FLASH) begin
-      dev_sel_s1n_12 = 4'd8;
+      dev_sel_s1n_13 = 4'd8;
 
-    end else if ((tl_s1n_12_us_h2d.a_address &
+    end else if ((tl_s1n_13_us_h2d.a_address &
                   ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
-      dev_sel_s1n_12 = 4'd9;
+      dev_sel_s1n_13 = 4'd9;
+
+    end else if ((tl_s1n_13_us_h2d.a_address &
+                  ~(ADDR_MASK_USBDEV)) == ADDR_SPACE_USBDEV) begin
+      dev_sel_s1n_13 = 4'd10;
 end
   end
 
@@ -174,17 +195,17 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqDepth (40'h0),
-    .DRspDepth (40'h0),
-    .N         (10)
-  ) u_s1n_12 (
+    .DReqDepth (44'h0),
+    .DRspDepth (44'h0),
+    .N         (11)
+  ) u_s1n_13 (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
-    .tl_h_i       (tl_s1n_12_us_h2d),
-    .tl_h_o       (tl_s1n_12_us_d2h),
-    .tl_d_o       (tl_s1n_12_ds_h2d),
-    .tl_d_i       (tl_s1n_12_ds_d2h),
-    .dev_select_i (dev_sel_s1n_12)
+    .tl_h_i       (tl_s1n_13_us_h2d),
+    .tl_h_o       (tl_s1n_13_us_d2h),
+    .tl_d_o       (tl_s1n_13_ds_h2d),
+    .tl_d_i       (tl_s1n_13_ds_d2h),
+    .dev_select_i (dev_sel_s1n_13)
   );
   tlul_socket_m1 #(
     .HReqDepth (8'h0),
@@ -192,13 +213,26 @@ end
     .DReqDepth (4'h0),
     .DRspDepth (4'h0),
     .M         (2)
-  ) u_sm1_13 (
+  ) u_sm1_14 (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
-    .tl_h_i       (tl_sm1_13_us_h2d),
-    .tl_h_o       (tl_sm1_13_us_d2h),
-    .tl_d_o       (tl_sm1_13_ds_h2d),
-    .tl_d_i       (tl_sm1_13_ds_d2h)
+    .tl_h_i       (tl_sm1_14_us_h2d),
+    .tl_h_o       (tl_sm1_14_us_d2h),
+    .tl_d_o       (tl_sm1_14_ds_h2d),
+    .tl_d_i       (tl_sm1_14_ds_d2h)
+  );
+  tlul_fifo_async #(
+    .ReqDepth        (1),
+    .RspDepth        (1)
+  ) u_asf_15 (
+    .clk_h_i      (clk_sys_i),
+    .rst_h_ni     (rst_sys_ni),
+    .clk_d_i      (clk_usb_i),
+    .rst_d_ni     (rst_usb_ni),
+    .tl_h_i       (tl_asf_15_us_h2d),
+    .tl_h_o       (tl_asf_15_us_d2h),
+    .tl_d_o       (tl_asf_15_ds_h2d),
+    .tl_d_i       (tl_asf_15_ds_d2h)
   );
 
 endmodule

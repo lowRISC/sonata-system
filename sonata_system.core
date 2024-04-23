@@ -11,6 +11,7 @@ filesets:
       - pulp:riscv:debug_module
       - lowrisc:ip:i2c
       - lowrisc:ip:uart
+      - lowrisc:ip:usbdev
       - lowrisc:ip:xbar_main
       - lowrisc:ip:spi
       - lowrisc:opentitan:top_earlgrey_rv_plic
