@@ -39,7 +39,14 @@ module top_sonata (
   input  logic       tck_i,
   input  logic       tms_i,
   input  logic       td_i,
-  output logic       td_o
+  output logic       td_o,
+
+  output logic appspi_clk,
+  output logic appspi_d0, // COPI (controller output peripheral input)
+  input  logic appspi_d1, // CIPO (controller input peripheral output)
+  output logic appspi_d2, // WP_N (write protect negated)
+  output logic appspi_d3, // HOLD_N or RESET_N
+  output logic appspi_cs  // Chip select negated
 );
   parameter SRAMInitFile = "";
 
@@ -77,7 +84,7 @@ module top_sonata (
 
   sonata_system #(
     .GpiWidth     ( 13           ),
-    .GpoWidth     ( 12           ),
+    .GpoWidth     ( 13           ),
     .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
@@ -87,16 +94,20 @@ module top_sonata (
     .rst_sys_ni     (rst_sys_n),
 
     .gp_i           ({user_sw_n, nav_sw_n}),
-    .gp_o           ({usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
+    .gp_o           ({appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
     .uart_rx_i      (ser0_rx),
     .uart_tx_o      (ser0_tx),
 
     .pwm_o(),
 
-    .spi_rx_i       (1'b0),
-    .spi_tx_o       (lcd_copi),
-    .spi_sck_o      (lcd_clk),
+    .spi_lcd_rx_i   (1'b0),
+    .spi_lcd_tx_o   (lcd_copi),
+    .spi_lcd_sck_o  (lcd_clk),
+
+    .spi_flash_rx_i (appspi_d1),
+    .spi_flash_tx_o (appspi_d0),
+    .spi_flash_sck_o(appspi_clk),
 
     .cheri_err_o    (cheriErr),
     .cheri_en_o     (cheri_en),
@@ -123,6 +134,10 @@ module top_sonata (
     .td_i,
     .td_o
   );
+
+  // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
+  assign appspi_d2 = 1'b1;
+  assign appspi_d3 = 1'b1;
 
   assign led_cheri = cheri_en;
   assign led_legacy = ~cheri_en;
@@ -175,5 +190,4 @@ module top_sonata (
     .data_ack_o(rgb_led_data_ack),
     .ws281x_dout_o(rgb_led_data_out)
   );
-
 endmodule
