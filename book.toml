@@ -3,3 +3,17 @@ language = "en"
 multilingual = false
 src = "."
 title = "Sonata System Documentation"
+
+[output.html]
+additional-js = [
+    "./util/mdbook/wavejson/default.js",
+    "./util/mdbook/wavejson/wavedrom.min.js",
+    "./util/mdbook/wavejson/wavejson.js",
+]
+
+additional-css = [
+    "./util/mdbook/wavejson/wavejson.css",
+]
+
+[preprocessor.wavejson]
+command = "./util/mdbook_wavejson.py"
