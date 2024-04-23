@@ -14,7 +14,6 @@ module usbdev
   import prim_util_pkg::vbits;
 #(
   parameter bit Stub = 1'b0,
-  parameter logic [NumAlerts-1:0] AlertAsyncOn = {NumAlerts{1'b1}},
   // Max time (in microseconds) from rx_enable_o high to the
   // external differential receiver outputting valid data (when
   // configured to use one).
@@ -28,10 +27,6 @@ module usbdev
   // Register interface
   input  tlul_pkg::tl_h2d_t tl_i,
   output tlul_pkg::tl_d2h_t tl_o,
-
-  // Alerts
-  input  prim_alert_pkg::alert_rx_t [NumAlerts-1:0] alert_rx_i,
-  output prim_alert_pkg::alert_tx_t [NumAlerts-1:0] alert_tx_o,
 
   // Data inputs
   input  logic       cio_usb_dp_i, // differential P, can be used in single-ended mode to detect SE0
@@ -773,9 +768,11 @@ module usbdev
       .we_o        (sw_mem_a_write),
       .addr_o      (sw_mem_a_addr),
       .wdata_o     (sw_mem_a_wdata),
+      .wdata_cap_o (),
       .wmask_o     (),           // Not used
       .intg_error_o(),
       .rdata_i     (sw_mem_a_rdata),
+      .rdata_cap_i (1'b0),
       .rvalid_i    (sw_mem_a_rvalid),
       .rerror_i    (sw_mem_a_rerror)
     );
@@ -859,8 +856,6 @@ module usbdev
     );
   end : gen_no_stubbed_memory
 
-  logic [NumAlerts-1:0] alert_test, alerts;
-
   // Register module
   usbdev_reg_top u_reg (
     .clk_i,
@@ -875,10 +870,7 @@ module usbdev
     .tl_win_i (tl_sram_d2h),
 
     .reg2hw(reg2hw_regtop),
-    .hw2reg(hw2reg_regtop),
-
-    // SEC_CM: BUS.INTEGRITY
-    .intg_err_o (alerts[0])
+    .hw2reg(hw2reg_regtop)
   );
 
   // Stub off all register connections to reg_top.
@@ -890,30 +882,6 @@ module usbdev
   end else begin : gen_not_stubbed
     assign reg2hw = reg2hw_regtop;
     assign hw2reg_regtop = hw2reg;
-  end
-
-  // Alerts
-  assign alert_test = {
-    reg2hw.alert_test.q &
-    reg2hw.alert_test.qe
-  };
-
-  // Alerts not stubbed off because registers and T-L access still present.
-  localparam logic [NumAlerts-1:0] AlertIsFatal = {NumAlerts{1'b1}};
-  for (genvar i = 0; i < NumAlerts; i++) begin : gen_alert_tx
-    prim_alert_sender #(
-      .AsyncOn(AlertAsyncOn[i]),
-      .IsFatal(AlertIsFatal[i])
-    ) u_prim_alert_sender (
-      .clk_i,
-      .rst_ni, // this reset is not stubbed off so that the pings still work.
-      .alert_test_i  ( alert_test[i] ),
-      .alert_req_i   ( alerts[0]     ),
-      .alert_ack_o   (               ),
-      .alert_state_o (               ),
-      .alert_rx_i    ( alert_rx_i[i] ),
-      .alert_tx_o    ( alert_tx_o[i] )
-    );
   end
 
   // Interrupts
@@ -1414,8 +1382,6 @@ module usbdev
   `ASSERT_KNOWN(USBAonWakeAckKnown_A, usb_aon_wake_ack_o)
   `ASSERT_KNOWN(USBRefValKnown_A, usb_ref_val_o, clk_i, !rst_ni)
   `ASSERT_KNOWN(USBRefPulseKnown_A, usb_ref_pulse_o, clk_i, !rst_ni)
-  // Assert Known for alerts
-  `ASSERT_KNOWN(AlertsKnown_A, alert_tx_o)
   //Interrupt signals
   `ASSERT_KNOWN(USBIntrPktRcvdKnown_A, intr_pkt_received_o)
   `ASSERT_KNOWN(USBIntrPktSentKnown_A, intr_pkt_sent_o)
@@ -1435,7 +1401,4 @@ module usbdev
   `ASSERT_KNOWN(USBIntrRxBitstuffErrKnown_A, intr_rx_bitstuff_err_o)
   `ASSERT_KNOWN(USBIntrFrameKnown_A, intr_frame_o)
   `ASSERT_KNOWN(USBIntrAvSetupEmptyKnown_A, intr_av_setup_empty_o)
-
-  // Alert assertions for reg_we onehot check
-  `ASSERT_PRIM_REG_WE_ONEHOT_ERROR_TRIGGER_ALERT(RegWeOnehotCheck_A, u_reg, alert_tx_o[0])
 endmodule
