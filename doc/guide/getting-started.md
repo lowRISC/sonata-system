@@ -2,6 +2,10 @@
 
 This guide helps you to get started with Sonata development.
 
+> The Sonata board is a prototype board and is under active development.
+> This documentation is in the process of being updated.
+> We will be improving the getting started guide soon to allow for an easier way with developing against the boards.
+
 ## Dependencies
 
 - [Vivado](https://www.xilinx.com/support/download.html)
