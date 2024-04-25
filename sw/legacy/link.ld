@@ -6,13 +6,13 @@ OUTPUT_ARCH(riscv)
 
 MEMORY
 {
-    /* 124 KiB should be enough for anybody... */
-    ram         : ORIGIN = 0x00100000, LENGTH = 0x1E000 /* 124 KiB */
-    stack       : ORIGIN = 0x0011E000, LENGTH = 0x02000  /*  4 KiB */
+    /* 256 KiB should be enough for anybody... */
+    ram         : ORIGIN = 0x00100000, LENGTH = 0x3F000 /* 252 KiB */
+    stack       : ORIGIN = 0x0013F000, LENGTH = 0x01000   /* 4 KiB */
 }
 
 /* Stack information variables */
-_min_stack      = 0x1000;   /* 4K - minimum stack space to reserve */
+_min_stack     = 0x1000;   /* 4KiB - minimum stack space to reserve */
 _stack_len     = LENGTH(stack);
 _stack_start   = ORIGIN(stack) + LENGTH(stack);
 
