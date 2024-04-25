@@ -20,7 +20,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_USBDEV    = 32'h 80400000;
   localparam logic [31:0] ADDR_SPACE_RV_PLIC   = 32'h 88000000;
 
-  localparam logic [31:0] ADDR_MASK_SRAM      = 32'h 0001ffff;
+  localparam logic [31:0] ADDR_MASK_SRAM      = 32'h 0003ffff;
   localparam logic [31:0] ADDR_MASK_REV_TAG   = 32'h 00003fff;
   localparam logic [31:0] ADDR_MASK_GPIO      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_PWM       = 32'h 00000fff;
