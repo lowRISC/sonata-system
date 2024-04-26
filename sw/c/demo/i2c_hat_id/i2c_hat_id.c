@@ -6,9 +6,18 @@
 
 #include "sonata_system.h"
 #include "i2c.h"
+#include "rv_plic.h"
+#include "dev_access.h"
 
 // A timeout of 1 second should be plenty; reading at 100kbps.
 const uint32_t timeout_usecs = 1000 * 1000;
+
+static const irq_t fmt_threshold_irq = 9;
+
+void i2c_irq_test(irq_t irq) {
+  puts("i2c fmt_threshold_irq received");
+  rv_plic_disable(irq);
+}
 
 /**
  * Simple demonstration/test of I2C operation; use I2C0 to read the ID
@@ -21,6 +30,15 @@ int main(void) {
   static uint8_t data[0x80u];
 
   uart_init(DEFAULT_UART);
+  rv_plic_init();
+
+  // Test IRQ
+  rv_plic_register_irq(fmt_threshold_irq, i2c_irq_test);
+  rv_plic_enable(fmt_threshold_irq);
+  // Set fmt threshold to 1
+  DEV_WRITE(DEFAULT_I2C + 0x24, 0x10000);
+  // Enable fmt threshold IRQ
+  DEV_WRITE(DEFAULT_I2C + 0x4,  0x1);
 
   puts("i2c_hat_id demo application");
 
