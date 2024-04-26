@@ -14,7 +14,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_I2C0    = 32'h 82000000;
   localparam logic [31:0] ADDR_SPACE_I2C1    = 32'h 82001000;
   localparam logic [31:0] ADDR_SPACE_SPI     = 32'h 83000000;
-  localparam logic [31:0] ADDR_SPACE_RV_PLIC = 32'h 84000000;
+  localparam logic [31:0] ADDR_SPACE_RV_PLIC = 32'h 88000000;
 
   localparam logic [31:0] ADDR_MASK_SRAM    = 32'h 0001ffff;
   localparam logic [31:0] ADDR_MASK_GPIO    = 32'h 00000fff;

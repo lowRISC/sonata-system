@@ -849,22 +849,13 @@ module sonata_system #(
     .timer_intr_o  (timer_irq)
   );
 
-  tlul_pkg::tl_h2d_t tl_rv_plic_h2d_fixup;
-  always_comb begin
-    tl_rv_plic_h2d_fixup = tl_rv_plic_h2d;
-    // The address map we selected means that addr[26] is 1.
-    // The non-standard extension of OpenTitan rv_plic however extends the address space to make use of this additional bit.
-    // As a hack clear this bit.
-    tl_rv_plic_h2d_fixup.a_address[26] = 1'b0;
-  end
-
   rv_plic u_rv_plic (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
 
     .irq_o    (external_irq),
     .irq_id_o (),
-    .tl_i     (tl_rv_plic_h2d_fixup),
+    .tl_i     (tl_rv_plic_h2d),
     .tl_o     (tl_rv_plic_d2h),
 
     .intr_src_i (intr_vector)

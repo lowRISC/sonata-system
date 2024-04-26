@@ -46,7 +46,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8100_0000  |   1 MiB | [UART]         |
 | 0x8200_0000  |   1 MiB | [I2C host]     |
 | 0x8300_0000  |   1 MiB | [SPI host]     |
-| 0x8400_0000  |  64 MiB | [PLIC]         |
+| 0x8800_0000  |  64 MiB | [PLIC]         |
 | 0xB000_0000  |  64 KiB | [Debug module] |
 
 [Debug module]: ../ip/dm.md
