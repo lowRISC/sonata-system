@@ -7,6 +7,7 @@ module top_verilator (input logic clk_i, rst_ni);
 
   localparam ClockFrequency = 25_000_000;
   localparam BaudRate       = 115_200;
+  localparam EnableCHERI    = 1'b1;
 
   logic uart_sys_rx, uart_sys_tx;
 
@@ -43,6 +44,7 @@ module top_verilator (input logic clk_i, rst_ni);
     .spi_tx_o ( ),
     .spi_sck_o( ),
 
+    .cheri_en_i (EnableCHERI),
     // CHERI output
     .cheri_err_o(),
     .cheri_en_o (),
