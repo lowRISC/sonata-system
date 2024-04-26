@@ -37,6 +37,9 @@ module sonata_system #(
   input  logic td_i,    // JTAG test data input pad
   output logic td_o,    // JTAG test data output pad
 
+  // TODO: Development assistance.
+  input  logic                     cheri_en_i,
+
   output logic [CheriErrWidth-1:0] cheri_err_o,
   output logic                     cheri_en_o,
 
@@ -598,7 +601,7 @@ module sonata_system #(
 
   logic cheri_en;
 
-  assign cheri_en = 1'b1;
+  assign cheri_en   = cheri_en_i;
   assign cheri_en_o = cheri_en;
   assign rst_core_n = rst_sys_ni & ~ndmreset_req & ~host_req[DbgHost];
 

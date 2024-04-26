@@ -75,6 +75,20 @@ module top_sonata (
   assign scl1 = scl1_oe ? scl1_o : 1'bZ;
   assign sda1 = sda1_oe ? sda1_o : 1'bZ;
 
+  // DIP switches are OFF by default and employ a pull up, which means CHERI shall enabled by
+  // default; sample this once when leaving reset as a development aid during bring up.
+  logic enable_cheri;
+  logic cheri_decided;
+  always_ff @(posedge clk_sys or negedge rst_sys_n) begin
+    if (!rst_sys_n) begin
+      cheri_decided <= 1'b0;
+      enable_cheri  <= 1'b1;
+    end else if (!cheri_decided) begin
+      enable_cheri  <= usrSw[7];
+      cheri_decided <= 1'b1;
+    end
+  end
+
   sonata_system #(
     .GpiWidth     ( 13           ),
     .GpoWidth     ( 12           ),
@@ -98,6 +112,7 @@ module top_sonata (
     .spi_tx_o       (lcd_copi),
     .spi_sck_o      (lcd_clk),
 
+    .cheri_en_i     (enable_cheri),
     .cheri_err_o    (cheriErr),
     .cheri_en_o     (cheri_en),
 
