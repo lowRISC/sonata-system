@@ -50,7 +50,7 @@ int main(void) {
 
   // Init spi driver.
   spi_t spi;
-  spi_init(&spi, DEFAULT_SPI, SpiSpeedHz);
+  spi_init(&spi, LCD_SPI, SpiSpeedHz);
 
   // Reset LCD.
   set_output_bit(GPIO_OUT, LcdRstPin, 0x0);

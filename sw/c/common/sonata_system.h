@@ -29,7 +29,8 @@
 #define NUM_PWM_MODULES 12
 
 #define DEFAULT_I2C I2C_FROM_BASE_ADDR(I2C0_BASE)
-#define DEFAULT_SPI SPI_FROM_BASE_ADDR(SPI0_BASE)
+#define FLASH_SPI SPI_FROM_BASE_ADDR(SPI0_BASE)
+#define LCD_SPI SPI_FROM_BASE_ADDR(SPI1_BASE)
 
 /**
  * Writes character to default UART. Signature matches c stdlib function
