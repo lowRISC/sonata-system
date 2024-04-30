@@ -76,6 +76,7 @@ module sonata_system #(
   localparam int unsigned BusByteEnable = 4;
   localparam int unsigned BusDataWidth  = 32;
   localparam int unsigned RegAddrWidth  = 8;
+  localparam int unsigned TRegAddrWidth = 16;  // Timer uses more address bits.
 
   // Debug functionality is disabled.
   localparam int unsigned DbgHwBreakNum = 0;
@@ -544,6 +545,7 @@ module sonata_system #(
 
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
+    .RegAw            ( TRegAddrWidth ),
     .AccessLatency    ( 1 )
   ) timer_device_adapter (
     .clk_i (clk_sys_i),
@@ -560,7 +562,7 @@ module sonata_system #(
     // Register interface.
     .re_o   (device_re[Timer]),
     .we_o   (device_we[Timer]),
-    .addr_o (device_addr[Timer][RegAddrWidth-1:0]),
+    .addr_o (device_addr[Timer][TRegAddrWidth-1:0]),
     .wdata_o(device_wdata[Timer]),
     .be_o   (device_be[Timer]),
     .busy_i ('0),
@@ -569,7 +571,7 @@ module sonata_system #(
   );
 
   // Tie off upper bits of address.
-  assign device_addr[Timer][BusAddrWidth-1:RegAddrWidth] = '0;
+  assign device_addr[Timer][BusAddrWidth-1:TRegAddrWidth] = '0;
 
   ///////////////////////////////////////////////
   // Core and hardware IP block instantiation. //
