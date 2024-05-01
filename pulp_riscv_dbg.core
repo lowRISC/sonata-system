@@ -20,11 +20,6 @@ filesets:
       - vendor/pulp_riscv_dbg/src/dmi_jtag.sv
     file_type: systemVerilogSource
 
-  files_xilinx_bscane_tap:
-    files:
-      - vendor/pulp_riscv_dbg/src/dmi_bscane_tap.sv
-    file_type: systemVerilogSource
-
   files_jtag_tap:
     files:
       - vendor/pulp_riscv_dbg/src/dmi_jtag_tap.sv
@@ -40,5 +35,4 @@ targets:
     filesets:
       - files_src
       - tool_verilator ? (files_verilator)
-      - "use_bscane_tap ? (files_xilinx_bscane_tap)"
-      - "!use_bscane_tap ? (files_jtag_tap)"
+      - files_jtag_tap

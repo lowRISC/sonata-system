@@ -19,13 +19,6 @@ filesets:
       - rtl/fpga/ws281x_drv.sv
     file_type: systemVerilogSource
 
-  files_artya7:
-    depend:
-      - lowrisc:ibex:fpga_xilinx_shared
-    files:
-      - rtl/fpga/top_artya7.sv
-    file_type: systemVerilogSource
-
   files_verilator:
     depend:
       - lowrisc:ibex:sim_shared
@@ -44,11 +37,6 @@ filesets:
   files_constraints_sonata:
     files:
       - data/pins_sonata.xdc
-    file_type: xdc
-
-  files_constraints_artya7:
-    files:
-      - data/pins_artya7.xdc
     file_type: xdc
 
 parameters:
@@ -88,22 +76,6 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
-
-  synth_artya7:
-    <<: *default_target
-    default_tool: vivado
-    filesets_append:
-      - files_artya7
-      - files_constraints_artya7
-    toplevel: top_artya7
-    tools:
-      vivado:
-        part: "xc7a35tcsg324-1"  # Arty A7-35T
-    parameters:
-      - SRAMInitFile
-      - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
-    flags:
-      use_bscane_tap: true
 
   sim:
     <<: *default_target

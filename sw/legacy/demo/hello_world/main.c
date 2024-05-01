@@ -34,8 +34,8 @@ int main(void) {
 
   uint64_t last_elapsed_time = get_elapsed_time();
 
-  // Reset green LEDs to having just one on
-  set_outputs(GPIO_OUT, 0x10); // Bottom 4 bits are LCD control as you can see in top_artya7.sv
+  // Reset user LEDs to having just one on
+  set_outputs(GPIO_OUT, 0x10); // Bottom 4 bits are LCD control as you can see in top_sonata.sv
 
   // PWM variables
   uint32_t counter    = UINT8_MAX;
