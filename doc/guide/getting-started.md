@@ -56,7 +56,7 @@ You will need a copy of [CHERIoT RTOS](https://github.com/microsoft/cheriot-rtos
 
 Building the software:
 ```sh
-pushd sw/cpp/cheri_sanity
+pushd sw/cheri/cheri_sanity
 make CHERIOT_LLVM_ROOT=/path/to/cheriot-llvm/bin CHERIOT_RTOS_SDK=/path/to/cheriot-rtos/sdk
 popd
 ```
@@ -78,15 +78,15 @@ fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc
 
 Running the simulator can be accomplished with the following command, where you can change the `meminit` argument to a different program if you wish:
 ```sh
-./build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator -t --meminit=ram,./sw/cpp/cheri_sanity/boot.elf
+./build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator -t --meminit=ram,./sw/cheri/cheri_sanity/boot.elf
 ```
 
 I recommend that you make the following change to the sanity check to see quicker changes in simulation:
 ```diff
-diff --git a/sw/cpp/cheri_sanity/boot.cc b/sw/cpp/cheri_sanity/boot.cc
+diff --git a/sw/cheri/cheri_sanity/boot.cc b/sw/cheri/cheri_sanity/boot.cc
 index 547abb3..7f7781d 100644
---- a/sw/cpp/cheri_sanity/boot.cc
-+++ b/sw/cpp/cheri_sanity/boot.cc
+--- a/sw/cheri/cheri_sanity/boot.cc
++++ b/sw/cheri/cheri_sanity/boot.cc
 @@ -32,7 +32,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
         uint32_t switchValue = 0;
         while (true) {
