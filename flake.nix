@@ -53,7 +53,18 @@
       devShells.default = pkgs.mkShell {
         name = "sonata-system-devshell";
         packages =
-          (with pkgs; [screen gtkwave openfpgaloader])
+          (with pkgs; [
+            cmake
+            screen
+            srecord
+            gtkwave
+            openfpgaloader
+            openocd
+          ])
+          ++ (with lr_pkgs; [
+            # For legacy software
+            lowrisc-toolchain-gcc-rv32imcb
+          ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
       packages = {inherit sonata-simulator sonata-documentation;};
