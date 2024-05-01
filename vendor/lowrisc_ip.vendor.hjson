@@ -26,6 +26,6 @@
         {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
         {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
 
-        {from: "hw/dv/dpi/uartdpi",    to: "dv/dpi/uartdpi"},
+        {from: "hw/dv/dpi/uartdpi",    to: "dv/dpi/uartdpi", patch_dir: "uartdpi"},
     ]
 }
