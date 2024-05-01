@@ -55,18 +55,12 @@ module rv_timer #(
   // mtime increments every cycle
   assign mtime_inc = mtime_q + 64'd1;
 
-  // Generate write data based on byte strobes
-  for (genvar b = 0; b < DataWidth / 8; b++) begin : gen_byte_wdata
-
-    assign mtime_wdata[(b*8)+:8]     = timer_be_i[b] ? timer_wdata_i[b*8+:8] :
-                                                       mtime_q[(b*8)+:8];
-    assign mtimeh_wdata[(b*8)+:8]    = timer_be_i[b] ? timer_wdata_i[b*8+:8] :
-                                                       mtime_q[DataWidth+(b*8)+:8];
-    assign mtimecmp_wdata[(b*8)+:8]  = timer_be_i[b] ? timer_wdata_i[b*8+:8] :
-                                                       mtimecmp_q[(b*8)+:8];
-    assign mtimecmph_wdata[(b*8)+:8] = timer_be_i[b] ? timer_wdata_i[b*8+:8] :
-                                                       mtimecmp_q[DataWidth+(b*8)+:8];
-  end
+  // We are ignoring any partial writes.
+  // Only write when all byte enables are high.
+  assign mtime_wdata = (timer_be_i == {(DataWidth / 8){1'b1}}) ? timer_wdata_i : mtime_q[DataWidth-1:0];
+  assign mtimeh_wdata = (timer_be_i == {(DataWidth / 8){1'b1}}) ? timer_wdata_i : mtime_q[TW-1:DataWidth];
+  assign mtimecmp_wdata = (timer_be_i == {(DataWidth / 8){1'b1}}) ? timer_wdata_i : mtimecmp_q[DataWidth-1:0];
+  assign mtimecmph_wdata = (timer_be_i == {(DataWidth / 8){1'b1}}) ? timer_wdata_i : mtimecmp_q[TW-1:DataWidth];
 
   // Generate write enables
   assign mtime_we     = timer_we & (timer_addr_i[ADDR_OFFSET-1:0] == MTIME_LOW);
