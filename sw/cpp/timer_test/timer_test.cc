@@ -136,7 +136,14 @@ extern "C" int rom_loader_entry(void *rwRoot)
   uint64_t time_trigger = kInitialTime + kTriggerInterval;
   timer.set_time(kInitialTime);
   timer.set_timecmp(time_trigger);
-  if (timer.get_timecmp() != time_trigger) {
+  uint64_t time_cmp_value = timer.get_timecmp();
+  if (time_cmp_value != time_trigger) {
+    puthex(time_cmp_value >> 32);
+    puthex(time_cmp_value);
+    puts("");
+    puthex(time_trigger >> 32);
+    puthex(time_trigger);
+    puts("");
     fail();
   }
 
