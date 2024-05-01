@@ -131,10 +131,16 @@ void uartdpi_write(void *ctx_void, char c) {
   }
 
   rv = write(ctx->host, &c, 1);
-  assert(rv == 1 && "Write to pseudo-terminal failed.");
+
+  if (rv != 1) {
+    fprintf(stderr, "UART: Write to pseudo-terminal failed: %s\n", strerror(errno));
+  }
 
   if (ctx->log_file) {
     rv = fwrite(&c, sizeof(char), 1, ctx->log_file);
-    assert(rv == 1 && "Write to log file failed.");
+
+    if (rv != 1) {
+      fprintf(stderr, "UART: Write to log file failed: %s\n", strerror(errno));
+    }
   }
 }
