@@ -46,6 +46,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8010_0000  |   1 MiB | [UART][]         |
 | 0x8020_0000  |   1 MiB | [I2C host][]     |
 | 0x8030_0000  |   1 MiB | [SPI host][]     |
+| 0x8040_0000  |   1 MiB | [USB device][]   |
 | 0x8800_0000  |  64 MiB | [PLIC][]         |
 | 0xB000_0000  |   4 KiB | [Debug module][] |
 
@@ -55,6 +56,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [Timer]: ../ip/timer.md
 [I2C host]: ../ip/i2c.md
 [SPI host]: ../ip/spi.md
+[USB device]: ../ip/usb.md
 [HyperRAM]: ../ip/ram.md
 [DMA]: ../ip/dma.md
 [ADC]: ../ip/adc.md
