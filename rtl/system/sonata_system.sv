@@ -113,10 +113,11 @@ module sonata_system #(
     Gpio,
     Pwm,
     Uart,
-    Timer
+    Timer,
+    RevTags
   } bus_device_e;
 
-  localparam int NrDevices = 4;
+  localparam int NrDevices = 5;
   localparam int NrHosts = 2;
 
   // Interrupts.
@@ -262,6 +263,12 @@ module sonata_system #(
   assign core_instr_req_filtered =
       core_instr_req & ((core_instr_addr & ~(tl_main_pkg::ADDR_MASK_SRAM)) == tl_main_pkg::ADDR_SPACE_SRAM);
 
+  // Temporal safety signals.
+  localparam int unsigned    TsMapAddrWidth = 16;
+  logic                      tsmap_cs;
+  logic [TsMapAddrWidth-1:0] tsmap_addr;
+  logic [BusDataWidth-1:0]   tsmap_rdata;
+
   // Reset signals
   // Internally generated resets cause IMPERFECTSCH warnings
   /* verilator lint_off IMPERFECTSCH */
@@ -317,6 +324,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
   tlul_pkg::tl_h2d_t tl_usbdev_h2d;
   tlul_pkg::tl_d2h_t tl_usbdev_d2h;
+  tlul_pkg::tl_h2d_t tl_rev_h2d;
+  tlul_pkg::tl_d2h_t tl_rev_d2h;
 
   xbar_main xbar (
     .clk_sys_i   (clk_sys_i),
@@ -333,6 +342,8 @@ module sonata_system #(
     // Device interfaces.
     .tl_sram_o    (tl_sram_h2d_d),
     .tl_sram_i    (tl_sram_d2h_d),
+    .tl_rev_tag_o (tl_rev_h2d),
+    .tl_rev_tag_i (tl_rev_d2h),
     .tl_gpio_o    (tl_gpio_h2d),
     .tl_gpio_i    (tl_gpio_d2h),
     .tl_uart_o    (tl_uart_h2d),
@@ -601,6 +612,75 @@ module sonata_system #(
   // Tie off upper bits of address.
   assign device_addr[Timer][BusAddrWidth-1:TRegAddrWidth] = '0;
 
+  // Revocation tag memory.
+  logic [BusDataWidth-1:0] revocation_tags_bit_enable;
+
+  always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
+    if (!rst_sys_ni) begin
+      device_rvalid[RevTags] <= 1'b0;
+    end else begin
+      device_rvalid[RevTags] <= device_req[RevTags] & ~device_we[RevTags];
+    end
+  end
+
+  // Size of revocation tag memory is 16 KiB
+  localparam int unsigned RevTagDepth = 16 * 1024 * 8 / BusDataWidth;
+  localparam int unsigned RevTagAddrWidth = $clog2(RevTagDepth);
+
+  tlul_adapter_sram #(
+    .SramAw           ( RevTagAddrWidth ),
+    .EnableRspIntgGen ( 1               )
+  ) revocation_sram_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface.
+    .tl_i(tl_rev_h2d),
+    .tl_o(tl_rev_d2h),
+
+    // Control interface.
+    .en_ifetch_i(prim_mubi_pkg::MuBi4False),
+
+    // SRAM interface.
+    .req_o       (device_req[RevTags]),
+    .req_type_o  (),
+    .gnt_i       (device_req[RevTags]),
+    .we_o        (device_we[RevTags]),
+    .addr_o      (device_addr[RevTags][RevTagAddrWidth-1:0]),
+    .wdata_o     (device_wdata[RevTags]),
+    .wdata_cap_o (),
+    .wmask_o     (revocation_tags_bit_enable),
+    .intg_error_o(),
+    .rdata_i     (device_rdata[RevTags]),
+    .rdata_cap_i (1'b0),
+    .rvalid_i    (device_rvalid[RevTags]),
+    .rerror_i    (2'b00)
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[RevTags][BusAddrWidth-1:RevTagAddrWidth] = '0;
+
+  prim_ram_2p #(
+    .Width ( BusDataWidth ),
+    .Depth ( RevTagDepth  )
+  ) u_revocation_ram (
+    .clk_a_i   (clk_sys_i),
+    .clk_b_i   (rst_sys_ni),
+    .cfg_i     ('0),
+    .a_req_i   (device_req[RevTags]),
+    .a_write_i (device_we[RevTags]),
+    .a_addr_i  (device_addr[RevTags][RevTagAddrWidth-1:0]),
+    .a_wdata_i (device_wdata[RevTags]),
+    .a_wmask_i (revocation_tags_bit_enable),
+    .a_rdata_o (device_rdata[RevTags]),
+    .b_req_i   (tsmap_cs),
+    .b_write_i (1'b0),
+    .b_wmask_i ('0),
+    .b_addr_i  (tsmap_addr[RevTagAddrWidth-1:0]),
+    .b_wdata_i ('0),
+    .b_rdata_o (tsmap_rdata)
+  );
+
   ///////////////////////////////////////////////
   // Core and hardware IP block instantiation. //
   ///////////////////////////////////////////////
@@ -627,7 +707,7 @@ module sonata_system #(
     .ram_cfg_i  (10'b0),
 
     .cheri_pmode_i (cheri_en),
-    .cheri_tsafe_en_i (1'b0), // TODO enable temporal safety.
+    .cheri_tsafe_en_i (cheri_en),
     .cheri_err_o (cheri_err_o),
 
     .hart_id_i(32'b0),
@@ -643,7 +723,7 @@ module sonata_system #(
     .instr_err_i       (core_instr_err),
 
     .data_req_o       (host_req[CoreD]),
-    .data_is_cap_o    (), // TODO connect this to memory when CHERI is enabled.
+    .data_is_cap_o    (),
     .data_gnt_i       (host_gnt[CoreD]),
     .data_rvalid_i    (host_rvalid[CoreD]),
     .data_we_o        (host_we[CoreD]),
@@ -656,11 +736,11 @@ module sonata_system #(
     .data_err_i       (host_err[CoreD]),
 
     // TODO fill this in once revocation is enabled.
-    .tsmap_cs_o   (),
-    .tsmap_addr_o (),
-    .tsmap_rdata_i(32'b0),
+    .tsmap_cs_o   (tsmap_cs),
+    .tsmap_addr_o (tsmap_addr),
+    .tsmap_rdata_i(tsmap_rdata),
 
-    // TODO fill this in.
+    // TODO fill this in to control hardware revocation engine.
     .mmreg_corein_i  (128'b0),
     .mmreg_coreout_o (),
     .cheri_fatal_err_o(),
@@ -997,7 +1077,15 @@ module sonata_system #(
   `endif
 
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device
-    logic _unused_rvalid;
-    assign _unused_rvalid = device_rvalid[i];
+    if (i != RevTags) begin
+      logic _unused_rvalid;
+      assign _unused_rvalid = device_rvalid[i];
+    end
   end : gen_unused_device
+
+  logic _unused_be;
+  assign _unused_be = |device_be[RevTags];
+
+  logic _unused_tsaddr;
+  assign _unused_tsaddr = |tsmap_addr[TsMapAddrWidth-1:RevTagAddrWidth];
 endmodule
