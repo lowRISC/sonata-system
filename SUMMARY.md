@@ -12,6 +12,7 @@
     - [Timer](doc/ip/timer.md)
     - [I2C host](doc/ip/i2c.md)
     - [SPI host](doc/ip/spi.md)
+    - [USB device](doc/ip/usb.md)
     - [HyperRAM](doc/ip/ram.md)
     - [DMA](doc/ip/dma.md)
     - [ADC](doc/ip/adc.md)
