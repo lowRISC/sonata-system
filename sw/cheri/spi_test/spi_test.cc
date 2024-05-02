@@ -7,7 +7,6 @@
 
 using namespace CHERI;
 
-#define GPIO_VALUE  (0xFFFFFFFF)
 #define CPU_FREQ_HZ (25'000'000)
 #define BAUD_RATE   (   115'200)
 
@@ -276,11 +275,11 @@ extern "C" void rom_loader_entry(void *rwRoot)
 
   // Create a bounded capability to the UART
   Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address() = 0x81000000;
+  uart.address() = 0x80100000;
   uart.bounds()  = 0x1000;
 
   Capability<volatile Spi> spi = root.cast<volatile Spi>();
-  spi.address() = 0x83000000;
+  spi.address() = 0x80300000;
   spi.bounds() = 0x1000;
 
   Capability<volatile uint32_t> gpo = root.cast<volatile uint32_t>();
@@ -305,7 +304,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
   uart->write_hex8b(jedec_id[2]);
   uart->write_str("\r\n");
 
-  for (int i = 0;i < 256; ++i) {
+  for (int i = 0; i < 256; ++i) {
     write_data[i] = i;
   }
 
@@ -314,7 +313,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
   spi_flash.read(0, read_data, 256);
 
   uart->write_str("Got first flash read:\r\n");
-  for (int i = 0;i < 256; ++i) {
+  for (int i = 0; i < 256; ++i) {
     uart->write_hex8b(read_data[i]);
     uart->write_str("\r\n");
   }
@@ -322,7 +321,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
   spi_flash.read(128, read_data, 256);
 
   uart->write_str("Got second flash read:\r\n");
-  for (int i = 0;i < 256; ++i) {
+  for (int i = 0; i < 256; ++i) {
     uart->write_hex8b(read_data[i]);
     uart->write_str("\r\n");
   }
