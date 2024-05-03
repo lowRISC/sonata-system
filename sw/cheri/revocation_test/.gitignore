@@ -1,0 +1,6 @@
+*.bin
+*.dump
+*.elf
+*.o
+*.vhx
+*.vmem
