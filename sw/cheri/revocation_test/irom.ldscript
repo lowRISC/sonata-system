@@ -1,0 +1,13 @@
+SECTIONS
+{
+	. = 0x00100000;
+	_start = .;
+
+	.rom_loader :
+	{
+		boot.S.o(.text);
+		*.cc.o(.text .text.* .rodata .rodata.* .data.rel.ro);
+		end.S.o(.text);
+		. = ALIGN(4);
+	}
+}
