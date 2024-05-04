@@ -56,6 +56,7 @@
           (with pkgs; [
             cmake
             screen
+            picocom
             srecord
             gtkwave
             openfpgaloader
