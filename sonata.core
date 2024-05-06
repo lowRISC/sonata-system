@@ -49,7 +49,7 @@ parameters:
   SRAMInitFile:
     datatype: str
     description: SRAM initialization file in vmem hex format
-    default: "../../../../../sw/cheri/cheri_sanity/cpu0_irom.vmem"
+    default: "../../../../../sw/cheri/build/tests/cheri_sanity.vmem"
     paramtype: vlogparam
 
   # For value definition, please see ip/prim/rtl/prim_pkg.sv

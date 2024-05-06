@@ -1,6 +1,6 @@
 target/
 
-# FuseSoc builds are placed in build
+# FuseSoC and Sofware builds are placed in build
 build/
 
 # Nix based builds a placed are symlinked to result
