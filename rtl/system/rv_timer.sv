@@ -32,10 +32,10 @@ module rv_timer #(
   // Upper bits of address are decoded into timer_req_i
   localparam int unsigned ADDR_OFFSET = 16; // 64 KiB
   // Register map
-  localparam bit [ADDR_OFFSET-1:0] MTIME_LOW = 'h4000;
-  localparam bit [ADDR_OFFSET-1:0] MTIME_HIGH = MTIME_LOW + 4;
-  localparam bit [ADDR_OFFSET-1:0] MTIMECMP_LOW = 'hBFF8;
+  localparam bit [ADDR_OFFSET-1:0] MTIMECMP_LOW = 'h4000;
   localparam bit [ADDR_OFFSET-1:0] MTIMECMP_HIGH = MTIMECMP_LOW + 4;
+  localparam bit [ADDR_OFFSET-1:0] MTIME_LOW = 'hBFF8;
+  localparam bit [ADDR_OFFSET-1:0] MTIME_HIGH = MTIME_LOW + 4;
 
   logic                 timer_we;
   logic                 mtime_we, mtimeh_we;
