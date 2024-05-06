@@ -34,10 +34,10 @@ class SonataTimer
   uint32_t size_;
 
   // Offsets of registers within address range.
-  static constexpr uint32_t mtime  = 0x4000u / 4;
-  static constexpr uint32_t mtimeh = mtime + 1;
-  static constexpr uint32_t mtimecmp  = 0xbff8u / 4;
+  static constexpr uint32_t mtimecmp  = 0x4000u / 4;
   static constexpr uint32_t mtimecmph = mtimecmp + 1;
+  static constexpr uint32_t mtime  = 0xbff8u / 4;
+  static constexpr uint32_t mtimeh = mtime + 1;
 
 public:
 
