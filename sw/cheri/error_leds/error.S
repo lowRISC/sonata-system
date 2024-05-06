@@ -1,6 +1,6 @@
 .include "assembly-helpers.s"
 
-.section .text, "ax", @progbits
+.section .text.start, "ax", @progbits
 	.zero 0x80
 	.globl start
 	.p2align 2
@@ -24,6 +24,7 @@ start:
 	// Start at 8 because first thing we do is add one and wrap to zero.
 	li s0, 8
 
+.section .text
 
 nextviolation:
 	addi s0, s0, 1 // Go to next exception.
