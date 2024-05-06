@@ -21,17 +21,8 @@ set(CHERIOT_SDK_INCLUDES
   "${CHERIOT_RTOS_SDK}/include/c++-config"
   "${CHERIOT_RTOS_SDK}/include/libc++"
   "${CHERIOT_RTOS_SDK}/include"
+  "${CHERIOT_RTOS_SDK}/include/platform/generic-riscv"
 )
 
 add_subdirectory(common)
-
-add_executable(cheri_sanity cheri_sanity/boot.cc)
-target_link_libraries(cheri_sanity common)
-target_include_directories(cheri_sanity PRIVATE ${CHERIOT_SDK_INCLUDES})
-
-add_custom_command(
-  TARGET cheri_sanity POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:cheri_sanity>" "$<TARGET_FILE:cheri_sanity>.bin"
-  COMMAND srec_cat "$<TARGET_FILE:cheri_sanity>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:cheri_sanity>.vmem" -vmem
-  VERBATIM
-)
+add_subdirectory(tests)

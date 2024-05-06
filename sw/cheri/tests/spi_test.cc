@@ -169,12 +169,12 @@ class SpiFlash
     Capability<volatile uint32_t> gpo;
     uint32_t csn_bit;
 
-    static const uint8_t CmdReadJEDECId = 0x9f;
-    static const uint8_t CmdWriteEnable = 0x06;
-    static const uint8_t CmdSectorErase = 0x20;
-    static const uint8_t CmdReadStatusRegister1 = 0x05;
-    static const uint8_t CmdPageProgram = 0x02;
-    static const uint8_t CmdReadData = 0x03;
+    const uint8_t CmdReadJEDECId = 0x9f;
+    const uint8_t CmdWriteEnable = 0x06;
+    const uint8_t CmdSectorErase = 0x20;
+    const uint8_t CmdReadStatusRegister1 = 0x05;
+    const uint8_t CmdPageProgram = 0x02;
+    const uint8_t CmdReadData = 0x03;
 
     void set_cs(bool enable) {
       if (enable) {
