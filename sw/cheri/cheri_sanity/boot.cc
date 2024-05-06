@@ -2,7 +2,6 @@
 #define CHERIOT_NO_NEW_DELETE
 
 #include <cheri.hh>
-#include <platform-uart.hh>
 #include <stdint.h>
 
 using namespace CHERI;
