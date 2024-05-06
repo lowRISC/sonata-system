@@ -1,4 +1,4 @@
-set(LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/cheri_sanity/irom.ldscript")
+set(LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/link.ld")
 
 set(CMAKE_SYSTEM_NAME Generic)
 
