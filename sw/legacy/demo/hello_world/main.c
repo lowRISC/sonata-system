@@ -9,7 +9,15 @@
 #include "pwm.h"
 #include "timer.h"
 
+/**
+ * Is the code running in simulation (as opposed to on FPGA)?
+ */
+#define SIMULATION 0
+
 #define USE_GPIO_SHIFT_REG 0
+
+static const bool dual_uart = true;
+static uart_t uart0, uart1;
 
 void test_uart_irq_handler(void) __attribute__((interrupt));
 
@@ -17,20 +25,47 @@ void test_uart_irq_handler(void) {
   int uart_in_char;
 
   while ((uart_in_char = uart_in(DEFAULT_UART)) != -1) {
-    uart_out(DEFAULT_UART, uart_in_char);
-    uart_out(DEFAULT_UART, '\r');
-    uart_out(DEFAULT_UART, '\n');
+    uart_out(uart0, uart_in_char);
+    uart_out(uart0, '\r');
+    uart_out(uart0, '\n');
   }
+}
+
+static inline void write_both(char ch0, char ch1) {
+  uart_out(uart0, ch0);
+  uart_out(uart1, ch1);
 }
 
 int main(void) {
 //  install_exception_handler(UART_IRQ_NUM, &test_uart_irq_handler);
 //  uart_enable_rx_int();
-  uart_init(DEFAULT_UART);
+  if (dual_uart) {
+    const char *signon = "hello_world demo application; UART ";
+    uart0 = UART_FROM_BASE_ADDR(UART0_BASE);
+    uart1 = UART_FROM_BASE_ADDR(UART1_BASE);
+    uart_init(uart0);
+    uart_init(uart1);
+    // Send a sign-on message to both UARTs.
+    char ch;
+    while ('\0' != (ch = *signon)) {
+      write_both(ch, ch);
+      signon++;
+    }
+    write_both('0', '1');
+    write_both('\r', '\r');
+    write_both('\n', '\n');
+  } else {
+    uart0 = DEFAULT_UART;
+    uart_init(uart0);
+  }
 
   // This indicates how often the timer gets updated.
   timer_init();
-  timer_enable(5000000);
+#if SIMULATION
+  timer_enable(SYSCLK_FREQ / 500);
+#else
+  timer_enable(SYSCLK_FREQ / 5);
+#endif
 
   uint64_t last_elapsed_time = get_elapsed_time();
 
@@ -46,7 +81,6 @@ int main(void) {
 
   while (1) {
     uint64_t cur_time = get_elapsed_time();
-
     if (cur_time != last_elapsed_time) {
       last_elapsed_time = cur_time;
 
@@ -98,6 +132,17 @@ int main(void) {
           if (color >= 8) {
             color = 1;
           }
+        }
+      }
+
+      // Echo input characters to the other UART
+      if (dual_uart) {
+        int ch;
+        if (UART_EOF != (ch = uart_in(uart0))) {
+          uart_out(uart1, ch);
+        }
+        if (UART_EOF != (ch = uart_in(uart1))) {
+          uart_out(uart0, ch);
         }
       }
     }
