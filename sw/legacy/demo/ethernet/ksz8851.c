@@ -14,7 +14,7 @@
 
 enum {
   // IRQ
-  EthIntrIrq = 39,
+  EthIntrIrq = 47,
 
   // GPIO Output
   EthCsPin  = 13,
