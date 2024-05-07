@@ -23,22 +23,8 @@ usage_then_exit() {
   exit 2
 }
 
-check_elf_file() {
-  if [ ! -f "${ELF_FILE-}" ]; then
-    echo "$NAME: Either no elf file was given or the given elf file doesn't exist."
-    usage_then_exit
-  fi
-}
-
-check_out_file() {
-  if [ -z "${OUT_FILE-}" ]; then
-    echo "$NAME: No output file was given."
-    usage_then_exit
-  fi
-}
-
 check_not_empty() {
-  if [ ! -f "$1" ]; then
+  if [ -z "$1" ]; then
     echo "$2"
     usage_then_exit
   fi
