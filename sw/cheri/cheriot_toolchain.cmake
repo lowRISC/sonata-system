@@ -2,12 +2,18 @@ set(LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/link.ld")
 
 set(CMAKE_SYSTEM_NAME Generic)
 
-set(CMAKE_ASM_COMPILER clang)
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+if (DEFINED CHERIOT_LLVM_BIN)
+  set(CMAKE_CXX_COMPILER "${CHERIOT_LLVM_BIN}/clang++")
+  set(CMAKE_C_COMPILER   "${CHERIOT_LLVM_BIN}/clang")
+  set(CMAKE_ASM_COMPILER "${CHERIOT_LLVM_BIN}/clang")
+else()
+  set(CMAKE_CXX_COMPILER clang++)
+  set(CMAKE_C_COMPILER   clang)
+  set(CMAKE_ASM_COMPILER clang)
+endif()
 
 set(CMAKE_ASM_COMPILER_TARGET riscv32-unknown-unknown)
-set(CMAKE_C_COMPILER_TARGET riscv32-unknown-unknown)
+set(CMAKE_C_COMPILER_TARGET   riscv32-unknown-unknown)
 set(CMAKE_CXX_COMPILER_TARGET riscv32-unknown-unknown)
 
 set(CMAKE_CXX_STANDARD 20)
