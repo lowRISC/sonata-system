@@ -147,7 +147,7 @@ module sram #(
     .Depth ( RamDepth )
   ) u_cap_ram (
     .clk_a_i   (clk_i),
-    .clk_b_i   (rst_ni),
+    .clk_b_i   (clk_i),
     .cfg_i     ('0),
     .a_req_i   (mem_a_req),
     .a_write_i (&mem_a_we),
