@@ -77,7 +77,7 @@ module top_sonata (
   output logic appspi_cs  // Chip select negated
 );
   // System clock frequency.
-  parameter int SysClkFreq = 25_000_000;
+  parameter int SysClkFreq = 30_000_000;
 
   parameter SRAMInitFile = "";
 
