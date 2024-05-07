@@ -5,7 +5,7 @@
 // This is the top level that connects the system to the virtual devices.
 module top_verilator (input logic clk_i, rst_ni);
 
-  localparam ClockFrequency = 25_000_000;
+  localparam ClockFrequency = 30_000_000;
   localparam BaudRate       = 115_200;
   localparam EnableCHERI    = 1'b1;
 
