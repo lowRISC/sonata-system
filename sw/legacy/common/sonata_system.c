@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <ctype.h>
+
 #include "sonata_system.h"
 
 #include "dev_access.h"
 #include "uart.h"
+
 
 static const char hex_udigits[16] = "0123456789ABCDEF";
 static const uint32_t dec_powers[] = {
@@ -36,10 +39,6 @@ int putchar(int c) {
 }
 
 int getchar(void) { return uart_in(DEFAULT_UART); }
-
-int isprint(int c) {
-  return (c >= 0x20u && c < 0x7fu);
-}
 
 // Bare ASCIIZ string output.
 int putstr(const char* str) {

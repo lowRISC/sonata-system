@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <string.h>
+#include <ctype.h>
 
 #include "sonata_system.h"
 #include "i2c.h"

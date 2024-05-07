@@ -52,14 +52,6 @@ int putchar(int c);
 int getchar(void);
 
 /**
- * Return an indication of whether a character is printable, rather than a
- * control character/special code.
- *
- * @return Non-zero if the character is printable.
- */
-int isprint(int c);
-
-/**
  * Immediately halts the simulation
  */
 void sim_halt();
