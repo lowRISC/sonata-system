@@ -96,10 +96,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .usb_rx_enable_o  (),
 
     // User JTAG
-    .tck_i  (),
-    .tms_i  (),
+    .tck_i  ('0),
+    .tms_i  ('0),
     .trst_ni(rst_ni),
-    .td_i   (),
+    .td_i   ('0),
     .td_o   ()
   );
 
