@@ -7,7 +7,7 @@
 
 using namespace CHERI;
 
-#define CPU_FREQ_HZ (25'000'000)
+#define CPU_FREQ_HZ (30'000'000)
 #define BAUD_RATE   (   115'200)
 
 /**

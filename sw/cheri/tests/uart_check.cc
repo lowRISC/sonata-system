@@ -9,7 +9,7 @@
 using namespace CHERI;
 
 #define GPIO_VALUE  (0xFFFFFFFF)
-#define CPU_FREQ_HZ (50'000'000)
+#define CPU_FREQ_HZ (30'000'000)
 #define BAUD_RATE   (   115'200)
 
 /**
