@@ -45,7 +45,7 @@ void rv_plic_init(void) {
 
   install_exception_handler(11, rv_plic_handler);
   enable_interrupts(1 << 11);
-  set_global_interrupt_enable(1);
+  arch_local_irq_enable();
 }
 
 void rv_plic_register_irq(irq_t irq, irq_handler_t handler) {
