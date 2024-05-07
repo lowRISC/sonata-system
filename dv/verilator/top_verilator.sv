@@ -11,6 +11,9 @@ module top_verilator (input logic clk_i, rst_ni);
 
   logic uart_sys_rx, uart_sys_tx;
 
+  logic uart_aux_rx, uart_aux_tx;
+  assign uart_aux_rx = 1'b1;
+
   logic scl0_o, scl0_oe;
   logic sda0_o, sda0_oe;
 
@@ -24,7 +27,8 @@ module top_verilator (input logic clk_i, rst_ni);
   wire sda1 = sda1_oe ? sda1_o : 1'b1;
 
   wire unused_ = ^{scl0_o, scl0_oe, sda0_o, sda0_oe,
-                   scl1_o, scl1_oe, sda1_o, sda1_oe};
+                   scl1_o, scl1_oe, sda1_o, sda1_oe,
+                   uart_aux_tx};
 
   // Simplified clocking scheme for simulations.
   wire clk_usb   = clk_i;
@@ -40,14 +44,17 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    // UART TX and RX
-    .uart_rx_i (uart_sys_rx),
-    .uart_tx_o (uart_sys_tx),
-
-    // Remaining IO
     .gp_i     (0),
     .gp_o     ( ),
     .pwm_o    ( ),
+
+    // UART 0 TX and RX
+    .uart0_rx_i     (uart_sys_rx),
+    .uart0_tx_o     (uart_sys_tx),
+
+    // UART 1 TX and RX
+    .uart1_rx_i     (uart_aux_rx),
+    .uart1_tx_o     (uart_aux_tx),
 
     .spi_flash_rx_i (0),
     .spi_flash_tx_o ( ),

@@ -79,13 +79,23 @@
         size_byte: "0x00010000",
       }],
     },
-    { name:  "uart", // Serial input and output
+    { name:  "uart0", // UART 0 for serial I/O
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
       xbar:  false,
       addr_range: [{
         base_addr: "0x80100000",
+        size_byte: "0x00001000",
+      }],
+    },
+    { name:  "uart1", // UART 1 for serial I/O
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80101000",
         size_byte: "0x00001000",
       }],
     },
@@ -162,7 +172,7 @@
     },
   ],
   connections: {
-    ibex_lsu: ["sram", "rev_tag", "gpio", "uart", "timer", "rv_plic", "pwm", "i2c0", "i2c1", "spi_flash", "spi_lcd", "spi_eth", "usbdev"],
+    ibex_lsu: ["sram", "rev_tag", "gpio", "uart0", "uart1", "timer", "rv_plic", "pwm", "i2c0", "i2c1", "spi_flash", "spi_lcd", "spi_eth", "usbdev"],
     dbg_host: ["sram"],
   },
 }

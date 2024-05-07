@@ -33,8 +33,13 @@ module top_sonata (
 
   output logic       rgbled0,
 
+  // UART 0
   output logic       ser0_tx,
   input  logic       ser0_rx,
+
+  // UART 1
+  output logic       ser1_tx,
+  input  logic       ser1_rx,
 
   // I2C buses
   inout  logic       scl0,
@@ -158,8 +163,13 @@ module top_sonata (
     .gp_i           ({user_sw_n, nav_sw_n}),
     .gp_o           ({ethmac_rst, ethmac_cs, appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
-    .uart_rx_i      (ser0_rx),
-    .uart_tx_o      (ser0_tx),
+    // UART 0
+    .uart0_rx_i     (ser0_rx),
+    .uart0_tx_o     (ser0_tx),
+
+    // UART 1
+    .uart1_rx_i     (ser1_rx),
+    .uart1_tx_o     (ser1_tx),
 
     .pwm_o(),
 

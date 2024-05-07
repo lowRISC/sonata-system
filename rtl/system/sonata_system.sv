@@ -7,10 +7,12 @@
 // - Ibex top module.
 // - RAM memory to contain code and data.
 // - GPIO driving logic.
-// - UART for serial communication.
+// - Two I2C controllers for serial peripherals.
+// - SPI for driving LCD screen, flash and Ethernet.
 // - Timer.
+// - Two UARTs for serial communication.
+// - USB device.
 // - Debug module.
-// - SPI for driving LCD screen.
 module sonata_system #(
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,
@@ -29,8 +31,14 @@ module sonata_system #(
   input  logic [GpiWidth-1:0] gp_i,
   output logic [GpoWidth-1:0] gp_o,
   output logic [PwmWidth-1:0] pwm_o,
-  input  logic                uart_rx_i,
-  output logic                uart_tx_o,
+
+  // UART 0
+  input  logic                uart0_rx_i,
+  output logic                uart0_tx_o,
+
+  // UART 1
+  input  logic                uart1_rx_i,
+  output logic                uart1_tx_o,
 
   input  logic                spi_flash_rx_i,
   output logic                spi_flash_tx_o,
@@ -122,26 +130,34 @@ module sonata_system #(
   typedef enum int {
     Gpio,
     Pwm,
-    Uart,
     Timer,
     RevTags
   } bus_device_e;
 
-  localparam int NrDevices = 5;
+  localparam int NrDevices = 4;
   localparam int NrHosts = 2;
 
   // Interrupts.
   logic timer_irq;
   logic external_irq;
 
-  logic uart_tx_watermark_irq;
-  logic uart_rx_watermark_irq;
-  logic uart_tx_empty_irq;
-  logic uart_rx_overflow_irq;
-  logic uart_rx_frame_err_irq;
-  logic uart_rx_break_err_irq;
-  logic uart_rx_timeout_irq;
-  logic uart_rx_parity_err_irq;
+  logic uart0_tx_watermark_irq;
+  logic uart0_rx_watermark_irq;
+  logic uart0_tx_empty_irq;
+  logic uart0_rx_overflow_irq;
+  logic uart0_rx_frame_err_irq;
+  logic uart0_rx_break_err_irq;
+  logic uart0_rx_timeout_irq;
+  logic uart0_rx_parity_err_irq;
+
+  logic uart1_tx_watermark_irq;
+  logic uart1_rx_watermark_irq;
+  logic uart1_tx_empty_irq;
+  logic uart1_rx_overflow_irq;
+  logic uart1_rx_frame_err_irq;
+  logic uart1_rx_break_err_irq;
+  logic uart1_rx_timeout_irq;
+  logic uart1_rx_parity_err_irq;
 
   logic i2c0_fmt_threshold_irq;
   logic i2c0_rx_threshold_irq;
@@ -179,50 +195,59 @@ module sonata_system #(
 
   logic [181:0] intr_vector;
   assign intr_vector = {
-      142'b0, // IDs [40 +: 142]
+      134'b0, // IDs [48 +: 134]
 
-      spi_eth_irq, // IDs [39 +: 1]
+      spi_eth_irq, // IDs [47 +: 1]
 
-      i2c1_host_timeout_irq, // IDs [38 +: 1]
-      i2c1_unexp_stop_irq, // IDs [37 +: 1]
-      i2c1_acq_full_irq, // IDs [36 +: 1]
-      i2c1_tx_threshold_irq, // IDs [35 +: 1]
-      i2c1_tx_stretch_irq, // IDs [34 +: 1]
-      i2c1_cmd_complete_irq, // IDs [33 +: 1]
-      i2c1_sda_unstable_irq, // IDs [32 +: 1]
-      i2c1_stretch_timeout_irq, // IDs [31 +: 1]
-      i2c1_sda_interference_irq, // IDs [30 +: 1]
-      i2c1_scl_interference_irq, // IDs [29 +: 1]
-      i2c1_nak_irq, // IDs [28 +: 1]
-      i2c1_rx_overflow_irq, // IDs [27 +: 1]
-      i2c1_acq_threshold_irq, // IDs [26 +: 1]
-      i2c1_rx_threshold_irq, // IDs [25 +: 1]
-      i2c1_fmt_threshold_irq, // IDs [24 +: 1]
+      i2c1_host_timeout_irq, // IDs [46 +: 1]
+      i2c1_unexp_stop_irq, // IDs [45 +: 1]
+      i2c1_acq_full_irq, // IDs [44 +: 1]
+      i2c1_tx_threshold_irq, // IDs [43 +: 1]
+      i2c1_tx_stretch_irq, // IDs [42 +: 1]
+      i2c1_cmd_complete_irq, // IDs [41 +: 1]
+      i2c1_sda_unstable_irq, // IDs [40 +: 1]
+      i2c1_stretch_timeout_irq, // IDs [39 +: 1]
+      i2c1_sda_interference_irq, // IDs [38 +: 1]
+      i2c1_scl_interference_irq, // IDs [37 +: 1]
+      i2c1_nak_irq, // IDs [36 +: 1]
+      i2c1_rx_overflow_irq, // IDs [35 +: 1]
+      i2c1_acq_threshold_irq, // IDs [34 +: 1]
+      i2c1_rx_threshold_irq, // IDs [33 +: 1]
+      i2c1_fmt_threshold_irq, // IDs [32 +: 1]
 
-      i2c0_host_timeout_irq, // IDs [23 +: 1]
-      i2c0_unexp_stop_irq, // IDs [22 +: 1]
-      i2c0_acq_full_irq, // IDs [21 +: 1]
-      i2c0_tx_threshold_irq, // IDs [20 +: 1]
-      i2c0_tx_stretch_irq, // IDs [19 +: 1]
-      i2c0_cmd_complete_irq, // IDs [18 +: 1]
-      i2c0_sda_unstable_irq, // IDs [17 +: 1]
-      i2c0_stretch_timeout_irq, // IDs [16 +: 1]
-      i2c0_sda_interference_irq, // IDs [15 +: 1]
-      i2c0_scl_interference_irq, // IDs [14 +: 1]
-      i2c0_nak_irq, // IDs [13 +: 1]
-      i2c0_rx_overflow_irq, // IDs [12 +: 1]
-      i2c0_acq_threshold_irq, // IDs [11 +: 1]
-      i2c0_rx_threshold_irq, // IDs [10 +: 1]
-      i2c0_fmt_threshold_irq, // IDs [9 +: 1]
+      i2c0_host_timeout_irq, // IDs [31 +: 1]
+      i2c0_unexp_stop_irq, // IDs [30 +: 1]
+      i2c0_acq_full_irq, // IDs [29 +: 1]
+      i2c0_tx_threshold_irq, // IDs [28 +: 1]
+      i2c0_tx_stretch_irq, // IDs [27 +: 1]
+      i2c0_cmd_complete_irq, // IDs [26 +: 1]
+      i2c0_sda_unstable_irq, // IDs [25 +: 1]
+      i2c0_stretch_timeout_irq, // IDs [24 +: 1]
+      i2c0_sda_interference_irq, // IDs [23 +: 1]
+      i2c0_scl_interference_irq, // IDs [22 +: 1]
+      i2c0_nak_irq, // IDs [21 +: 1]
+      i2c0_rx_overflow_irq, // IDs [20 +: 1]
+      i2c0_acq_threshold_irq, // IDs [19 +: 1]
+      i2c0_rx_threshold_irq, // IDs [18 +: 1]
+      i2c0_fmt_threshold_irq, // IDs [17 +: 1]
 
-      uart_rx_parity_err_irq, // IDs [8 +: 1]
-      uart_rx_timeout_irq, // IDs [7 +: 1]
-      uart_rx_break_err_irq, // IDs [6 +: 1]
-      uart_rx_frame_err_irq, // IDs [5 +: 1]
-      uart_rx_overflow_irq, // IDs [4 +: 1]
-      uart_tx_empty_irq, // IDs [3 +: 1]
-      uart_rx_watermark_irq, // IDs [2 +: 1]
-      uart_tx_watermark_irq, // IDs [1 +: 1]
+      uart1_rx_parity_err_irq, // IDs [16 +: 1]
+      uart1_rx_timeout_irq, // IDs [15 +: 1]
+      uart1_rx_break_err_irq, // IDs [14 +: 1]
+      uart1_rx_frame_err_irq, // IDs [13 +: 1]
+      uart1_rx_overflow_irq, // IDs [12 +: 1]
+      uart1_tx_empty_irq, // IDs [11 +: 1]
+      uart1_rx_watermark_irq, // IDs [10 +: 1]
+      uart1_tx_watermark_irq, // IDs [9 +: 1]
+
+      uart0_rx_parity_err_irq, // IDs [8 +: 1]
+      uart0_rx_timeout_irq, // IDs [7 +: 1]
+      uart0_rx_break_err_irq, // IDs [6 +: 1]
+      uart0_rx_frame_err_irq, // IDs [5 +: 1]
+      uart0_rx_overflow_irq, // IDs [4 +: 1]
+      uart0_tx_empty_irq, // IDs [3 +: 1]
+      uart0_rx_watermark_irq, // IDs [2 +: 1]
+      uart0_tx_watermark_irq, // IDs [1 +: 1]
 
       1'b 0 // ID [0 +: 1] is a special case and tied to zero.
   };
@@ -262,7 +287,6 @@ module sonata_system #(
   // Generate requests from read and write enables.
   assign device_req[Gpio]  = device_re[Gpio]  | device_we[Gpio];
   assign device_req[Pwm]   = device_re[Pwm]   | device_we[Pwm];
-  assign device_req[Uart]  = device_re[Uart]  | device_we[Uart];
   assign device_req[Timer] = device_re[Timer] | device_we[Timer];
 
   // Instruction fetch signals.
@@ -308,7 +332,6 @@ module sonata_system #(
   // Tie-off unused error signals.
   assign device_err[Gpio] = 1'b0;
   assign device_err[Pwm]  = 1'b0;
-  assign device_err[Uart] = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -335,8 +358,10 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_sram_d2h_q;
   tlul_pkg::tl_h2d_t tl_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
-  tlul_pkg::tl_h2d_t tl_uart_h2d;
-  tlul_pkg::tl_d2h_t tl_uart_d2h;
+  tlul_pkg::tl_h2d_t tl_uart0_h2d;
+  tlul_pkg::tl_d2h_t tl_uart0_d2h;
+  tlul_pkg::tl_h2d_t tl_uart1_h2d;
+  tlul_pkg::tl_d2h_t tl_uart1_d2h;
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
@@ -377,8 +402,10 @@ module sonata_system #(
     .tl_rev_tag_i (tl_rev_d2h),
     .tl_gpio_o    (tl_gpio_h2d),
     .tl_gpio_i    (tl_gpio_d2h),
-    .tl_uart_o    (tl_uart_h2d),
-    .tl_uart_i    (tl_uart_d2h),
+    .tl_uart0_o   (tl_uart0_h2d),
+    .tl_uart0_i   (tl_uart0_d2h),
+    .tl_uart1_o   (tl_uart1_h2d),
+    .tl_uart1_i   (tl_uart1_d2h),
     .tl_timer_o   (tl_timer_h2d),
     .tl_timer_i   (tl_timer_d2h),
     .tl_pwm_o     (tl_pwm_h2d),
@@ -614,9 +641,6 @@ module sonata_system #(
   // Tie off upper bits of address.
   assign device_addr[Pwm][BusAddrWidth-1:RegAddrWidth] = '0;
 
-  // Tie off upper bits of address.
-  assign device_addr[Uart][BusAddrWidth-1:RegAddrWidth] = '0;
-
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
     .RegAw            ( TRegAddrWidth ),
@@ -822,7 +846,7 @@ module sonata_system #(
     .gp_o
   );
 
-  i2c u_i2c0(
+  i2c u_i2c0 (
       .clk_i                    (clk_sys_i),
       .rst_ni                   (rst_sys_ni),
       .ram_cfg_i                (10'b0),
@@ -857,7 +881,7 @@ module sonata_system #(
       .intr_host_timeout_o      (i2c0_host_timeout_irq)
   );
 
-  i2c u_i2c1(
+  i2c u_i2c1 (
       .clk_i                    (clk_sys_i),
       .rst_ni                   (rst_sys_ni),
       .ram_cfg_i                (10'b0),
@@ -910,27 +934,50 @@ module sonata_system #(
     .pwm_o
   );
 
-  uart u_uart (
+  uart u_uart0 (
       .clk_i       (clk_sys_i  ),
       .rst_ni      (rst_sys_ni ),
 
-      .cio_rx_i    (uart_rx_i  ),
-      .cio_tx_o    (uart_tx_o  ),
+      .cio_rx_i    (uart0_rx_i ),
+      .cio_tx_o    (uart0_tx_o ),
       .cio_tx_en_o (           ),
 
       // Inter-module signals
-      .tl_i        (tl_uart_h2d),
-      .tl_o        (tl_uart_d2h),
+      .tl_i        (tl_uart0_h2d),
+      .tl_o        (tl_uart0_d2h),
 
       // Interrupt
-      .intr_tx_watermark_o  (uart_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart_rx_watermark_irq),
-      .intr_tx_empty_o      (uart_tx_empty_irq),
-      .intr_rx_overflow_o   (uart_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart_rx_parity_err_irq)
+      .intr_tx_watermark_o  (uart0_tx_watermark_irq),
+      .intr_rx_watermark_o  (uart0_rx_watermark_irq),
+      .intr_tx_empty_o      (uart0_tx_empty_irq),
+      .intr_rx_overflow_o   (uart0_rx_overflow_irq),
+      .intr_rx_frame_err_o  (uart0_rx_frame_err_irq),
+      .intr_rx_break_err_o  (uart0_rx_break_err_irq),
+      .intr_rx_timeout_o    (uart0_rx_timeout_irq),
+      .intr_rx_parity_err_o (uart0_rx_parity_err_irq)
+  );
+
+  uart u_uart1 (
+      .clk_i       (clk_sys_i  ),
+      .rst_ni      (rst_sys_ni ),
+
+      .cio_rx_i    (uart1_rx_i ),
+      .cio_tx_o    (uart1_tx_o ),
+      .cio_tx_en_o (           ),
+
+      // Inter-module signals
+      .tl_i        (tl_uart1_h2d),
+      .tl_o        (tl_uart1_d2h),
+
+      // Interrupt
+      .intr_tx_watermark_o  (uart1_tx_watermark_irq),
+      .intr_rx_watermark_o  (uart1_rx_watermark_irq),
+      .intr_tx_empty_o      (uart1_tx_empty_irq),
+      .intr_rx_overflow_o   (uart1_rx_overflow_irq),
+      .intr_rx_frame_err_o  (uart1_rx_frame_err_irq),
+      .intr_rx_break_err_o  (uart1_rx_break_err_irq),
+      .intr_rx_timeout_o    (uart1_rx_timeout_irq),
+      .intr_rx_parity_err_o (uart1_rx_parity_err_irq)
   );
 
   usbdev #(
