@@ -171,6 +171,14 @@ set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS33 } [get_ports appspi_d2]
 set_property -dict { PACKAGE_PIN A9  IOSTANDARD LVCMOS33 } [get_ports appspi_d3];
 set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports appspi_cs];
 
+# Ethernet MAC
+set_property -dict { PACKAGE_PIN J5  IOSTANDARD LVCMOS18 } [get_ports ethmac_rst];
+set_property -dict { PACKAGE_PIN D5  IOSTANDARD LVCMOS18 } [get_ports ethmac_copi];
+set_property -dict { PACKAGE_PIN E3  IOSTANDARD LVCMOS18 } [get_ports ethmac_sclk];
+set_property -dict { PACKAGE_PIN D4  IOSTANDARD LVCMOS18 } [get_ports ethmac_cipo];
+set_property -dict { PACKAGE_PIN H6  IOSTANDARD LVCMOS18  PULLTYPE PULLUP } [get_ports ethmac_intr];
+set_property -dict { PACKAGE_PIN H5  IOSTANDARD LVCMOS18 } [get_ports ethmac_cs];
+
 ## Voltage and bistream
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

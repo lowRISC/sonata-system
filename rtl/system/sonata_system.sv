@@ -40,6 +40,10 @@ module sonata_system #(
   output logic                spi_lcd_tx_o,
   output logic                spi_lcd_sck_o,
 
+  input  logic                spi_eth_rx_i,
+  output logic                spi_eth_tx_o,
+  output logic                spi_eth_sck_o,
+
   input  logic tck_i,   // JTAG test clock pad
   input  logic tms_i,   // JTAG test mode select pad
   input  logic trst_ni, // JTAG test reset pad
@@ -322,6 +326,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_spi_flash_d2h;
   tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
   tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_eth_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_eth_d2h;
   tlul_pkg::tl_h2d_t tl_usbdev_h2d;
   tlul_pkg::tl_d2h_t tl_usbdev_d2h;
   tlul_pkg::tl_h2d_t tl_rev_h2d;
@@ -360,6 +366,8 @@ module sonata_system #(
     .tl_spi_flash_i(tl_spi_flash_d2h),
     .tl_spi_lcd_o  (tl_spi_lcd_h2d),
     .tl_spi_lcd_i  (tl_spi_lcd_d2h),
+    .tl_spi_eth_o  (tl_spi_eth_h2d),
+    .tl_spi_eth_i  (tl_spi_eth_d2h),
     .tl_usbdev_o  (tl_usbdev_h2d),
     .tl_usbdev_i  (tl_usbdev_d2h),
     .tl_rv_plic_o (tl_rv_plic_h2d),
@@ -999,6 +1007,24 @@ module sonata_system #(
     .spi_copi_o(spi_lcd_tx_o),
     .spi_cipo_i(spi_lcd_rx_i),
     .spi_clk_o (spi_lcd_sck_o)
+  );
+
+  spi u_spi_eth (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_i(tl_spi_eth_h2d),
+    .tl_o(tl_spi_eth_d2h),
+
+    .intr_rx_full_o     (),
+    .intr_rx_watermark_o(),
+    .intr_tx_empty_o    (),
+    .intr_tx_watermark_o(),
+    .intr_complete_o    (),
+
+    .spi_copi_o(spi_eth_tx_o),
+    .spi_cipo_i(spi_eth_rx_i),
+    .spi_clk_o (spi_eth_sck_o)
   );
 
   rv_timer #(
