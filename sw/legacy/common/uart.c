@@ -11,7 +11,7 @@
 
 void uart_enable_rx_int(void) {
   enable_interrupts(UART_IRQ);
-  set_global_interrupt_enable(1);
+  arch_local_irq_enable();
 }
 
 int uart_init(uart_t uart) {

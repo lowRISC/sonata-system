@@ -149,7 +149,7 @@ extern "C" int rom_loader_entry(void *rwRoot)
 
   // Enable interrupt
   enable_interrupts(TIMER_IRQ);
-  set_global_interrupt_enable(1);
+  arch_local_irq_enable();
 
   do {
     // Wait for the timer to reach the next trigger level.

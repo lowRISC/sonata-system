@@ -51,7 +51,7 @@ void timer_enable(uint64_t time_base) {
   // Set timer values
   increment_timecmp(time_base);
   enable_interrupts(TIMER_IRQ);
-  set_global_interrupt_enable(1);
+  arch_local_irq_enable();
 }
 
 void timer_disable(void) { asm volatile("csrc  mie, %0\n" : : "r"(0x80)); }

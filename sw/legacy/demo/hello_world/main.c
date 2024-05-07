@@ -52,7 +52,7 @@ int main(void) {
 
       // Disable interrupts whilst outputting to prevent output for RX IRQ
       // happening in the middle
-      set_global_interrupt_enable(0);
+      arch_local_irq_disable();
 
       // Print this to UART (use the screen command to see it).
       putstr("Hello World! ");
@@ -63,7 +63,7 @@ int main(void) {
       putchar('\n');
 
       // Re-enable interrupts with output complete
-//      set_global_interrupt_enable(1);
+//      arch_local_irq_enable();
 
       // Cycling through green LEDs
       if (USE_GPIO_SHIFT_REG) {
