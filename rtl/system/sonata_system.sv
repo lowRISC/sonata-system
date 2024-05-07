@@ -789,7 +789,7 @@ module sonata_system #(
   i2c u_i2c0(
       .clk_i                    (clk_sys_i),
       .rst_ni                   (rst_sys_ni),
-      .ram_cfg_i                ('b0),
+      .ram_cfg_i                (10'b0),
 
       // Bus Interface
       .tl_i                     (tl_i2c0_h2d),
@@ -824,7 +824,7 @@ module sonata_system #(
   i2c u_i2c1(
       .clk_i                    (clk_sys_i),
       .rst_ni                   (rst_sys_ni),
-      .ram_cfg_i                ('b0),
+      .ram_cfg_i                (10'b0),
 
       // Bus Interface
       .tl_i                     (tl_i2c1_h2d),
@@ -942,7 +942,7 @@ module sonata_system #(
     .usb_ref_val_o          (),
     .usb_ref_pulse_o        (),
 
-    .ram_cfg_i              ('b0),
+    .ram_cfg_i              (10'b0),
 
     // Interrupts not required
     .intr_pkt_received_o    (),
