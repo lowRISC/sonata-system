@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module sram #(
+  // Employ a single tag bit per 64-bit capability?
+  parameter int unsigned SingleTagPerCap = 1,
   // (Byte-addressable) address width of the SRAM.
   parameter int unsigned AddrWidth = 17,
-  // Data width of the SRAM.
+  // Data width of the SRAM; must be at most 64 bits because of capabilities.
   parameter int unsigned DataWidth = 32,
   // Grouping of data bits into sub-words.
   parameter int unsigned DataBitsPerMask = 8,
@@ -21,27 +23,38 @@ module sram #(
     output tlul_pkg::tl_d2h_t tl_b_o
   );
 
+  // There may be a single capability tag bit for every 64 bits of data;
+  // bus words may be at most 64 bits wide and the tag bit associated with
+  // the group of 64 bits is updated on every write to any of those 64 bits.
+  //
+  // When storing a capability (CSC instruction) the tag bit will be written
+  // as 1 for each (partial) write of the capability.
+  //
+  // For all non-capability stores the tag bit will be cleared, marking those
+  // 64 bits as not containing a valid capability.
+  localparam int unsigned TOff = SingleTagPerCap ? (3 - AOff) : 0;
+
   // Bit offset of word address.
   localparam int unsigned AOff = $clog2(DataWidth / 8);
   // Number of address bits to select a word from the SRAM.
   localparam int unsigned SramAw = AddrWidth - AOff;
 
-  logic                    mem_a_req;
-  logic                    mem_a_we;
-  logic [AddrWidth-1:AOff] mem_a_addr;
-  logic [DataWidth-1:0]    mem_a_wmask;
-  logic [DataWidth-1:0]    mem_a_wdata;
-  logic                    mem_a_wcap;
-  logic                    mem_a_rvalid;
-  logic [DataWidth-1:0]    mem_a_rdata;
-  logic                    mem_a_rcap;
+  logic                 mem_a_req;
+  logic                 mem_a_we;
+  logic [SramAw-1:0]    mem_a_addr;  // in bus words.
+  logic [DataWidth-1:0] mem_a_wmask;
+  logic [DataWidth-1:0] mem_a_wdata;
+  logic                 mem_a_wcap;
+  logic                 mem_a_rvalid;
+  logic [DataWidth-1:0] mem_a_rdata;
+  logic                 mem_a_rcap;
 
-  logic                    mem_b_req;
-  logic                    mem_b_we;
-  logic [AddrWidth-1:AOff] mem_b_addr;
-  logic                    mem_b_rvalid;
-  logic [DataWidth-1:0]    mem_b_rdata;
-  logic                    unused_mem_b_rcap;
+  logic                 mem_b_req;
+  logic                 mem_b_we;
+  logic [SramAw-1:0]    mem_b_addr;  // in bus words.
+  logic                 mem_b_rvalid;
+  logic [DataWidth-1:0] mem_b_rdata;
+  logic                 unused_mem_b_rcap;
 
   // TL-UL device adapters
   tlul_adapter_sram #(
@@ -104,16 +117,17 @@ module sram #(
     .rerror_i    (2'b00)
   );
 
-  // Number of words in data memory.
-  localparam int unsigned RamDepth = 2 ** SramAw;
-
   // Instantiate RAM blocks
+
+  // Number of words in data memory.
+  localparam int unsigned DataRamDepth = 2 ** SramAw;
+  localparam int unsigned TagRamDepth  = DataRamDepth >> TOff;
 
   // Data memory
   prim_ram_2p #(
     .Width           ( DataWidth       ),
     .DataBitsPerMask ( DataBitsPerMask ),
-    .Depth           ( RamDepth        ),
+    .Depth           ( DataRamDepth    ),
     .MemInitFile     ( InitFile        )
   ) u_ram (
     .clk_a_i   (clk_i),
@@ -138,22 +152,22 @@ module sram #(
 
   // Tag memory
   prim_ram_2p #(
-    .Width ( 1        ),
-    .Depth ( RamDepth )
+    .Width ( 1           ),
+    .Depth ( TagRamDepth )
   ) u_cap_ram (
     .clk_a_i   (clk_i),
     .clk_b_i   (clk_i),
     .cfg_i     ('0),
     .a_req_i   (mem_a_req),
     .a_write_i (&mem_a_we),
-    .a_addr_i  (mem_a_addr[AddrWidth-1:AOff]),
+    .a_addr_i  (mem_a_addr[SramAw-1:TOff]),
     .a_wdata_i (mem_a_wcap),
     .a_wmask_i (&mem_a_we),
     .a_rdata_o (mem_a_rcap),
     .b_req_i   (mem_b_req),
     .b_write_i (1'b0),
     .b_wmask_i (1'b0),
-    .b_addr_i  (mem_b_addr[AddrWidth-1:AOff]),
+    .b_addr_i  (mem_b_addr[SramAw-1:TOff]),
     .b_wdata_i (1'b0),
     .b_rdata_o (unused_mem_b_rcap)
   );
