@@ -20,6 +20,7 @@ The offset for each of the blocks is shown below, with each additional block hav
 |--------------|------------------------|
 | Flash        | 0x0                    |
 | LCD Screen   | 0x1000                 |
+| Ethernet MAC | 0x2000                 |
 
 ## Overview
 

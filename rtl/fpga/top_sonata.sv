@@ -24,6 +24,13 @@ module top_sonata (
   output logic       lcd_cs,
   output logic       lcd_backlight,
 
+  output logic       ethmac_rst,
+  output logic       ethmac_copi,
+  output logic       ethmac_sclk,
+  input  logic       ethmac_cipo,
+  input  logic       ethmac_intr,
+  output logic       ethmac_cs,
+
   output logic       rgbled0,
 
   output logic       ser0_tx,
@@ -134,8 +141,8 @@ module top_sonata (
   end
 
   sonata_system #(
-    .GpiWidth     ( 13           ),
-    .GpoWidth     ( 13           ),
+    .GpiWidth     ( 14           ),
+    .GpoWidth     ( 15           ),
     .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
@@ -148,8 +155,8 @@ module top_sonata (
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    .gp_i           ({user_sw_n, nav_sw_n}),
-    .gp_o           ({appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
+    .gp_i           ({ethmac_intr, user_sw_n, nav_sw_n}),
+    .gp_o           ({ethmac_rst, ethmac_cs, appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
 
     .uart_rx_i      (ser0_rx),
     .uart_tx_o      (ser0_tx),
@@ -163,6 +170,10 @@ module top_sonata (
     .spi_flash_rx_i (appspi_d1),
     .spi_flash_tx_o (appspi_d0),
     .spi_flash_sck_o(appspi_clk),
+
+    .spi_eth_rx_i   (ethmac_cipo),
+    .spi_eth_tx_o   (ethmac_copi),
+    .spi_eth_sck_o  (ethmac_sclk),
 
     .cheri_en_i     (enable_cheri),
     .cheri_err_o    (cheriErr),
