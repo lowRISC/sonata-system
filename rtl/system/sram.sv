@@ -26,21 +26,20 @@ module sram #(
   // Number of address bits to select a word from the SRAM.
   localparam int unsigned SramAw = AddrWidth - AOff;
 
-  logic                     mem_a_req;
-  logic [AddrWidth-1:AOff]  mem_a_addr;
-  logic                     mem_a_we;
-  logic [DataWidth-1:0]     mem_a_wmask;
-
-  logic [DataWidth-1:0]     mem_a_wdata;
-  logic                     mem_a_wcap;
-  logic                     mem_a_rvalid;
-  logic [DataWidth-1:0]     mem_a_rdata;
-  logic                     mem_a_rcap;
+  logic                    mem_a_req;
+  logic                    mem_a_we;
+  logic [AddrWidth-1:AOff] mem_a_addr;
+  logic [DataWidth-1:0]    mem_a_wmask;
+  logic [DataWidth-1:0]    mem_a_wdata;
+  logic                    mem_a_wcap;
+  logic                    mem_a_rvalid;
+  logic [DataWidth-1:0]    mem_a_rdata;
+  logic                    mem_a_rcap;
 
   logic                    mem_b_req;
   logic                    mem_b_we;
-  logic                    mem_b_rvalid;
   logic [AddrWidth-1:AOff] mem_b_addr;
+  logic                    mem_b_rvalid;
   logic [DataWidth-1:0]    mem_b_rdata;
   logic                    unused_mem_b_rcap;
 
@@ -53,11 +52,11 @@ module sram #(
     .rst_ni,
 
     // TL-UL interface.
-    .tl_i(tl_a_i),
-    .tl_o(tl_a_o),
+    .tl_i        (tl_a_i),
+    .tl_o        (tl_a_o),
 
     // Control interface.
-    .en_ifetch_i(prim_mubi_pkg::MuBi4False),
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
 
     // SRAM interface.
     .req_o       (mem_a_req),
@@ -83,26 +82,26 @@ module sram #(
     .rst_ni,
 
     // TL-UL interface.
-    .tl_i(tl_b_i),
-    .tl_o(tl_b_o),
+    .tl_i        (tl_b_i),
+    .tl_o        (tl_b_o),
 
     // Control interface.
     .en_ifetch_i (prim_mubi_pkg::MuBi4True),
 
     // SRAM interface.
-    .req_o(mem_b_req),
-    .req_type_o(),
-    .gnt_i(mem_b_req),
-    .we_o(mem_b_we),
-    .addr_o(mem_b_addr),
-    .wdata_o(),
-    .wdata_cap_o(),
-    .wmask_o(),
+    .req_o       (mem_b_req),
+    .req_type_o  (),
+    .gnt_i       (mem_b_req),
+    .we_o        (mem_b_we),
+    .addr_o      (mem_b_addr),
+    .wdata_o     (),
+    .wdata_cap_o (),
+    .wmask_o     (),
     .intg_error_o(),
-    .rdata_i(mem_b_rdata),
-    .rdata_cap_i(1'b0),
-    .rvalid_i(mem_b_rvalid),
-    .rerror_i(2'b00)
+    .rdata_i     (mem_b_rdata),
+    .rdata_cap_i (1'b0),
+    .rvalid_i    (mem_b_rvalid),
+    .rerror_i    (2'b00)
   );
 
   // Number of words in data memory.
