@@ -43,6 +43,7 @@ module sonata_system #(
   input  logic                spi_eth_rx_i,
   output logic                spi_eth_tx_o,
   output logic                spi_eth_sck_o,
+  input  logic                spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
   input  logic tck_i,   // JTAG test clock pad
   input  logic tms_i,   // JTAG test mode select pad
@@ -169,9 +170,13 @@ module sonata_system #(
   logic i2c1_unexp_stop_irq;
   logic i2c1_host_timeout_irq;
 
+  logic spi_eth_irq;
+
   logic [181:0] intr_vector;
   assign intr_vector = {
-      143'b0, // IDs [39 +: 143]
+      142'b0, // IDs [40 +: 142]
+
+      spi_eth_irq, // IDs [39 +: 1]
 
       i2c1_host_timeout_irq, // IDs [38 +: 1]
       i2c1_unexp_stop_irq, // IDs [37 +: 1]
@@ -1026,6 +1031,15 @@ module sonata_system #(
     .spi_cipo_i(spi_eth_rx_i),
     .spi_clk_o (spi_eth_sck_o)
   );
+
+  // Sample the SPI interrupt pin.
+  always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
+    if (!rst_sys_ni) begin
+      spi_eth_irq <= 1'b0;
+    end else begin
+      spi_eth_irq <= !spi_eth_irq_ni;
+    end
+  end
 
   rv_timer #(
     .DataWidth    ( BusDataWidth ),

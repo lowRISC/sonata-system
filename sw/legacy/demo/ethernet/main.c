@@ -12,6 +12,7 @@
 #include "sonata_system.h"
 #include "spi.h"
 #include "timer.h"
+#include "rv_plic.h"
 
 enum {
   // GPIO Input
@@ -42,6 +43,7 @@ int main(void) {
   puts("Ethernet demo application");
 
   timer_init();
+  rv_plic_init();
 
   lwip_init();
 
@@ -63,7 +65,7 @@ int main(void) {
   netif_add_ext_callback(&callback, eth_callback);
 
   while (1) {
-    ksz8851_poll(&netif);
+    // ksz8851_poll(&netif);
     sys_check_timeouts();
   }
 

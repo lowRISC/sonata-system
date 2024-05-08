@@ -10,15 +10,18 @@
 #include "sonata_system.h"
 #include "spi.h"
 #include "timer.h"
+#include "rv_plic.h"
 
 enum {
-  // GPIO Input
-  EthIntrPin = 13,
+  // IRQ
+  EthIntrIrq = 39,
 
   // GPIO Output
   EthCsPin  = 13,
   EthRstPin = 14,
 };
+
+static struct netif *eth_netif;
 
 static void timer_delay(uint32_t ms) {
   // Configure timer to trigger every 1 ms
@@ -177,18 +180,8 @@ static void ksz8851_drop_error_frame(spi_t *spi) {
   while (ksz8851_reg_read(spi, ETH_RXQCR) & ReleaseRxErrorFrame);
 }
 
-err_t ksz8851_poll(struct netif *netif) {
+static void ksz8851_recv(struct netif *netif) {
   spi_t *spi = netif->state;
-  uint32_t isr = ksz8851_reg_read(spi, ETH_ISR);
-  if (!(isr & (1 << 13))) {
-    return ERR_WOULDBLOCK;
-  }
-
-  // Disable IRQ.
-  uint32_t flags = arch_local_irq_save();
-
-  // Acknowledging the interrupt.
-  ksz8851_reg_write(spi, ETH_ISR, 1 << 13);
 
   uint16_t frames = ksz8851_reg_read(spi, ETH_RXFCTR) >> 8;
 
@@ -268,10 +261,38 @@ err_t ksz8851_poll(struct netif *netif) {
 
     netif->input(buf, netif);
   }
+}
+
+err_t ksz8851_poll(struct netif *netif) {
+  spi_t *spi = netif->state;
+
+  // Disable IRQ.
+  uint32_t flags = arch_local_irq_save();
+
+  uint32_t isr = ksz8851_reg_read(spi, ETH_ISR);
+  if (isr & (1 << 13)) {
+    // Acknowledging the interrupt.
+    ksz8851_reg_write(spi, ETH_ISR, 1 << 13);
+
+    ksz8851_recv(netif);
+  }
 
   arch_local_irq_restore(flags);
+}
 
-  return ERR_OK;
+static void ksz8851_irq_handler(irq_t irq) {
+  spi_t *spi = eth_netif->state;
+  uint32_t isr = ksz8851_reg_read(spi, ETH_ISR);
+  if (!isr) {
+    return;
+  }
+
+  // Acknowledging the interrupts.
+  ksz8851_reg_write(spi, ETH_ISR, isr);
+
+  if (isr & (1 << 13)) {
+    ksz8851_recv(eth_netif);
+  }
 }
 
 err_t ksz8851_init(struct netif *netif) {
@@ -353,6 +374,11 @@ err_t ksz8851_init(struct netif *netif) {
   netif->mtu        = 1500;
 
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
+
+  // Initialize IRQ
+  eth_netif = netif;
+  rv_plic_register_irq(EthIntrIrq, ksz8851_irq_handler);
+  rv_plic_enable(EthIntrIrq);
 
   puts("KSZ8851: Initialized");
   return ERR_OK;
