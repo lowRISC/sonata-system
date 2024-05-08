@@ -29,8 +29,8 @@ int main(void) {
   uart_init(DEFAULT_UART);
 
   // This indicates how often the timer gets updated.
-//  timer_init();
-//  timer_enable(5000000);
+  timer_init();
+  timer_enable(5000000);
 
   uint64_t last_elapsed_time = get_elapsed_time();
 
@@ -63,7 +63,7 @@ int main(void) {
       putchar('\n');
 
       // Re-enable interrupts with output complete
-//      arch_local_irq_enable();
+      arch_local_irq_enable();
 
       // Cycling through green LEDs
       if (USE_GPIO_SHIFT_REG) {
