@@ -75,10 +75,12 @@ extern "C" void rom_loader_entry(void *rwRoot)
   uart->init();
   uart->blocking_write('h');
   uart->blocking_write('i');
+  uart->blocking_write('\r');
   uart->blocking_write('\n');
   while (true) {
     uart->blocking_write('h');
     uart->blocking_write('i');
+    uart->blocking_write('\r');
     uart->blocking_write('\n');
   }
 }
