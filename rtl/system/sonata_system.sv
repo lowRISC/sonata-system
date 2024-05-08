@@ -290,6 +290,21 @@ module sonata_system #(
   logic ndmreset_req;
   /* verilator lint_on IMPERFECTSCH */
 
+  // Hold the core in reset for a period after debug monitor accesses,
+  // in anticipation of further accesses whilst downloading completes.
+  //
+  // Release the code after 2^21 cycles, which will be ca. 20-100ms for
+  // typical system clock frequencies.
+  logic [20:0] dbg_release_cnt;
+  wire dbg_release_core = &dbg_release_cnt;
+  always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
+    if (!rst_sys_ni) begin
+      dbg_release_cnt  <= '0;
+    end else if (host_req[DbgHost] | ~dbg_release_core) begin
+      dbg_release_cnt  <= host_req[DbgHost] ? '0 : (dbg_release_cnt + 1);
+    end
+  end
+
   // Tie-off unused error signals.
   assign device_err[Gpio] = 1'b0;
   assign device_err[Pwm]  = 1'b0;
@@ -710,7 +725,7 @@ module sonata_system #(
 
   assign cheri_en   = cheri_en_i;
   assign cheri_en_o = cheri_en;
-  assign rst_core_n = rst_sys_ni & ~ndmreset_req & ~host_req[DbgHost];
+  assign rst_core_n = rst_sys_ni & ~ndmreset_req & dbg_release_core;
 
   ibexc_top_tracing #(
     .DmHaltAddr      ( DebugStart + dm::HaltAddress[31:0]      ),
