@@ -104,6 +104,11 @@ module sonata_system #(
   localparam int unsigned RegAddrWidth  = 8;
   localparam int unsigned TRegAddrWidth = 16;  // Timer uses more address bits.
 
+  // The number of data bits controlled by each mask bit; since the CPU requires
+  // only byte level access, explicitly grouping the data bits makes the inferred
+  // BRAM implementations in FPGA much more efficient.
+  localparam int unsigned DataBitsPerMask = BusDataWidth / BusByteEnable;
+
   // Debug functionality is disabled.
   localparam int unsigned DbgHwBreakNum = 0;
   localparam bit          DbgTriggerEn  = 1'b0;
@@ -517,8 +522,10 @@ module sonata_system #(
   );
 
   sram #(
-    .AddrWidth ( SRAMAddrWidth ),
-    .InitFile  ( SRAMInitFile  )
+    .AddrWidth       ( SRAMAddrWidth   ),
+    .DataWidth       ( BusDataWidth    ),
+    .DataBitsPerMask ( DataBitsPerMask ),
+    .InitFile        ( SRAMInitFile    )
   ) u_sram_top (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
@@ -669,8 +676,9 @@ module sonata_system #(
   assign device_addr[RevTags][BusAddrWidth-1:RevTagAddrWidth] = '0;
 
   prim_ram_2p #(
-    .Width ( BusDataWidth ),
-    .Depth ( RevTagDepth  )
+    .Depth           ( RevTagDepth     ),
+    .Width           ( BusDataWidth    ),
+    .DataBitsPerMask ( DataBitsPerMask )
   ) u_revocation_ram (
     .clk_a_i   (clk_sys_i),
     .clk_b_i   (rst_sys_ni),
