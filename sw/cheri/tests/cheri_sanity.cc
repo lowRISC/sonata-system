@@ -33,7 +33,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
 	uint32_t switchValue = 0;
 	while (true) {
 		gpioValue ^= GPIO_VALUE;
-		for (int i = 0; i < 1000000; i++) {
+		for (int i = 0; i < 2000000; i++) {
 			inputValue = *((volatile uint32_t *) gpi);
 			// Shift right to remove joystick, mask to only get 8 switches and shift left to skip LCD controls.
 			switchValue = ((inputValue >> 5) & 0xFF) << 4;
