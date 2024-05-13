@@ -3,7 +3,7 @@ include(FetchContent)
 
 FetchContent_Declare(CHERIOT_RTOS
   GIT_REPOSITORY    https://github.com/microsoft/cheriot-rtos
-  GIT_TAG           c3c169ae729d7293bb8d36b0a901869b3e4b36f6
+  GIT_TAG           f66758d47be4f5a736026d0da9c3c6bd8061942b
 )
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -17,10 +17,13 @@ endif()
 
 project(sonata_system_cheriot_sw LANGUAGES C CXX ASM)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CHERIOT_SDK_INCLUDES
   "${CHERIOT_RTOS_SDK}/include/c++-config"
   "${CHERIOT_RTOS_SDK}/include/libc++"
   "${CHERIOT_RTOS_SDK}/include"
+  "${CHERIOT_RTOS_SDK}/include/platform/sunburst"
   "${CHERIOT_RTOS_SDK}/include/platform/generic-riscv"
 )
 
