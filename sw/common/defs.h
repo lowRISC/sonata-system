@@ -8,3 +8,8 @@
 
 #define UART_ADDRESS (0x8010'0000)
 #define UART_BOUNDS  (0x0000'0034)
+
+#define SPI_ADDRESS  (0x8030'0000)
+#define SPI_BOUNDS   (0x0000'0024)
+
+#define FLASH_CSN_GPIO_BIT 12

@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 include(FetchContent)
 
 FetchContent_Declare(CHERIOT_RTOS
-  GIT_REPOSITORY    https://github.com/microsoft/cheriot-rtos
-  GIT_TAG           f66758d47be4f5a736026d0da9c3c6bd8061942b
+  GIT_REPOSITORY    https://github.com/lowRISC/CHERIoT-RTOS
+  GIT_TAG           02ed83a80d9eb61c914ec712fb3d45c3ee71ff26 # a sonata branch snapshot
 )
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)

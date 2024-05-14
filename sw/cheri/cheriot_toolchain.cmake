@@ -24,6 +24,7 @@ string(CONCAT CMAKE_CXX_FLAGS_INIT
   " -Os -g -fomit-frame-pointer -fno-builtin -fno-exceptions"
   " -fno-asynchronous-unwind-tables -fno-c++-static-destructors -fno-rtti"
   " -Wall -Werror -fvisibility=hidden -fvisibility-inlines-hidden"
+  " -DDEVICE_EXISTS_uart"
 )
 
 string(CONCAT CMAKE_C_FLAGS_INIT
