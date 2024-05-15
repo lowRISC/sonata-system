@@ -27,5 +27,6 @@ set(CHERIOT_SDK_INCLUDES
   "${CHERIOT_RTOS_SDK}/include/platform/generic-riscv"
 )
 
+add_subdirectory(boot)
 add_subdirectory(tests)
 add_subdirectory(error_leds)
