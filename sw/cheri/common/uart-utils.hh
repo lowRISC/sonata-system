@@ -39,7 +39,8 @@ static void to_hex(char str_buf[Digits + 1], uint32_t num)
 	write_str(uart, str_buf);
 }
 
-static void write_hex8b(volatile OpenTitanUart<> *uart, uint8_t num)
+[[maybe_unused]] static void write_hex8b(volatile OpenTitanUart<> *uart,
+                                         uint8_t                   num)
 {
 	char str_buf[3];
 	to_hex<2>(str_buf, num);
