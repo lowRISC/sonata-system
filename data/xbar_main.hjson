@@ -172,7 +172,22 @@
     },
   ],
   connections: {
-    ibex_lsu: ["sram", "rev_tag", "gpio", "uart0", "uart1", "timer", "rv_plic", "pwm", "i2c0", "i2c1", "spi_flash", "spi_lcd", "spi_eth", "usbdev"],
+    ibex_lsu: [
+      "sram",
+      "rev_tag",
+      "gpio",
+      "pwm",
+      "timer",
+      "uart0",
+      "uart1",
+      "i2c0",
+      "i2c1",
+      "spi_flash",
+      "spi_lcd",
+      "spi_eth",
+      "usbdev",
+      "rv_plic",
+    ],
     dbg_host: ["sram"],
   },
 }
