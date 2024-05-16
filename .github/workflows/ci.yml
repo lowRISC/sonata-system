@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  CMAKE_BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt install srecord
+        sudo mkdir -p /tools/riscv
+        sudo chmod 777 /tools/riscv
+        curl -Ls -o rv32-toolchain.tar.xz "https://github.com/lowRISC/lowrisc-toolchains/releases/download/20230427-1/lowrisc-toolchain-gcc-rv32imcb-20230427-1.tar.xz"
+        sudo tar -C /tools/riscv -xf rv32-toolchain.tar.xz --strip-components=1
+        echo "/tools/riscv/bin" >> $GITHUB_PATH
+
+    - name: Clang lint
+      run: find -name "*.[cc|c|h]" -exec clang-format -n {} \;
+
+    - name: Configure CMake for legacy software
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+      working-directory: sw/legacy
+
+    - name: Build legacy software
+      # Build your software with the given configuration
+      run: |
+        make
+      working-directory: sw/legacy/build
+
