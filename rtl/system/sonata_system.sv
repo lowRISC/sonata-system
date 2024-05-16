@@ -323,7 +323,7 @@ module sonata_system #(
   wire dbg_release_core = &dbg_release_cnt;
   always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
     if (!rst_sys_ni) begin
-      dbg_release_cnt  <= '0;
+      dbg_release_cnt  <= {21{1'b1}};
     end else if (host_req[DbgHost] | ~dbg_release_core) begin
       dbg_release_cnt  <= host_req[DbgHost] ? '0 : (dbg_release_cnt + 1);
     end

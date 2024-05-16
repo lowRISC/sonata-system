@@ -32,7 +32,7 @@ module sram #(
   //
   // For all non-capability stores the tag bit will be cleared, marking those
   // 64 bits as not containing a valid capability.
-  localparam int unsigned TOff = SingleTagPerCap ? (3 - AOff) : 0;
+  localparam int unsigned TOff = (SingleTagPerCap == 1) ? (3 - AOff) : 0;
 
   // Bit offset of word address.
   localparam int unsigned AOff = $clog2(DataWidth / 8);
