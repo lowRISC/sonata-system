@@ -1,8 +1,8 @@
-# Physical board architecture
+# Sonata Board Reference
 
-![The Sonata Board](img/board-sonata.png)
+This section focusses on what needs to be physically present on the board and explicitly leaves the configuration of the FPGA and the software for other sections. The Sonata board has the features shown here:
 
-This section focusses on what needs to be physically present on the board and explicitly leaves the configuration of the FPGA and the software for later sections.
+![The Sonata Board](img/board-features.jpg)
 
 ## Configuration
 
@@ -31,6 +31,8 @@ After consultation with the community, we settled on the following list:
 - ADC
 
 ## Headers
+
+![The Sonata Board](img/board-headers.jpg)
 
 For both the 'connectable' and 'extendable' requirements, we provide a number of headers so that custom functionality can be added:
 - Raspberry Pi header
@@ -73,3 +75,9 @@ We choose a Xilinx Artix 7 FPGA because it has a typical amount of memory for em
 ## Technical details
 
 If you want to know more details on what the actual design looks like, please have a look at [NewAE's repository of the Sonata PCB](https://github.com/newaetech/sonata-pcb).
+
+This includes the entire design sources, available currently in Altium, with a KiCad version being released shortly.
+
+## Schematic Link
+
+You can find a [direct link to the schematics](https://github.com/newaetech/sonata-pcb/blob/main/sonata-schematics-r08.pdf) for your reading pleasure.
