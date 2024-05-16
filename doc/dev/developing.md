@@ -1,4 +1,4 @@
-# Sonata architecture specification
+# Developer Guide
 
 The Sonata architecture comprises a number of components:
 - Physical board architecture:
@@ -11,7 +11,7 @@ The Sonata architecture comprises a number of components:
 
 Before we go into the architecture of the system, it is good to understand the use cases that we are envisioning, so that we can derive our architectural requirements from that.
 
-## Use cases and requirements
+### Use cases and requirements
 
 The Sonata is meant to be used by academics and industry users who are interested in experimenting with CHERIoT in embedded and IoT applications.
 This is the main reason why we are building a custom FPGA board so that we can make the platform easily *usable*.
@@ -45,7 +45,29 @@ In short, these are our general requirements:
 
 ## Detailed specifications
 
-Please have a look at the following documents for more detailed architecture specifications:
-- [Physical board](board.md)
-- [FPGA configuration](fpga.md)
-- [Software](software.md)
+### Toolchain
+
+The toolchain will build on top of the work already done on CHERIoT, which uses a [fork of LLVM](https://github.com/CHERIoT-Platform/llvm-project).
+Through Sonata, we are not proposing any changes to the CHERIoT instruction set.
+We may need some changes to allow code to be stored in memory that does not have associated tags.
+
+The toolchain for software development was described in the [Getting Started](../guide/toolchain-setup.md) section. If these instructions ever go out of date, you should be able to find the up to date instructions to build the toolchain [from the CI YAML file](https://github.com/CHERIoT-Platform/llvm-project/blob/cheriot/.cirrus.yml).
+
+### Applications
+
+Especially for the usable and CHERI-visible requirements, it is important that we have a set of demonstration applications.
+One demonstration application is cycling through each of the CHERIoT exception types with code snippets showing what went wrong.
+We can show what happens when CHERI is enabled and when it is disabled.
+We will provide at least some of these applications in bare-metal mode where they do not need an operating system.
+
+### Operating system
+
+The [CHERIoT RTOS work](https://github.com/microsoft/cheriot-rtos) will need some reworking in terms of memory layout and drivers to work on the Sonata system.
+
+# FPGA (Soft-Core) architecture
+
+The toolchain for FPGA (hardware/gateware) development is described in the [FPGA Development](fpga-development.md) section.
+
+# PCB architecture
+
+This is described in the [Board](../architecture/board.md) documentation.

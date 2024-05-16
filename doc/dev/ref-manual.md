@@ -1,8 +1,11 @@
-# FPGA configuration architecture
+# Reference Manual for Sonata Core
 
-The FPGA configuration is the part of the architecture that is programmed into the FPGA.
-This is written in a hardware description language.
-Although it is considered hardware it can be reprogrammed because of the FPGA, which is why it has a separate section from the physical board design.
+In a classical microcontroller, you would have a core along with the peripherals around the core. On the Sonata system this is all part
+of an open-source FPGA design, which allows you to modify the core to add new features (and for us to add updates to your core without
+needing you to desolder your main IC!).
+
+This also means you can customize your design. You may want to have a different number of UARTs or SPI blocks for example. This document
+describes the base configuration, but you can 
 
 The FPGA image is parameterizable to enable custom setups.
 It should be easy, for example, to change the number of UART, SPI and I2C instances.
