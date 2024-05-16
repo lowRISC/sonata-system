@@ -11,7 +11,7 @@ env:
   CMAKE_BUILD_TYPE: Release
 
 jobs:
-  build:
+  software:
     runs-on: ubuntu-latest
 
     steps:
@@ -43,4 +43,19 @@ jobs:
       run: |
         make
       working-directory: sw/legacy/build
+
+  simulator:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt install verilator libelf-dev
+        pip install -r python-requirements.txt
+
+    - name: Build Verilator simulator
+      run: |
+        fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system --verilator_options="+define+RVFI"
 
