@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 set -ue
 
-NAME="$(basename $0)"
+NAME="$(basename "$0")"
 SCRIPT_DIR="$(dirname "$(readlink -e "$0")")"
 TCL_FILE=$SCRIPT_DIR/sonata-openocd-cfg.tcl
 
@@ -69,8 +69,8 @@ load_program() {
   check_exists "$TCL_FILE" "$NAME: '$TCL_FILE' doesn't exist."
 
   openocd -f "$TCL_FILE" \
-    -c "load_image "$ELF_FILE" 0x0" \
-    -c "verify_image "$ELF_FILE" 0x0" \
+    -c "load_image $ELF_FILE 0x0" \
+    -c "verify_image $ELF_FILE 0x0" \
     -c "exit"
 }
 
