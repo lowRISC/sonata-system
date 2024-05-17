@@ -725,7 +725,7 @@ module sonata_system #(
     .DataBitsPerMask ( DataBitsPerMask )
   ) u_revocation_ram (
     .clk_a_i   (clk_sys_i),
-    .clk_b_i   (rst_sys_ni),
+    .clk_b_i   (clk_sys_i),
     .cfg_i     ('0),
     .a_req_i   (device_req[RevTags]),
     .a_write_i (device_we[RevTags]),
