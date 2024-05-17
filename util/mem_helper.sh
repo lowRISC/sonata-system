@@ -10,9 +10,10 @@ TCL_FILE=$SCRIPT_DIR/sonata-openocd-cfg.tcl
 
 USAGE="Example Usage of $NAME
 
-  Generate a vmem file for an ELF file containing CHERIoT RTOS build:
+  Generate an image file for an ELF file containing CHERIoT RTOS build:
 
-    $NAME rtos_vmem -e \$elf_file -o \$output_file
+    $NAME rtos_img -e \$elf_file -v \$vmem_file
+    $NAME rtos_img -e \$elf_file -u \$uf2_file
 
   Load an ELF file onto the FPGA:
 
@@ -37,22 +38,30 @@ check_exists() {
   fi
 }
 
-rtos_vmem() {
-  while getopts "e:o:h" opt; do
+rtos_img() {
+  while getopts "e:v:u:h" opt; do
       case "${opt}" in
           e) ELF_FILE="$OPTARG";;
-          o) OUT_FILE="$OPTARG";;
+          v) VMEM_FILE="$OPTARG";;
+          u) UF2_FILE="$OPTARG";;
           *) usage_then_exit;;
       esac
   done
-  check_not_empty "${OUT_FILE-}" "$NAME: No output file was given."
+  check_not_empty "${VMEM_FILE-}${UF2_FILE-}" "$NAME: No output file was given."
   check_not_empty "${ELF_FILE-}" "$NAME: No ELF file was given."
   check_exists "$ELF_FILE" "$NAME: '$ELF_FILE' doesn't exist."
 
   TMP_FILE="$(mktemp)"
   llvm-objcopy -O binary "$ELF_FILE" "$TMP_FILE"
-  # Put the code at offset 0x80 and zero fill ibex's default vectored interrupt table
-  srec_cat "$TMP_FILE" -binary -offset 0x80 -byte-swap 4 -fill 0x00 0x00 0x80 -o "$OUT_FILE" -vmem
+
+  if [ -n "${VMEM_FILE-}" ]; then
+    # Put the code at offset 0x80 and zero fill ibex's default vectored interrupt table
+    srec_cat "$TMP_FILE" -binary -offset 0x80 -byte-swap 4 -fill 0x00 0x00 0x80 -o "$VMEM_FILE" -vmem
+  fi
+  if [ -n "${UF2_FILE-}" ]; then
+    # Put the code at offset 0x101000 (where the bootloader jumps to after loading)
+    uf2conv "$TMP_FILE" -b 0x00101000 -co "$UF2_FILE"
+  fi
   rm "$TMP_FILE"
 }
 
@@ -79,7 +88,7 @@ main() {
     usage_then_exit
   fi
   case "$1" in
-    rtos_vmem) shift && rtos_vmem "$@";;
+    rtos_img) shift && rtos_img "$@";;
     load_program) shift && load_program "$@";;
     *) usage_then_exit;;
   esac
