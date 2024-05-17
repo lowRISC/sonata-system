@@ -63,6 +63,7 @@
             openocd
           ])
           ++ (with lr_pkgs; [
+            uf2conv
             # For legacy software
             lowrisc-toolchain-gcc-rv32imcb
           ])
