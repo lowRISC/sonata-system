@@ -35,8 +35,8 @@ For all registers in this section, the functionality is mapped onto the least si
 
 | Base address | Size    | Functionality    |
 |--------------|---------|------------------|
-| 0x0010_0000  | 128 KiB | Internal SRAM    |
-| 0x3000_0000  |  16 KiB | Revocation tags  |
+| 0x0010_0000  | 256 KiB | Internal SRAM    |
+| 0x3000_0000  |   4 KiB | Revocation tags  |
 | 0x4000_0000  |   1 MiB | Tagged RAM       |
 | 0x4010_0000  |   7 MiB | Untagged RAM     |
 | 0x8000_0000  |   4 KiB | [GPIO][]         |
