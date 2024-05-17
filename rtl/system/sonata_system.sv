@@ -682,8 +682,8 @@ module sonata_system #(
     end
   end
 
-  // Size of revocation tag memory is 16 KiB
-  localparam int unsigned RevTagDepth = 16 * 1024 * 8 / BusDataWidth;
+  // Size of revocation tag memory is 4 KiB, one bit for each 64 in SRAM
+  localparam int unsigned RevTagDepth = 4 * 1024 * 8 / BusDataWidth;
   localparam int unsigned RevTagAddrWidth = $clog2(RevTagDepth);
 
   tlul_adapter_sram #(
