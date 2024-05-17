@@ -757,6 +757,10 @@ module sonata_system #(
     .DbgTriggerEn    ( DbgTriggerEn                            ),
     .DbgHwBreakNum   ( DbgHwBreakNum                           ),
     .MHPMCounterNum  ( 13                                      ),
+    // For now revocation tags apply to all of SRAM.
+    .HeapBase        ( tl_main_pkg::ADDR_SPACE_SRAM            ),
+    .TSMapBase       ( tl_main_pkg::ADDR_SPACE_REV_TAG         ),
+    .TSMapSize       ( RevTagDepth                             ),
     .RV32B           ( ibex_pkg::RV32BFull                     )
   ) u_top_tracing (
     .clk_i (clk_sys_i),
