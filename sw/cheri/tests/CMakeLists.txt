@@ -9,8 +9,7 @@ set(TESTS
 foreach(TEST ${TESTS})
   get_filename_component(NAME ${TEST} NAME_WE)
 
-  add_executable(${NAME} ${TEST})
-  target_link_libraries(${NAME} common)
+  add_executable(${NAME} ${TEST} boot.S)
   target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
 
   add_custom_command(
