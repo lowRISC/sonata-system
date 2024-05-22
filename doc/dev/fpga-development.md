@@ -11,7 +11,7 @@ The Sonata bitstream is generated using Vivado.
 
 ## Bitstream
 
-To build the bitstream, make sure to follow the [Software section](#software) to create the correct SRAM image.
+To build the bitstream, make sure to [build the software](../guide/building-examples.md) to create the correct SRAM image.
 Then run this command:
 ```sh
 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system
