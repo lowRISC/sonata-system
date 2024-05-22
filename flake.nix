@@ -23,16 +23,16 @@
       pkgs = import nixpkgs {
         inherit system;
       };
-      lr_doc = lowrisc-nix.lib.doc {inherit pkgs;};
-      lr_pkgs = lowrisc-nix.outputs.packages.${system};
+      lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
+      lrPkgs = lowrisc-nix.outputs.packages.${system};
       fs = pkgs.lib.fileset;
 
-      sonata-documentation = lr_doc.buildMdbookSite {
+      sonata-documentation = lrDoc.buildMdbookSite {
         inherit version;
         pname = "sonata-documentation";
         src = fs.toSource {
           root = ./.;
-          fileset = lr_doc.standardMdbookFileset ./.;
+          fileset = lrDoc.standardMdbookFileset ./.;
         };
       };
 
@@ -41,7 +41,7 @@
         pname = "sonata-system-simulator";
         src = ./.;
         buildInputs = with pkgs; [libelf zlib];
-        nativeBuildInputs = [pkgs.python311Packages.pip] ++ (with lr_pkgs; [python_ot verilator_ot]);
+        nativeBuildInputs = [pkgs.python311Packages.pip] ++ (with lrPkgs; [python_ot verilator_ot]);
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --tool=verilator --setup \
@@ -68,7 +68,7 @@
             openfpgaloader
             openocd
           ])
-          ++ (with lr_pkgs; [
+          ++ (with lrPkgs; [
             uf2conv
             # For legacy software
             lowrisc-toolchain-gcc-rv32imcb
