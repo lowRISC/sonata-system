@@ -1,7 +1,7 @@
 # Setting up the Toolchain for Software Development
 
-All those special CHERIoT goodness comes with it's own compiler that understands how to use them. For this reason you'll need to build a
-special toolchain from source. Luckily, it should be easy if you follow are simple instructions.
+All the special CHERIoT goodness comes with its own compiler that understands how to use it. For this reason you'll need to build a
+special toolchain from source. Luckily, it should be easy if you follow our simple instructions.
 
 If building on Windows, the following instructions have also been confirmed to work with WSL2 with the exception of `edalize` and `fusesoc`,
 which *are not required for software development*.
@@ -60,7 +60,7 @@ mkdir -p builds/cheriot-llvm
 cd builds/cheriot-llvm
 # Build the toolchain
 cmake ${LLVM_PATH}/llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" -DCMAKE_INSTALL_PREFIX=install -DLLVM_ENABLE_UNWIND_TABLES=NO -DLLVM_TARGETS_TO_BUILD=RISCV -DLLVM_DISTRIBUTION_COMPONENTS="clang;clangd;lld;llvm-objdump;llvm-objcopy" -G Ninja
-export NINJA_STATUS='%p [%f:%s/%t] %o/s, %es'
+export NINJA_STATUS='%p [%f:%s/%t] %o/s, %es '
 ninja install-distribution
 ```
 
