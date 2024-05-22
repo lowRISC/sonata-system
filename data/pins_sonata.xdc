@@ -187,3 +187,6 @@ set_property -dict { PACKAGE_PIN H5  IOSTANDARD LVCMOS18 } [get_ports ethmac_cs]
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+
+# Force I2C FIFOs to use distributed RAM
+set_property RAM_STYLE distributed [get_cells -hierarchical -regexp {u_sonata_system/u_i2c.*/i2c_core/u_fifos/u_ram_1p/u_mem/gen_generic.u_impl_generic/mem_reg}]

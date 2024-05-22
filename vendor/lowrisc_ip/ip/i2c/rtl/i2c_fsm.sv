@@ -778,181 +778,181 @@ module i2c_fsm import i2c_pkg::*;
       /////////////////
 
       // AcquireStart: hold start condition
-      AcquireStart : begin
-        target_idle_o = 1'b0;
-      end
-      // AddrRead: read and compare target address
-      AddrRead : begin
-        target_idle_o = 1'b0;
-        rw_bit = input_byte[0];
-      end
-      // AddrAckWait: pause before acknowledging
-      AddrAckWait : begin
-        target_idle_o = 1'b0;
-      end
-      // AddrAckSetup: target pulls SDA low while SCL is low
-      AddrAckSetup : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
-      end
-      // AddrAckPulse: target pulls SDA low while SCL is released
-      AddrAckPulse : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
-      end
-      // AddrAckHold: target pulls SDA low while SCL is pulled low
-      AddrAckHold : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
+      //AcquireStart : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// AddrRead: read and compare target address
+      //AddrRead : begin
+      //  target_idle_o = 1'b0;
+      //  rw_bit = input_byte[0];
+      //end
+      //// AddrAckWait: pause before acknowledging
+      //AddrAckWait : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// AddrAckSetup: target pulls SDA low while SCL is low
+      //AddrAckSetup : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
+      //end
+      //// AddrAckPulse: target pulls SDA low while SCL is released
+      //AddrAckPulse : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
+      //end
+      //// AddrAckHold: target pulls SDA low while SCL is pulled low
+      //AddrAckHold : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
 
-        // Upon transition to next state, populate the acquisition fifo
-        if (tcount_q == 20'd1) begin
-          if (nack_next_byte_q) begin
-            // If we're here because the ACQ FIFO is nearly full but we need
-            // to acknowlegde our address because this is a write, then
-            // record this.
-            acq_fifo_wvalid_o = 1'b1;
-            acq_fifo_wdata_o = {AcqNackStart, input_byte};
-          end else begin
-            // Only write to fifo if stretching conditions are not met
-            acq_fifo_wvalid_o = ~stretch_addr;
-            acq_fifo_wdata_o = {AcqStart, input_byte};
-          end
-        end
-      end
-      // TransmitWait: Check if data is available prior to transmit
-      TransmitWait : begin
-        target_idle_o = 1'b0;
-      end
-      // TransmitSetup: target shifts indexed bit onto SDA while SCL is low
-      TransmitSetup : begin
-        target_idle_o = 1'b0;
-        sda_d = tx_fifo_rdata[3'(bit_idx)];
-      end
-      // TransmitPulse: target holds indexed bit onto SDA while SCL is released
-      TransmitPulse : begin
-        target_idle_o = 1'b0;
+      //  // Upon transition to next state, populate the acquisition fifo
+      //  if (tcount_q == 20'd1) begin
+      //    if (nack_next_byte_q) begin
+      //      // If we're here because the ACQ FIFO is nearly full but we need
+      //      // to acknowlegde our address because this is a write, then
+      //      // record this.
+      //      acq_fifo_wvalid_o = 1'b1;
+      //      acq_fifo_wdata_o = {AcqNackStart, input_byte};
+      //    end else begin
+      //      // Only write to fifo if stretching conditions are not met
+      //      acq_fifo_wvalid_o = ~stretch_addr;
+      //      acq_fifo_wdata_o = {AcqStart, input_byte};
+      //    end
+      //  end
+      //end
+      //// TransmitWait: Check if data is available prior to transmit
+      //TransmitWait : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// TransmitSetup: target shifts indexed bit onto SDA while SCL is low
+      //TransmitSetup : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = tx_fifo_rdata[3'(bit_idx)];
+      //end
+      //// TransmitPulse: target holds indexed bit onto SDA while SCL is released
+      //TransmitPulse : begin
+      //  target_idle_o = 1'b0;
 
-        // Hold value
-        sda_d = sda_q;
-      end
-      // TransmitHold: target holds indexed bit onto SDA while SCL is pulled low, for the hold time
-      TransmitHold : begin
-        target_idle_o = 1'b0;
+      //  // Hold value
+      //  sda_d = sda_q;
+      //end
+      //// TransmitHold: target holds indexed bit onto SDA while SCL is pulled low, for the hold time
+      //TransmitHold : begin
+      //  target_idle_o = 1'b0;
 
-        // Hold value
-        sda_d = sda_q;
-      end
-      // TransmitAck: target waits for host to ACK transmission
-      TransmitAck : begin
-        target_idle_o = 1'b0;
-      end
-      TransmitAckPulse : begin
-        target_idle_o = 1'b0;
-        if (!scl_i) begin
-          // Pop Fifo regardless of ack/nack
-          tx_fifo_rready_o = 1'b1;
-        end
-      end
-      // WaitForStop just waiting for host to trigger a stop after nack
-      WaitForStop : begin
-        target_idle_o = 1'b0;
-        expect_stop = 1'b1;
-        sda_d = 1'b1;
-      end
-      // AcquireByte: target acquires a byte
-      AcquireByte : begin
-        target_idle_o = 1'b0;
-      end
-      // AcquireAckWait: pause before acknowledging
-      AcquireAckWait : begin
-        target_idle_o = 1'b0;
-      end
-      // AcquireAckSetup: target pulls SDA low while SCL is low
-      AcquireAckSetup : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
-      end
-      // AcquireAckPulse: target pulls SDA low while SCL is released
-      AcquireAckPulse : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
-      end
-      // AcquireAckHold: target pulls SDA low while SCL is pulled low
-      AcquireAckHold : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b0;
+      //  // Hold value
+      //  sda_d = sda_q;
+      //end
+      //// TransmitAck: target waits for host to ACK transmission
+      //TransmitAck : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //TransmitAckPulse : begin
+      //  target_idle_o = 1'b0;
+      //  if (!scl_i) begin
+      //    // Pop Fifo regardless of ack/nack
+      //    tx_fifo_rready_o = 1'b1;
+      //  end
+      //end
+      //// WaitForStop just waiting for host to trigger a stop after nack
+      //WaitForStop : begin
+      //  target_idle_o = 1'b0;
+      //  expect_stop = 1'b1;
+      //  sda_d = 1'b1;
+      //end
+      //// AcquireByte: target acquires a byte
+      //AcquireByte : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// AcquireAckWait: pause before acknowledging
+      //AcquireAckWait : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// AcquireAckSetup: target pulls SDA low while SCL is low
+      //AcquireAckSetup : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
+      //end
+      //// AcquireAckPulse: target pulls SDA low while SCL is released
+      //AcquireAckPulse : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
+      //end
+      //// AcquireAckHold: target pulls SDA low while SCL is pulled low
+      //AcquireAckHold : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b0;
 
-        if (tcount_q == 20'd1) begin
-          acq_fifo_wvalid_o = ~stretch_rx;          // assert that acq_fifo has space
-          acq_fifo_wdata_o = {AcqData, input_byte}; // transfer data to acq_fifo
-        end
-      end
-      // NackWait: pause before not acknowledge.
-      NackWait : begin
-        target_idle_o = 1'b0;
-      end
-      // NackSetup: target holds SDA high while SCL is low.
-      NackSetup : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b1;
-      end
-      // NackPulse: target holds SDA high while SCL is released.
-      NackPulse : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b1;
-      end
-      // NackHold: target holds SDA high while SCL is pulled low.
-      NackHold : begin
-        target_idle_o = 1'b0;
-        sda_d = 1'b1;
+      //  if (tcount_q == 20'd1) begin
+      //    acq_fifo_wvalid_o = ~stretch_rx;          // assert that acq_fifo has space
+      //    acq_fifo_wdata_o = {AcqData, input_byte}; // transfer data to acq_fifo
+      //  end
+      //end
+      //// NackWait: pause before not acknowledge.
+      //NackWait : begin
+      //  target_idle_o = 1'b0;
+      //end
+      //// NackSetup: target holds SDA high while SCL is low.
+      //NackSetup : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b1;
+      //end
+      //// NackPulse: target holds SDA high while SCL is released.
+      //NackPulse : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b1;
+      //end
+      //// NackHold: target holds SDA high while SCL is pulled low.
+      //NackHold : begin
+      //  target_idle_o = 1'b0;
+      //  sda_d = 1'b1;
 
-        if (tcount_q == 20'd1) begin
-          // Stretching happens with two spaces left in the ACQ FIFO: one for
-          // a stop/restart and the other for this NACK message. There might
-          // not be any space left if there already is a NACK message in the
-          // FIFO and software has not responded to the full interrupt. In
-          // that case this message won't make it into the ACQ FIFO.
-          acq_fifo_wvalid_o = 1'b1;                 // Write to acq_fifo.
-          acq_fifo_wdata_o = {AcqNack, input_byte}; // Put NACK into acq_fifo.
-          // Because we go to idle mode after this we will not get a command
-          // complete notification from a restart or a stop. We must notify
-          // software that it needs to start processing the ACQ FIFO.
-          event_cmd_complete_o = 1'b1;
-          event_target_nack_o = 1'b1;
-        end
-      end
-      // StretchAddr: target stretches the clock if matching address cannot be
-      // deposited yet.
-      StretchAddr : begin
-        target_idle_o = 1'b0;
-        scl_d = 1'b0;
+      //  if (tcount_q == 20'd1) begin
+      //    // Stretching happens with two spaces left in the ACQ FIFO: one for
+      //    // a stop/restart and the other for this NACK message. There might
+      //    // not be any space left if there already is a NACK message in the
+      //    // FIFO and software has not responded to the full interrupt. In
+      //    // that case this message won't make it into the ACQ FIFO.
+      //    acq_fifo_wvalid_o = 1'b1;                 // Write to acq_fifo.
+      //    acq_fifo_wdata_o = {AcqNack, input_byte}; // Put NACK into acq_fifo.
+      //    // Because we go to idle mode after this we will not get a command
+      //    // complete notification from a restart or a stop. We must notify
+      //    // software that it needs to start processing the ACQ FIFO.
+      //    event_cmd_complete_o = 1'b1;
+      //    event_target_nack_o = 1'b1;
+      //  end
+      //end
+      //// StretchAddr: target stretches the clock if matching address cannot be
+      //// deposited yet.
+      //StretchAddr : begin
+      //  target_idle_o = 1'b0;
+      //  scl_d = 1'b0;
 
-        acq_fifo_wvalid_o = !stretch_addr || nack_timeout;
-        acq_fifo_wdata_o = {AcqStart, input_byte};
-        actively_stretching = stretch_addr;
-      end
-      // StretchTx: target stretches the clock when tx_fifo is empty
-      StretchTx : begin
-        target_idle_o = 1'b0;
-        scl_d = 1'b0;
-      end
-      // StretchTxSetup: drive the return data
-      StretchTxSetup : begin
-        target_idle_o = 1'b0;
-        scl_d = 1'b0;
-        sda_d = tx_fifo_rdata[3'(bit_idx)];
-      end
-      // StretchAcqFull: target stretches the clock when acq_fifo is full
-      StretchAcqFull : begin
-        target_idle_o = 1'b0;
-        scl_d = 1'b0;
+      //  acq_fifo_wvalid_o = !stretch_addr || nack_timeout;
+      //  acq_fifo_wdata_o = {AcqStart, input_byte};
+      //  actively_stretching = stretch_addr;
+      //end
+      //// StretchTx: target stretches the clock when tx_fifo is empty
+      //StretchTx : begin
+      //  target_idle_o = 1'b0;
+      //  scl_d = 1'b0;
+      //end
+      //// StretchTxSetup: drive the return data
+      //StretchTxSetup : begin
+      //  target_idle_o = 1'b0;
+      //  scl_d = 1'b0;
+      //  sda_d = tx_fifo_rdata[3'(bit_idx)];
+      //end
+      //// StretchAcqFull: target stretches the clock when acq_fifo is full
+      //StretchAcqFull : begin
+      //  target_idle_o = 1'b0;
+      //  scl_d = 1'b0;
 
-        // When space becomes available, deposit entry
-        acq_fifo_wvalid_o = ~stretch_rx;          // assert that acq_fifo has space
-        acq_fifo_wdata_o = {AcqData, input_byte}; // transfer data to acq_fifo
-        actively_stretching = stretch_rx;
-      end
+      //  // When space becomes available, deposit entry
+      //  acq_fifo_wvalid_o = ~stretch_rx;          // assert that acq_fifo has space
+      //  acq_fifo_wdata_o = {AcqData, input_byte}; // transfer data to acq_fifo
+      //  actively_stretching = stretch_rx;
+      //end
       // default
       default : begin
         host_idle_o = 1'b1;
@@ -1298,256 +1298,256 @@ module i2c_fsm import i2c_pkg::*;
       /////////////////
 
       // AcquireStart: hold start condition
-      AcquireStart : begin
-        if (scl_i_q && !scl_i) begin
-          // If we are not able to accept the start bit, stretch or nak
-          state_d = AddrRead;
-          input_byte_clr = 1'b1;
-        end
-        clear_nack_next_byte = 1'b1;
-      end
-      // AddrRead: read and compare target address
-      AddrRead : begin
-        if (bit_ack) begin
-          if (address_match) begin
-            if (acq_fifo_full_or_last_space) begin
-              // We must have stretched before, and software has been notified
-              // through and ACQ FIFO full event. Now we must NACK
-              // unconditionally for reads. For writes we should NACK the
-              // next byte unconditionally but still acknowledge the address.
-              if (rw_bit_q) begin
-                state_d = NackWait;
-              end else begin
-                state_d = AddrAckWait;
-                set_nack_next_byte = 1'b1;
-              end
-            end else begin
-              state_d = AddrAckWait;
-            end
-            load_tcount = 1'b1;
-            tcount_sel = tClockStart;
-          end else begin
-            // This means this transaction is not meant for us.
-            state_d = Idle;
-          end
-        end
-      end
-      // AddrAckWait: pause before acknowledging
-      AddrAckWait : begin
-        if (tcount_q == 20'd1 && !scl_i) begin
-          state_d = AddrAckSetup;
-        end
-      end
-      // AddrAckSetup: target pulls SDA low while SCL is low
-      AddrAckSetup : begin
-        if (scl_i) state_d = AddrAckPulse;
-      end
-      // AddrAckPulse: target pulls SDA low while SCL is released
-      AddrAckPulse : begin
-        if (!scl_i) begin
-          state_d = AddrAckHold;
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // AddrAckHold: target pulls SDA low while SCL is pulled low
-      AddrAckHold : begin
-        if (tcount_q == 20'd1) begin
-          // Stretch when requested by software or when there is insufficient
-          // space to hold the start / address format byte.
-          // If there is sufficient space, the format byte is written into the acquisition fifo.
-          // Don't stretch when we are unconditionally nacking the next byte
-          // anyways.
-          if (stretch_addr && !nack_next_byte_q) begin
-            state_d = StretchAddr;
-          end else if (rw_bit_q) begin
-            state_d = TransmitWait;
-          end else if (!rw_bit_q) begin
-            state_d = AcquireByte;
-          end
-        end
-      end
-      // TransmitWait: Evaluate whether there are entries to send first
-      TransmitWait : begin
-        if (stretch_tx) begin
-          state_d = StretchTx;
-        end else begin
-          state_d = TransmitSetup;
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // TransmitSetup: target shifts indexed bit onto SDA while SCL is low
-      TransmitSetup : begin
-        if (scl_i) state_d = TransmitPulse;
-      end
-      // TransmitPulse: target shifts indexed bit onto SDA while SCL is released
-      TransmitPulse : begin
-        if (!scl_i) begin
-          state_d = TransmitHold;
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // TransmitHold: target shifts indexed bit onto SDA while SCL is pulled low
-      TransmitHold : begin
-        if (tcount_q == 20'd1) begin
-          if (bit_ack) begin
-            state_d = TransmitAck;
-          end else begin
-            load_tcount = 1'b1;
-            tcount_sel = tClockStart;
-            state_d = TransmitSetup;
-          end
-        end
-      end
-      // Wait for clock to become positive.
-      TransmitAck : begin
-        if (scl_i) begin
-          state_d = TransmitAckPulse;
-        end
-      end
-      // TransmitAckPulse: target waits for host to ACK transmission
-      // If a nak is received, that means a stop is incoming.
-      TransmitAckPulse : begin
-        if (!scl_i) begin
-          // If host acknowledged, that means we must continue
-          if (host_ack) begin
-            state_d = TransmitWait;
-          end else begin
-            // If host nak'd then the transaction is about to terminate, go to a wait state
-            state_d = WaitForStop;
-          end
-        end
-      end
-      // An inert state just waiting for host to issue a stop
-      // Cannot cycle back to idle directly as other events depend on the system being
-      // non-idle.
-      WaitForStop : begin
-        state_d = WaitForStop;
-      end
-      // AcquireByte: target acquires a byte
-      AcquireByte : begin
-        if (bit_ack) begin
-          // We can get to this spot if we have enabled NACK timeout. It must
-          // mean that we have stretched when there were only two spaces left.
-          // Now we must NACK unconditionally.
-          // The other option is the ACQ FIFO was already full on the previous
-          // address read. We now must NACK this byte and drop it
-          // completely.
-          if (acq_fifo_full_or_last_space || nack_next_byte_q) begin
-            state_d = NackWait;
-          end else begin
-            state_d = AcquireAckWait;
-          end
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // AcquireAckWait: pause before acknowledging
-      AcquireAckWait : begin
-        if (tcount_q == 20'd1 && !scl_i) begin
-          state_d = AcquireAckSetup;
-        end
-      end
-      // AcquireAckSetup: target pulls SDA low while SCL is low
-      AcquireAckSetup : begin
-        if (scl_i) state_d = AcquireAckPulse;
-      end
-      // AcquireAckPulse: target pulls SDA low while SCL is released
-      AcquireAckPulse : begin
-        if (!scl_i) begin
-          state_d = AcquireAckHold;
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // AcquireAckHold: target pulls SDA low while SCL is pulled low
-      AcquireAckHold : begin
-        if (tcount_q == 20'd1) begin
-          // If there is no space for the current entry, stretch clocks and
-          // wait for software to make space.
-          state_d = stretch_rx ? StretchAcqFull : AcquireByte;
-        end
-      end
-      // NackWait: pause before not acknowledge.
-      NackWait : begin
-        if (tcount_q == 20'd1 && !scl_i) begin
-          state_d = NackSetup;
-        end
-      end
-      // NackSetup: target holds SDA high while SCL is low.
-      NackSetup : begin
-        if (scl_i) begin
-          state_d = NackPulse;
-        end
-      end
-      // NackPulse: target holds SDA high while SCL is released.
-      NackPulse : begin
-        if (!scl_i) begin
-          state_d = NackHold;
-          load_tcount = 1'b1;
-          tcount_sel = tClockStart;
-        end
-      end
-      // NackHold: target holds SDA high while SCL is pulled low.
-      NackHold : begin
-        if (tcount_q == 20'd1) begin
-          // After sending NACK go back to Idle state.
-          state_d = Idle;
-        end
-      end
-      // StretchAddr: The address phase can not yet be completed, stretch
-      // clock and wait.
-      StretchAddr : begin
-        // When there is space in the FIFO go to the next state.
-        // If we hit our nack timeout, we must continue and NACK the next
-        // byte (or in the case of a transmit we notify software and wait for
-        // it to empty the ACQ FIFO).
-        if (!stretch_addr || nack_timeout) begin
-          // When transmitting after an address stretch, we need to assume
-          // that is looks like a Tx stretch.  This is because if we try
-          // to follow the normal path, the logic will release the clock
-          // too early relative to driving the data.  This will cause a
-          // setup violation.  This is the same case to needing StretchTxSetup.
-          state_d = rw_bit_q ? StretchTx : AcquireByte;
-        end
-      end
-      // StretchTx: target stretches the clock when tx conditions are not satisfied.
-      StretchTx : begin
-        // When in stretch state, always notify software that help is required.
-        event_tx_stretch_o = 1'b1;
-        if (!stretch_tx) begin
-          // When data becomes available, we must first drive it onto the line
-          // for at least the "setup" period.  If we do not, once the clock is released, the
-          // pull-up in the system will likely immediately trigger a rising clock
-          // edge (since the stretch likely pushed us way beyond the original intended
-          // rise).  If we do not artificially create the setup period here, it will
-          // likely create a timing violation.
-          state_d = StretchTxSetup;
-          load_tcount = 1'b1;
-          tcount_sel = tSetupData;
+      //AcquireStart : begin
+      //  if (scl_i_q && !scl_i) begin
+      //    // If we are not able to accept the start bit, stretch or nak
+      //    state_d = AddrRead;
+      //    input_byte_clr = 1'b1;
+      //  end
+      //  clear_nack_next_byte = 1'b1;
+      //end
+      //// AddrRead: read and compare target address
+      //AddrRead : begin
+      //  if (bit_ack) begin
+      //    if (address_match) begin
+      //      if (acq_fifo_full_or_last_space) begin
+      //        // We must have stretched before, and software has been notified
+      //        // through and ACQ FIFO full event. Now we must NACK
+      //        // unconditionally for reads. For writes we should NACK the
+      //        // next byte unconditionally but still acknowledge the address.
+      //        if (rw_bit_q) begin
+      //          state_d = NackWait;
+      //        end else begin
+      //          state_d = AddrAckWait;
+      //          set_nack_next_byte = 1'b1;
+      //        end
+      //      end else begin
+      //        state_d = AddrAckWait;
+      //      end
+      //      load_tcount = 1'b1;
+      //      tcount_sel = tClockStart;
+      //    end else begin
+      //      // This means this transaction is not meant for us.
+      //      state_d = Idle;
+      //    end
+      //  end
+      //end
+      //// AddrAckWait: pause before acknowledging
+      //AddrAckWait : begin
+      //  if (tcount_q == 20'd1 && !scl_i) begin
+      //    state_d = AddrAckSetup;
+      //  end
+      //end
+      //// AddrAckSetup: target pulls SDA low while SCL is low
+      //AddrAckSetup : begin
+      //  if (scl_i) state_d = AddrAckPulse;
+      //end
+      //// AddrAckPulse: target pulls SDA low while SCL is released
+      //AddrAckPulse : begin
+      //  if (!scl_i) begin
+      //    state_d = AddrAckHold;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// AddrAckHold: target pulls SDA low while SCL is pulled low
+      //AddrAckHold : begin
+      //  if (tcount_q == 20'd1) begin
+      //    // Stretch when requested by software or when there is insufficient
+      //    // space to hold the start / address format byte.
+      //    // If there is sufficient space, the format byte is written into the acquisition fifo.
+      //    // Don't stretch when we are unconditionally nacking the next byte
+      //    // anyways.
+      //    if (stretch_addr && !nack_next_byte_q) begin
+      //      state_d = StretchAddr;
+      //    end else if (rw_bit_q) begin
+      //      state_d = TransmitWait;
+      //    end else if (!rw_bit_q) begin
+      //      state_d = AcquireByte;
+      //    end
+      //  end
+      //end
+      //// TransmitWait: Evaluate whether there are entries to send first
+      //TransmitWait : begin
+      //  if (stretch_tx) begin
+      //    state_d = StretchTx;
+      //  end else begin
+      //    state_d = TransmitSetup;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// TransmitSetup: target shifts indexed bit onto SDA while SCL is low
+      //TransmitSetup : begin
+      //  if (scl_i) state_d = TransmitPulse;
+      //end
+      //// TransmitPulse: target shifts indexed bit onto SDA while SCL is released
+      //TransmitPulse : begin
+      //  if (!scl_i) begin
+      //    state_d = TransmitHold;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// TransmitHold: target shifts indexed bit onto SDA while SCL is pulled low
+      //TransmitHold : begin
+      //  if (tcount_q == 20'd1) begin
+      //    if (bit_ack) begin
+      //      state_d = TransmitAck;
+      //    end else begin
+      //      load_tcount = 1'b1;
+      //      tcount_sel = tClockStart;
+      //      state_d = TransmitSetup;
+      //    end
+      //  end
+      //end
+      //// Wait for clock to become positive.
+      //TransmitAck : begin
+      //  if (scl_i) begin
+      //    state_d = TransmitAckPulse;
+      //  end
+      //end
+      //// TransmitAckPulse: target waits for host to ACK transmission
+      //// If a nak is received, that means a stop is incoming.
+      //TransmitAckPulse : begin
+      //  if (!scl_i) begin
+      //    // If host acknowledged, that means we must continue
+      //    if (host_ack) begin
+      //      state_d = TransmitWait;
+      //    end else begin
+      //      // If host nak'd then the transaction is about to terminate, go to a wait state
+      //      state_d = WaitForStop;
+      //    end
+      //  end
+      //end
+      //// An inert state just waiting for host to issue a stop
+      //// Cannot cycle back to idle directly as other events depend on the system being
+      //// non-idle.
+      //WaitForStop : begin
+      //  state_d = WaitForStop;
+      //end
+      //// AcquireByte: target acquires a byte
+      //AcquireByte : begin
+      //  if (bit_ack) begin
+      //    // We can get to this spot if we have enabled NACK timeout. It must
+      //    // mean that we have stretched when there were only two spaces left.
+      //    // Now we must NACK unconditionally.
+      //    // The other option is the ACQ FIFO was already full on the previous
+      //    // address read. We now must NACK this byte and drop it
+      //    // completely.
+      //    if (acq_fifo_full_or_last_space || nack_next_byte_q) begin
+      //      state_d = NackWait;
+      //    end else begin
+      //      state_d = AcquireAckWait;
+      //    end
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// AcquireAckWait: pause before acknowledging
+      //AcquireAckWait : begin
+      //  if (tcount_q == 20'd1 && !scl_i) begin
+      //    state_d = AcquireAckSetup;
+      //  end
+      //end
+      //// AcquireAckSetup: target pulls SDA low while SCL is low
+      //AcquireAckSetup : begin
+      //  if (scl_i) state_d = AcquireAckPulse;
+      //end
+      //// AcquireAckPulse: target pulls SDA low while SCL is released
+      //AcquireAckPulse : begin
+      //  if (!scl_i) begin
+      //    state_d = AcquireAckHold;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// AcquireAckHold: target pulls SDA low while SCL is pulled low
+      //AcquireAckHold : begin
+      //  if (tcount_q == 20'd1) begin
+      //    // If there is no space for the current entry, stretch clocks and
+      //    // wait for software to make space.
+      //    state_d = stretch_rx ? StretchAcqFull : AcquireByte;
+      //  end
+      //end
+      //// NackWait: pause before not acknowledge.
+      //NackWait : begin
+      //  if (tcount_q == 20'd1 && !scl_i) begin
+      //    state_d = NackSetup;
+      //  end
+      //end
+      //// NackSetup: target holds SDA high while SCL is low.
+      //NackSetup : begin
+      //  if (scl_i) begin
+      //    state_d = NackPulse;
+      //  end
+      //end
+      //// NackPulse: target holds SDA high while SCL is released.
+      //NackPulse : begin
+      //  if (!scl_i) begin
+      //    state_d = NackHold;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tClockStart;
+      //  end
+      //end
+      //// NackHold: target holds SDA high while SCL is pulled low.
+      //NackHold : begin
+      //  if (tcount_q == 20'd1) begin
+      //    // After sending NACK go back to Idle state.
+      //    state_d = Idle;
+      //  end
+      //end
+      //// StretchAddr: The address phase can not yet be completed, stretch
+      //// clock and wait.
+      //StretchAddr : begin
+      //  // When there is space in the FIFO go to the next state.
+      //  // If we hit our nack timeout, we must continue and NACK the next
+      //  // byte (or in the case of a transmit we notify software and wait for
+      //  // it to empty the ACQ FIFO).
+      //  if (!stretch_addr || nack_timeout) begin
+      //    // When transmitting after an address stretch, we need to assume
+      //    // that is looks like a Tx stretch.  This is because if we try
+      //    // to follow the normal path, the logic will release the clock
+      //    // too early relative to driving the data.  This will cause a
+      //    // setup violation.  This is the same case to needing StretchTxSetup.
+      //    state_d = rw_bit_q ? StretchTx : AcquireByte;
+      //  end
+      //end
+      //// StretchTx: target stretches the clock when tx conditions are not satisfied.
+      //StretchTx : begin
+      //  // When in stretch state, always notify software that help is required.
+      //  event_tx_stretch_o = 1'b1;
+      //  if (!stretch_tx) begin
+      //    // When data becomes available, we must first drive it onto the line
+      //    // for at least the "setup" period.  If we do not, once the clock is released, the
+      //    // pull-up in the system will likely immediately trigger a rising clock
+      //    // edge (since the stretch likely pushed us way beyond the original intended
+      //    // rise).  If we do not artificially create the setup period here, it will
+      //    // likely create a timing violation.
+      //    state_d = StretchTxSetup;
+      //    load_tcount = 1'b1;
+      //    tcount_sel = tSetupData;
 
-          // When leaving stretch state, de-assert software notification
-          event_tx_stretch_o = 1'b0;
-        end
-      end
-      // StretchTxSetup: Wait for tSetupData before going to transmit
-      StretchTxSetup : begin
-        if (tcount_q == 20'd1) begin
-          state_d = TransmitSetup;
-        end
-      end
-      // StretchAcqFull: target stretches the clock when acq_fifo is full
-      // When space becomes available, deposit the entry into the acqusition fifo
-      // and move on to receive the next byte.
-      // If we hit our NACK timeout we must continue and unconditionally NACK
-      // the next one.
-      StretchAcqFull : begin
-        if (~stretch_rx || nack_timeout) begin
-          state_d = AcquireByte;
-        end
-      end
+      //    // When leaving stretch state, de-assert software notification
+      //    event_tx_stretch_o = 1'b0;
+      //  end
+      //end
+      //// StretchTxSetup: Wait for tSetupData before going to transmit
+      //StretchTxSetup : begin
+      //  if (tcount_q == 20'd1) begin
+      //    state_d = TransmitSetup;
+      //  end
+      //end
+      //// StretchAcqFull: target stretches the clock when acq_fifo is full
+      //// When space becomes available, deposit the entry into the acqusition fifo
+      //// and move on to receive the next byte.
+      //// If we hit our NACK timeout we must continue and unconditionally NACK
+      //// the next one.
+      //StretchAcqFull : begin
+      //  if (~stretch_rx || nack_timeout) begin
+      //    state_d = AcquireByte;
+      //  end
+      //end
       // default
       default : begin
         state_d = Idle;

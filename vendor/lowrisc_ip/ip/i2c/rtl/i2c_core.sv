@@ -200,7 +200,8 @@ module i2c_core import i2c_pkg::*;
   assign sda_o = override ? reg2hw.ovrd.sdaval : sda_out_fsm;
 
   assign host_enable = reg2hw.ctrl.enablehost.q;
-  assign target_enable = reg2hw.ctrl.enabletarget.q;
+  //assign target_enable = reg2hw.ctrl.enabletarget.q;
+  assign target_enable = 1'b0;
   assign line_loopback = reg2hw.ctrl.llpbk.q;
 
   // Target loopback simply plays back whatever is received from the external host
