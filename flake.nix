@@ -36,9 +36,9 @@
         };
       };
 
-      sonata-simulator = pkgs.stdenv.mkDerivation {
+      sonata-simulator = pkgs.stdenv.mkDerivation rec {
         inherit version;
-        pname = "sonata-system-simulator";
+        pname = "sonata-simulator";
         src = ./.;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.python311Packages.pip] ++ (with lrPkgs; [python_ot verilator_ot]);
@@ -51,8 +51,9 @@
         '';
         installPhase = ''
           mkdir -p $out/bin/
-          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/
+          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/${pname}
         '';
+        meta.mainProgram = pname;
       };
     in {
       formatter = pkgs.alejandra;
