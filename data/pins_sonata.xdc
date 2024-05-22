@@ -130,35 +130,41 @@ set_property -dict { PACKAGE_PIN E18 IOSTANDARD LVCMOS33 } [get_ports ser1_tx];
 set_property -dict { PACKAGE_PIN G18 IOSTANDARD LVCMOS33 } [get_ports ser1_rx];
 
 # QWIIC and Arduino Shield
-# set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports sda0];
-# set_property -dict { PACKAGE_PIN V9 IOSTANDARD LVCMOS33 } [get_ports scl0];
+set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports sda0];
+set_property -dict { PACKAGE_PIN V9 IOSTANDARD LVCMOS33 } [get_ports scl0];
 
 # QWIIC
-# set_property -dict { PACKAGE_PIN V7 IOSTANDARD LVCMOS33 } [get_ports sda1];
-# set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 } [get_ports scl1];
+set_property -dict { PACKAGE_PIN V7 IOSTANDARD LVCMOS33 } [get_ports sda1];
+set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 } [get_ports scl1];
 
 # mikroBUS Click
-# set_property -dict { PACKAGE_PIN V1 IOSTANDARD LVCMOS33 } [get_ports sda0];
-# set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports scl0];
+set_property -dict { PACKAGE_PIN V1 IOSTANDARD LVCMOS33 } [get_ports mb5]; # SDA
+set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports mb6]; # SCL
+# Enable pull-ups because this I2C bus will often be undriven externally.
+set_property PULLUP true [get_ports mb5]
+set_property PULLUP true [get_ports mb6]
 
 # R-Pi Header
 
 # GPIO/I2C bus
-set_property -dict { PACKAGE_PIN L13 IOSTANDARD LVCMOS33 } [get_ports sda1];
+set_property -dict { PACKAGE_PIN L13 IOSTANDARD LVCMOS33 } [get_ports rph_g2_sda];
 # rev 0.3+
-set_property -dict { PACKAGE_PIN M16 IOSTANDARD LVCMOS33 } [get_ports scl1];
+set_property -dict { PACKAGE_PIN M16 IOSTANDARD LVCMOS33 } [get_ports rph_g3_scl];
 # rev <= 0.2
-# set_property -dict { PACKAGE_PIN K18 IOSTANDARD LVCMOS33 } [get_ports scl1];
+# set_property -dict { PACKAGE_PIN K18 IOSTANDARD LVCMOS33 } [get_ports rph_g3_scl];
 
-# I2C - Enable the internal pull-up resistors, if there are no external resistors on the PCB.
 # for the rev <= 0.2 boards
-# set_property PULLUP true [get_ports sda1]
-# set_property PULLUP true [get_ports scl1]
+# enable the internal pull-up resistors, if there are no external resistors on the PCB.
+# set_property PULLUP true [get_ports rph_g2_sda]
+# set_property PULLUP true [get_ports rph_g3_scl]
 # rev 0.5+ have on-board pull ups
 
 # ID_SC/SD - I2C bus for HAT ID EEPROM; pull-ups are on the HAT itself
-set_property -dict { PACKAGE_PIN T15 IOSTANDARD LVCMOS33 } [get_ports scl0];
-set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports sda0];
+set_property -dict { PACKAGE_PIN T15 IOSTANDARD LVCMOS33 } [get_ports rph_g1]; # ID_SC
+set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports rph_g0]; # ID_SD
+# Enable pull-ups because this I2C bus will often be undriven externally.
+set_property PULLUP true [get_ports rph_g1]
+set_property PULLUP true [get_ports rph_g0]
 
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
