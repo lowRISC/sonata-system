@@ -41,12 +41,23 @@ module top_sonata (
   output logic       ser1_tx,
   input  logic       ser1_rx,
 
-  // I2C buses
-  inout  logic       scl0,
+  // QWIIC (Sparkfun) buses
+  inout  logic       scl0,  // qwiic0 and Arduino Header
   inout  logic       sda0,
 
-  output logic       scl1,
-  output logic       sda1,
+  inout  logic       scl1,  // qwiic1
+  inout  logic       sda1,
+
+  // R-Pi header I2c buses
+  inout  logic       rph_g3_scl,  // SCL1/GPIO3 on Header
+  inout  logic       rph_g2_sda,  // SDA1/GPIO2
+
+  inout  logic       rph_g1,  // ID_SC for HAT ID EEPROM
+  inout  logic       rph_g0,  // ID_SD
+
+  // mikroBUS Click I2C bus
+  inout  logic       mb6,     // SCL
+  inout  logic       mb5,     // SDA
 
   // Status input from USB transceiver
   input  logic       usrusb_vbusdetect,
@@ -124,12 +135,32 @@ module top_sonata (
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
-  // Open Drain drivers onto I2C bus.
+  // Open Drain drivers onto I2C buses.
+  // TODO: move this into two parameterised I2C splitter modules?
   assign scl0 = scl0_oe ? scl0_o : 1'bZ;
   assign sda0 = sda0_oe ? sda0_o : 1'bZ;
 
   assign scl1 = scl1_oe ? scl1_o : 1'bZ;
   assign sda1 = sda1_oe ? sda1_o : 1'bZ;
+
+  // I2C bus to GPIO2/3
+  assign rph_g3_scl = scl1_oe ? scl1_o : 1'bZ;
+  assign rph_g2_sda = sda1_oe ? sda1_o : 1'bZ;
+
+  // HAT ID EEPROM
+  assign rph_g1 = scl0_oe ? scl0_o : 1'bZ;
+  assign rph_g0 = sda0_oe ? sda0_o : 1'bZ;
+
+  // mikroBUS Click I2C bus
+  assign mb6 = scl1_oe ? scl1_o : 1'bZ;
+  assign mb5 = sda1_oe ? sda1_o : 1'bZ;
+
+  // Inputs from I2C buses.
+  wire scl0_i = scl0 & rph_g1;
+  wire sda0_i = sda0 & rph_g0;
+
+  wire scl1_i = scl1 & rph_g3_scl & mb6;
+  wire sda1_i = sda1 & rph_g2_sda & mb5;
 
   // DIP switches are OFF by default and employ a pull up, which means CHERI shall enabled by
   // default; sample this once when leaving reset as a development aid during bring up.
@@ -191,18 +222,18 @@ module top_sonata (
     .cheri_en_o     (cheri_en),
 
     // I2C bus 0
-    .i2c0_scl_i     (scl0),
+    .i2c0_scl_i     (scl0_i),
     .i2c0_scl_o     (scl0_o),
     .i2c0_scl_en_o  (scl0_oe),
-    .i2c0_sda_i     (sda0),
+    .i2c0_sda_i     (sda0_i),
     .i2c0_sda_o     (sda0_o),
     .i2c0_sda_en_o  (sda0_oe),
 
     // I2C bus 1
-    .i2c1_scl_i     (scl1),
+    .i2c1_scl_i     (scl1_i),
     .i2c1_scl_o     (scl1_o),
     .i2c1_scl_en_o  (scl1_oe),
-    .i2c1_sda_i     (sda1),
+    .i2c1_sda_i     (sda1_i),
     .i2c1_sda_o     (sda1_o),
     .i2c1_sda_en_o  (sda1_oe),
 
