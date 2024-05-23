@@ -24,15 +24,11 @@ The LEDs besides the switch show the current image selected as well for confirma
 In case you have trouble with the board, you can quickly switch to Slot 1 to confirm the LCD, LEDs, and similar are all functioning correctly. However there is no problem
 to overwrite any of the slots, the default image can easily be copied back if you want later.
 
-> TODO - do we want to recommend a different slot?
-
 ## Drag & Drop Programming
-
-> TODO: Where is this bitstream located? Assume it's built by CI, or do we have a release version?
 
 To program the Sonata bitstream:
 
-1. Download `lowrisc_sonata_system_0.bit` from THEBESTURL.COM/lowrisc_sonata_system_0.bit
+1. Download the bitstream from [our releases](https://github.com/lowRISC/sonata-system/releases)
 2. Select slot 2 using switch SW3 (`Bitstream`)
 3. Plug in Sonata board. You should see a SONATA drive (see troubleshooting section if unsure).
 4. Drag the updated `.bit` file and wait for the copy to complete (on Linux note the copy command may return immediately, so you need to wait until it's done.)
