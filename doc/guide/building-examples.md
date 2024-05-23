@@ -2,11 +2,39 @@
 
 The following contains some simple examples you can build for the Sonata board. Once you've got these builds working, you can easily add more features to the example code.
 
-## Additional Toolchain Setup
+## Using our template
+
+Please go to the [Sonata software repository](https://github.com/lowRISC/sonata-software) and build a full application from there.
+Inside your setup you should simply be able to build it like this:
+
+```sh
+git clone --recurse-submodule \
+    https://github.com/lowRISC/sonata-software.git
+cd sonata-software
+xmake config --board=sonata
+xmake build
+```
+
+After running this you should see the build run to completion and report success, the critical lines indicating a successful build are (note output size may differ):
+
+```sh
+Converted to uf2, output size: 74752, start address: 0x101000
+Wrote 74752 bytes to build/cheriot/cheriot/release/sonata_simple_demo.uf2
+[100%]: build ok, spent 6.827s
+```
+
+You can drag and drop this UF2 file into the `SONATA` drive to program the firmware.
+
+## Baremetal examples
+
+This is only for advanced users.
+If you want to build the baremetal examples in the Sonata repo you can follow these instructions.
+
+### Additional Toolchain Setup
 
 Besides the compiler, there are a few more features the example code depends on:
 
-### SRecord Tools
+#### SRecord Tools
 
 The makefile assumes srecord tools, which you can install with:
 
@@ -14,7 +42,7 @@ The makefile assumes srecord tools, which you can install with:
 sudo apt install srecord
 ```
 
-### CHERIoT RTOS SDK Installation
+#### CHERIoT RTOS SDK Installation
 
 You will need a copy of [CHERIoT RTOS](https://github.com/microsoft/cheriot-rtos/tree/main) for this section.
 
@@ -41,7 +69,7 @@ export CHERIOT_RTOS_SDK=/path/to/cheriot-rtos/sdk
 The following assume you have run the `source .venv/bin/activate` command in the terminal you are using, and you are
 currently at the root directory of your local `sonata-system` git repository.
 
-## Building All Examples
+### Building Baremetal Examples
 
 > TODO: We should tell them where to get the SW. And especially point out it must match
 > the bitstream version again (all downloaded at one point).
