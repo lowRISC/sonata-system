@@ -6,7 +6,15 @@ special toolchain from source. Luckily, it should be easy if you follow our simp
 If building on Windows, the following instructions have also been confirmed to work with WSL2 with the exception of `edalize` and `fusesoc`,
 which *are not required for software development*.
 
-## Sonata Setup
+## Nix Setup
+
+We recommend using Nix for your setup.
+You can find instructions on how to do this in the [Sonata software repository](https://github.com/lowRISC/sonata-software).
+This also includes a GitHub Codespaces that sets a whole environment up for you in the browser.
+
+## Manual Setup
+
+### Sonata Setup
 
 ```sh
 git clone https://github.com/lowRISC/sonata-system
@@ -31,7 +39,7 @@ cd sonata-system
 source .venv/bin/activate
 ```
 
-## Building Toolchain
+### Building Toolchain
 
 To build the toolchain, you'll need:
 
