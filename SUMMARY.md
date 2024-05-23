@@ -8,7 +8,6 @@
   - [Building Examples](doc/guide/building-examples.md)
 
 - [Developer Guide](doc/dev/developing.md)
-  - [Debugger Support](doc/dev/sw-debug.md)
   - [Programming Sonata Software](doc/dev/sw-programming.md)
   - [Reference Manual for Sonata Core](doc/dev/ref-manual.md)
       - [Ibex](doc/ip/ibex.md)
@@ -20,11 +19,8 @@
       - [SPI host](doc/ip/spi.md)
       - [USB device](doc/ip/usb.md)
       - [HyperRAM](doc/ip/ram.md)
-      - [DMA](doc/ip/dma.md)
-      - [ADC](doc/ip/adc.md)
       - [PWM](doc/ip/pwm.md)
       - [PLIC](doc/ip/plic.md)
-      - [Pinmux](doc/ip/pinmux.md)
   - [FPGA Development](doc/dev/fpga-development.md)
       - [FPGA Programming](doc/dev/fpga-programming.md)
   - [Simulation Environment](doc/dev/simulation.md)
@@ -35,6 +31,4 @@
   - [Updating Firmware]()
   - [Building RP2040 Firmware]()
   - [Schematics]()
-
-
 
