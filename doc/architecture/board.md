@@ -94,3 +94,11 @@ We recommend the following default state for the dipswitches:
     - SW1 : all set to on
     - SW2 : 1-6 set to on and 7-8 set to off
 
+## RP2040 firmware
+
+You can build new RP2040 firmware (or find release UF2 files) from the [Sonata RP2040 repository](https://github.com/newaetech/sonata-rp2040).
+
+With that UF2 file you can now update your firmware by holding down SW9, labelled "RP2040 Boot".
+While holding this button plug your Sonata board in using the main USB.
+A drive called `RPI-RP2` should now appear which you can drag the UF2 file onto.
+
