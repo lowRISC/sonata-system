@@ -27,8 +27,4 @@
   - [Building Documentation](doc/dev/building-doc.md)
 
 - [Sonata Board](doc/architecture/board.md)
-  - [DIP Switch Settings]()
-  - [Updating Firmware]()
-  - [Building RP2040 Firmware]()
-  - [Schematics]()
 
