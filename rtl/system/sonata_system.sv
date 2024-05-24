@@ -21,82 +21,86 @@ module sonata_system #(
   parameter SRAMInitFile               = ""
 ) (
   // Main system clock and reset
-  input logic                 clk_sys_i,
-  input logic                 rst_sys_ni,
+  input logic                      clk_sys_i,
+  input logic                      rst_sys_ni,
 
   // USB device clock and reset
-  input logic                 clk_usb_i,
-  input logic                 rst_usb_ni,
+  input logic                      clk_usb_i,
+  input logic                      rst_usb_ni,
 
-  input  logic [GpiWidth-1:0] gp_i,
-  output logic [GpoWidth-1:0] gp_o,
-  output logic [PwmWidth-1:0] pwm_o,
+  // General purpose input and output
+  input  logic [GpiWidth-1:0]      gp_i,
+  output logic [GpoWidth-1:0]      gp_o,
+  output logic [PwmWidth-1:0]      pwm_o,
 
   // UART 0
-  input  logic                uart0_rx_i,
-  output logic                uart0_tx_o,
+  input  logic                     uart0_rx_i,
+  output logic                     uart0_tx_o,
 
   // UART 1
-  input  logic                uart1_rx_i,
-  output logic                uart1_tx_o,
+  input  logic                     uart1_rx_i,
+  output logic                     uart1_tx_o,
 
-  input  logic                spi_flash_rx_i,
-  output logic                spi_flash_tx_o,
-  output logic                spi_flash_sck_o,
+  // SPI flash
+  input  logic                     spi_flash_rx_i,
+  output logic                     spi_flash_tx_o,
+  output logic                     spi_flash_sck_o,
 
-  input  logic                spi_lcd_rx_i,
-  output logic                spi_lcd_tx_o,
-  output logic                spi_lcd_sck_o,
+  // SPI for LCD screen
+  input  logic                     spi_lcd_rx_i,
+  output logic                     spi_lcd_tx_o,
+  output logic                     spi_lcd_sck_o,
 
-  input  logic                spi_eth_rx_i,
-  output logic                spi_eth_tx_o,
-  output logic                spi_eth_sck_o,
-  input  logic                spi_eth_irq_ni, // Interrupt from Ethernet MAC
+  // SPI for ethernet
+  input  logic                     spi_eth_rx_i,
+  output logic                     spi_eth_tx_o,
+  output logic                     spi_eth_sck_o,
+  input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
-  input  logic tck_i,   // JTAG test clock pad
-  input  logic tms_i,   // JTAG test mode select pad
-  input  logic trst_ni, // JTAG test reset pad
-  input  logic td_i,    // JTAG test data input pad
-  output logic td_o,    // JTAG test data output pad
+  // User JTAG
+  input  logic                     tck_i,   // JTAG test clock pad
+  input  logic                     tms_i,   // JTAG test mode select pad
+  input  logic                     trst_ni, // JTAG test reset pad
+  input  logic                     td_i,    // JTAG test data input pad
+  output logic                     td_o,    // JTAG test data output pad
 
-  // TODO: Development assistance.
-  input  logic                     cheri_en_i,
-
+  // CHERI signals
+  input  logic                     cheri_en_i, // TODO: Development assistance.
   output logic [CheriErrWidth-1:0] cheri_err_o,
   output logic                     cheri_en_o,
 
   // I2C bus 0
-  input  logic                i2c0_scl_i,
-  output logic                i2c0_scl_o,
-  output logic                i2c0_scl_en_o,
-  input  logic                i2c0_sda_i,
-  output logic                i2c0_sda_o,
-  output logic                i2c0_sda_en_o,
+  input  logic                     i2c0_scl_i,
+  output logic                     i2c0_scl_o,
+  output logic                     i2c0_scl_en_o,
+  input  logic                     i2c0_sda_i,
+  output logic                     i2c0_sda_o,
+  output logic                     i2c0_sda_en_o,
 
   // I2C bus 1
-  input  logic                i2c1_scl_i,
-  output logic                i2c1_scl_o,
-  output logic                i2c1_scl_en_o,
-  input  logic                i2c1_sda_i,
-  output logic                i2c1_sda_o,
-  output logic                i2c1_sda_en_o,
+  input  logic                     i2c1_scl_i,
+  output logic                     i2c1_scl_o,
+  output logic                     i2c1_scl_en_o,
+  input  logic                     i2c1_sda_i,
+  output logic                     i2c1_sda_o,
+  output logic                     i2c1_sda_en_o,
 
   // Reception from USB host via transceiver
-  input  logic                usb_dp_i,
-  input  logic                usb_dn_i,
-  input  logic                usb_rx_d_i,
+  input  logic                     usb_dp_i,
+  input  logic                     usb_dn_i,
+  input  logic                     usb_rx_d_i,
 
   // Transmission to USB host via transceiver
-  output logic                usb_dp_o,
-  output logic                usb_dp_en_o,
-  output logic                usb_dn_o,
-  output logic                usb_dn_en_o,
+  output logic                     usb_dp_o,
+  output logic                     usb_dp_en_o,
+  output logic                     usb_dn_o,
+  output logic                     usb_dn_en_o,
 
   // Configuration and control of USB transceiver
-  input  logic                usb_sense_i,
-  output logic                usb_dp_pullup_o,
-  output logic                usb_dn_pullup_o,
-  output logic                usb_rx_enable_o
+  input  logic                     usb_sense_i,
+  output logic                     usb_dp_pullup_o,
+  output logic                     usb_dn_pullup_o,
+  output logic                     usb_rx_enable_o
 );
 
   ///////////////////////////////////////////////
