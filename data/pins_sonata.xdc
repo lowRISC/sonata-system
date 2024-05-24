@@ -194,6 +194,16 @@ set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio14
 ## Chip select
 set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio10];
 
+## mikro BUS SPI
+## COPI
+set_property -dict { PACKAGE_PIN T3  IOSTANDARD LVCMOS33 } [get_ports mb4];
+## CIPO
+set_property -dict { PACKAGE_PIN U1  IOSTANDARD LVCMOS33 } [get_ports mb3];
+## SCLK
+set_property -dict { PACKAGE_PIN T1  IOSTANDARD LVCMOS33 } [get_ports mb2];
+## Chip select
+set_property -dict { PACKAGE_PIN R1  IOSTANDARD LVCMOS33 } [get_ports mb1];
+
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 
