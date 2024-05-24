@@ -72,7 +72,7 @@ set_property -dict { PACKAGE_PIN N1  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[
 set_property -dict { PACKAGE_PIN M3  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[7]}];
 set_property -dict { PACKAGE_PIN M2  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[8]}];
 
-# USRUSB interface
+## USRUSB interface
 set_property -dict { PACKAGE_PIN G1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_spd}];
 set_property -dict { PACKAGE_PIN G6  IOSTANDARD LVCMOS18 } [get_ports {usrusb_v_p}];
 set_property -dict { PACKAGE_PIN F6  IOSTANDARD LVCMOS18 } [get_ports {usrusb_v_n}];
@@ -84,7 +84,7 @@ set_property -dict { PACKAGE_PIN J3  IOSTANDARD LVCMOS18 } [get_ports {usrusb_oe
 set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS18 } [get_ports {usrusb_sus}];
 set_property -dict { PACKAGE_PIN K1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vbusdetect}];
 
-# PMOD0
+## PMOD0
 # set_property -dict { PACKAGE_PIN H14 IOSTANDARD LVCMOS33 } [get_ports {pmod0_1}];
 # set_property -dict { PACKAGE_PIN F16 IOSTANDARD LVCMOS33 } [get_ports {pmod0_2}];
 # set_property -dict { PACKAGE_PIN F15 IOSTANDARD LVCMOS33 } [get_ports {pmod0_3}];
@@ -94,7 +94,7 @@ set_property -dict { PACKAGE_PIN K1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vb
 # set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 } [get_ports {pmod0_7}];
 # set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 } [get_ports {pmod0_8}];
 
-# PMOD1
+## PMOD1
 # set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_1}];
 # set_property -dict { PACKAGE_PIN E16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_2}];
 # set_property -dict { PACKAGE_PIN A18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_3}];
@@ -129,40 +129,40 @@ set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVCMOS33 } [get_ports ser0_rx];
 set_property -dict { PACKAGE_PIN E18 IOSTANDARD LVCMOS33 } [get_ports ser1_tx];
 set_property -dict { PACKAGE_PIN G18 IOSTANDARD LVCMOS33 } [get_ports ser1_rx];
 
-# QWIIC and Arduino Shield
+## QWIIC and Arduino Shield
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports sda0];
 set_property -dict { PACKAGE_PIN V9 IOSTANDARD LVCMOS33 } [get_ports scl0];
 
-# QWIIC
+## QWIIC
 set_property -dict { PACKAGE_PIN V7 IOSTANDARD LVCMOS33 } [get_ports sda1];
 set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 } [get_ports scl1];
 
-# mikroBUS Click
+## mikroBUS Click
 set_property -dict { PACKAGE_PIN V1 IOSTANDARD LVCMOS33 } [get_ports mb5]; # SDA
 set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports mb6]; # SCL
 # Enable pull-ups because this I2C bus will often be undriven externally.
 set_property PULLUP true [get_ports mb5]
 set_property PULLUP true [get_ports mb6]
 
-# R-Pi Header
+## R-Pi Header
 
-# GPIO/I2C bus
+## GPIO/I2C bus
 set_property -dict { PACKAGE_PIN L13 IOSTANDARD LVCMOS33 } [get_ports rph_g2_sda];
-# rev 0.3+
+## rev 0.3+
 set_property -dict { PACKAGE_PIN M16 IOSTANDARD LVCMOS33 } [get_ports rph_g3_scl];
-# rev <= 0.2
+## rev <= 0.2
 # set_property -dict { PACKAGE_PIN K18 IOSTANDARD LVCMOS33 } [get_ports rph_g3_scl];
 
-# for the rev <= 0.2 boards
-# enable the internal pull-up resistors, if there are no external resistors on the PCB.
+## for the rev <= 0.2 boards
+## enable the internal pull-up resistors, if there are no external resistors on the PCB.
 # set_property PULLUP true [get_ports rph_g2_sda]
 # set_property PULLUP true [get_ports rph_g3_scl]
-# rev 0.5+ have on-board pull ups
+## rev 0.5+ have on-board pull ups
 
-# ID_SC/SD - I2C bus for HAT ID EEPROM; pull-ups are on the HAT itself
+## ID_SC/SD - I2C bus for HAT ID EEPROM; pull-ups are on the HAT itself
 set_property -dict { PACKAGE_PIN T15 IOSTANDARD LVCMOS33 } [get_ports rph_g1]; # ID_SC
 set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports rph_g0]; # ID_SD
-# Enable pull-ups because this I2C bus will often be undriven externally.
+## Enable pull-ups because this I2C bus will often be undriven externally.
 set_property PULLUP true [get_ports rph_g1]
 set_property PULLUP true [get_ports rph_g0]
 
@@ -181,7 +181,7 @@ set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS33 } [get_ports appspi_d2]
 set_property -dict { PACKAGE_PIN A9  IOSTANDARD LVCMOS33 } [get_ports appspi_d3];
 set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports appspi_cs];
 
-# Ethernet MAC
+## Ethernet MAC
 set_property -dict { PACKAGE_PIN J5  IOSTANDARD LVCMOS18 } [get_ports ethmac_rst];
 set_property -dict { PACKAGE_PIN D5  IOSTANDARD LVCMOS18 } [get_ports ethmac_copi];
 set_property -dict { PACKAGE_PIN E3  IOSTANDARD LVCMOS18 } [get_ports ethmac_sclk];
