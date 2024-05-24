@@ -3,6 +3,7 @@
 [Introduction](README.md)
 
 - [Getting started](doc/guide/getting-started.md)
+  - [Reloading the RP2040](doc/guide/rp2040-update.md)
   - [Reloading the FPGA Image](doc/guide/fpga-update.md)
   - [Software Toolchain Setup](doc/guide/toolchain-setup.md)
   - [Building Examples](doc/guide/building-examples.md)
