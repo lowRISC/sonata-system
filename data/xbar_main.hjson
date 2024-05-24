@@ -149,6 +149,26 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "spi_rp0", // Serial peripheral interface for R-Pi header
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80303000",
+        size_byte: "0x00001000",
+      }],
+    },
+    { name:  "spi_rp1", // Serial peripheral interface for R-Pi header
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80304000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "usbdev", // USB device
       type:  "device",
       clock: "clk_usb_i",
@@ -185,6 +205,8 @@
       "spi_flash",
       "spi_lcd",
       "spi_eth",
+      "spi_rp0",
+      "spi_rp1",
       "usbdev",
       "rv_plic",
     ],

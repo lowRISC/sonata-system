@@ -55,6 +55,20 @@ module top_sonata (
   inout  logic       rph_g1,  // ID_SC for HAT ID EEPROM
   inout  logic       rph_g0,  // ID_SD
 
+  // R-Pi header SPI buses
+  output logic       rph_g11_sclk, // SPI0
+  output logic       rph_g10_copi, // SPI0
+  input  logic       rph_g9_cipo,  // SPI0
+  output logic       rph_g8_ce0,   // SPI0
+  output logic       rph_g7_ce1,   // SPI0
+
+  output logic       rph_g21_sclk, // SPI1
+  output logic       rph_g20_copi, // SPI1
+  input  logic       rph_g19_cipo, // SPI1
+  output logic       rph_g18,      // SPI1 CE0
+  output logic       rph_g17,      // SPI1 CE1
+  output logic       rph_g16_ce2,  // SPI1
+
   // mikroBUS Click I2C bus
   inout  logic       mb6,     // SCL
   inout  logic       mb5,     // SDA
@@ -170,7 +184,7 @@ module top_sonata (
 
   sonata_system #(
     .GpiWidth     ( 13           ),
-    .GpoWidth     ( 15           ),
+    .GpoWidth     ( 20           ),
     .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
@@ -184,7 +198,14 @@ module top_sonata (
     .rst_usb_ni     (rst_usb_n),
 
     .gp_i           ({user_sw_n, nav_sw_n}),
-    .gp_o           ({ethmac_rst, ethmac_cs, appspi_cs, usrLed, lcd_backlight, lcd_dc, lcd_rst, lcd_cs}),
+    .gp_o           ({
+                      rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
+                      rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
+                      ethmac_rst, ethmac_cs, // Ethernet
+                      appspi_cs, // Flash
+                      usrLed, // User LEDs (8 bits)
+                      lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
+                    }),
 
     // UART 0
     .uart0_rx_i     (ser0_rx),
@@ -211,6 +232,16 @@ module top_sonata (
     .spi_eth_tx_o   (ethmac_copi),
     .spi_eth_sck_o  (ethmac_sclk),
     .spi_eth_irq_ni (ethmac_intr),
+
+    // SPI0 on the R-Pi header
+    .spi_rp0_rx_i   (rph_g9_cipo),
+    .spi_rp0_tx_o   (rph_g10_copi),
+    .spi_rp0_sck_o  (rph_g11_sclk),
+
+    // SPI1 on the R-Pi header
+    .spi_rp1_rx_i   (rph_g19_cipo),
+    .spi_rp1_tx_o   (rph_g20_copi),
+    .spi_rp1_sck_o  (rph_g21_sclk),
 
     // CHERI signals
     .cheri_en_i     (enable_cheri),
