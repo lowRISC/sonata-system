@@ -48,7 +48,7 @@ module top_sonata (
   inout  logic       scl1,  // qwiic1
   inout  logic       sda1,
 
-  // R-Pi header I2c buses
+  // R-Pi header I2C buses
   inout  logic       rph_g3_scl,  // SCL1/GPIO3 on Header
   inout  logic       rph_g2_sda,  // SDA1/GPIO2
 
@@ -80,17 +80,19 @@ module top_sonata (
   output logic       usrusb_oe,
   output logic       usrusb_sus,
 
+  // User JTAG
   input  logic       tck_i,
   input  logic       tms_i,
   input  logic       td_i,
   output logic       td_o,
 
-  output logic appspi_clk,
-  output logic appspi_d0, // COPI (controller output peripheral input)
-  input  logic appspi_d1, // CIPO (controller input peripheral output)
-  output logic appspi_d2, // WP_N (write protect negated)
-  output logic appspi_d3, // HOLD_N or RESET_N
-  output logic appspi_cs  // Chip select negated
+  // SPI flash interface
+  output logic       appspi_clk,
+  output logic       appspi_d0, // COPI (controller output peripheral input)
+  input  logic       appspi_d1, // CIPO (controller input peripheral output)
+  output logic       appspi_d2, // WP_N (write protect negated)
+  output logic       appspi_d3, // HOLD_N or RESET_N
+  output logic       appspi_cs  // Chip select negated
 );
   // System clock frequency.
   parameter int SysClkFreq = 30_000_000;
@@ -194,19 +196,23 @@ module top_sonata (
 
     .pwm_o(),
 
+    // SPI for LCD screen
     .spi_lcd_rx_i   (1'b0),
     .spi_lcd_tx_o   (lcd_copi),
     .spi_lcd_sck_o  (lcd_clk),
 
+    // SPI for flash memory
     .spi_flash_rx_i (appspi_d1),
     .spi_flash_tx_o (appspi_d0),
     .spi_flash_sck_o(appspi_clk),
 
+    // SPI for ethernet
     .spi_eth_rx_i   (ethmac_cipo),
     .spi_eth_tx_o   (ethmac_copi),
     .spi_eth_sck_o  (ethmac_sclk),
     .spi_eth_irq_ni (ethmac_intr),
 
+    // CHERI signals
     .cheri_en_i     (enable_cheri),
     .cheri_err_o    (cheriErr),
     .cheri_en_o     (cheri_en),
@@ -244,6 +250,7 @@ module top_sonata (
     .usb_dn_pullup_o  (),
     .usb_rx_enable_o  (rx_enable_d2p),
 
+    // User JTAG
     .tck_i,
     .tms_i,
     .trst_ni(rst_sys_n),
