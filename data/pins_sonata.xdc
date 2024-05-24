@@ -184,6 +184,16 @@ set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports rph_g0]; #
 set_property PULLUP true [get_ports rph_g1]
 set_property PULLUP true [get_ports rph_g0]
 
+## Arduino Shield SPI
+## COPI
+set_property -dict { PACKAGE_PIN M13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio17];
+## SCLK
+set_property -dict { PACKAGE_PIN P14 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio15];
+## CIPO
+set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio14];
+## Chip select
+set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio10];
+
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 
