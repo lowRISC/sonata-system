@@ -91,9 +91,35 @@ If the `FPGA Config` LED is not coming on, this could indicate the bitstream was
 
 If the `FPGA Config` LED is on but the `Ibex Boot` LED is not, it may be that you have programmed (or selected) a different bitstream than one that runs the CHERIoT demo. Try reloading the bitstream, and try power cycling the device.
 
-### Device Rebooting During/After Programming
+### Device Rebooting During/After Programming (No Serial Activity)
 
 The Sonata board takes a fair amount of power (>500mA) from the USB interface, and should be connected via USB-C. Typically it is close enough to the USB 2.0 limits that it will work with the adapter most of the time, but if you are having reliability issues we recommend trying a different computer, ideally one with a USB-C port.
+
+If you use a [recent openFPGALoader build from at least May 25, 2024](https://github.com/trabucayre/openFPGALoader) you can print the min/max VCCINT ranges. To do this, simply run:
+
+```sh
+openFPGALoader -c ft4232 -X
+```
+
+This will print several XADC values, pay careful attention to `minvccint`:
+
+```
+{"temp": 39.9061, 
+    "maxtemp": 40.3194, 
+    "mintemp": 25.9852, 
+"raw":  {"0": 40684, "1": 21949, "2": 39270, "3": 0, "4": 0, "5": 0, "6": 21948, "7": 0},
+"vccint": 1.00415, 
+   "maxvccint": 1.00635, 
+   "minvccint": 1.00195, 
+"vccaux": 1.79663, 
+   "maxvccaux": 1.79883, 
+   "minvccaux": 1.79517, 
+}
+```
+
+The `minvccint` and `maxvccint` should be fairly close as shown here. Larger ranges indicate possible ringing, or a `minvccint` near or below 0.95V indicates a brown-out. You can compare the results of loading a different bitstream to see what is normal for your board.
+
+See note below about if you get permissions error running `openFPGALoader`.
 
 ### FPGA Programming via USB/JTAG
 
