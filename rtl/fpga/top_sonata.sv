@@ -79,6 +79,12 @@ module top_sonata (
   inout  logic       mb6,     // SCL
   inout  logic       mb5,     // SDA
 
+  // mikroBUS Click SPI
+  output logic       mb4, // COPI
+  input  logic       mb3, // CIPO
+  output logic       mb2, // SCK
+  output logic       mb1, // Chip select
+
   // Status input from USB transceiver
   input  logic       usrusb_vbusdetect,
 
@@ -190,7 +196,7 @@ module top_sonata (
 
   sonata_system #(
     .GpiWidth     ( 13           ),
-    .GpoWidth     ( 21           ),
+    .GpoWidth     ( 22           ),
     .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
@@ -205,6 +211,7 @@ module top_sonata (
 
     .gp_i           ({user_sw_n, nav_sw_n}),
     .gp_o           ({
+                      mb1, // mikroBUS Click chip select
                       ah_tmpio10, // Arduino shield chip select
                       rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
                       rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
@@ -254,6 +261,11 @@ module top_sonata (
     .spi_ard_rx_i   (ah_tmpio14), // CIPO
     .spi_ard_tx_o   (ah_tmpio17), // COPI
     .spi_ard_sck_o  (ah_tmpio15), // SCLK
+
+    // SPI on mikroBUS Click
+    .spi_mkr_rx_i   (mb3), // CIPO
+    .spi_mkr_tx_o   (mb4), // COPI
+    .spi_mkr_sck_o  (mb2), // SCLK
 
     // CHERI signals
     .cheri_en_i     (enable_cheri),
