@@ -77,6 +77,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .spi_rp1_tx_o ( ),
     .spi_rp1_sck_o( ),
 
+    .spi_ard_rx_i (0),
+    .spi_ard_tx_o ( ),
+    .spi_ard_sck_o( ),
+
     .cheri_en_i (EnableCHERI),
     // CHERI output
     .cheri_err_o(),

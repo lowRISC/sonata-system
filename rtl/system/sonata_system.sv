@@ -67,6 +67,11 @@ module sonata_system #(
   output logic                     spi_rp1_tx_o,
   output logic                     spi_rp1_sck_o,
 
+  // SPI on Arduino shield
+  input  logic                     spi_ard_rx_i,
+  output logic                     spi_ard_tx_o,
+  output logic                     spi_ard_sck_o,
+
   // User JTAG
   input  logic                     tck_i,   // JTAG test clock pad
   input  logic                     tms_i,   // JTAG test mode select pad
@@ -396,6 +401,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_spi_rp0_d2h;
   tlul_pkg::tl_h2d_t tl_spi_rp1_h2d;
   tlul_pkg::tl_d2h_t tl_spi_rp1_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_ard_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_ard_d2h;
   tlul_pkg::tl_h2d_t tl_usbdev_h2d;
   tlul_pkg::tl_d2h_t tl_usbdev_d2h;
   tlul_pkg::tl_h2d_t tl_rev_h2d;
@@ -442,6 +449,8 @@ module sonata_system #(
     .tl_spi_rp0_i  (tl_spi_rp0_d2h),
     .tl_spi_rp1_o  (tl_spi_rp1_h2d),
     .tl_spi_rp1_i  (tl_spi_rp1_d2h),
+    .tl_spi_ard_o  (tl_spi_ard_h2d),
+    .tl_spi_ard_i  (tl_spi_ard_d2h),
     .tl_usbdev_o  (tl_usbdev_h2d),
     .tl_usbdev_i  (tl_usbdev_d2h),
     .tl_rv_plic_o (tl_rv_plic_h2d),
@@ -1171,6 +1180,24 @@ module sonata_system #(
     .spi_copi_o(spi_rp1_tx_o),
     .spi_cipo_i(spi_rp1_rx_i),
     .spi_clk_o (spi_rp1_sck_o)
+  );
+
+  spi u_spi_ard (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_i(tl_spi_ard_h2d),
+    .tl_o(tl_spi_ard_d2h),
+
+    .intr_rx_full_o     (),
+    .intr_rx_watermark_o(),
+    .intr_tx_empty_o    (),
+    .intr_tx_watermark_o(),
+    .intr_complete_o    (),
+
+    .spi_copi_o(spi_ard_tx_o),
+    .spi_cipo_i(spi_ard_rx_i),
+    .spi_clk_o (spi_ard_sck_o)
   );
 
   rv_timer #(

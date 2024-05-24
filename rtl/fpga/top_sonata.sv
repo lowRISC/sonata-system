@@ -69,6 +69,12 @@ module top_sonata (
   output logic       rph_g17,      // SPI1 CE1
   output logic       rph_g16_ce2,  // SPI1
 
+  // Arduino shield SPI bus
+  output logic       ah_tmpio10, // Chip select
+  output logic       ah_tmpio14, // CIPO
+  input  logic       ah_tmpio15, // SCK
+  output logic       ah_tmpio17, // COPI
+
   // mikroBUS Click I2C bus
   inout  logic       mb6,     // SCL
   inout  logic       mb5,     // SDA
@@ -184,7 +190,7 @@ module top_sonata (
 
   sonata_system #(
     .GpiWidth     ( 13           ),
-    .GpoWidth     ( 20           ),
+    .GpoWidth     ( 21           ),
     .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile )
@@ -199,6 +205,7 @@ module top_sonata (
 
     .gp_i           ({user_sw_n, nav_sw_n}),
     .gp_o           ({
+                      ah_tmpio10, // Arduino shield chip select
                       rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
                       rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
                       ethmac_rst, ethmac_cs, // Ethernet
@@ -242,6 +249,11 @@ module top_sonata (
     .spi_rp1_rx_i   (rph_g19_cipo),
     .spi_rp1_tx_o   (rph_g20_copi),
     .spi_rp1_sck_o  (rph_g21_sclk),
+
+    // SPI on Arduino shield
+    .spi_ard_rx_i   (ah_tmpio14), // CIPO
+    .spi_ard_tx_o   (ah_tmpio17), // COPI
+    .spi_ard_sck_o  (ah_tmpio15), // SCLK
 
     // CHERI signals
     .cheri_en_i     (enable_cheri),
