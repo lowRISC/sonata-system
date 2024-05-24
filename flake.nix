@@ -2,8 +2,10 @@
   description = "Sonata System";
   inputs = {
     lowrisc-nix.url = "github:lowRISC/lowrisc-nix";
+
     nixpkgs.follows = "lowrisc-nix/nixpkgs";
     flake-utils.follows = "lowrisc-nix/flake-utils";
+    poetry2nix.follows = "lowrisc-nix/poetry2nix";
   };
 
   nixConfig = {
@@ -16,16 +18,30 @@
     nixpkgs,
     flake-utils,
     lowrisc-nix,
-  }: let
+    ...
+  } @ inputs: let
     system_outputs = system: let
       version = "0.0.1";
 
       pkgs = import nixpkgs {
         inherit system;
       };
+
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
       fs = pkgs.lib.fileset;
+
+      pythonEnv = let
+        poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
+        poetryOverrides = lowrisc-nix.lib.poetryOverrides {inherit pkgs;};
+      in
+        poetry2nix.mkPoetryEnv {
+          projectDir = ./.;
+          overrides = [
+            poetryOverrides
+            poetry2nix.defaultPoetryOverrides
+          ];
+        };
 
       sonata-documentation = lrDoc.buildMdbookSite {
         inherit version;
@@ -41,7 +57,7 @@
         pname = "sonata-simulator";
         src = ./.;
         buildInputs = with pkgs; [libelf zlib];
-        nativeBuildInputs = [pkgs.python311Packages.pip] ++ (with lrPkgs; [python_ot verilator_ot]);
+        nativeBuildInputs = (with lrPkgs; [pythonEnv verilator_ot]);
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --tool=verilator --setup \
