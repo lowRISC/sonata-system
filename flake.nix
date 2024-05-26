@@ -52,6 +52,8 @@
         };
       };
 
+      cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
+
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
         inherit version;
         pname = "sonata-simulator";
@@ -70,6 +72,20 @@
           cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/${pname}
         '';
         meta.mainProgram = pname;
+      };
+
+      sonata-sim-boot-stub = pkgs.stdenv.mkDerivation rec {
+        inherit version;
+        pname = "sonata-sim-boot-stub";
+        src = sw/cheri/sim_boot_stub/.;
+        nativeBuildInputs = cheriotPkgs;
+        buildPhase = ''
+          make
+        '';
+        installPhase = ''
+          mkdir -p $out/share/
+          cp -r sim_boot_stub $out/share
+        '';
       };
     in {
       formatter = pkgs.alejandra;
@@ -92,7 +108,7 @@
           ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
-      packages = {inherit sonata-simulator sonata-documentation;};
+      packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation;};
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
