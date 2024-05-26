@@ -57,7 +57,7 @@
         pname = "sonata-simulator";
         src = ./.;
         buildInputs = with pkgs; [libelf zlib];
-        nativeBuildInputs = (with lrPkgs; [pythonEnv verilator_ot]);
+        nativeBuildInputs = [pkgs.verilator pythonEnv];
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --tool=verilator --setup \
