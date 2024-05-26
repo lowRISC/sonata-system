@@ -39,7 +39,7 @@ int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
   simctrl.SetTop(&_top, &_top.clk_i, &_top.rst_ni,
                  VerilatorSimCtrlFlags::ResetPolarityNegative);
 
-  _memutil.RegisterMemoryArea("ram", 0x0, &_ram);
+  _memutil.RegisterMemoryArea("ram", 0x100000, &_ram);
   simctrl.RegisterExtension(&_memutil);
 
   exit_app = false;
