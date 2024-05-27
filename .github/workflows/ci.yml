@@ -45,15 +45,14 @@ jobs:
       working-directory: sw/legacy/build
 
   simulator:
-    runs-on: ubuntu-latest
+    runs-on: nixos-23.11
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Install Nix
-      uses: cachix/install-nix-action@v24
+      uses: cachix/install-nix-action@v27
       with:
-        nix_path: nixpkgs=channel:nixos-23.11
         extra_nix_config: |
           substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
           trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
