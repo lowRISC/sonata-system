@@ -50,12 +50,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        sudo apt install verilator libelf-dev
-        pip install -r python-requirements.txt
+    - name: Install Nix
+      uses: cachix/install-nix-action@v24
+      with:
+        nix_path: nixpkgs=channel:nixos-23.11
+        extra_nix_config: |
+          substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
+          trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+    - name: Nix Format Check
+      run: nix fmt -- . --check
 
     - name: Build Verilator simulator
       run: |
-        fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system --verilator_options="+define+RVFI"
-
+        nix build .#sonata-simulator
