@@ -16,11 +16,15 @@ The Sonata top-level will need modification to add more SPI blocks for other use
 
 The offset for each of the blocks is shown below, with each additional block having a `0x1000` offset from the previous.
 
-| SPI Instance | Offset (from SPI base) |
-|--------------|------------------------|
-| Flash        | 0x0                    |
-| LCD Screen   | 0x1000                 |
-| Ethernet MAC | 0x2000                 |
+| SPI Instance          | Offset (from SPI base) |
+|-----------------------|------------------------|
+| Flash                 | 0x0                    |
+| LCD Screen            | 0x1000                 |
+| Ethernet MAC          | 0x2000                 |
+| Raspberry Pi HAT SPI0 | 0x3000                 |
+| Raspberry Pi HAT SPI1 | 0x4000                 |
+| Arduino Shield        | 0x5000                 |
+| mikroBUS Click        | 0x6000                 |
 
 ## Overview
 
