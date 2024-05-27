@@ -11,7 +11,7 @@ fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc
 
 *To enable tracing append, `--verilator_options='+define+RVFI'` to the command above.*
 
-## Running
+## Running baremetal
 
 Running the simulator can be accomplished with the following command, where you can change the `meminit` argument to a different program if you wish:
 ```sh
@@ -33,6 +33,19 @@ index 547abb3..7f7781d 100644
                         switchValue = *((volatile uint32_t *) gpi);
                         switchValue <<= 4; // shift input onto LEDs and skipping LCD pins
                         *((volatile uint32_t *) gpo) = gpioValue ^ switchValue;
+```
+
+## Running with boot stub
+
+The [Sonata software repository](https://github.com/lowRISC/sonata-software) assumes you have a boot loader that jumps to `0x00101000`.
+To help with this we have a `sim_boot_stub`, which you can build as follows assuming you have access to CHERIoT LLVM:
+```sh
+make -C sw/cheri/sim_boot_stub
+```
+
+You can then run your example code through the simulator as follows:
+```sh
+./build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator -t -E sw/cheri/sim_boot_stub/sim_boot_stub -E /path/to/sonata-software/build/cheriot/cheriot/release/sonata_simple_demo
 ```
 
 ## Debugging
