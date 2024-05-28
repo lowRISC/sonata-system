@@ -22,7 +22,8 @@ module sonata_system #(
   parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
-  parameter SRAMInitFile               = ""
+  parameter SRAMInitFile               = "",
+  parameter int unsigned SysClkFreq    = 30_000_000
 ) (
   // Main system clock and reset
   input logic                      clk_sys_i,
@@ -130,7 +131,9 @@ module sonata_system #(
   input  logic                     usb_sense_i,
   output logic                     usb_dp_pullup_o,
   output logic                     usb_dn_pullup_o,
-  output logic                     usb_rx_enable_o
+  output logic                     usb_rx_enable_o,
+
+  output logic                     rgbled_dout_o
 );
 
   ///////////////////////////////////////////////
@@ -413,6 +416,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_uart1_d2h;
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
+  tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
+  tlul_pkg::tl_d2h_t tl_rgbled_ctrl_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
   tlul_pkg::tl_d2h_t tl_pwm_d2h;
   tlul_pkg::tl_h2d_t tl_i2c0_h2d;
@@ -469,6 +474,8 @@ module sonata_system #(
     .tl_pmod_gpio_i(tl_pmod_gpio_d2h),
     .tl_timer_o    (tl_timer_h2d),
     .tl_timer_i    (tl_timer_d2h),
+    .tl_rgbled_ctrl_o(tl_rgbled_ctrl_h2d),
+    .tl_rgbled_ctrl_i(tl_rgbled_ctrl_d2h),
     .tl_uart0_o    (tl_uart0_h2d),
     .tl_uart0_i    (tl_uart0_d2h),
     .tl_uart1_o    (tl_uart1_h2d),
@@ -1430,6 +1437,21 @@ module sonata_system #(
     .tl_o     (tl_rv_plic_d2h),
 
     .intr_src_i (intr_vector)
+  );
+
+  // Number of clock cycles in 1.25us. The divide by 10 exists to avoid integer overflow.
+  localparam int unsigned RGBLEDCtrlCycleTime = (125 * (SysClkFreq / 10)) / (10_000_000);
+
+  rgbled_ctrl #(
+    .CycleTime(RGBLEDCtrlCycleTime)
+  ) u_rgbled_ctrl(
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .tl_i(tl_rgbled_ctrl_h2d),
+    .tl_o(tl_rgbled_ctrl_d2h),
+
+    .rgbled_dout_o
   );
 
   dm_top #(

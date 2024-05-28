@@ -299,12 +299,15 @@ module top_sonata (
   logic enable_cheri;
   assign enable_cheri = 1'b1;
 
+  logic rgbled_dout;
+
   sonata_system #(
     .GpiWidth     ( 14           ),
     .GpoWidth     ( 23           ),
     .PwmWidth     (  1           ),
     .CheriErrWidth(  9           ),
-    .SRAMInitFile ( SRAMInitFile )
+    .SRAMInitFile ( SRAMInitFile ),
+    .SysClkFreq   ( SysClkFreq   )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_sys),
@@ -457,8 +460,12 @@ module top_sonata (
     .tms_i,
     .trst_ni(rst_sys_n),
     .td_i,
-    .td_o
+    .td_o,
+
+    .rgbled_dout_o(rgbled_dout)
   );
+
+  assign rgbled0 = ~rgbled_dout;
 
   // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
   assign appspi_d2 = 1'b1;
@@ -487,35 +494,5 @@ module top_sonata (
     .pll_locked_i(pll_locked),
     .rst_btn_i   (rst_btn),
     .rst_no      (rst_sys_n)
-  );
-
-  // Drive RGB LEDs to off state
-  logic rgb_led_data_last;
-  logic rgb_led_data_ack;
-  logic rgb_led_data_out;
-
-  always_ff @(posedge main_clk_buf or negedge rst_sys_n) begin
-    if (!rst_sys_n) begin
-      rgb_led_data_last <= 1'b0;
-    end else begin
-      if (rgb_led_data_ack) begin
-        rgb_led_data_last <= ~rgb_led_data_last;
-      end
-    end
-  end
-
-  assign rgbled0 = ~rgb_led_data_out;
-
-  ws281x_drv u_rgb_led_drv (
-    .clk_i(main_clk_buf),
-    .rst_ni(rst_sys_n),
-
-    .go_i(1'b1),
-    .idle_o(),
-    .data_i({8'd0, 8'd0, 8'd0}),
-    .data_valid_i(1'b1),
-    .data_last_i(rgb_led_data_last),
-    .data_ack_o(rgb_led_data_ack),
-    .ws281x_dout_o(rgb_led_data_out)
   );
 endmodule
