@@ -134,7 +134,9 @@ module top_verilator (input logic clk_i, rst_ni);
     .tms_i  ('0),
     .trst_ni(rst_ni),
     .td_i   ('0),
-    .td_o   ()
+    .td_o   (),
+
+    .rgbled_dout_o ()
   );
 
   // Virtual UART

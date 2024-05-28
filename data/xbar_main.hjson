@@ -99,6 +99,16 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "rgbled_ctrl", // RGB LED Controller
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80009000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "timer", // Interrupt timer
       type:  "device",
       clock: "clk_sys_i",
@@ -251,6 +261,7 @@
       "ard_gpio",
       "pmod_gpio",
       "timer",
+      "rgbled_ctrl",
       "uart0",
       "uart1",
       "i2c0",
