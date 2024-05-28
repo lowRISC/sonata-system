@@ -1,0 +1,113 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+  name:               "rgbled_ctrl",
+  human_name:         "RGB LED Controller",
+  one_line_desc:      "",
+  one_paragraph_desc: "",
+  cip_id:             "1",
+
+  revisions: [
+  {
+    version:            "1.0.0",
+    life_stage:         "L2",
+    design_stage:       "D1",
+    verification_stage: "V1",
+    notes:              ""
+  }
+  ]
+
+  clocking: [
+    {clock: "clk_i", reset: "rst_ni", primary: true},
+  ]
+  bus_interfaces: [
+    { protocol: "tlul", direction: "device" }
+  ],
+  available_output_list: [
+    { name: "rgbled_dout",     desc: "RGB LED serial output" },
+  ],
+
+  regwidth: "32",
+  registers: [
+    { name: "RGBLED0",
+      desc: "RGB for first LED",
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwext:    "true",
+      hwqe:     "true",
+      fields: [
+        { bits: "7:0",
+          name: "R",
+          desc: 'Red',
+          resval: "0x0"
+        },
+        { bits: "15:8",
+          name: "G",
+          desc: 'Green',
+          resval: "0x0"
+        },
+        { bits: "23:16",
+          name: "B",
+          desc: 'Blue',
+          resval: "0x0"
+        },
+      ]
+    },
+    { name: "RGBLED1",
+      desc: "RGB for second LED",
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwext:    "true",
+      hwqe:     "true",
+      fields: [
+        { bits: "7:0",
+          name: "R",
+          desc: 'Red',
+          resval: "0x0"
+        },
+        { bits: "15:8",
+          name: "G",
+          desc: 'Green',
+          resval: "0x0"
+        },
+        { bits: "23:16",
+          name: "B",
+          desc: 'Blue',
+          resval: "0x0"
+        },
+      ]
+    },
+    { name: "CTRL"
+      desc: "Control",
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwext:    "true",
+      hwqe:     "true",
+      fields: [
+        { bits: "0",
+          name: "SetRGB",
+          desc: "Write 1 to set RGB LEDs to specified colours"
+        },
+        { bits: "1",
+          name: "Off",
+          desc: "Write 1 to turn off RGB LEDs. Write to Set to turn on again."
+        },
+      ]
+    }
+    { name: "STATUS"
+      desc: "Status",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext:    "true",
+      fields: [
+        { bits: "0",
+          name: "Idle",
+          desc: ''' When set controller is idle and new colours can be set. When
+                    clear writes to REGLED0/REGLED1/CTRL are ignored.'''
+        },
+      ]
+    }
+  ]
+}
