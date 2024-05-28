@@ -85,27 +85,27 @@ set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS18 } [get_ports {usrusb_su
 set_property -dict { PACKAGE_PIN K1  IOSTANDARD LVCMOS18 } [get_ports {usrusb_vbusdetect}];
 
 ## PMOD0
-set_property -dict { PACKAGE_PIN H14 IOSTANDARD LVCMOS33 } [get_ports {pmod0[0]}];
-set_property -dict { PACKAGE_PIN F16 IOSTANDARD LVCMOS33 } [get_ports {pmod0[1]}];
-set_property -dict { PACKAGE_PIN F15 IOSTANDARD LVCMOS33 } [get_ports {pmod0[2]}];
-set_property -dict { PACKAGE_PIN G14 IOSTANDARD LVCMOS33 } [get_ports {pmod0[3]}];
-set_property -dict { PACKAGE_PIN J13 IOSTANDARD LVCMOS33 } [get_ports {pmod0[4]}];
-set_property -dict { PACKAGE_PIN E17 IOSTANDARD LVCMOS33 } [get_ports {pmod0[5]}];
-set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 } [get_ports {pmod0[6]}];
-set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 } [get_ports {pmod0[7]}];
+# set_property -dict { PACKAGE_PIN H14 IOSTANDARD LVCMOS33 } [get_ports {pmod0_1}];
+# set_property -dict { PACKAGE_PIN F16 IOSTANDARD LVCMOS33 } [get_ports {pmod0_2}];
+# set_property -dict { PACKAGE_PIN F15 IOSTANDARD LVCMOS33 } [get_ports {pmod0_3}];
+# set_property -dict { PACKAGE_PIN G14 IOSTANDARD LVCMOS33 } [get_ports {pmod0_4}];
+# set_property -dict { PACKAGE_PIN J13 IOSTANDARD LVCMOS33 } [get_ports {pmod0_5}];
+# set_property -dict { PACKAGE_PIN E17 IOSTANDARD LVCMOS33 } [get_ports {pmod0_6}];
+# set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 } [get_ports {pmod0_7}];
+# set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 } [get_ports {pmod0_8}];
 
 ## PMOD1
-set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 } [get_ports {pmod1[0]}];
-set_property -dict { PACKAGE_PIN E16 IOSTANDARD LVCMOS33 } [get_ports {pmod1[1]}];
-set_property -dict { PACKAGE_PIN A18 IOSTANDARD LVCMOS33 } [get_ports {pmod1[2]}];
-## rev 0.3+
-set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports {pmod1[3]}];
-## rev <= 0.2
-# set_property -dict { PACKAGE_PIN E15 IOSTANDARD LVCMOS33 } [get_ports {pmod1[3]}];
-set_property -dict { PACKAGE_PIN D15 IOSTANDARD LVCMOS33 } [get_ports {pmod1[4]}];
-set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports {pmod1[5]}];
-set_property -dict { PACKAGE_PIN H16 IOSTANDARD LVCMOS33 } [get_ports {pmod1[6]}];
-set_property -dict { PACKAGE_PIN G16 IOSTANDARD LVCMOS33 } [get_ports {pmod1[7]}];
+# set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_1}];
+# set_property -dict { PACKAGE_PIN E16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_2}];
+# set_property -dict { PACKAGE_PIN A18 IOSTANDARD LVCMOS33 } [get_ports {pmod1_3}];
+# rev 0.3+
+# set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports {pmod1_4}];
+# rev <= 0.2
+# set_property -dict { PACKAGE_PIN E15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_4}];
+# set_property -dict { PACKAGE_PIN D15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_5}];
+# set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports {pmod1_6}];
+# set_property -dict { PACKAGE_PIN H16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_7}];
+# set_property -dict { PACKAGE_PIN G16 IOSTANDARD LVCMOS33 } [get_ports {pmod1_8}];
 
 ## Status LEDs
 set_property -dict { PACKAGE_PIN K5  IOSTANDARD LVCMOS33 } [get_ports led_legacy];
@@ -138,31 +138,11 @@ set_property -dict { PACKAGE_PIN V7 IOSTANDARD LVCMOS33 } [get_ports sda1];
 set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 } [get_ports scl1];
 
 ## mikroBUS Click
-## Reset (connected to GPO)
-set_property -dict { PACKAGE_PIN P2  IOSTANDARD LVCMOS33 } [get_ports mb0];
-## SPI chip select
-set_property -dict { PACKAGE_PIN R1  IOSTANDARD LVCMOS33 } [get_ports mb1];
-## SPI SCLK
-set_property -dict { PACKAGE_PIN T1  IOSTANDARD LVCMOS33 } [get_ports mb2];
-## SPI CIPO
-set_property -dict { PACKAGE_PIN U1  IOSTANDARD LVCMOS33 } [get_ports mb3];
-## SPI COPI
-set_property -dict { PACKAGE_PIN T3  IOSTANDARD LVCMOS33 } [get_ports mb4];
-## I2C SDA
-set_property -dict { PACKAGE_PIN V1  IOSTANDARD LVCMOS33 } [get_ports mb5];
-## I2C SCL
-set_property -dict { PACKAGE_PIN U2  IOSTANDARD LVCMOS33 } [get_ports mb6];
-## Enable pull-ups because this I2C bus will often be undriven externally.
+set_property -dict { PACKAGE_PIN V1 IOSTANDARD LVCMOS33 } [get_ports mb5]; # SDA
+set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports mb6]; # SCL
+# Enable pull-ups because this I2C bus will often be undriven externally.
 set_property PULLUP true [get_ports mb5]
 set_property PULLUP true [get_ports mb6]
-## UART TX
-set_property -dict { PACKAGE_PIN V2  IOSTANDARD LVCMOS33 } [get_ports mb7];
-## UART RX
-set_property -dict { PACKAGE_PIN U8  IOSTANDARD LVCMOS33 } [get_ports mb8];
-## Interrupt (connected to GPI)
-set_property -dict { PACKAGE_PIN T6  IOSTANDARD LVCMOS33 } [get_ports mb9];
-## PWM
-set_property -dict { PACKAGE_PIN V6  IOSTANDARD LVCMOS33 } [get_ports mb10];
 
 ## R-Pi Header
 
@@ -197,23 +177,6 @@ set_property -dict { PACKAGE_PIN M16 IOSTANDARD LVCMOS33 } [get_ports rph_g3_scl
 # set_property PULLUP true [get_ports rph_g3_scl]
 ## rev 0.5+ have on-board pull ups
 
-## UART
-set_property -dict { PACKAGE_PIN K17 IOSTANDARD LVCMOS33 } [get_ports rph_txd0];
-set_property -dict { PACKAGE_PIN L18 IOSTANDARD LVCMOS33 } [get_ports rph_rxd0];
-
-## Other GPIO
-set_property -dict { PACKAGE_PIN N15 IOSTANDARD LVCMOS33 } [get_ports rph_g4];
-set_property -dict { PACKAGE_PIN T13 IOSTANDARD LVCMOS33 } [get_ports rph_g5];
-set_property -dict { PACKAGE_PIN U14 IOSTANDARD LVCMOS33 } [get_ports rph_g6];
-set_property -dict { PACKAGE_PIN V10 IOSTANDARD LVCMOS33 } [get_ports rph_g12];
-set_property -dict { PACKAGE_PIN R13 IOSTANDARD LVCMOS33 } [get_ports rph_g13];
-set_property -dict { PACKAGE_PIN L16 IOSTANDARD LVCMOS33 } [get_ports rph_g22];
-set_property -dict { PACKAGE_PIN N14 IOSTANDARD LVCMOS33 } [get_ports rph_g23];
-set_property -dict { PACKAGE_PIN N16 IOSTANDARD LVCMOS33 } [get_ports rph_g24];
-set_property -dict { PACKAGE_PIN L15 IOSTANDARD LVCMOS33 } [get_ports rph_g25];
-set_property -dict { PACKAGE_PIN R15 IOSTANDARD LVCMOS33 } [get_ports rph_g26];
-set_property -dict { PACKAGE_PIN L14 IOSTANDARD LVCMOS33 } [get_ports rph_g27];
-
 ## ID_SC/SD - I2C bus for HAT ID EEPROM; pull-ups are on the HAT itself
 set_property -dict { PACKAGE_PIN T15 IOSTANDARD LVCMOS33 } [get_ports rph_g1]; # ID_SC
 set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports rph_g0]; # ID_SD
@@ -221,28 +184,25 @@ set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports rph_g0]; #
 set_property PULLUP true [get_ports rph_g1]
 set_property PULLUP true [get_ports rph_g0]
 
-## Arduino Shield
-## SPI COPI
+## Arduino Shield SPI
+## COPI
 set_property -dict { PACKAGE_PIN M13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio17];
-## GPIO
-set_property -dict { PACKAGE_PIN N17 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio16];
-## SPI SCLK
+## SCLK
 set_property -dict { PACKAGE_PIN P14 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio15];
-## SPI CIPO
+## CIPO
 set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio14];
-## SPI chip select
+## Chip select
 set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio10];
-## GPIO
-set_property -dict { PACKAGE_PIN T16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio9];
-set_property -dict { PACKAGE_PIN U18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio8];
-set_property -dict { PACKAGE_PIN M18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio7];
-set_property -dict { PACKAGE_PIN U11 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio6];
-set_property -dict { PACKAGE_PIN V12 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio5];
-set_property -dict { PACKAGE_PIN R10 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio4];
-set_property -dict { PACKAGE_PIN U13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio3];
-set_property -dict { PACKAGE_PIN R12 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio2];
-set_property -dict { PACKAGE_PIN U12 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio1];
-set_property -dict { PACKAGE_PIN T11 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio0];
+
+## mikro BUS SPI
+## COPI
+set_property -dict { PACKAGE_PIN T3  IOSTANDARD LVCMOS33 } [get_ports mb4];
+## CIPO
+set_property -dict { PACKAGE_PIN U1  IOSTANDARD LVCMOS33 } [get_ports mb3];
+## SCLK
+set_property -dict { PACKAGE_PIN T1  IOSTANDARD LVCMOS33 } [get_ports mb2];
+## Chip select
+set_property -dict { PACKAGE_PIN R1  IOSTANDARD LVCMOS33 } [get_ports mb1];
 
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]

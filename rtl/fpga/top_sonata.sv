@@ -69,64 +69,21 @@ module top_sonata (
   output logic       rph_g17,      // SPI1 CE1
   output logic       rph_g16_ce2,  // SPI1
 
-  // R-Pi header UART
-  output logic       rph_txd0,
-  input  logic       rph_rxd0,
-
-  // R-Pi header GPIO
-  inout  logic       rph_g27,
-  inout  logic       rph_g26,
-  inout  logic       rph_g25,
-  inout  logic       rph_g24,
-  inout  logic       rph_g23,
-  inout  logic       rph_g22,
-  inout  logic       rph_g13,
-  inout  logic       rph_g12,
-  inout  logic       rph_g6,
-  inout  logic       rph_g5,
-  inout  logic       rph_g4,
-
-  // Arduino shield GPIO
-  inout  logic       ah_tmpio0,
-  inout  logic       ah_tmpio1,
-  inout  logic       ah_tmpio2,
-  inout  logic       ah_tmpio3,
-  inout  logic       ah_tmpio4,
-  inout  logic       ah_tmpio5,
-  inout  logic       ah_tmpio6,
-  inout  logic       ah_tmpio7,
-  inout  logic       ah_tmpio8,
-  inout  logic       ah_tmpio9,
-  inout  logic       ah_tmpio16,
-
   // Arduino shield SPI bus
   output logic       ah_tmpio10, // Chip select
   output logic       ah_tmpio14, // CIPO
   input  logic       ah_tmpio15, // SCK
   output logic       ah_tmpio17, // COPI
 
-  // mikroBUS Click other
-  output logic       mb10, // PWM
-  input  logic       mb9,  // Interrupt
-  output logic       mb0,  // Reset
-
-  // mikroBUS Click UART
-  input  logic       mb8,  // RX
-  output logic       mb7,  // TX
-
   // mikroBUS Click I2C bus
-  inout  logic       mb6,  // SCL
-  inout  logic       mb5,  // SDA
+  inout  logic       mb6,     // SCL
+  inout  logic       mb5,     // SDA
 
   // mikroBUS Click SPI
-  output logic       mb4,  // COPI
-  input  logic       mb3,  // CIPO
-  output logic       mb2,  // SCK
-  output logic       mb1,  // Chip select
-
-  // PMODs
-  inout  logic [7:0] pmod0,
-  inout  logic [7:0] pmod1,
+  output logic       mb4, // COPI
+  input  logic       mb3, // CIPO
+  output logic       mb2, // SCK
+  output logic       mb1, // Chip select
 
   // Status input from USB transceiver
   input  logic       usrusb_vbusdetect,
@@ -206,68 +163,6 @@ module top_sonata (
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
-  logic ser0_rx_aggr, ser1_rx_aggr;
-
-  logic [15:0] rp_gp_oe;
-  logic [15:0] rp_gp_o;
-
-  logic [15:0] ard_gp_oe;
-  logic [15:0] ard_gp_o;
-
-  logic [15:0] pmod_gp_oe;
-  logic [15:0] pmod_gp_o;
-
-  // UART input
-  assign ser0_rx_aggr = ser0_rx | mb8;
-  assign ser1_rx_aggr = ser1_rx | rph_rxd0;
-
-  // UART output
-  assign mb7 = ser0_tx;
-  assign rph_txd0 = ser1_tx;
-
-  // R-Pi header GPIO
-  assign rph_g4  = rp_gp_oe[0]  ? rp_gp_o[0]  : 1'bZ;
-  assign rph_g5  = rp_gp_oe[1]  ? rp_gp_o[1]  : 1'bZ;
-  assign rph_g6  = rp_gp_oe[2]  ? rp_gp_o[2]  : 1'bZ;
-  assign rph_g12 = rp_gp_oe[3]  ? rp_gp_o[3]  : 1'bZ;
-  assign rph_g13 = rp_gp_oe[4]  ? rp_gp_o[4]  : 1'bZ;
-  assign rph_g22 = rp_gp_oe[5]  ? rp_gp_o[5]  : 1'bZ;
-  assign rph_g23 = rp_gp_oe[6]  ? rp_gp_o[6]  : 1'bZ;
-  assign rph_g24 = rp_gp_oe[7]  ? rp_gp_o[7]  : 1'bZ;
-  assign rph_g25 = rp_gp_oe[8]  ? rp_gp_o[8]  : 1'bZ;
-  assign rph_g26 = rp_gp_oe[9]  ? rp_gp_o[9]  : 1'bZ;
-  assign rph_g27 = rp_gp_oe[10] ? rp_gp_o[10] : 1'bZ;
-
-  // Arduino Shield GPIO
-  assign ah_tmpio0 = ard_gp_oe[0] ? ard_gp_o[0] : 1'bZ;
-  assign ah_tmpio1 = ard_gp_oe[1] ? ard_gp_o[1] : 1'bZ;
-  assign ah_tmpio2 = ard_gp_oe[2] ? ard_gp_o[2] : 1'bZ;
-  assign ah_tmpio3 = ard_gp_oe[3] ? ard_gp_o[3] : 1'bZ;
-  assign ah_tmpio4 = ard_gp_oe[4] ? ard_gp_o[4] : 1'bZ;
-  assign ah_tmpio5 = ard_gp_oe[5] ? ard_gp_o[5] : 1'bZ;
-  assign ah_tmpio6 = ard_gp_oe[6] ? ard_gp_o[6] : 1'bZ;
-  assign ah_tmpio7 = ard_gp_oe[7] ? ard_gp_o[7] : 1'bZ;
-  assign ah_tmpio8 = ard_gp_oe[8] ? ard_gp_o[8] : 1'bZ;
-  assign ah_tmpio9 = ard_gp_oe[9] ? ard_gp_o[9] : 1'bZ;
-
-  // PMOD GPIO
-  assign pmod0[0] = pmod_gp_oe[0]  ? pmod_gp_o[0]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[1]  ? pmod_gp_o[1]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[2]  ? pmod_gp_o[2]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[3]  ? pmod_gp_o[3]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[4]  ? pmod_gp_o[4]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[5]  ? pmod_gp_o[5]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[6]  ? pmod_gp_o[6]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[7]  ? pmod_gp_o[7]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[8]  ? pmod_gp_o[8]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[9]  ? pmod_gp_o[9]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[10] ? pmod_gp_o[10] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[11] ? pmod_gp_o[11] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[12] ? pmod_gp_o[12] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[13] ? pmod_gp_o[13] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[14] ? pmod_gp_o[14] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[15] ? pmod_gp_o[15] : 1'bZ;
-
   // Open Drain drivers onto I2C buses.
   // TODO: move this into two parameterised I2C splitter modules?
   assign scl0 = scl0_oe ? scl0_o : 1'bZ;
@@ -302,9 +197,9 @@ module top_sonata (
   logic rgbled_dout;
 
   sonata_system #(
-    .GpiWidth     ( 14           ),
-    .GpoWidth     ( 23           ),
-    .PwmWidth     (  1           ),
+    .GpiWidth     ( 13           ),
+    .GpoWidth     ( 22           ),
+    .PwmWidth     (  0           ),
     .CheriErrWidth(  9           ),
     .SRAMInitFile ( SRAMInitFile ),
     .SysClkFreq   ( SysClkFreq   )
@@ -317,14 +212,8 @@ module top_sonata (
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    // GPIO
-    .gp_i           ({
-                      mb9, // mikroBUS Click interrupt
-                      user_sw_n, // user switches
-                      nav_sw_n // joystick
-                    }),
+    .gp_i           ({user_sw_n, nav_sw_n}),
     .gp_o           ({
-                      mb0, // mikroBUS Click reset
                       mb1, // mikroBUS Click chip select
                       ah_tmpio10, // Arduino shield chip select
                       rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
@@ -335,51 +224,15 @@ module top_sonata (
                       lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
                     }),
 
-    // R-Pi Header GPIO
-    .rp_gp_i        ({
-                      rph_27,
-                      rph_26,
-                      rph_25,
-                      rph_24,
-                      rph_23,
-                      rph_22,
-                      rph_13,
-                      rph_12,
-                      rph_6,
-                      rph_5,
-                      rph_4
-                    }),
-    .rp_gp_o        ({rp_gp_oe, rp_gp_o}),
-
-    // Arduino Shield GPIO
-    .ard_gp_i       ({
-                      ah_tmpio9,
-                      ah_tmpio8,
-                      ah_tmpio7,
-                      ah_tmpio6,
-                      ah_tmpio5,
-                      ah_tmpio4,
-                      ah_tmpio3,
-                      ah_tmpio2,
-                      ah_tmpio1,
-                      ah_tmpio0
-                    }),
-    .ard_gp_o       ({ard_gp_oe, ard_gp_o}),
-
-    // PMOD GPIO
-    .pmod_gp_i      ({pmod1, pmod0}),
-    .pmod_gp_o       ({pmod_gp_oe, pmod_gp_o}),
-
     // UART 0
-    .uart0_rx_i     (ser0_rx_aggr),
+    .uart0_rx_i     (ser0_rx),
     .uart0_tx_o     (ser0_tx),
 
     // UART 1
-    .uart1_rx_i     (ser1_rx_aggr),
+    .uart1_rx_i     (ser1_rx),
     .uart1_tx_o     (ser1_tx),
 
-    // PWM
-    .pwm_o({mb10}),
+    .pwm_o(),
 
     // SPI for LCD screen
     .spi_lcd_rx_i   (1'b0),
