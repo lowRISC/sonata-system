@@ -7,9 +7,25 @@ It is designed for use on FPGA and specifically targets the [Sonata FPGA board](
 
 This project is designed to look like a normal microcontroller in terms of usability, including SDK, examples, and normal capabilities such as debuggers. But underneath that the [CHERIoT](https://www.microsoft.com/en-us/research/publication/cheriot-rethinking-security-for-low-cost-embedded-systems/) capabilities provides a high level of "default security" that simplifies designing embedded systems in a secure manner. You can see the [complete documentation](https://lowrisc.org/sonata-system/) for the project, but note it is under active development so substantial improvements are to be made.
 
-As this project is under active development the first full RTL release is not yet complete. We plan to release an updated image, together with instructions for uploading it to the board over USB, before the May 29th 2024 Hackathon event. This image will allow running CHERIoT-RTOS and will allow for general purpose software development.
-
 Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
+
+## Current status
+
+We are delighted to announce the first release of the Sonata system!
+It is available now from GitHub [here][release-v0.2].
+
+This new release provides a base FPGA image with I2C/SPI/UART peripherals that are suitable for use with the expansion headers as well as the on-board hardware.
+Please note that full ethernet support will still be pending software work and not available in this first release.
+
+On the software side a full build flow for Microsoft's CHERIoT RTOS is included along with driver support for the Sonata peripherals.
+A flash bootloader enables easy 'drag and drop' programming where a generated UF2 is copied to Sonata’s virtual USB drive (in a similar manner to the RP2040 and arm Mbed platforms).
+Environment setup and build instructions are available for Windows, macOS and Linux.
+
+If you find any issues with the Sonata system, or have features you would like to propose, please create an issue on GitHub.
+For support with the board itself please use the [forum][newae-forum] on the NewAE website, create an issue at <https://github.com/newaetech/sonata-pcb>, or reach out to NewAE directly.
+
+[release-v0.2]: https://github.com/lowRISC/sonata-system/releases/tag/v0.2
+[newae-forum]: https://forum.newae.com/c/sonata-board/15
 
 ## Getting Started
 
