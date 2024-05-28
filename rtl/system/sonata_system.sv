@@ -16,6 +16,10 @@
 module sonata_system #(
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,
+  parameter int unsigned RpiGpiWidth   = 11,
+  parameter int unsigned ArdGpiWidth   = 10,
+  parameter int unsigned PmodGpiWidth  = 16,
+  parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = "",
@@ -33,6 +37,12 @@ module sonata_system #(
   input  logic [GpiWidth-1:0]      gp_i,
   output logic [GpoWidth-1:0]      gp_o,
   output logic [PwmWidth-1:0]      pwm_o,
+  input  logic [RpiGpiWidth-1:0]   rp_gp_i,
+  output logic [WordWidth-1:0]     rp_gp_o,
+  input  logic [ArdGpiWidth-1:0]   ard_gp_i,
+  output logic [WordWidth-1:0]     ard_gp_o,
+  input  logic [PmodGpiWidth-1:0]  pmod_gp_i,
+  output logic [WordWidth-1:0]     pmod_gp_o,
 
   // UART 0
   input  logic                     uart0_rx_i,
@@ -156,12 +166,15 @@ module sonata_system #(
 
   typedef enum int {
     Gpio,
+    RpiGpio,
+    ArdGpio,
+    PmodGpio,
     Pwm,
     Timer,
     RevTags
   } bus_device_e;
 
-  localparam int NrDevices = 4;
+  localparam int NrDevices = 7;
   localparam int NrHosts = 2;
 
   // Interrupts.
@@ -312,9 +325,12 @@ module sonata_system #(
   logic                     device_err   [NrDevices];
 
   // Generate requests from read and write enables.
-  assign device_req[Gpio]  = device_re[Gpio]  | device_we[Gpio];
-  assign device_req[Pwm]   = device_re[Pwm]   | device_we[Pwm];
-  assign device_req[Timer] = device_re[Timer] | device_we[Timer];
+  assign device_req[Gpio]     = device_re[Gpio]     | device_we[Gpio];
+  assign device_req[RpiGpio]  = device_re[RpiGpio]  | device_we[RpiGpio];
+  assign device_req[ArdGpio]  = device_re[ArdGpio]  | device_we[ArdGpio];
+  assign device_req[PmodGpio] = device_re[PmodGpio] | device_we[PmodGpio];
+  assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
+  assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
 
   // Instruction fetch signals.
   logic                    core_instr_req;
@@ -357,8 +373,11 @@ module sonata_system #(
   end
 
   // Tie-off unused error signals.
-  assign device_err[Gpio] = 1'b0;
-  assign device_err[Pwm]  = 1'b0;
+  assign device_err[Gpio]     = 1'b0;
+  assign device_err[RpiGpio]  = 1'b0;
+  assign device_err[ArdGpio]  = 1'b0;
+  assign device_err[PmodGpio] = 1'b0;
+  assign device_err[Pwm]      = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -385,6 +404,12 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_sram_d2h_q;
   tlul_pkg::tl_h2d_t tl_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_rpi_gpio_h2d;
+  tlul_pkg::tl_d2h_t tl_rpi_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_ard_gpio_h2d;
+  tlul_pkg::tl_d2h_t tl_ard_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_pmod_gpio_h2d;
+  tlul_pkg::tl_d2h_t tl_pmod_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_uart0_h2d;
   tlul_pkg::tl_d2h_t tl_uart0_d2h;
   tlul_pkg::tl_h2d_t tl_uart1_h2d;
@@ -441,10 +466,16 @@ module sonata_system #(
     .tl_gpio_i     (tl_gpio_d2h),
     .tl_pwm_o      (tl_pwm_h2d),
     .tl_pwm_i      (tl_pwm_d2h),
-    .tl_timer_o    (tl_timer_h2d),
-    .tl_timer_i    (tl_timer_d2h),
+    .tl_rpi_gpio_o (tl_rpi_gpio_h2d),
+    .tl_rpi_gpio_i (tl_rpi_gpio_d2h),
+    .tl_ard_gpio_o (tl_ard_gpio_h2d),
+    .tl_ard_gpio_i (tl_ard_gpio_d2h),
+    .tl_pmod_gpio_o(tl_pmod_gpio_h2d),
+    .tl_pmod_gpio_i(tl_pmod_gpio_d2h),
     .tl_rgbled_ctrl_o(tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i(tl_rgbled_ctrl_d2h),
+    .tl_timer_o    (tl_timer_h2d),
+    .tl_timer_i    (tl_timer_d2h),
     .tl_uart0_o    (tl_uart0_h2d),
     .tl_uart0_i    (tl_uart0_d2h),
     .tl_uart1_o    (tl_uart1_h2d),
@@ -658,6 +689,93 @@ module sonata_system #(
 
   // Tie off upper bits of address.
   assign device_addr[Gpio][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen ( 1 ),
+    .AccessLatency    ( 1 )
+  ) rpi_gpio_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface.
+    .tl_i(tl_rpi_gpio_h2d),
+    .tl_o(tl_rpi_gpio_d2h),
+
+    // Control interface.
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface.
+    .re_o   (device_re[RpiGpio]),
+    .we_o   (device_we[RpiGpio]),
+    .addr_o (device_addr[RpiGpio][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[RpiGpio]),
+    .be_o   (device_be[RpiGpio]),
+    .busy_i ('0),
+    .rdata_i(device_rdata[RpiGpio]),
+    .error_i(device_err[RpiGpio])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[RpiGpio][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen ( 1 ),
+    .AccessLatency    ( 1 )
+  ) ard_gpio_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface.
+    .tl_i(tl_ard_gpio_h2d),
+    .tl_o(tl_ard_gpio_d2h),
+
+    // Control interface.
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface.
+    .re_o   (device_re[ArdGpio]),
+    .we_o   (device_we[ArdGpio]),
+    .addr_o (device_addr[ArdGpio][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[ArdGpio]),
+    .be_o   (device_be[ArdGpio]),
+    .busy_i ('0),
+    .rdata_i(device_rdata[ArdGpio]),
+    .error_i(device_err[ArdGpio])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[ArdGpio][BusAddrWidth-1:RegAddrWidth] = '0;
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen ( 1 ),
+    .AccessLatency    ( 1 )
+  ) pmod_gpio_device_adapter (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    // TL-UL interface.
+    .tl_i(tl_pmod_gpio_h2d),
+    .tl_o(tl_pmod_gpio_d2h),
+
+    // Control interface.
+    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .intg_error_o(),
+
+    // Register interface.
+    .re_o   (device_re[PmodGpio]),
+    .we_o   (device_we[PmodGpio]),
+    .addr_o (device_addr[PmodGpio][RegAddrWidth-1:0]),
+    .wdata_o(device_wdata[PmodGpio]),
+    .be_o   (device_be[PmodGpio]),
+    .busy_i ('0),
+    .rdata_i(device_rdata[PmodGpio]),
+    .error_i(device_err[PmodGpio])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[PmodGpio][BusAddrWidth-1:RegAddrWidth] = '0;
 
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
@@ -894,6 +1012,63 @@ module sonata_system #(
 
     .gp_i,
     .gp_o
+  );
+
+  gpio #(
+    .GpiWidth ( RpiGpiWidth ),
+    .GpoWidth ( WordWidth   )
+  ) u_rpi_gpio (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .device_req_i   (device_req[RpiGpio]),
+    .device_addr_i  (device_addr[RpiGpio]),
+    .device_we_i    (device_we[RpiGpio]),
+    .device_be_i    (device_be[RpiGpio]),
+    .device_wdata_i (device_wdata[RpiGpio]),
+    .device_rvalid_o(device_rvalid[RpiGpio]),
+    .device_rdata_o (device_rdata[RpiGpio]),
+
+    .gp_i(rp_gp_i),
+    .gp_o(rp_gp_o)
+  );
+
+  gpio #(
+    .GpiWidth ( ArdGpiWidth ),
+    .GpoWidth ( WordWidth   )
+  ) u_ard_gpio (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .device_req_i   (device_req[ArdGpio]),
+    .device_addr_i  (device_addr[ArdGpio]),
+    .device_we_i    (device_we[ArdGpio]),
+    .device_be_i    (device_be[ArdGpio]),
+    .device_wdata_i (device_wdata[ArdGpio]),
+    .device_rvalid_o(device_rvalid[ArdGpio]),
+    .device_rdata_o (device_rdata[ArdGpio]),
+
+    .gp_i(ard_gp_i),
+    .gp_o(ard_gp_o)
+  );
+
+  gpio #(
+    .GpiWidth ( PmodGpiWidth ),
+    .GpoWidth ( WordWidth    )
+  ) u_pmod_gpio (
+    .clk_i (clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .device_req_i   (device_req[PmodGpio]),
+    .device_addr_i  (device_addr[PmodGpio]),
+    .device_we_i    (device_we[PmodGpio]),
+    .device_be_i    (device_be[PmodGpio]),
+    .device_wdata_i (device_wdata[PmodGpio]),
+    .device_rvalid_o(device_rvalid[PmodGpio]),
+    .device_rdata_o (device_rdata[PmodGpio]),
+
+    .gp_i(pmod_gp_i),
+    .gp_o(pmod_gp_o)
   );
 
   i2c u_i2c0 (
