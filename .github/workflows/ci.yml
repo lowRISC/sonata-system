@@ -45,7 +45,7 @@ jobs:
       working-directory: sw/legacy/build
 
   simulator:
-    runs-on: nixos-23.11
+    runs-on: nixos-24.05
 
     steps:
     - uses: actions/checkout@v4
