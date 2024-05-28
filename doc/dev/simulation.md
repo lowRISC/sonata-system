@@ -4,9 +4,24 @@ The Sonata simulation environment uses Verilator.
 
 ## Building
 
-Use the following FuseSoC command to build the simulator binary:
+Use the following command to build the simulator binary.
+The resulting executable will be available at `./result/bin/sonata-simulator`.
+
 ```sh
-fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system
+nix build .#sonata-simulator
+```
+
+
+If you'd like more control over the build, you can manually invoke FuseSoC with the following.
+The resulting executable can be found at `./build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator`.
+
+```sh
+NUM_CORES=4
+fusesoc --cores-root=. run \
+  --target=sim --tool=verilator --setup \
+  --build lowrisc:sonata:system \
+  --verilator_options="-j $NUM_CORES" \
+  --make_options="-j $NUM_CORES"
 ```
 
 *To enable tracing append, `--verilator_options='+define+RVFI'` to the command above.*
