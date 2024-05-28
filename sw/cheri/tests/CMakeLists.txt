@@ -4,6 +4,7 @@ set(TESTS
   uart_check.cc
   spi_test.cc
   revocation_test.cc
+  rgbled_test.cc
 )
 
 foreach(TEST ${TESTS})
