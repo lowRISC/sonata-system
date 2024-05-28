@@ -100,9 +100,13 @@ module gpio #(
   end
 
   // Unused signals.
-  logic [AddrWidth-1-RegAddr:0]  unused_device_addr;
-  logic [DataWidth-1-GpoWidth:0] unused_device_wdata;
+  if (AddrWidth > RegAddr) begin : g_unused_addr_bits
+    logic [AddrWidth-1-RegAddr:0]  unused_device_addr;
+    assign unused_device_addr  = device_addr_i[AddrWidth-1:RegAddr];
+  end
 
-  assign unused_device_addr  = device_addr_i[AddrWidth-1:RegAddr];
-  assign unused_device_wdata = device_wdata_i[DataWidth-1:GpoWidth];
+  if (DataWidth > GpoWidth) begin : g_unused_gpo_bits
+    logic [DataWidth-1-GpoWidth:0] unused_device_wdata;
+    assign unused_device_wdata = device_wdata_i[DataWidth-1:GpoWidth];
+  end
 endmodule
