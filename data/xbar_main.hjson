@@ -49,7 +49,7 @@
         size_byte: "0x00004000",
       }],
     },
-    { name:  "gpio", // General purpose input and output
+    { name:  "gpio", // Input and output
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
@@ -66,36 +66,6 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x80001000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "rpi_gpio", // General purpose input and output for R-Pi header
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80006000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "ard_gpio", // General purpose input and output for Arduino Shield
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80007000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "pmod_gpio", // General purpose input and output for PMOD
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80008000",
         size_byte: "0x00001000",
       }],
     },
@@ -257,9 +227,6 @@
       "rev_tag",
       "gpio",
       "pwm",
-      "rpi_gpio",
-      "ard_gpio",
-      "pmod_gpio",
       "timer",
       "rgbled_ctrl",
       "uart0",

@@ -45,9 +45,6 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_3000  |   4 KiB | [HyperRAM][]       |
 | 0x8000_4000  |   4 KiB | [ADC][]            |
 | 0x8000_5000  |   4 KiB | [Pinmux][]         |
-| 0x8000_6000  |   4 KiB | R-Pi Header GPIO   |
-| 0x8000_7000  |   4 KiB | Arduino GPIO       |
-| 0x8000_8000  |   4 KiB | PMOD GPIO          |
 | 0x8000_9000  |   4 KiB | RGB LED controller |
 | 0x8004_0000  |  64 KiB | [Timer][]          |
 | 0x8010_0000  |   1 MiB | [UART][]           |
