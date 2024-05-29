@@ -25,6 +25,22 @@ Wrote 74752 bytes to build/cheriot/cheriot/release/sonata_simple_demo.uf2
 
 You can drag and drop this UF2 file into the `SONATA` drive to program the firmware.
 
+## UART output
+
+On Linux use the following command to check you can receive serial output:
+```sh
+screen /dev/ttyUSB2 115200
+```
+
+On Mac this is similar
+```sh
+screen /dev/tty.usbserial-LN100302 115200
+```
+
+On Windows, connecting to serial ports directly from within WSL2 (default) is not possible. Connecting from WSL1 is possible, but we recommend to use [PuTTY](https://www.putty.org/) to connect to serial ports.
+
+Select "Serial" as "Connection type", put the COM port in the "Serial line" text field, and set "Speed" to 115200. To find out what serial ports are available, you can open Device Manager and all connected serial ports are listed under "Ports (COM & LPT)" section.
+
 ## Baremetal examples
 
 This is **only for advanced users**.
