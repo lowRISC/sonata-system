@@ -1,5 +1,10 @@
 # Reloading the FPGA Image
 
+*We have seen some issues with the standard FPGA loading flow using the RP2040.
+Until these are fixed we recommend using a special version of the RP2040 firmware that has the FPGA's bitstream pre-built into it.
+This is named `tmp_rpi_rp2_part1_v0.2.uf2` in the [current release](https://github.com/lowRISC/sonata-system/releases/tag/v0.2).
+When using that firmware you do not need to follow the instructions below.*
+
 The first thing you should do before building the firmware is to get the latest version of the FPGA image, called the "bitstream". This contains the configuration
 for the microcontroller core & peripherals. The "release version" of the bitstream *must* match the
 configuration you use to build the software, as if the bitstream is a different version than what

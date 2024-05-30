@@ -46,6 +46,11 @@ Select "Serial" as "Connection type", put the COM port in the "Serial line" text
 This is **only for advanced users**.
 If you want to build the baremetal examples in the Sonata repo you can follow these instructions.
 
+First [setup a toolchain](../dev/toolchain-setup.md).
+Note none of the current Nix environments have exactly the correct set of dependencies to build the baremetal examples.
+This will change but for the time being you either need to alter a Nix environment (either add cmake to the sonata-software environment or the CHERIoT toolchain to the sonata-system environment) or setup a toolchain outside Nix.
+
+
 ### Additional Toolchain Setup
 
 Besides the compiler, there are a few more features the example code depends on.

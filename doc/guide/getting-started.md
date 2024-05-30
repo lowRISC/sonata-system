@@ -6,16 +6,16 @@ default setups.
 
 > The Sonata board is a prototype board and is under active development.
 > This documentation is in the process of being updated.
-> We will be improving the getting started guide soon to allow for an easier way with developing against the boards.
+> Some parts of the documentation may be out of date or otherwise confusing because of this.
+> This getting started material and the documentation in the [sonata-software](https://www.github.com/lowrisc/sonata-software) repository provides the best material for new users to focus on.
 
 ## Getting Started Steps
 
 To get started with your Sonata board, there are three steps you'll need to do. First, head to
 the [Sonata System Release Page](https://github.com/lowRISC/sonata-system/releases/) where you'll find the latest releases.
 
-0. [Program the RP2040 With the Latest](rp2040-update.md) firmware to get any bug fixes by entering bootloader mode & dragging the `rpi_rp2_v0.XX.uf2`.
-1. [Get the latest FPGA image](fpga-update.md) that corresponds with the software you are building. This requires you to just drag the new `.bit` file onto the SONATA drive that comes up when you plug in the board to your computer.
-2. [Install the software toolchain](toolchain-setup.md).
+1. [Program the RP2040 With the latest](rp2040-update.md) firmware to get any bug fixes by entering bootloader mode & dragging the `rpi_rp2_v0.XX.uf2`.
+2. [Get the latest FPGA image](fpga-update.md) that corresponds with the software you are building. This requires you to just drag the new `.bit` file onto the SONATA drive that comes up when you plug in the board to your computer.
 3. [Build the example code](building-examples.md) and download to the soft-core you loaded in step 1.
 
 Follow along each of the following sections to complete these tasks.

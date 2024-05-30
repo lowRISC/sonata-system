@@ -1,18 +1,12 @@
 # Setting up the Toolchain for Software Development
 
+This is **only for advanced users** who wish to build their own toolchain.
+
 All the special CHERIoT goodness comes with its own compiler that understands how to use it. For this reason you'll need to build a
 special toolchain from source. Luckily, it should be easy if you follow our simple instructions.
 
 If building on Windows, the following instructions have also been confirmed to work with WSL2 with the exception of `edalize` and `fusesoc`,
 which *are not required for software development*.
-
-## Nix Setup
-
-We recommend using Nix for your setup.
-You can find instructions on how to do this in the [Sonata software repository](https://github.com/lowRISC/sonata-software).
-This also includes a GitHub Codespaces that sets a whole environment up for you in the browser.
-
-## Manual Setup
 
 ### Sonata Setup
 
