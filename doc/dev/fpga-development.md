@@ -14,7 +14,7 @@ The Sonata bitstream is generated using Vivado.
 
 ## Bitstream
 
-To build the bitstream, make sure to [build the software](../guide/building-examples.md) to create the correct SRAM image.
+To build the bitstream, make sure to [build the baremetal software](../guide/building-examples.md#baremetal-examples) to create the correct SRAM image.
 Then run this command:
 
 ```sh
