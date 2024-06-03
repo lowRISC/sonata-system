@@ -37,7 +37,7 @@ On Mac this is similar
 screen /dev/tty.usbserial-LN100302 115200
 ```
 
-On Windows, connecting to serial ports directly from within WSL2 (default) is not possible. Connecting from WSL1 is possible, but we recommend to use [PuTTY](https://www.putty.org/) to connect to serial ports.
+On Windows, connecting to serial ports directly from within WSL2 (default) is not possible. Connecting from WSL1 is possible, but we recommend to use [PuTTY](https://www.putty.org/) to connect to serial ports. Alternatively you can use [Termite](https://www.compuphase.com/software_termite.htm).
 
 Select "Serial" as "Connection type", put the COM port in the "Serial line" text field, and set "Speed" to 115200. To find out what serial ports are available, you can open Device Manager and all connected serial ports are listed under "Ports (COM & LPT)" section.
 
