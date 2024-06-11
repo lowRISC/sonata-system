@@ -10,7 +10,7 @@ package jtag_id_pkg;
 
   localparam logic [31:0] RV_DM_JTAG_IDCODE = {
     JTAG_VERSION,          // Version
-    {12'h100,4'h1},        // Part Number
+    {12'h101,4'h1},        // Sonata part number
     JEDEC_MANUFACTURER_ID, // Manufacturer ID
     1'b1                   // (fixed)
   };

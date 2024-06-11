@@ -12,8 +12,8 @@ ftdi_layout_init 0x0088 0x008b
 # Configure JTAG chain and the target processor
 set _CHIPNAME riscv
 
-# Ibex Demo System JTAG IDCODE
-set _EXPECTED_ID 0x11001CDF
+# Sonata JTAG IDCODE
+set _EXPECTED_ID 0x11011CDF
 
 jtag newtap $_CHIPNAME cpu -irlen 5 -expected-id $_EXPECTED_ID -ignore-version
 set _TARGETNAME $_CHIPNAME.cpu
