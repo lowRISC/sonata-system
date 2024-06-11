@@ -5,6 +5,9 @@ src = "."
 title = "Sonata System Documentation"
 
 [output.html]
+git-repository-url = "https://github.com/lowRISC/sonata-system"
+edit-url-template = "https://github.com/lowRISC/sonata-system/edit/main/{path}"
+
 additional-js = [
     "./util/mdbook/wavejson/default.js",
     "./util/mdbook/wavejson/wavedrom.min.js",
