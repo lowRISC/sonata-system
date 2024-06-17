@@ -55,7 +55,9 @@ lint_off -rule UNUSED -file "*usbdev.sv"
 
 lint_off -rule GENUNNAMED
 
-lint_off -rule UNOPTFLAT -file "*/rtl/ibex_core.sv" -match "*cheri_csr_addr*"
+lint_off -rule UNOPTFLAT -file "*/rtl/ibex_core.sv" -match "*cheri_csr_*"
+lint_off -rule UNOPTFLAT -file "*/rtl/cheri_ex.sv" -match "*scr_legalization*"
+lint_off -rule UNOPTFLAT -file "*/rtl/ibex_decoder.sv" -match "*cheri_rf_we_dec*"
 lint_off -rule UNOPTFLAT -file "*/rtl/prim_fifo_async_simple.sv"
 lint_off -rule UNOPTFLAT -file "*/rtl/prim_subreg_ext.sv"
 lint_off -rule BLKSEQ -file "*/rtl/ibex_tracer.sv"
