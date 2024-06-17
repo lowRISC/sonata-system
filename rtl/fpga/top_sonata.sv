@@ -41,6 +41,10 @@ module top_sonata (
   output logic       ser1_tx,
   input  logic       ser1_rx,
 
+  // RS-232
+  output logic       rs232_tx,
+  input  logic       rs232_rx,
+
   // QWIIC (Sparkfun) buses
   inout  logic       scl0,  // qwiic0 and Arduino Header
   inout  logic       sda0,
@@ -375,6 +379,10 @@ module top_sonata (
     // UART 3
     .uart3_rx_i     (mb8),
     .uart3_tx_o     (mb7),
+
+    // UART 4
+    .uart4_rx_i     (rs232_rx),
+    .uart4_tx_o     (rs232_tx),
 
     // PWM
     .pwm_o({mb10}),

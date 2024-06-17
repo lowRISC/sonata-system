@@ -68,6 +68,9 @@ module top_verilator (input logic clk_i, rst_ni);
     .uart3_rx_i     (),
     .uart3_tx_o     (),
 
+    .uart4_rx_i     (),
+    .uart4_tx_o     (),
+
     .spi_flash_rx_i (0),
     .spi_flash_tx_o ( ),
     .spi_flash_sck_o( ),
