@@ -446,141 +446,142 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_rev_d2h;
 
   xbar_main xbar (
-    .clk_sys_i   (clk_sys_i),
-    .rst_sys_ni  (rst_sys_ni),
-    .clk_usb_i   (clk_usb_i),
-    .rst_usb_ni  (rst_usb_ni),
+    // Clock and reset.
+    .clk_sys_i        (clk_sys_i),
+    .rst_sys_ni       (rst_sys_ni),
+    .clk_usb_i        (clk_usb_i),
+    .rst_usb_ni       (rst_usb_ni),
 
     // Host interfaces.
-    .tl_ibex_lsu_i(tl_ibex_lsu_h2d_q),
-    .tl_ibex_lsu_o(tl_ibex_lsu_d2h_q),
-    .tl_dbg_host_i(tl_dbg_host_h2d_q),
-    .tl_dbg_host_o(tl_dbg_host_d2h_q),
+    .tl_ibex_lsu_i    (tl_ibex_lsu_h2d_q),
+    .tl_ibex_lsu_o    (tl_ibex_lsu_d2h_q),
+    .tl_dbg_host_i    (tl_dbg_host_h2d_q),
+    .tl_dbg_host_o    (tl_dbg_host_d2h_q),
 
     // Device interfaces.
-    .tl_sram_o     (tl_sram_h2d_d),
-    .tl_sram_i     (tl_sram_d2h_d),
-    .tl_rev_tag_o  (tl_rev_h2d),
-    .tl_rev_tag_i  (tl_rev_d2h),
-    .tl_gpio_o     (tl_gpio_h2d),
-    .tl_gpio_i     (tl_gpio_d2h),
-    .tl_pwm_o      (tl_pwm_h2d),
-    .tl_pwm_i      (tl_pwm_d2h),
-    .tl_rpi_gpio_o (tl_rpi_gpio_h2d),
-    .tl_rpi_gpio_i (tl_rpi_gpio_d2h),
-    .tl_ard_gpio_o (tl_ard_gpio_h2d),
-    .tl_ard_gpio_i (tl_ard_gpio_d2h),
-    .tl_pmod_gpio_o(tl_pmod_gpio_h2d),
-    .tl_pmod_gpio_i(tl_pmod_gpio_d2h),
-    .tl_rgbled_ctrl_o(tl_rgbled_ctrl_h2d),
-    .tl_rgbled_ctrl_i(tl_rgbled_ctrl_d2h),
-    .tl_timer_o    (tl_timer_h2d),
-    .tl_timer_i    (tl_timer_d2h),
-    .tl_uart0_o    (tl_uart0_h2d),
-    .tl_uart0_i    (tl_uart0_d2h),
-    .tl_uart1_o    (tl_uart1_h2d),
-    .tl_uart1_i    (tl_uart1_d2h),
-    .tl_i2c0_o     (tl_i2c0_h2d),
-    .tl_i2c0_i     (tl_i2c0_d2h),
-    .tl_i2c1_o     (tl_i2c1_h2d),
-    .tl_i2c1_i     (tl_i2c1_d2h),
-    .tl_spi_flash_o(tl_spi_flash_h2d),
-    .tl_spi_flash_i(tl_spi_flash_d2h),
-    .tl_spi_lcd_o  (tl_spi_lcd_h2d),
-    .tl_spi_lcd_i  (tl_spi_lcd_d2h),
-    .tl_spi_eth_o  (tl_spi_eth_h2d),
-    .tl_spi_eth_i  (tl_spi_eth_d2h),
-    .tl_spi_rp0_o  (tl_spi_rp0_h2d),
-    .tl_spi_rp0_i  (tl_spi_rp0_d2h),
-    .tl_spi_rp1_o  (tl_spi_rp1_h2d),
-    .tl_spi_rp1_i  (tl_spi_rp1_d2h),
-    .tl_spi_ard_o  (tl_spi_ard_h2d),
-    .tl_spi_ard_i  (tl_spi_ard_d2h),
-    .tl_spi_mkr_o  (tl_spi_mkr_h2d),
-    .tl_spi_mkr_i  (tl_spi_mkr_d2h),
-    .tl_usbdev_o   (tl_usbdev_h2d),
-    .tl_usbdev_i   (tl_usbdev_d2h),
-    .tl_rv_plic_o  (tl_rv_plic_h2d),
-    .tl_rv_plic_i  (tl_rv_plic_d2h),
+    .tl_sram_o        (tl_sram_h2d_d),
+    .tl_sram_i        (tl_sram_d2h_d),
+    .tl_rev_tag_o     (tl_rev_h2d),
+    .tl_rev_tag_i     (tl_rev_d2h),
+    .tl_gpio_o        (tl_gpio_h2d),
+    .tl_gpio_i        (tl_gpio_d2h),
+    .tl_pwm_o         (tl_pwm_h2d),
+    .tl_pwm_i         (tl_pwm_d2h),
+    .tl_rpi_gpio_o    (tl_rpi_gpio_h2d),
+    .tl_rpi_gpio_i    (tl_rpi_gpio_d2h),
+    .tl_ard_gpio_o    (tl_ard_gpio_h2d),
+    .tl_ard_gpio_i    (tl_ard_gpio_d2h),
+    .tl_pmod_gpio_o   (tl_pmod_gpio_h2d),
+    .tl_pmod_gpio_i   (tl_pmod_gpio_d2h),
+    .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
+    .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
+    .tl_timer_o       (tl_timer_h2d),
+    .tl_timer_i       (tl_timer_d2h),
+    .tl_uart0_o       (tl_uart0_h2d),
+    .tl_uart0_i       (tl_uart0_d2h),
+    .tl_uart1_o       (tl_uart1_h2d),
+    .tl_uart1_i       (tl_uart1_d2h),
+    .tl_i2c0_o        (tl_i2c0_h2d),
+    .tl_i2c0_i        (tl_i2c0_d2h),
+    .tl_i2c1_o        (tl_i2c1_h2d),
+    .tl_i2c1_i        (tl_i2c1_d2h),
+    .tl_spi_flash_o   (tl_spi_flash_h2d),
+    .tl_spi_flash_i   (tl_spi_flash_d2h),
+    .tl_spi_lcd_o     (tl_spi_lcd_h2d),
+    .tl_spi_lcd_i     (tl_spi_lcd_d2h),
+    .tl_spi_eth_o     (tl_spi_eth_h2d),
+    .tl_spi_eth_i     (tl_spi_eth_d2h),
+    .tl_spi_rp0_o     (tl_spi_rp0_h2d),
+    .tl_spi_rp0_i     (tl_spi_rp0_d2h),
+    .tl_spi_rp1_o     (tl_spi_rp1_h2d),
+    .tl_spi_rp1_i     (tl_spi_rp1_d2h),
+    .tl_spi_ard_o     (tl_spi_ard_h2d),
+    .tl_spi_ard_i     (tl_spi_ard_d2h),
+    .tl_spi_mkr_o     (tl_spi_mkr_h2d),
+    .tl_spi_mkr_i     (tl_spi_mkr_d2h),
+    .tl_usbdev_o      (tl_usbdev_h2d),
+    .tl_usbdev_i      (tl_usbdev_d2h),
+    .tl_rv_plic_o     (tl_rv_plic_h2d),
+    .tl_rv_plic_i     (tl_rv_plic_d2h),
 
-    .scanmode_i(prim_mubi_pkg::MuBi4False)
+    .scanmode_i       (prim_mubi_pkg::MuBi4False)
   );
 
   // TL-UL host adapter(s).
 
   tlul_adapter_host ibex_ins_host_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
-    .req_i       (core_instr_req_filtered),
-    .gnt_o       (core_instr_gnt),
-    .addr_i      (core_instr_addr),
-    .we_i        ('0),
-    .wdata_i     ('0),
-    .wdata_cap_i ('0),
-    .wdata_intg_i('0),
-    .be_i        ('0),
-    .instr_type_i(prim_mubi_pkg::MuBi4True),
+    .req_i        (core_instr_req_filtered),
+    .gnt_o        (core_instr_gnt),
+    .addr_i       (core_instr_addr),
+    .we_i         ('0),
+    .wdata_i      ('0),
+    .wdata_cap_i  ('0),
+    .wdata_intg_i ('0),
+    .be_i         ('0),
+    .instr_type_i (prim_mubi_pkg::MuBi4True),
 
-    .valid_o     (core_instr_rvalid),
-    .rdata_o     (core_instr_rdata),
-    .rdata_cap_o (), // Instructions should not have capability tag set.
-    .rdata_intg_o(),
-    .err_o       (core_instr_err),
-    .intg_err_o  (),
+    .valid_o      (core_instr_rvalid),
+    .rdata_o      (core_instr_rdata),
+    .rdata_cap_o  (), // Instructions should not have capability tag set.
+    .rdata_intg_o (),
+    .err_o        (core_instr_err),
+    .intg_err_o   (),
 
-    .tl_o(tl_ibex_ins_h2d),
-    .tl_i(tl_ibex_ins_d2h)
+    .tl_o         (tl_ibex_ins_h2d),
+    .tl_i         (tl_ibex_ins_d2h)
   );
 
   tlul_adapter_host ibex_lsu_host_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
-    .req_i       (host_req[CoreD]),
-    .gnt_o       (host_gnt[CoreD]),
-    .addr_i      (host_addr[CoreD]),
-    .we_i        (host_we[CoreD]),
-    .wdata_i     (host_wdata[CoreD]),
-    .wdata_cap_i (host_wcap[CoreD]),
-    .wdata_intg_i('0),
-    .be_i        (host_be[CoreD]),
-    .instr_type_i(prim_mubi_pkg::MuBi4False),
+    .req_i        (host_req[CoreD]),
+    .gnt_o        (host_gnt[CoreD]),
+    .addr_i       (host_addr[CoreD]),
+    .we_i         (host_we[CoreD]),
+    .wdata_i      (host_wdata[CoreD]),
+    .wdata_cap_i  (host_wcap[CoreD]),
+    .wdata_intg_i ('0),
+    .be_i         (host_be[CoreD]),
+    .instr_type_i (prim_mubi_pkg::MuBi4False),
 
-    .valid_o     (host_rvalid[CoreD]),
-    .rdata_o     (host_rdata[CoreD]),
-    .rdata_cap_o (host_rcap[CoreD]),
-    .rdata_intg_o(),
-    .err_o       (host_err[CoreD]),
-    .intg_err_o  (),
+    .valid_o      (host_rvalid[CoreD]),
+    .rdata_o      (host_rdata[CoreD]),
+    .rdata_cap_o  (host_rcap[CoreD]),
+    .rdata_intg_o (),
+    .err_o        (host_err[CoreD]),
+    .intg_err_o   (),
 
-    .tl_o(tl_ibex_lsu_h2d_d),
-    .tl_i(tl_ibex_lsu_d2h_d)
+    .tl_o         (tl_ibex_lsu_h2d_d),
+    .tl_i         (tl_ibex_lsu_d2h_d)
   );
 
   tlul_adapter_host dbg_host_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
-    .req_i       (host_req[DbgHost]),
-    .gnt_o       (host_gnt[DbgHost]),
-    .addr_i      (host_addr[DbgHost]),
-    .we_i        (host_we[DbgHost]),
-    .wdata_i     (host_wdata[DbgHost]),
-    .wdata_cap_i (host_wcap[DbgHost]),
-    .wdata_intg_i('0),
-    .be_i        (host_be[DbgHost]),
-    .instr_type_i(prim_mubi_pkg::MuBi4False),
+    .req_i        (host_req[DbgHost]),
+    .gnt_o        (host_gnt[DbgHost]),
+    .addr_i       (host_addr[DbgHost]),
+    .we_i         (host_we[DbgHost]),
+    .wdata_i      (host_wdata[DbgHost]),
+    .wdata_cap_i  (host_wcap[DbgHost]),
+    .wdata_intg_i ('0),
+    .be_i         (host_be[DbgHost]),
+    .instr_type_i (prim_mubi_pkg::MuBi4False),
 
-    .valid_o     (host_rvalid[DbgHost]),
-    .rdata_o     (host_rdata[DbgHost]),
-    .rdata_cap_o (host_rcap[DbgHost]),
-    .rdata_intg_o(),
-    .err_o       (host_err[DbgHost]),
-    .intg_err_o  (),
+    .valid_o      (host_rvalid[DbgHost]),
+    .rdata_o      (host_rdata[DbgHost]),
+    .rdata_cap_o  (host_rcap[DbgHost]),
+    .rdata_intg_o (),
+    .err_o        (host_err[DbgHost]),
+    .intg_err_o   (),
 
-    .tl_o(tl_dbg_host_h2d_d),
-    .tl_i(tl_dbg_host_d2h_d)
+    .tl_o         (tl_dbg_host_h2d_d),
+    .tl_i         (tl_dbg_host_d2h_d)
   );
 
   // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
@@ -590,18 +591,18 @@ module sonata_system #(
     .ReqDepth ( 2 ),
     .RspDepth ( 2 )
   ) tl_ibex_lsu_fifo (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i       (clk_sys_i),
+    .rst_ni      (rst_sys_ni),
 
-    .tl_h_i(tl_ibex_lsu_h2d_d),
-    .tl_h_o(tl_ibex_lsu_d2h_d),
-    .tl_d_o(tl_ibex_lsu_h2d_q),
-    .tl_d_i(tl_ibex_lsu_d2h_q),
+    .tl_h_i      (tl_ibex_lsu_h2d_d),
+    .tl_h_o      (tl_ibex_lsu_d2h_d),
+    .tl_d_o      (tl_ibex_lsu_h2d_q),
+    .tl_d_i      (tl_ibex_lsu_d2h_q),
 
-    .spare_req_i(1'b0),
-    .spare_req_o(),
-    .spare_rsp_i(1'b0),
-    .spare_rsp_o()
+    .spare_req_i (1'b0),
+    .spare_req_o (    ),
+    .spare_rsp_i (1'b0),
+    .spare_rsp_o (    )
   );
 
   // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
@@ -611,18 +612,18 @@ module sonata_system #(
     .ReqDepth ( 2 ),
     .RspDepth ( 2 )
   ) tl_dbg_host_fifo (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i       (clk_sys_i),
+    .rst_ni      (rst_sys_ni),
 
-    .tl_h_i(tl_dbg_host_h2d_d),
-    .tl_h_o(tl_dbg_host_d2h_d),
-    .tl_d_o(tl_dbg_host_h2d_q),
-    .tl_d_i(tl_dbg_host_d2h_q),
+    .tl_h_i      (tl_dbg_host_h2d_d),
+    .tl_h_o      (tl_dbg_host_d2h_d),
+    .tl_d_o      (tl_dbg_host_h2d_q),
+    .tl_d_i      (tl_dbg_host_d2h_q),
 
-    .spare_req_i(1'b0),
-    .spare_req_o(),
-    .spare_rsp_i(1'b0),
-    .spare_rsp_o()
+    .spare_req_i (1'b0),
+    .spare_req_o (    ),
+    .spare_rsp_i (1'b0),
+    .spare_rsp_o (    )
   );
 
   // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
@@ -632,18 +633,18 @@ module sonata_system #(
     .ReqDepth ( 2 ),
     .RspDepth ( 2 )
   ) tl_sram_fifo (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i       (clk_sys_i),
+    .rst_ni      (rst_sys_ni),
 
-    .tl_h_i(tl_sram_h2d_d),
-    .tl_h_o(tl_sram_d2h_d),
-    .tl_d_o(tl_sram_h2d_q),
-    .tl_d_i(tl_sram_d2h_q),
+    .tl_h_i      (tl_sram_h2d_d),
+    .tl_h_o      (tl_sram_d2h_d),
+    .tl_d_o      (tl_sram_h2d_q),
+    .tl_d_i      (tl_sram_d2h_q),
 
-    .spare_req_i(1'b0),
-    .spare_req_o(),
-    .spare_rsp_i(1'b0),
-    .spare_rsp_o()
+    .spare_req_i (1'b0),
+    .spare_req_o (    ),
+    .spare_rsp_i (1'b0),
+    .spare_rsp_o (    )
   );
 
   sram #(
@@ -665,26 +666,26 @@ module sonata_system #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) gpio_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_gpio_h2d),
-    .tl_o(tl_gpio_d2h),
+    .tl_i         (tl_gpio_h2d),
+    .tl_o         (tl_gpio_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[Gpio]),
-    .we_o   (device_we[Gpio]),
-    .addr_o (device_addr[Gpio][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[Gpio]),
-    .be_o   (device_be[Gpio]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[Gpio]),
-    .error_i(device_err[Gpio])
+    .re_o         (device_re[Gpio]),
+    .we_o         (device_we[Gpio]),
+    .addr_o       (device_addr[Gpio][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[Gpio]),
+    .be_o         (device_be[Gpio]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[Gpio]),
+    .error_i      (device_err[Gpio])
   );
 
   // Tie off upper bits of address.
@@ -694,26 +695,26 @@ module sonata_system #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) rpi_gpio_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_rpi_gpio_h2d),
-    .tl_o(tl_rpi_gpio_d2h),
+    .tl_i         (tl_rpi_gpio_h2d),
+    .tl_o         (tl_rpi_gpio_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[RpiGpio]),
-    .we_o   (device_we[RpiGpio]),
-    .addr_o (device_addr[RpiGpio][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[RpiGpio]),
-    .be_o   (device_be[RpiGpio]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[RpiGpio]),
-    .error_i(device_err[RpiGpio])
+    .re_o         (device_re[RpiGpio]),
+    .we_o         (device_we[RpiGpio]),
+    .addr_o       (device_addr[RpiGpio][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[RpiGpio]),
+    .be_o         (device_be[RpiGpio]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[RpiGpio]),
+    .error_i      (device_err[RpiGpio])
   );
 
   // Tie off upper bits of address.
@@ -723,26 +724,26 @@ module sonata_system #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) ard_gpio_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_ard_gpio_h2d),
-    .tl_o(tl_ard_gpio_d2h),
+    .tl_i         (tl_ard_gpio_h2d),
+    .tl_o         (tl_ard_gpio_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[ArdGpio]),
-    .we_o   (device_we[ArdGpio]),
-    .addr_o (device_addr[ArdGpio][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[ArdGpio]),
-    .be_o   (device_be[ArdGpio]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[ArdGpio]),
-    .error_i(device_err[ArdGpio])
+    .re_o         (device_re[ArdGpio]),
+    .we_o         (device_we[ArdGpio]),
+    .addr_o       (device_addr[ArdGpio][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[ArdGpio]),
+    .be_o         (device_be[ArdGpio]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[ArdGpio]),
+    .error_i      (device_err[ArdGpio])
   );
 
   // Tie off upper bits of address.
@@ -752,26 +753,26 @@ module sonata_system #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) pmod_gpio_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_pmod_gpio_h2d),
-    .tl_o(tl_pmod_gpio_d2h),
+    .tl_i         (tl_pmod_gpio_h2d),
+    .tl_o         (tl_pmod_gpio_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[PmodGpio]),
-    .we_o   (device_we[PmodGpio]),
-    .addr_o (device_addr[PmodGpio][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[PmodGpio]),
-    .be_o   (device_be[PmodGpio]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[PmodGpio]),
-    .error_i(device_err[PmodGpio])
+    .re_o         (device_re[PmodGpio]),
+    .we_o         (device_we[PmodGpio]),
+    .addr_o       (device_addr[PmodGpio][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[PmodGpio]),
+    .be_o         (device_be[PmodGpio]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[PmodGpio]),
+    .error_i      (device_err[PmodGpio])
   );
 
   // Tie off upper bits of address.
@@ -781,26 +782,26 @@ module sonata_system #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) pwm_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_pwm_h2d),
-    .tl_o(tl_pwm_d2h),
+    .tl_i         (tl_pwm_h2d),
+    .tl_o         (tl_pwm_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[Pwm]),
-    .we_o   (device_we[Pwm]),
-    .addr_o (device_addr[Pwm][RegAddrWidth-1:0]),
-    .wdata_o(device_wdata[Pwm]),
-    .be_o   (device_be[Pwm]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[Pwm]),
-    .error_i(device_err[Pwm])
+    .re_o         (device_re[Pwm]),
+    .we_o         (device_we[Pwm]),
+    .addr_o       (device_addr[Pwm][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[Pwm]),
+    .be_o         (device_be[Pwm]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[Pwm]),
+    .error_i      (device_err[Pwm])
   );
 
   // Tie off upper bits of address.
@@ -811,26 +812,26 @@ module sonata_system #(
     .RegAw            ( TRegAddrWidth ),
     .AccessLatency    ( 1 )
   ) timer_device_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_timer_h2d),
-    .tl_o(tl_timer_d2h),
+    .tl_i         (tl_timer_h2d),
+    .tl_o         (tl_timer_d2h),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
-    .intg_error_o(),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
 
     // Register interface.
-    .re_o   (device_re[Timer]),
-    .we_o   (device_we[Timer]),
-    .addr_o (device_addr[Timer][TRegAddrWidth-1:0]),
-    .wdata_o(device_wdata[Timer]),
-    .be_o   (device_be[Timer]),
-    .busy_i ('0),
-    .rdata_i(device_rdata[Timer]),
-    .error_i(device_err[Timer])
+    .re_o         (device_re[Timer]),
+    .we_o         (device_we[Timer]),
+    .addr_o       (device_addr[Timer][TRegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[Timer]),
+    .be_o         (device_be[Timer]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[Timer]),
+    .error_i      (device_err[Timer])
   );
 
   // Tie off upper bits of address.
@@ -855,30 +856,30 @@ module sonata_system #(
     .SramAw           ( RevTagAddrWidth ),
     .EnableRspIntgGen ( 1               )
   ) revocation_sram_adapter (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i(tl_rev_h2d),
-    .tl_o(tl_rev_d2h),
+    .tl_i         (tl_rev_h2d),
+    .tl_o         (tl_rev_d2h),
 
     // Control interface.
-    .en_ifetch_i(prim_mubi_pkg::MuBi4False),
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
 
     // SRAM interface.
-    .req_o       (device_req[RevTags]),
-    .req_type_o  (),
-    .gnt_i       (device_req[RevTags]),
-    .we_o        (device_we[RevTags]),
-    .addr_o      (device_addr[RevTags][RevTagAddrWidth-1:0]),
-    .wdata_o     (device_wdata[RevTags]),
-    .wdata_cap_o (),
-    .wmask_o     (revocation_tags_bit_enable),
-    .intg_error_o(),
-    .rdata_i     (device_rdata[RevTags]),
-    .rdata_cap_i (1'b0),
-    .rvalid_i    (device_rvalid[RevTags]),
-    .rerror_i    (2'b00)
+    .req_o        (device_req[RevTags]),
+    .req_type_o   (),
+    .gnt_i        (device_req[RevTags]),
+    .we_o         (device_we[RevTags]),
+    .addr_o       (device_addr[RevTags][RevTagAddrWidth-1:0]),
+    .wdata_o      (device_wdata[RevTags]),
+    .wdata_cap_o  (),
+    .wmask_o      (revocation_tags_bit_enable),
+    .intg_error_o (),
+    .rdata_i      (device_rdata[RevTags]),
+    .rdata_cap_i  (1'b0),
+    .rvalid_i     (device_rvalid[RevTags]),
+    .rerror_i     (2'b00)
   );
 
   // Tie off upper bits of address.
@@ -999,179 +1000,187 @@ module sonata_system #(
     .GpiWidth ( GpiWidth ),
     .GpoWidth ( GpoWidth )
   ) u_gpio (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i           (clk_sys_i),
+    .rst_ni          (rst_sys_ni),
 
-    .device_req_i   (device_req[Gpio]),
-    .device_addr_i  (device_addr[Gpio]),
-    .device_we_i    (device_we[Gpio]),
-    .device_be_i    (device_be[Gpio]),
-    .device_wdata_i (device_wdata[Gpio]),
-    .device_rvalid_o(device_rvalid[Gpio]),
-    .device_rdata_o (device_rdata[Gpio]),
+    // Bus interface.
+    .device_req_i    (device_req[Gpio]),
+    .device_addr_i   (device_addr[Gpio]),
+    .device_we_i     (device_we[Gpio]),
+    .device_be_i     (device_be[Gpio]),
+    .device_wdata_i  (device_wdata[Gpio]),
+    .device_rvalid_o (device_rvalid[Gpio]),
+    .device_rdata_o  (device_rdata[Gpio]),
 
     .gp_i,
     .gp_o
   );
 
+  // GPIO for the Raspberry Pi HAT.
   gpio #(
     .GpiWidth ( RpiGpiWidth ),
     .GpoWidth ( WordWidth   )
   ) u_rpi_gpio (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i           (clk_sys_i),
+    .rst_ni          (rst_sys_ni),
 
-    .device_req_i   (device_req[RpiGpio]),
-    .device_addr_i  (device_addr[RpiGpio]),
-    .device_we_i    (device_we[RpiGpio]),
-    .device_be_i    (device_be[RpiGpio]),
-    .device_wdata_i (device_wdata[RpiGpio]),
-    .device_rvalid_o(device_rvalid[RpiGpio]),
-    .device_rdata_o (device_rdata[RpiGpio]),
+    // Bus interface.
+    .device_req_i    (device_req[RpiGpio]),
+    .device_addr_i   (device_addr[RpiGpio]),
+    .device_we_i     (device_we[RpiGpio]),
+    .device_be_i     (device_be[RpiGpio]),
+    .device_wdata_i  (device_wdata[RpiGpio]),
+    .device_rvalid_o (device_rvalid[RpiGpio]),
+    .device_rdata_o  (device_rdata[RpiGpio]),
 
-    .gp_i(rp_gp_i),
-    .gp_o(rp_gp_o)
+    .gp_i            (rp_gp_i),
+    .gp_o            (rp_gp_o)
   );
 
+  // GPIO for the Arduino Shield.
   gpio #(
     .GpiWidth ( ArdGpiWidth ),
     .GpoWidth ( WordWidth   )
   ) u_ard_gpio (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i           (clk_sys_i),
+    .rst_ni          (rst_sys_ni),
 
-    .device_req_i   (device_req[ArdGpio]),
-    .device_addr_i  (device_addr[ArdGpio]),
-    .device_we_i    (device_we[ArdGpio]),
-    .device_be_i    (device_be[ArdGpio]),
-    .device_wdata_i (device_wdata[ArdGpio]),
-    .device_rvalid_o(device_rvalid[ArdGpio]),
-    .device_rdata_o (device_rdata[ArdGpio]),
+    // Bus interface.
+    .device_req_i    (device_req[ArdGpio]),
+    .device_addr_i   (device_addr[ArdGpio]),
+    .device_we_i     (device_we[ArdGpio]),
+    .device_be_i     (device_be[ArdGpio]),
+    .device_wdata_i  (device_wdata[ArdGpio]),
+    .device_rvalid_o (device_rvalid[ArdGpio]),
+    .device_rdata_o  (device_rdata[ArdGpio]),
 
-    .gp_i(ard_gp_i),
-    .gp_o(ard_gp_o)
+    .gp_i            (ard_gp_i),
+    .gp_o            (ard_gp_o)
   );
 
+  // GPIO for PMOD connectors.
   gpio #(
     .GpiWidth ( PmodGpiWidth ),
     .GpoWidth ( WordWidth    )
   ) u_pmod_gpio (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i           (clk_sys_i),
+    .rst_ni          (rst_sys_ni),
 
-    .device_req_i   (device_req[PmodGpio]),
-    .device_addr_i  (device_addr[PmodGpio]),
-    .device_we_i    (device_we[PmodGpio]),
-    .device_be_i    (device_be[PmodGpio]),
-    .device_wdata_i (device_wdata[PmodGpio]),
-    .device_rvalid_o(device_rvalid[PmodGpio]),
-    .device_rdata_o (device_rdata[PmodGpio]),
+    // Bus interface.
+    .device_req_i    (device_req[PmodGpio]),
+    .device_addr_i   (device_addr[PmodGpio]),
+    .device_we_i     (device_we[PmodGpio]),
+    .device_be_i     (device_be[PmodGpio]),
+    .device_wdata_i  (device_wdata[PmodGpio]),
+    .device_rvalid_o (device_rvalid[PmodGpio]),
+    .device_rdata_o  (device_rdata[PmodGpio]),
 
-    .gp_i(pmod_gp_i),
-    .gp_o(pmod_gp_o)
+    .gp_i            (pmod_gp_i),
+    .gp_o            (pmod_gp_o)
   );
 
   i2c u_i2c0 (
-      .clk_i                    (clk_sys_i),
-      .rst_ni                   (rst_sys_ni),
-      .ram_cfg_i                (10'b0),
+      .clk_i                   (clk_sys_i),
+      .rst_ni                  (rst_sys_ni),
+      .ram_cfg_i               (10'b0),
 
-      // Bus Interface
-      .tl_i                     (tl_i2c0_h2d),
-      .tl_o                     (tl_i2c0_d2h),
+      // Bus interface.
+      .tl_i                    (tl_i2c0_h2d),
+      .tl_o                    (tl_i2c0_d2h),
 
-      // Generic IO
-      .cio_scl_i                (i2c0_scl_i),
-      .cio_scl_o                (i2c0_scl_o),
-      .cio_scl_en_o             (i2c0_scl_en_o),
-      .cio_sda_i                (i2c0_sda_i),
-      .cio_sda_o                (i2c0_sda_o),
-      .cio_sda_en_o             (i2c0_sda_en_o),
+      // Generic IO.
+      .cio_scl_i               (i2c0_scl_i),
+      .cio_scl_o               (i2c0_scl_o),
+      .cio_scl_en_o            (i2c0_scl_en_o),
+      .cio_sda_i               (i2c0_sda_i),
+      .cio_sda_o               (i2c0_sda_o),
+      .cio_sda_en_o            (i2c0_sda_en_o),
 
-      // Interrupts
-      .intr_fmt_threshold_o     (i2c0_fmt_threshold_irq),
-      .intr_rx_threshold_o      (i2c0_rx_threshold_irq),
-      .intr_acq_threshold_o     (i2c0_acq_threshold_irq),
-      .intr_rx_overflow_o       (i2c0_rx_overflow_irq),
-      .intr_nak_o               (i2c0_nak_irq),
-      .intr_scl_interference_o  (i2c0_scl_interference_irq),
-      .intr_sda_interference_o  (i2c0_sda_interference_irq),
-      .intr_stretch_timeout_o   (i2c0_stretch_timeout_irq),
-      .intr_sda_unstable_o      (i2c0_sda_unstable_irq),
-      .intr_cmd_complete_o      (i2c0_cmd_complete_irq),
-      .intr_tx_stretch_o        (i2c0_tx_stretch_irq),
-      .intr_tx_threshold_o      (i2c0_tx_threshold_irq),
-      .intr_acq_full_o          (i2c0_acq_full_irq),
-      .intr_unexp_stop_o        (i2c0_unexp_stop_irq),
-      .intr_host_timeout_o      (i2c0_host_timeout_irq)
+      // Interrupts.
+      .intr_fmt_threshold_o    (i2c0_fmt_threshold_irq),
+      .intr_rx_threshold_o     (i2c0_rx_threshold_irq),
+      .intr_acq_threshold_o    (i2c0_acq_threshold_irq),
+      .intr_rx_overflow_o      (i2c0_rx_overflow_irq),
+      .intr_nak_o              (i2c0_nak_irq),
+      .intr_scl_interference_o (i2c0_scl_interference_irq),
+      .intr_sda_interference_o (i2c0_sda_interference_irq),
+      .intr_stretch_timeout_o  (i2c0_stretch_timeout_irq),
+      .intr_sda_unstable_o     (i2c0_sda_unstable_irq),
+      .intr_cmd_complete_o     (i2c0_cmd_complete_irq),
+      .intr_tx_stretch_o       (i2c0_tx_stretch_irq),
+      .intr_tx_threshold_o     (i2c0_tx_threshold_irq),
+      .intr_acq_full_o         (i2c0_acq_full_irq),
+      .intr_unexp_stop_o       (i2c0_unexp_stop_irq),
+      .intr_host_timeout_o     (i2c0_host_timeout_irq)
   );
 
   i2c u_i2c1 (
-      .clk_i                    (clk_sys_i),
-      .rst_ni                   (rst_sys_ni),
-      .ram_cfg_i                (10'b0),
+      .clk_i                   (clk_sys_i),
+      .rst_ni                  (rst_sys_ni),
+      .ram_cfg_i               (10'b0),
 
-      // Bus Interface
-      .tl_i                     (tl_i2c1_h2d),
-      .tl_o                     (tl_i2c1_d2h),
+      // Bus interface.
+      .tl_i                    (tl_i2c1_h2d),
+      .tl_o                    (tl_i2c1_d2h),
 
-      // Generic IO
-      .cio_scl_i                (i2c1_scl_i),
-      .cio_scl_o                (i2c1_scl_o),
-      .cio_scl_en_o             (i2c1_scl_en_o),
-      .cio_sda_i                (i2c1_sda_i),
-      .cio_sda_o                (i2c1_sda_o),
-      .cio_sda_en_o             (i2c1_sda_en_o),
+      // Generic IO.
+      .cio_scl_i               (i2c1_scl_i),
+      .cio_scl_o               (i2c1_scl_o),
+      .cio_scl_en_o            (i2c1_scl_en_o),
+      .cio_sda_i               (i2c1_sda_i),
+      .cio_sda_o               (i2c1_sda_o),
+      .cio_sda_en_o            (i2c1_sda_en_o),
 
-      // Interrupts
-      .intr_fmt_threshold_o     (i2c1_fmt_threshold_irq),
-      .intr_rx_threshold_o      (i2c1_rx_threshold_irq),
-      .intr_acq_threshold_o     (i2c1_acq_threshold_irq),
-      .intr_rx_overflow_o       (i2c1_rx_overflow_irq),
-      .intr_nak_o               (i2c1_nak_irq),
-      .intr_scl_interference_o  (i2c1_scl_interference_irq),
-      .intr_sda_interference_o  (i2c1_sda_interference_irq),
-      .intr_stretch_timeout_o   (i2c1_stretch_timeout_irq),
-      .intr_sda_unstable_o      (i2c1_sda_unstable_irq),
-      .intr_cmd_complete_o      (i2c1_cmd_complete_irq),
-      .intr_tx_stretch_o        (i2c1_tx_stretch_irq),
-      .intr_tx_threshold_o      (i2c1_tx_threshold_irq),
-      .intr_acq_full_o          (i2c1_acq_full_irq),
-      .intr_unexp_stop_o        (i2c1_unexp_stop_irq),
-      .intr_host_timeout_o      (i2c1_host_timeout_irq)
+      // Interrupts.
+      .intr_fmt_threshold_o    (i2c1_fmt_threshold_irq),
+      .intr_rx_threshold_o     (i2c1_rx_threshold_irq),
+      .intr_acq_threshold_o    (i2c1_acq_threshold_irq),
+      .intr_rx_overflow_o      (i2c1_rx_overflow_irq),
+      .intr_nak_o              (i2c1_nak_irq),
+      .intr_scl_interference_o (i2c1_scl_interference_irq),
+      .intr_sda_interference_o (i2c1_sda_interference_irq),
+      .intr_stretch_timeout_o  (i2c1_stretch_timeout_irq),
+      .intr_sda_unstable_o     (i2c1_sda_unstable_irq),
+      .intr_cmd_complete_o     (i2c1_cmd_complete_irq),
+      .intr_tx_stretch_o       (i2c1_tx_stretch_irq),
+      .intr_tx_threshold_o     (i2c1_tx_threshold_irq),
+      .intr_acq_full_o         (i2c1_acq_full_irq),
+      .intr_unexp_stop_o       (i2c1_unexp_stop_irq),
+      .intr_host_timeout_o     (i2c1_host_timeout_irq)
   );
 
+  // Pulse width modulator.
   pwm_wrapper #(
     .PwmWidth   ( PwmWidth   ),
     .PwmCtrSize ( PwmCtrSize )
   ) u_pwm (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i           (clk_sys_i),
+    .rst_ni          (rst_sys_ni),
 
-    .device_req_i   (device_req[Pwm]),
-    .device_addr_i  (device_addr[Pwm]),
-    .device_we_i    (device_we[Pwm]),
-    .device_be_i    (device_be[Pwm]),
-    .device_wdata_i (device_wdata[Pwm]),
-    .device_rvalid_o(device_rvalid[Pwm]),
-    .device_rdata_o (device_rdata[Pwm]),
+    .device_req_i    (device_req[Pwm]),
+    .device_addr_i   (device_addr[Pwm]),
+    .device_we_i     (device_we[Pwm]),
+    .device_be_i     (device_be[Pwm]),
+    .device_wdata_i  (device_wdata[Pwm]),
+    .device_rvalid_o (device_rvalid[Pwm]),
+    .device_rdata_o  (device_rdata[Pwm]),
 
     .pwm_o
   );
 
   uart u_uart0 (
-      .clk_i       (clk_sys_i  ),
-      .rst_ni      (rst_sys_ni ),
+      .clk_i                (clk_sys_i  ),
+      .rst_ni               (rst_sys_ni ),
 
-      .cio_rx_i    (uart0_rx_i ),
-      .cio_tx_o    (uart0_tx_o ),
-      .cio_tx_en_o (           ),
+      .cio_rx_i             (uart0_rx_i ),
+      .cio_tx_o             (uart0_tx_o ),
+      .cio_tx_en_o          (           ),
 
-      // Inter-module signals
-      .tl_i        (tl_uart0_h2d),
-      .tl_o        (tl_uart0_d2h),
+      // Inter-module signals.
+      .tl_i                 (tl_uart0_h2d),
+      .tl_o                 (tl_uart0_d2h),
 
-      // Interrupt
+      // Interrupt.
       .intr_tx_watermark_o  (uart0_tx_watermark_irq),
       .intr_rx_watermark_o  (uart0_rx_watermark_irq),
       .intr_tx_empty_o      (uart0_tx_empty_irq),
@@ -1183,16 +1192,16 @@ module sonata_system #(
   );
 
   uart u_uart1 (
-      .clk_i       (clk_sys_i  ),
-      .rst_ni      (rst_sys_ni ),
+      .clk_i                (clk_sys_i  ),
+      .rst_ni               (rst_sys_ni ),
 
-      .cio_rx_i    (uart1_rx_i ),
-      .cio_tx_o    (uart1_tx_o ),
-      .cio_tx_en_o (           ),
+      .cio_rx_i             (uart1_rx_i ),
+      .cio_tx_o             (uart1_tx_o ),
+      .cio_tx_en_o          (           ),
 
       // Inter-module signals
-      .tl_i        (tl_uart1_h2d),
-      .tl_o        (tl_uart1_d2h),
+      .tl_i                 (tl_uart1_h2d),
+      .tl_o                 (tl_uart1_d2h),
 
       // Interrupt
       .intr_tx_watermark_o  (uart1_tx_watermark_irq),
@@ -1205,129 +1214,142 @@ module sonata_system #(
       .intr_rx_parity_err_o (uart1_rx_parity_err_irq)
   );
 
+  // USB device.
   usbdev #(
     .Stub ( 1'b0 )
   ) u_usbdev (
-    .clk_i                  (clk_usb_i),
-    .rst_ni                 (rst_usb_ni),
+    .clk_i                        (clk_usb_i),
+    .rst_ni                       (rst_usb_ni),
 
     // AON Wakeup functionality is not being used
-    .clk_aon_i              (clk_usb_i),
-    .rst_aon_ni             (rst_usb_ni),
+    .clk_aon_i                    (clk_usb_i),
+    .rst_aon_ni                   (rst_usb_ni),
 
-    .tl_i                   (tl_usbdev_h2d),
-    .tl_o                   (tl_usbdev_d2h),
+    .tl_i                         (tl_usbdev_h2d),
+    .tl_o                         (tl_usbdev_d2h),
 
     // Data inputs
-    .cio_usb_dp_i           (usb_dp_i),
-    .cio_usb_dn_i           (usb_dn_i),
-    .usb_rx_d_i             (usb_rx_d_i),
+    .cio_usb_dp_i                 (usb_dp_i),
+    .cio_usb_dn_i                 (usb_dn_i),
+    .usb_rx_d_i                   (usb_rx_d_i),
 
     // Data outputs
-    .cio_usb_dp_o           (usb_dp_o),
-    .cio_usb_dp_en_o        (usb_dp_en_o),
-    .cio_usb_dn_o           (usb_dn_o),
-    .cio_usb_dn_en_o        (usb_dn_en_o),
-    .usb_tx_se0_o           (),
-    .usb_tx_d_o             (),
+    .cio_usb_dp_o                 (usb_dp_o),
+    .cio_usb_dp_en_o              (usb_dp_en_o),
+    .cio_usb_dn_o                 (usb_dn_o),
+    .cio_usb_dn_en_o              (usb_dn_en_o),
+    .usb_tx_se0_o                 (),
+    .usb_tx_d_o                   (),
  
     // Non-data I/O
-    .cio_sense_i            (usb_sense_i),
-    .usb_dp_pullup_o        (usb_dp_pullup_o),
-    .usb_dn_pullup_o        (usb_dn_pullup_o),
-    .usb_rx_enable_o        (usb_rx_enable_o),
-    .usb_tx_use_d_se0_o     (),
+    .cio_sense_i                  (usb_sense_i),
+    .usb_dp_pullup_o              (usb_dp_pullup_o),
+    .usb_dn_pullup_o              (usb_dn_pullup_o),
+    .usb_rx_enable_o              (usb_rx_enable_o),
+    .usb_tx_use_d_se0_o           (),
 
     // Unused AON/Wakeup functionality
-    .usb_aon_suspend_req_o  (),
-    .usb_aon_wake_ack_o     (),
+    .usb_aon_suspend_req_o        (),
+    .usb_aon_wake_ack_o           (),
 
     .usb_aon_bus_reset_i          (1'b0),
     .usb_aon_sense_lost_i         (1'b0),
     .usb_aon_bus_not_idle_i       (1'b0),
     .usb_aon_wake_detect_active_i (1'b0),
 
-    .usb_ref_val_o          (),
-    .usb_ref_pulse_o        (),
+    .usb_ref_val_o                (),
+    .usb_ref_pulse_o              (),
 
-    .ram_cfg_i              (10'b0),
+    .ram_cfg_i                    (10'b0),
 
     // Interrupts not required
-    .intr_pkt_received_o    (),
-    .intr_pkt_sent_o        (),
-    .intr_powered_o         (),
-    .intr_disconnected_o    (),
-    .intr_host_lost_o       (),
-    .intr_link_reset_o      (),
-    .intr_link_suspend_o    (),
-    .intr_link_resume_o     (),
-    .intr_av_out_empty_o    (),
-    .intr_rx_full_o         (),
-    .intr_av_overflow_o     (),
-    .intr_link_in_err_o     (),
-    .intr_link_out_err_o    (),
-    .intr_rx_crc_err_o      (),
-    .intr_rx_pid_err_o      (),
-    .intr_rx_bitstuff_err_o (),
-    .intr_frame_o           (),
-    .intr_av_setup_empty_o  ()
+    .intr_pkt_received_o          (),
+    .intr_pkt_sent_o              (),
+    .intr_powered_o               (),
+    .intr_disconnected_o          (),
+    .intr_host_lost_o             (),
+    .intr_link_reset_o            (),
+    .intr_link_suspend_o          (),
+    .intr_link_resume_o           (),
+    .intr_av_out_empty_o          (),
+    .intr_rx_full_o               (),
+    .intr_av_overflow_o           (),
+    .intr_link_in_err_o           (),
+    .intr_link_out_err_o          (),
+    .intr_rx_crc_err_o            (),
+    .intr_rx_pid_err_o            (),
+    .intr_rx_bitstuff_err_o       (),
+    .intr_frame_o                 (),
+    .intr_av_setup_empty_o        ()
   );
 
+  // SPI host for talking to Flash memory.
   spi u_spi_flash (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_flash_h2d),
-    .tl_o(tl_spi_flash_d2h),
+    // TileLink interface.
+    .tl_i                (tl_spi_flash_h2d),
+    .tl_o                (tl_spi_flash_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    // Interrupts currently disconnected.
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_flash_tx_o),
-    .spi_cipo_i(spi_flash_rx_i),
-    .spi_clk_o (spi_flash_sck_o)
+    // SPI signals.
+    .spi_copi_o          (spi_flash_tx_o),
+    .spi_cipo_i          (spi_flash_rx_i),
+    .spi_clk_o           (spi_flash_sck_o)
   );
 
+  // SPI host for writing to the LCD screen.
   spi u_spi_lcd (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_lcd_h2d),
-    .tl_o(tl_spi_lcd_d2h),
+    // TileLink interface.
+    .tl_i                (tl_spi_lcd_h2d),
+    .tl_o                (tl_spi_lcd_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    // Interrupts currently disconnected.
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_lcd_tx_o),
-    .spi_cipo_i(spi_lcd_rx_i),
-    .spi_clk_o (spi_lcd_sck_o)
+    // SPI signals.
+    .spi_copi_o          (spi_lcd_tx_o),
+    .spi_cipo_i          (spi_lcd_rx_i),
+    .spi_clk_o           (spi_lcd_sck_o)
   );
 
+  // SPI host for talking to ethernet chip.
   spi u_spi_eth (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_eth_h2d),
-    .tl_o(tl_spi_eth_d2h),
+    // TileLink interface.
+    .tl_i                (tl_spi_eth_h2d),
+    .tl_o                (tl_spi_eth_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    // Interrupts currently disconnected.
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_eth_tx_o),
-    .spi_cipo_i(spi_eth_rx_i),
-    .spi_clk_o (spi_eth_sck_o)
+    // SPI signals.
+    .spi_copi_o          (spi_eth_tx_o),
+    .spi_cipo_i          (spi_eth_rx_i),
+    .spi_clk_o           (spi_eth_sck_o)
   );
 
-  // Sample the SPI interrupt pin.
+  // Sample the ethernet interrupt pin.
   always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
     if (!rst_sys_ni) begin
       spi_eth_irq <= 1'b0;
@@ -1336,104 +1358,111 @@ module sonata_system #(
     end
   end
 
+  // Host for SPI0 on the Raspberry Pi HAT.
   spi u_spi_rp0 (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_rp0_h2d),
-    .tl_o(tl_spi_rp0_d2h),
+    .tl_i                (tl_spi_rp0_h2d),
+    .tl_o                (tl_spi_rp0_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_rp0_tx_o),
-    .spi_cipo_i(spi_rp0_rx_i),
-    .spi_clk_o (spi_rp0_sck_o)
+    .spi_copi_o          (spi_rp0_tx_o),
+    .spi_cipo_i          (spi_rp0_rx_i),
+    .spi_clk_o           (spi_rp0_sck_o)
   );
 
+  // Host for SPI1 on the Raspberry Pi HAT.
   spi u_spi_rp1 (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_rp1_h2d),
-    .tl_o(tl_spi_rp1_d2h),
+    .tl_i                (tl_spi_rp1_h2d),
+    .tl_o                (tl_spi_rp1_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_rp1_tx_o),
-    .spi_cipo_i(spi_rp1_rx_i),
-    .spi_clk_o (spi_rp1_sck_o)
+    .spi_copi_o          (spi_rp1_tx_o),
+    .spi_cipo_i          (spi_rp1_rx_i),
+    .spi_clk_o           (spi_rp1_sck_o)
   );
 
+  // SPI host for the Arduino Shield.
   spi u_spi_ard (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_ard_h2d),
-    .tl_o(tl_spi_ard_d2h),
+    .tl_i                (tl_spi_ard_h2d),
+    .tl_o                (tl_spi_ard_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_ard_tx_o),
-    .spi_cipo_i(spi_ard_rx_i),
-    .spi_clk_o (spi_ard_sck_o)
+    .spi_copi_o          (spi_ard_tx_o),
+    .spi_cipo_i          (spi_ard_rx_i),
+    .spi_clk_o           (spi_ard_sck_o)
   );
 
+  // SPI host for mikroBUS Click.
   spi u_spi_mkr (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
 
-    .tl_i(tl_spi_mkr_h2d),
-    .tl_o(tl_spi_mkr_d2h),
+    .tl_i                (tl_spi_mkr_h2d),
+    .tl_o                (tl_spi_mkr_d2h),
 
-    .intr_rx_full_o     (),
-    .intr_rx_watermark_o(),
-    .intr_tx_empty_o    (),
-    .intr_tx_watermark_o(),
-    .intr_complete_o    (),
+    .intr_rx_full_o      (),
+    .intr_rx_watermark_o (),
+    .intr_tx_empty_o     (),
+    .intr_tx_watermark_o (),
+    .intr_complete_o     (),
 
-    .spi_copi_o(spi_mkr_tx_o),
-    .spi_cipo_i(spi_mkr_rx_i),
-    .spi_clk_o (spi_mkr_sck_o)
+    .spi_copi_o          (spi_mkr_tx_o),
+    .spi_cipo_i          (spi_mkr_rx_i),
+    .spi_clk_o           (spi_mkr_sck_o)
   );
 
+  // RISC-V timer.
   rv_timer #(
     .DataWidth    ( BusDataWidth ),
     .AddressWidth ( BusAddrWidth )
   ) u_rv_timer (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i          (clk_sys_i),
+    .rst_ni         (rst_sys_ni),
 
-    .timer_req_i   (device_req[Timer]),
-    .timer_we_i    (device_we[Timer]),
-    .timer_be_i    (device_be[Timer]),
-    .timer_addr_i  (device_addr[Timer]),
-    .timer_wdata_i (device_wdata[Timer]),
-    .timer_rvalid_o(device_rvalid[Timer]),
-    .timer_rdata_o (device_rdata[Timer]),
-    .timer_err_o   (device_err[Timer]),
-    .timer_intr_o  (timer_irq)
+    // Bus interface.
+    .timer_req_i    (device_req[Timer]),
+    .timer_we_i     (device_we[Timer]),
+    .timer_be_i     (device_be[Timer]),
+    .timer_addr_i   (device_addr[Timer]),
+    .timer_wdata_i  (device_wdata[Timer]),
+    .timer_rvalid_o (device_rvalid[Timer]),
+    .timer_rdata_o  (device_rdata[Timer]),
+    .timer_err_o    (device_err[Timer]),
+    .timer_intr_o   (timer_irq)
   );
 
+  // RISC-V platform level interrupt controller.
   rv_plic u_rv_plic (
-    .clk_i  (clk_sys_i),
-    .rst_ni (rst_sys_ni),
+    .clk_i      (clk_sys_i),
+    .rst_ni     (rst_sys_ni),
 
-    .irq_o    (external_irq),
-    .irq_id_o (),
-    .tl_i     (tl_rv_plic_h2d),
-    .tl_o     (tl_rv_plic_d2h),
+    .irq_o      (external_irq),
+    .irq_id_o   (),
+    .tl_i       (tl_rv_plic_h2d),
+    .tl_o       (tl_rv_plic_d2h),
 
     .intr_src_i (intr_vector)
   );
@@ -1441,47 +1470,49 @@ module sonata_system #(
   // Number of clock cycles in 1.25us. The divide by 10 exists to avoid integer overflow.
   localparam int unsigned RGBLEDCtrlCycleTime = (125 * (SysClkFreq / 10)) / (10_000_000);
 
+  // Controller for multi-colored RGB LEDs.
   rgbled_ctrl #(
     .CycleTime(RGBLEDCtrlCycleTime)
   ) u_rgbled_ctrl(
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
 
-    .tl_i(tl_rgbled_ctrl_h2d),
-    .tl_o(tl_rgbled_ctrl_d2h),
+    .tl_i   (tl_rgbled_ctrl_h2d),
+    .tl_o   (tl_rgbled_ctrl_d2h),
 
     .rgbled_dout_o
   );
 
+  // Debug module top.
   dm_top #(
     .NrHarts      ( 1                              ),
     .IdcodeValue  ( jtag_id_pkg::RV_DM_JTAG_IDCODE )
   ) u_dm_top (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-    .testmode_i   (1'b0),
-    .ndmreset_o   (ndmreset_req),
-    .dmactive_o   (),
-    .debug_req_o  (), // TODO connect to debug_req_i
-    .unavailable_i(1'b0),
+    .clk_i          (clk_sys_i),
+    .rst_ni         (rst_sys_ni),
+    .testmode_i     (1'b0),
+    .ndmreset_o     (ndmreset_req),
+    .dmactive_o     (),
+    .debug_req_o    (), // TODO connect to debug_req_i
+    .unavailable_i  (1'b0),
 
     // TODO: Bus device with debug memory (for execution-based debug).
-    .device_req_i  (0),
-    .device_we_i   (0),
-    .device_addr_i (0),
-    .device_be_i   (0),
-    .device_wdata_i(0),
-    .device_rdata_o(),
+    .device_req_i   (0),
+    .device_we_i    (0),
+    .device_addr_i  (0),
+    .device_be_i    (0),
+    .device_wdata_i (0),
+    .device_rdata_o ( ),
 
     // Bus host (for system bus accesses, SBA).
-    .host_req_o    (host_req[DbgHost]),
-    .host_add_o    (host_addr[DbgHost]),
-    .host_we_o     (host_we[DbgHost]),
-    .host_wdata_o  (host_wdata[DbgHost]),
-    .host_be_o     (host_be[DbgHost]),
-    .host_gnt_i    (host_gnt[DbgHost]),
-    .host_r_valid_i(host_rvalid[DbgHost]),
-    .host_r_rdata_i(host_rdata[DbgHost]),
+    .host_req_o     (host_req[DbgHost]),
+    .host_add_o     (host_addr[DbgHost]),
+    .host_we_o      (host_we[DbgHost]),
+    .host_wdata_o   (host_wdata[DbgHost]),
+    .host_be_o      (host_be[DbgHost]),
+    .host_gnt_i     (host_gnt[DbgHost]),
+    .host_r_valid_i (host_rvalid[DbgHost]),
+    .host_r_rdata_i (host_rdata[DbgHost]),
 
     .tck_i,
     .tms_i,
