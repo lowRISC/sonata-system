@@ -139,6 +139,26 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "uart2", // UART 2 for Raspberry Pi HAT
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80102000",
+        size_byte: "0x00001000",
+      }],
+    },
+    { name:  "uart3", // UART 3 for mikroBUS Click
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80103000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "i2c0", // I2C bus 0
       type:  "device",
       clock: "clk_sys_i",
@@ -264,6 +284,8 @@
       "rgbled_ctrl",
       "uart0",
       "uart1",
+      "uart2",
+      "uart3",
       "i2c0",
       "i2c1",
       "spi_flash",

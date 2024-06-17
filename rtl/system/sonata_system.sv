@@ -52,6 +52,14 @@ module sonata_system #(
   input  logic                     uart1_rx_i,
   output logic                     uart1_tx_o,
 
+  // UART 2 Raspberry Pi HAT
+  input  logic                     uart2_rx_i,
+  output logic                     uart2_tx_o,
+
+  // UART 3 mikroBUS Click
+  input  logic                     uart3_rx_i,
+  output logic                     uart3_tx_o,
+
   // SPI flash
   input  logic                     spi_flash_rx_i,
   output logic                     spi_flash_tx_o,
@@ -199,6 +207,24 @@ module sonata_system #(
   logic uart1_rx_timeout_irq;
   logic uart1_rx_parity_err_irq;
 
+  logic uart2_tx_watermark_irq;
+  logic uart2_rx_watermark_irq;
+  logic uart2_tx_empty_irq;
+  logic uart2_rx_overflow_irq;
+  logic uart2_rx_frame_err_irq;
+  logic uart2_rx_break_err_irq;
+  logic uart2_rx_timeout_irq;
+  logic uart2_rx_parity_err_irq;
+
+  logic uart3_tx_watermark_irq;
+  logic uart3_rx_watermark_irq;
+  logic uart3_tx_empty_irq;
+  logic uart3_rx_overflow_irq;
+  logic uart3_rx_frame_err_irq;
+  logic uart3_rx_break_err_irq;
+  logic uart3_rx_timeout_irq;
+  logic uart3_rx_parity_err_irq;
+
   logic i2c0_fmt_threshold_irq;
   logic i2c0_rx_threshold_irq;
   logic i2c0_acq_threshold_irq;
@@ -235,7 +261,25 @@ module sonata_system #(
 
   logic [181:0] intr_vector;
   assign intr_vector = {
-      134'b0, // IDs [48 +: 134]
+      118'b0, // IDs [63 +: 118]
+
+      uart3_rx_parity_err_irq, // IDs [62 +: 1]
+      uart3_rx_timeout_irq, // IDs [61 +: 1]
+      uart3_rx_break_err_irq, // IDs [60 +: 1]
+      uart3_rx_frame_err_irq, // IDs [59 +: 1]
+      uart3_rx_overflow_irq, // IDs [58 +: 1]
+      uart3_tx_empty_irq, // IDs [57 +: 1]
+      uart3_rx_watermark_irq, // IDs [56 +: 1]
+      uart3_tx_watermark_irq, // IDs [55 +: 1]
+
+      uart2_rx_parity_err_irq, // IDs [54 +: 1]
+      uart2_rx_timeout_irq, // IDs [53 +: 1]
+      uart2_rx_break_err_irq, // IDs [52 +: 1]
+      uart2_rx_frame_err_irq, // IDs [51 +: 1]
+      uart2_rx_overflow_irq, // IDs [50 +: 1]
+      uart2_tx_empty_irq, // IDs [50 +: 1]
+      uart2_rx_watermark_irq, // IDs [49 +: 1]
+      uart2_tx_watermark_irq, // IDs [48 +: 1]
 
       spi_eth_irq, // IDs [47 +: 1]
 
@@ -414,6 +458,10 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_uart0_d2h;
   tlul_pkg::tl_h2d_t tl_uart1_h2d;
   tlul_pkg::tl_d2h_t tl_uart1_d2h;
+  tlul_pkg::tl_h2d_t tl_uart2_h2d;
+  tlul_pkg::tl_d2h_t tl_uart2_d2h;
+  tlul_pkg::tl_h2d_t tl_uart3_h2d;
+  tlul_pkg::tl_d2h_t tl_uart3_d2h;
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
   tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
@@ -481,6 +529,10 @@ module sonata_system #(
     .tl_uart0_i       (tl_uart0_d2h),
     .tl_uart1_o       (tl_uart1_h2d),
     .tl_uart1_i       (tl_uart1_d2h),
+    .tl_uart2_o       (tl_uart2_h2d),
+    .tl_uart2_i       (tl_uart2_d2h),
+    .tl_uart3_o       (tl_uart3_h2d),
+    .tl_uart3_i       (tl_uart3_d2h),
     .tl_i2c0_o        (tl_i2c0_h2d),
     .tl_i2c0_i        (tl_i2c0_d2h),
     .tl_i2c1_o        (tl_i2c1_h2d),
@@ -1212,6 +1264,52 @@ module sonata_system #(
       .intr_rx_break_err_o  (uart1_rx_break_err_irq),
       .intr_rx_timeout_o    (uart1_rx_timeout_irq),
       .intr_rx_parity_err_o (uart1_rx_parity_err_irq)
+  );
+
+  uart u_uart2 (
+      .clk_i                (clk_sys_i  ),
+      .rst_ni               (rst_sys_ni ),
+
+      .cio_rx_i             (uart2_rx_i ),
+      .cio_tx_o             (uart2_tx_o ),
+      .cio_tx_en_o          (           ),
+
+      // Inter-module signals
+      .tl_i                 (tl_uart2_h2d),
+      .tl_o                 (tl_uart2_d2h),
+
+      // Interrupt
+      .intr_tx_watermark_o  (uart2_tx_watermark_irq),
+      .intr_rx_watermark_o  (uart2_rx_watermark_irq),
+      .intr_tx_empty_o      (uart2_tx_empty_irq),
+      .intr_rx_overflow_o   (uart2_rx_overflow_irq),
+      .intr_rx_frame_err_o  (uart2_rx_frame_err_irq),
+      .intr_rx_break_err_o  (uart2_rx_break_err_irq),
+      .intr_rx_timeout_o    (uart2_rx_timeout_irq),
+      .intr_rx_parity_err_o (uart2_rx_parity_err_irq)
+  );
+
+  uart u_uart3 (
+      .clk_i                (clk_sys_i  ),
+      .rst_ni               (rst_sys_ni ),
+
+      .cio_rx_i             (uart3_rx_i ),
+      .cio_tx_o             (uart3_tx_o ),
+      .cio_tx_en_o          (           ),
+
+      // Inter-module signals
+      .tl_i                 (tl_uart3_h2d),
+      .tl_o                 (tl_uart3_d2h),
+
+      // Interrupt
+      .intr_tx_watermark_o  (uart3_tx_watermark_irq),
+      .intr_rx_watermark_o  (uart3_rx_watermark_irq),
+      .intr_tx_empty_o      (uart3_tx_empty_irq),
+      .intr_rx_overflow_o   (uart3_rx_overflow_irq),
+      .intr_rx_frame_err_o  (uart3_rx_frame_err_irq),
+      .intr_rx_break_err_o  (uart3_rx_break_err_irq),
+      .intr_rx_timeout_o    (uart3_rx_timeout_irq),
+      .intr_rx_parity_err_o (uart3_rx_parity_err_irq)
   );
 
   // USB device.
