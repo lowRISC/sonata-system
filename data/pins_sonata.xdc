@@ -222,14 +222,14 @@ set_property PULLUP true [get_ports rph_g1]
 set_property PULLUP true [get_ports rph_g0]
 
 ## Arduino Shield
-## SPI COPI
-set_property -dict { PACKAGE_PIN M13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio17];
 ## GPIO
 set_property -dict { PACKAGE_PIN N17 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio16];
 ## SPI SCLK
-set_property -dict { PACKAGE_PIN P14 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio15];
+set_property -dict { PACKAGE_PIN R17 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio13];
 ## SPI CIPO
-set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio14];
+set_property -dict { PACKAGE_PIN R16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio12];
+## SPI COPI
+set_property -dict { PACKAGE_PIN T18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio11];
 ## SPI chip select
 set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio10];
 ## GPIO
