@@ -48,7 +48,11 @@
         pname = "sonata-documentation";
         src = fs.toSource {
           root = ./.;
-          fileset = lrDoc.standardMdbookFileset ./.;
+          fileset = fs.unions [
+            (lrDoc.standardMdbookFileset ./.)
+            ./util/mdbook
+            ./util/mdbook_wavejson.py
+          ];
         };
       };
 
