@@ -206,8 +206,6 @@ module top_sonata (
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
-  logic ser0_rx_aggr, ser1_rx_aggr;
-
   logic [15:0] rp_gp_oe;
   logic [15:0] rp_gp_o;
 
@@ -216,14 +214,6 @@ module top_sonata (
 
   logic [15:0] pmod_gp_oe;
   logic [15:0] pmod_gp_o;
-
-  // UART input
-  assign ser0_rx_aggr = ser0_rx | mb8;
-  assign ser1_rx_aggr = ser1_rx | rph_rxd0;
-
-  // UART output
-  assign mb7 = ser0_tx;
-  assign rph_txd0 = ser1_tx;
 
   // R-Pi header GPIO
   assign rph_g4  = rp_gp_oe[0]  ? rp_gp_o[0]  : 1'bZ;
@@ -371,12 +361,20 @@ module top_sonata (
     .pmod_gp_o       ({pmod_gp_oe, pmod_gp_o}),
 
     // UART 0
-    .uart0_rx_i     (ser0_rx_aggr),
+    .uart0_rx_i     (ser0_rx),
     .uart0_tx_o     (ser0_tx),
 
     // UART 1
-    .uart1_rx_i     (ser1_rx_aggr),
+    .uart1_rx_i     (ser1_rx),
     .uart1_tx_o     (ser1_tx),
+
+    // UART 2
+    .uart2_rx_i     (rph_rxd0),
+    .uart2_tx_o     (rph_txd0),
+
+    // UART 3
+    .uart3_rx_i     (mb8),
+    .uart3_tx_o     (mb7),
 
     // PWM
     .pwm_o({mb10}),
