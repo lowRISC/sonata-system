@@ -21,6 +21,9 @@ concurrency:
 
 jobs:
   build:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: nixos-24.05
     steps:
       - name: Install Nix
@@ -37,19 +40,11 @@ jobs:
           # copy out of /nix/store with all symlinks dereferenced and with default permissions
           cp -LR --no-preserve=mode result book
       - name: configure
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
       - name: upload
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./book/
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
