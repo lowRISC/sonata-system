@@ -101,9 +101,9 @@ module top_sonata (
 
   // Arduino shield SPI bus
   output logic       ah_tmpio10, // Chip select
-  output logic       ah_tmpio14, // CIPO
-  input  logic       ah_tmpio15, // SCK
-  output logic       ah_tmpio17, // COPI
+  output logic       ah_tmpio11, // COPI
+  input  logic       ah_tmpio12, // CIPO
+  output logic       ah_tmpio13, // SCLK
 
   // mikroBUS Click other
   output logic       mb10, // PWM
@@ -408,9 +408,9 @@ module top_sonata (
     .spi_rp1_sck_o  (rph_g21_sclk),
 
     // SPI on Arduino shield
-    .spi_ard_rx_i   (ah_tmpio14), // CIPO
-    .spi_ard_tx_o   (ah_tmpio17), // COPI
-    .spi_ard_sck_o  (ah_tmpio15), // SCLK
+    .spi_ard_rx_i   (ah_tmpio12), // CIPO
+    .spi_ard_tx_o   (ah_tmpio11), // COPI
+    .spi_ard_sck_o  (ah_tmpio13), // SCLK
 
     // SPI on mikroBUS Click
     .spi_mkr_rx_i   (mb3), // CIPO
