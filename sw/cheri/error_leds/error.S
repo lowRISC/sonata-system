@@ -120,7 +120,7 @@ accesssystemregister:
 	j fail // We should never get here.
 
 // Trap handler must be 4 byte aligned.
-.section .trap, "ax", @progbits
+.section .text.trap, "ax", @progbits
 .p2align 2
 trap:
 	li t0, 0x01000000 //0x10 for simulation 0x01000000 for FPGA.
