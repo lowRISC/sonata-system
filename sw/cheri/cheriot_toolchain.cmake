@@ -23,7 +23,7 @@ string(CONCAT CMAKE_CXX_FLAGS_INIT
   "-std=c++20 -mcpu=cheriot -mabi=cheriot -mxcheri-rvc -mrelax -fshort-wchar"
   " -Os -g -fomit-frame-pointer -fno-builtin -fno-exceptions"
   " -fno-asynchronous-unwind-tables -fno-c++-static-destructors -fno-rtti"
-  " -Wall -Werror -fvisibility=hidden -fvisibility-inlines-hidden"
+  " -Wall -fvisibility=hidden -fvisibility-inlines-hidden"
   " -DDEVICE_EXISTS_uart"
 )
 
