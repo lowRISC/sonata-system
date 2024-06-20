@@ -337,7 +337,6 @@ module tb_cheriot_top (
     i = $value$plusargs("STKZ_INTVL=%d", cfg_stkz_intvl);
     if (i == 1) stkz_intvl = cfg_stkz_intvl[3:0];
 
-    $display("TB> CFG.memCapFmt=%1d", dut.u_ibex_top.MemCapFmt);
     $display("TB> INSTR_GNTW = %d, INSTR_RESPW = %d, DATA_GNTW = %d, DATA_RESPW = %d", 
              instr_gnt_wmax, instr_resp_wmax, data_gnt_wmax, data_resp_wmax); 
     $display("TB> INSTR_ERR_RATE = %d, DATA_ERR_RATE = %d, INTR_INTVL = %d, CAP_ERR_RATE = %d", 
@@ -353,8 +352,8 @@ module tb_cheriot_top (
       data_err_enable  = err_enable_vec[1];
       intr_enable      = err_enable_vec[2];
       cap_err_enable   = err_enable_vec[3];
-      tbre_bg_enable   = 1'b1;   // embedded firmware doesn't need to be aware of bg traffic
-      stkz_bg_enable   = 1'b1;   // if it's not using tbre/stkz in the foreground
+      tbre_bg_enable   = |err_enable_vec;
+      stkz_bg_enable   = |err_enable_vec;
     end
  
     // end of simulation
@@ -398,7 +397,7 @@ module tb_cheriot_top (
     .instr_err       (instr_err     )
   );
 
-  assign ignore_stkz = (stkz_intvl != 0);
+  assign ignore_stkz = stkz_bg_enable & (stkz_intvl != 0);
 
   data_mem_model u_data_mem (
     .clk             (clk_i        ), 
