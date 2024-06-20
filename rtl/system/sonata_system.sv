@@ -995,6 +995,17 @@ module sonata_system #(
   assign cheri_en_o = cheri_en;
   assign rst_core_n = rst_sys_ni & ~ndmreset_req & dbg_release_core;
 
+  logic [CheriErrWidth-1:0] cheri_err;
+
+  for (genvar i = 0; i < CheriErrWidth; ++i) begin : gen_pwm_fade
+    pwm_fade u_pwm_fade (
+      .clk_i       (clk_sys_i      ),
+      .rst_ni      (rst_core_n     ),
+      .impulse_i   (cheri_err[i]   ),
+      .modulated_o (cheri_err_o[i] )
+    );
+  end
+
   ibexc_top_tracing #(
     .DmHaltAddr      ( DebugStart + dm::HaltAddress[31:0]      ),
     .DmExceptionAddr ( DebugStart + dm::ExceptionAddress[31:0] ),
@@ -1016,7 +1027,7 @@ module sonata_system #(
 
     .cheri_pmode_i          (cheri_en),
     .cheri_tsafe_en_i       (cheri_en),
-    .cheri_err_o            (cheri_err_o),
+    .cheri_err_o            (cheri_err),
 
     .hart_id_i              (32'b0),
     // First instruction executed is at 0x0010_0000 + 0x80.
