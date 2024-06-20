@@ -35,8 +35,6 @@ module ibex_controller #(
   input  logic                  wfi_insn_i,              // decoder has WFI instr
   input  logic                  ebrk_insn_i,             // decoder has EBREAK instr
   input  logic                  csr_pipe_flush_i,        // do CSR-related pipeline flush
-  input  logic                  csr_access_i,            // decoder has CSR access instr
-  input  logic                  csr_cheri_always_ok_i,   // cheri safe-listed CSR registers
 
   // instr from IF-ID pipeline stage
   input  logic                  instr_valid_i,           // instr is valid
@@ -152,7 +150,6 @@ module ibex_controller #(
   logic illegal_insn_q, illegal_insn_d;
   logic cheri_ex_err_q, cheri_ex_err_d;
   logic cheri_wb_err_q;
-  logic cheri_asr_err_q, cheri_asr_err_d;
 
   // Of the various exception/fault signals, which one takes priority in FLUSH and hence controls
   // what happens next (setting exc_cause, csr_mtval etc)
@@ -164,7 +161,6 @@ module ibex_controller #(
   logic load_err_prio;
   logic cheri_ex_err_prio;
   logic cheri_wb_err_prio;
-  logic cheri_asr_err_prio;
 
   logic stall;
   logic halt_if;
@@ -196,8 +192,7 @@ module ibex_controller #(
   logic csr_pipe_flush;
   logic instr_fetch_err;
   logic cheri_ex_err;
-  logic mret_cheri_asr_err;
-  logic csr_cheri_asr_err;
+  logic illegal_mret_cheri;
 
 `ifndef SYNTHESIS
   // synopsys translate_off
@@ -205,7 +200,7 @@ module ibex_controller #(
   // glitches
   always_ff @(negedge clk_i) begin
     // print warning in case of decoding errors
-    if ((ctrl_fsm_cs == DECODE) && instr_valid_i && !instr_fetch_err_i && !wb_exception_o && illegal_insn_d) begin
+    if ((ctrl_fsm_cs == DECODE) && instr_valid_i && !instr_fetch_err_i && illegal_insn_d) begin
       $display("%t: Illegal instruction (hart %0x) at PC 0x%h: 0x%h", $time, ibex_core.hart_id_i,
                ibex_id_stage.pc_id_i, ibex_id_stage.instr_rdata_i);
     end
@@ -239,28 +234,25 @@ module ibex_controller #(
                          // MRET must be in M-Mode. TW means trap WFI to M-Mode.
                          (mret_insn | (csr_mstatus_tw_i & wfi_insn));
 
-  assign mret_cheri_asr_err = CHERIoTEn & cheri_pmode_i & ~csr_pcc_perm_sr_i & mret_insn;
-  assign csr_cheri_asr_err  = CHERIoTEn & cheri_pmode_i & ~csr_pcc_perm_sr_i & instr_valid_i & 
-                              csr_access_i & ~illegal_insn_i & ~csr_cheri_always_ok_i;
+  assign illegal_mret_cheri = CHERIoTEn & cheri_pmode_i & ~csr_pcc_perm_sr_i & mret_insn;
 
   // This is recorded in the illegal_insn_q flop to help timing.  Specifically
   // it is needed to break the path from ibex_cs_registers/illegal_csr_insn_o
   // to pc_set_o.  Clear when controller is in FLUSH so it won't remain set
   // once illegal instruction is handled.
   // All terms in this expression are qualified by instr_valid_i
-  assign illegal_insn_d = illegal_insn_i | illegal_dret | illegal_umode;
+  assign illegal_insn_d = (illegal_insn_i | illegal_dret | illegal_umode | (cheri_pmode_i & illegal_mret_cheri)) & 
+                          (ctrl_fsm_cs != FLUSH);
   assign cheri_ex_err_d = cheri_pmode_i & cheri_ex_err & (ctrl_fsm_cs != FLUSH);
-
-  assign cheri_asr_err_d = (~illegal_insn_i & csr_cheri_asr_err) | mret_cheri_asr_err;
 
   // exception requests
   // requests are flopped in exc_req_q.  This is cleared when controller is in
   // the FLUSH state so the cycle following exc_req_q won't remain set for an
   // exception request that has just been handled.
   // All terms in this expression are qualified by instr_valid_i
-  assign exc_req_d = (ecall_insn | ebrk_insn | illegal_insn_d | instr_fetch_err | (cheri_pmode_i & cheri_ex_err) | 
-                      cheri_asr_err_d) & (ctrl_fsm_cs != FLUSH);
-  assign exc_req_nc = (ecall_insn | ebrk_insn | illegal_insn_d | instr_fetch_err | cheri_asr_err_d) &
+  assign exc_req_d = (ecall_insn | ebrk_insn | illegal_insn_d | instr_fetch_err | (cheri_pmode_i & cheri_ex_err)) &
+                     (ctrl_fsm_cs != FLUSH);
+  assign exc_req_nc = (ecall_insn | ebrk_insn | illegal_insn_d | instr_fetch_err) &
                       (ctrl_fsm_cs != FLUSH);
 
   // LSU exception requests
@@ -298,7 +290,6 @@ module ibex_controller #(
       load_err_prio        = 0;
       cheri_ex_err_prio    = 0;
       cheri_wb_err_prio    = 0;
-      cheri_asr_err_prio   = 0;
 
       // Note that with the writeback stage store/load errors occur on the instruction in writeback,
       // all other exception/faults occur on the instruction in ID/EX. The faults from writeback
@@ -319,8 +310,6 @@ module ibex_controller #(
         ebrk_insn_prio = 1'b1;
       end else if (cheri_pmode_i & cheri_ex_err_q) begin
         cheri_ex_err_prio = 1'b1;
-      end else if (cheri_asr_err_q) begin
-        cheri_asr_err_prio = 1'b1;
       end
     end
 
@@ -336,7 +325,6 @@ module ibex_controller #(
       load_err_prio        = 0;
       cheri_wb_err_prio    = 0;
       cheri_ex_err_prio    = 0;
-      cheri_asr_err_prio   = 0;
 
       if (instr_fetch_err) begin
         instr_fetch_err_prio = 1'b1;
@@ -354,8 +342,6 @@ module ibex_controller #(
         load_err_prio  = 1'b1;
       end else if (cheri_wb_err_q) begin
         cheri_wb_err_prio  = 1'b1;
-      end else if (cheri_asr_err_q) begin
-        cheri_asr_err_prio = 1'b1;
       end
     end
     assign wb_exception_o = 1'b0;
@@ -368,10 +354,8 @@ module ibex_controller #(
                       ebrk_insn_prio,
                       store_err_prio,
                       load_err_prio,
-                      cheri_wb_err_prio,
-                      cheri_ex_err_prio,
-                      cheri_asr_err_prio}),
-             (ctrl_fsm_cs == FLUSH) & csr_save_cause_o)
+                      cheri_ex_err_prio}),
+             (ctrl_fsm_cs == FLUSH) & exc_req_q)
 
   ////////////////
   // Interrupts //
@@ -752,8 +736,7 @@ module ibex_controller #(
             end
             illegal_insn_prio: begin
               exc_cause_o = EXC_CAUSE_ILLEGAL_INSN;
-              csr_mtval_o = (CHERIoTEn & cheri_pmode_i) ? 32'h0 : 
-                            (instr_is_compressed_i ? {16'b0, instr_compressed_i} : instr_i);
+              csr_mtval_o = instr_is_compressed_i ? {16'b0, instr_compressed_i} : instr_i;
             end
             ecall_insn_prio: begin
               exc_cause_o = (priv_mode_i == PRIV_LVL_M) ? EXC_CAUSE_ECALL_MMODE :
@@ -836,11 +819,6 @@ module ibex_controller #(
                   csr_mtval_o = {21'h0, cheri_wb_err_info_i[10:0]};
                 end
               end
-            end
-            cheri_asr_err_prio: begin
-              exc_cause_o = EXC_CAUSE_CHERI_FAULT;
-              //csr_mtval_o = instr_is_compressed_i ? {16'b0, instr_compressed_i} : instr_i;
-              csr_mtval_o = {21'b0, 1'b1, 5'h0, 5'h18};  // S=1, cap_idx=0 (pcc), err=0x18
             end
 
             default: ;
@@ -930,7 +908,6 @@ module ibex_controller #(
       illegal_insn_q          <= 1'b0;
       cheri_ex_err_q          <= 1'b0;
       cheri_wb_err_q          <= 1'b0;
-      cheri_asr_err_q         <= 1'b0;
     end else begin
       ctrl_fsm_cs             <= ctrl_fsm_ns;
       nmi_mode_q              <= nmi_mode_d;
@@ -943,8 +920,7 @@ module ibex_controller #(
       exc_req_q               <= exc_req_d;
       illegal_insn_q          <= illegal_insn_d;
       cheri_ex_err_q          <= cheri_ex_err_d;
-      cheri_wb_err_q          <= cheri_wb_err_i;
-      cheri_asr_err_q         <= cheri_asr_err_d;
+      cheri_wb_err_q          <= cheri_pmode_i & cheri_wb_err_i;
     end
   end
 
@@ -979,30 +955,14 @@ module ibex_controller #(
     logic exception_req, exception_req_pending, exception_req_accepted, exception_req_done;
     logic exception_pc_set, seen_exception_pc_set, expect_exception_pc_set;
     logic exception_req_needs_pc_set;
-    logic cs_taken_exception, ns_taken_exception;
 
-    assign cs_taken_exception = (ctrl_fsm_cs == FLUSH) || (ctrl_fsm_cs == DBG_TAKEN_IF) ||
-                                (ctrl_fsm_cs == DBG_TAKEN_ID);
-    assign ns_taken_exception = (ctrl_fsm_ns == FLUSH) || (ctrl_fsm_ns == DBG_TAKEN_IF) ||
-                                (ctrl_fsm_ns == DBG_TAKEN_ID);
-
-    // kliu 05242024: excluding handle_irq here since handle_irq may not be processed if 
-    // mstatus.mie is clearaed by the current instruction (either cssrw to mstatus or cjalr to
-    // an interrupt-disabled sentry)
-    // assign exception_req = (special_req | enter_debug_mode | handle_irq);
-    assign exception_req = (special_req | enter_debug_mode);
-
+    assign exception_req = (special_req | enter_debug_mode | handle_irq);
     // Any exception rquest will cause a transition out of DECODE, once the controller transitions
     // back into DECODE we're done handling the request.
-    // kliu 05242024: change the condition to cover the wfi case (
-    // assign exception_req_done =
-    // exception_req_pending & (ctrl_fsm_cs != DECODE) & (ctrl_fsm_ns == DECODE);
     assign exception_req_done =
-      exception_req_pending & cs_taken_exception;
+      exception_req_pending & (ctrl_fsm_cs != DECODE) & (ctrl_fsm_ns == DECODE);
 
-    // kliu 05242024: excluding handle_irq 
-    // assign exception_req_needs_pc_set = enter_debug_mode | handle_irq | special_req_pc_change;
-    assign exception_req_needs_pc_set = enter_debug_mode | special_req_pc_change;
+    assign exception_req_needs_pc_set = enter_debug_mode | handle_irq | special_req_pc_change;
 
     // An exception PC set uses specific PC types
     assign exception_pc_set =
@@ -1019,12 +979,8 @@ module ibex_controller #(
         exception_req_pending <= (exception_req_pending | exception_req) & ~exception_req_done;
 
         // The exception req has been accepted once the controller transitions out of decode
-        // kliu 05242024
-        //exception_req_accepted <= (exception_req_accepted & ~exception_req_done) |
-        //  (exception_req & ctrl_fsm_ns != DECODE);
         exception_req_accepted <= (exception_req_accepted & ~exception_req_done) |
-          (exception_req & ns_taken_exception);
-
+          (exception_req & ctrl_fsm_ns != DECODE);
 
         // Set `expect_exception_pc_set` if exception req needs one and keep it asserted until
         // exception req is done

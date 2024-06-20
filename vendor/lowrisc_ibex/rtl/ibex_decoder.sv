@@ -93,7 +93,6 @@ module ibex_decoder import cheri_pkg::*; #(
   // CSRs
   output logic                 csr_access_o,          // access to CSR
   output ibex_pkg::csr_op_e    csr_op_o,              // operation to perform on CSR
-  output logic                 csr_cheri_always_ok_o, // CHERI safe-listed (no ASR needed) CSRs
 
   // LSU
   output logic                 data_req_o,            // start transaction to data memory
@@ -115,17 +114,17 @@ module ibex_decoder import cheri_pkg::*; #(
   output logic [19:0]          cheri_imm20_o,
   output logic [20:0]          cheri_imm21_o,
   output logic [OPDW-1:0]      cheri_operator_o,
-  output logic [4:0]           cheri_cs2_dec_o,
+  output logic [4:0]          cheri_cs2_dec_o,
+  output logic                 cheri_rf_we_dec_o,
   output logic                 cheri_multicycle_dec_o
 );
 
   import ibex_pkg::*;
 
-  localparam bit CheriLimit16Regs = CHERIoTEn;
+  localparam bit CheriLimit16Regs = 1'b1;
 
   logic        illegal_insn;
   logic        illegal_reg_rv32e;
-  logic        illegal_reg_cheri;
   logic        csr_illegal;
   logic        rf_we;
 
@@ -155,7 +154,6 @@ module ibex_decoder import cheri_pkg::*; #(
   logic        cheri_cstore_en;
   logic        instr_is_legal_cheri;
   logic        cheri_rf_ren_a, cheri_rf_ren_b;
-  logic        cheri_rf_we_dec;
 
   // To help timing the flops containing the current instruction are replicated to reduce fan-out.
   // instr_alu is used to determine the ALU control logic and associated operand/imm select signals
@@ -210,7 +208,7 @@ module ibex_decoder import cheri_pkg::*; #(
   assign raddr_a = cheri_auicgp_en ? 5'h3 : ((use_rs3_q & ~instr_first_cycle_i) ? instr_rs3 : instr_rs1); // rs3 / rs1
   assign raddr_b = instr_rs2; // rs2
 
-  // cheriot only uses 16 registers and repurposes the MSB addr bits
+  // cheri only uses 16 registers and repurposes the MSB addr bits
   if (CheriLimit16Regs) begin
     assign rf_raddr_a_o = cheri_pmode_i ?{1'b0,  raddr_a[3:0]} : raddr_a;
     assign rf_raddr_b_o = cheri_pmode_i ?{1'b0,  raddr_b[3:0]} : raddr_b;
@@ -236,17 +234,6 @@ module ibex_decoder import cheri_pkg::*; #(
                                 (rf_waddr_o[4]   & rf_we));
   end else begin : gen_rv32e_reg_check_inactive
     assign illegal_reg_rv32e = 1'b0;
-  end
-
-  if (CheriLimit16Regs) begin : gen_cheri_reg_check_active
-    assign illegal_reg_cheri = cheri_pmode_i & 
-                               ((rf_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
-                                (rf_raddr_a_o[4] & cheri_rf_ren_a) | 
-                                (rf_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
-                                (rf_raddr_b_o[4] & cheri_rf_ren_b) | 
-                                (rf_waddr_o[4]   & rf_we));
-  end else begin : gen_cheri_reg_check_inactive
-    assign illegal_reg_cheri = 1'b0;
   end
 
   ///////////////////////
@@ -284,7 +271,6 @@ module ibex_decoder import cheri_pkg::*; #(
     csr_access_o          = 1'b0;
     csr_illegal           = 1'b0;
     csr_op                = CSR_OP_READ;
-    csr_cheri_always_ok_o = 1'b0;
 
     data_we_o             = 1'b0;
     data_type_o           = 2'b00;
@@ -319,10 +305,9 @@ module ibex_decoder import cheri_pkg::*; #(
         if (CHERIoTEn & cheri_pmode_i & ~illegal_c_insn_i) begin
           // cheri_ex takes over JAL now as a single-cycle jump
           cheri_jal_en      = 1'b1;
-          illegal_insn      = 1'b0;
-          rf_we             = 1'b1;
+          illegal_insn      = ~instr_is_legal_cheri;
         end else begin
-          jump_in_dec_o     = 1'b1;
+          jump_in_dec_o      = 1'b1;
 
           if (instr_first_cycle_i) begin
             // Calculate jump target (and store PC + 4 if BranchTargetALU is configured)
@@ -340,8 +325,7 @@ module ibex_decoder import cheri_pkg::*; #(
           // cheri_ex takes over JALR now as a single-cycle jump
           cheri_jalr_en     = (instr[14:12] == 3'b0);
           rf_ren_a_o        = 1'b1;
-          rf_we             = 1'b1;
-          illegal_insn      = 1'b0;
+          illegal_insn      = ~instr_is_legal_cheri;
         end else begin
           jump_in_dec_o      = 1'b1;
 
@@ -463,8 +447,7 @@ module ibex_decoder import cheri_pkg::*; #(
       OPCODE_AUIPC: begin
         if (CHERIoTEn & cheri_pmode_i & ~illegal_c_insn_i) begin
           cheri_auipcc_en  = 1'b1;
-          illegal_insn     = 1'b0;
-          rf_we            = 1'b1;
+          illegal_insn     = ~instr_is_legal_cheri;
         end else begin
           // OPCODE_AUIPC: begin  // Add Upper Immediate to PC
           rf_we            = 1'b1;
@@ -758,14 +741,6 @@ module ibex_decoder import cheri_pkg::*; #(
             default: csr_illegal = 1'b1;
           endcase
 
-          // always allow access to the following CSRs even without ASR permission 
-          //   -- 0xC01-0xC9F (unpriviledged counters)
-          //   -- 0xB01-0xB9F (m-mode counters). 
-          //      note 0xb01 is undefined per rvi spec. CSR register logic will handle it.
-          csr_cheri_always_ok_o = CHERIoTEn & cheri_pmode_i &
-                                  (((instr[31:28] == 4'hb) || (instr[31:28] == 4'hc)) && 
-                                   ((instr[27] == 1'b0) || (instr[26:25] == 2'b00))); 
-       
           illegal_insn = csr_illegal;
         end
       end
@@ -775,13 +750,11 @@ module ibex_decoder import cheri_pkg::*; #(
           cheri_opcode_en  = 1'b1;
           rf_ren_a_o       = cheri_rf_ren_a;
           rf_ren_b_o       = cheri_rf_ren_b;
-          rf_we            = cheri_rf_we_dec;
           illegal_insn     = ~instr_is_legal_cheri;
         end else begin
           cheri_opcode_en  = 1'b0;
           rf_ren_a_o       = 1'b0;
           rf_ren_b_o       = 1'b0;
-          rf_we            = 1'b0;
           illegal_insn     = 1'b1;
         end
       end
@@ -791,7 +764,6 @@ module ibex_decoder import cheri_pkg::*; #(
           cheri_auicgp_en  = 1'b1;
           rf_ren_a_o       = 1'b1;
           rf_ren_b_o       = 1'b0;
-          rf_we            = 1'b1;
           illegal_insn     = 1'b0;
         end else begin
           cheri_opcode_en  = 1'b0;
@@ -1355,10 +1327,10 @@ module ibex_decoder import cheri_pkg::*; #(
 
   // make sure instructions accessing non-available registers in RV32E cause illegal
   // instruction exceptions
-  assign illegal_insn_o = illegal_insn | illegal_reg_rv32e | illegal_reg_cheri;
+  assign illegal_insn_o = illegal_insn | illegal_reg_rv32e;
 
   // do not propgate regfile write enable if non-available registers are accessed in RV32E
-  assign rf_we_o = rf_we & ~illegal_reg_rv32e & ~illegal_reg_cheri;
+  assign rf_we_o = rf_we & ~illegal_reg_rv32e;
 
   // Not all bits are used
   assign unused_instr_alu = {instr_alu[19:15],instr_alu[11:7]};
@@ -1388,7 +1360,7 @@ module ibex_decoder import cheri_pkg::*; #(
       .cheri_cs2_dec_o         (cheri_cs2_dec_o),
       .cheri_rf_ren_a_o        (cheri_rf_ren_a),
       .cheri_rf_ren_b_o        (cheri_rf_ren_b),
-      .cheri_rf_we_dec_o       (cheri_rf_we_dec),
+      .cheri_rf_we_dec_o       (cheri_rf_we_dec_o),
       .cheri_multicycle_dec_o  (cheri_multicycle_dec_o)
       );
   end else begin
@@ -1402,7 +1374,7 @@ module ibex_decoder import cheri_pkg::*; #(
     assign cheri_cs2_dec_o        = 1'b0;
     assign cheri_rf_ren_a         = 1'b0;    
     assign cheri_rf_ren_b         = 1'b0;
-    assign cheri_rf_we_dec        = 1'b0;
+    assign cheri_rf_we_dec_o      = 1'b0;
     assign cheri_multicycle_dec_o = 1'b0;
  
   end

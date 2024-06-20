@@ -40,10 +40,8 @@ package cheri_pkg;
   parameter int unsigned PERM_U1 = 12;     //
 //  parameter int unsigned PERM_U2 = 13;     // temp workaround
 
-  parameter logic [2:0] OTYPE_SENTRY_IE_BKWD = 3'd5;
-  parameter logic [2:0] OTYPE_SENTRY_ID_BKWD = 3'd4;
-  parameter logic [2:0] OTYPE_SENTRY_IE_FWD  = 3'd3;
-  parameter logic [2:0] OTYPE_SENTRY_ID_FWD  = 3'd2;
+  parameter logic [2:0] OTYPE_SENTRY_IE  = 3'd3;
+  parameter logic [2:0] OTYPE_SENTRY_ID  = 3'd2;
   parameter logic [2:0] OTYPE_SENTRY     = 3'd1;
   parameter logic [2:0] OTYPE_UNSEALED   = 3'd0;
 
@@ -487,13 +485,13 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     return result;
   endfunction
 
-  //function automatic logic is_cap_sentry (full_cap_t in_cap);
-  //  logic result;
+  function automatic logic is_cap_sentry (full_cap_t in_cap);
+    logic result;
 
-  //  result = (in_cap.perms[PERM_EX]) && ((in_cap.otype == OTYPE_SENTRY) || (in_cap.otype == OTYPE_SENTRY_ID) ||
-  //            (in_cap.otype == OTYPE_SENTRY_IE));
-  //  return result;
-  //endfunction
+    result = (in_cap.otype == OTYPE_SENTRY) || (in_cap.otype == OTYPE_SENTRY_ID) ||
+             (in_cap.otype == OTYPE_SENTRY_IE);
+    return result;
+  endfunction
 
 
   function automatic logic [3:0] decode_otype (logic [2:0] otype3, logic perm_ex);
@@ -594,9 +592,9 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     full_cap_t tfcap0, tfcap1;
 
     tfcap0  = pcc2fullcap(pcc_cap);
-    // Still need representability check to cover save_pc_if and save_pc_wb cases
+    // we really only need to update_temp_files here 
+    // (representability check is unnecessary due to fetch time bound check). will remove later
     tfcap1  = set_address(tfcap0, address, 0, 0);
-    
     reg_cap = full2regcap(tfcap1);
     if (clrtag) reg_cap.valid = 1'b0;
 
@@ -833,7 +831,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
     CSUB_CAP        = 6'h14,
     CCLEAR_TAG      = 6'h15,
     CLOAD_CAP       = 6'h16,
-    CSET_HIGH       = 6'h17,
+    //CLBC            = 6'h17,
     CSTORE_CAP      = 6'h18,
     CCSR_RW         = 6'h19,
     CJALR           = 6'h1a,
@@ -869,6 +867,7 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
   parameter logic [3:0] PVIO_SC    = 4'h5;
   parameter logic [3:0] PVIO_ASR   = 4'h6;
   parameter logic [3:0] PVIO_ALIGN = 4'h7;
+  parameter logic [3:0] PVIO_SLC   = 4'h8;
   
 
   function automatic logic [4:0] vio_cause_enc (logic bound_vio, logic[W_PVIO-1:0] perm_vio_vec);
@@ -886,6 +885,8 @@ $display("--- set_bounds:  b1 = %x, t1 = %x, b2 = %x, t2 = %x", base1, top1, bas
       vio_cause = 5'h13;
     else if (perm_vio_vec[PVIO_SC])
       vio_cause = 5'h15;
+    else if (perm_vio_vec[PVIO_SLC])
+      vio_cause = 5'h16;
     else if (perm_vio_vec[PVIO_ASR])
       vio_cause = 5'h18;
     else if (bound_vio)
