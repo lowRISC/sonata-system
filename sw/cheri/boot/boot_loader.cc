@@ -5,7 +5,9 @@
 #include "../../common/defs.h"
 #include "../common/flash-utils.hh"
 #include "../common/uart-utils.hh"
+#include "elf.h"
 
+#include <algorithm>
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-spi.hh>
@@ -14,86 +16,81 @@
 
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
-struct UF2Block
-{
-	uint64_t magicStart;
-	uint32_t flags;
-	uint32_t targetAddr;
-	uint32_t payloadSize;
-	uint32_t blockNo;
-	uint32_t numBlocks;
-	uint32_t fileSizeOrFamilyId;
-	uint32_t data[119];
-	uint32_t magicEnd;
-
-	static constexpr size_t size = 512;
-
-	void read_from_flash(SpiFlash &flash, uint32_t address)
-	{
-		flash.read(address, (uint8_t *)this, size);
-	}
-
-	auto check_magic() -> bool
-	{
-		return 0x9e5d'5157'0a32'4655 == magicStart && 0x0ab1'6f30 == magicEnd;
-	}
-};
-
-static_assert(sizeof(UF2Block) == UF2Block::size,
-              "The UF2Block structure is the wrong size.");
-
 typedef CHERI::Capability<volatile OpenTitanUart<>> &UartRef;
 
 [[noreturn]] void complain_and_loop(UartRef uart, const char *str)
 {
 	write_str(uart, prefix);
 	write_str(uart, str);
-	while (true) {
-		asm ("wfi");
+	while (true)
+	{
+		asm("wfi");
 	}
 }
 
-void read_blocks(SpiFlash                   &flash,
-                 UartRef                     uart,
-                 CHERI::Capability<uint32_t> sram)
+void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
 {
 	write_str(uart, prefix);
 	write_str(uart, "Loading software from flash...\r\n");
 
-	UF2Block block;
-	block.read_from_flash(flash, 0x0);
+	Elf32_Ehdr ehdr;
+	flash.read(0x0, (uint8_t *)&ehdr, sizeof(Elf32_Ehdr));
 
-	if (!block.check_magic())
+	// Check the ELF magic numbers.
+	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
+	    ehdr.e_ident[EI_MAG2] != ELFMAG2 || ehdr.e_ident[EI_MAG3] != ELFMAG3)
 	{
-		complain_and_loop(uart, "Failed Magic Check\r\n");
+		complain_and_loop(uart, "Failed ELF Magic Check\r\n");
 	}
-	auto write_block = [sram](UF2Block &block) {
 
-		auto block_addrs      = sram;
-		block_addrs.address() = block.targetAddr;
-		block_addrs.bounds()  = block.payloadSize;
-		const size_t words    = block.payloadSize / 4;
-
-		for (uint32_t word = 0; word < words; ++word)
-		{
-			block_addrs[word] = block.data[word];
-		}
-	};
-	write_block(block);
-
-	const uint32_t num_blocks   = block.numBlocks;
-	uint32_t       next_address = 0x0 + UF2Block::size;
-
-	for (size_t i = 1; i < num_blocks; ++i)
+	if (ehdr.e_ident[EI_CLASS] != ELFCLASS32 || ehdr.e_type != ET_EXEC ||
+	    ehdr.e_machine != EM_RISCV ||
+	    (ehdr.e_flags & (EF_RISCV_CHERIABI | EF_RISCV_CAP_MODE)) !=
+	      (EF_RISCV_CHERIABI | EF_RISCV_CAP_MODE))
 	{
-		block.read_from_flash(flash, next_address);
-		if (!block.check_magic() || num_blocks != block.numBlocks ||
-		    i != block.blockNo)
+		complain_and_loop(uart,
+		                  "ELF file is not 32-bit CHERI RISC-V executable\r\n");
+	}
+
+	write_str(uart, prefix);
+	write_str(uart, "Offset   VirtAddr FileSize MemSize\r\n");
+
+	Elf32_Phdr phdr;
+	for (uint32_t i = 0; i < ehdr.e_phnum; i++)
+	{
+		flash.read(ehdr.e_phoff + ehdr.e_phentsize * i,
+		           (uint8_t *)&phdr,
+		           sizeof(Elf32_Phdr));
+
+		if (phdr.p_type != PT_LOAD)
+			continue;
+
+		write_str(uart, prefix);
+		write_hex(uart, phdr.p_offset);
+		write_str(uart, " ");
+		write_hex(uart, phdr.p_vaddr);
+		write_str(uart, " ");
+		write_hex(uart, phdr.p_filesz);
+		write_str(uart, " ");
+		write_hex(uart, phdr.p_memsz);
+		write_str(uart, "\r\n");
+
+		auto segment      = sram;
+		segment.address() = phdr.p_vaddr;
+		segment.bounds().set_inexact(phdr.p_memsz);
+
+		for (uint32_t offset = 0; offset < phdr.p_filesz; offset += 0x400)
 		{
-			complain_and_loop(uart, "Failed Magic or numBlocks Check\r\n");
+			uint32_t size = std::min(phdr.p_filesz, offset + 0x400) - offset;
+			flash.read(
+			  phdr.p_offset + offset, (uint8_t *)segment.get() + offset, size);
 		}
-		write_block(block);
-		next_address += UF2Block::size;
+
+		// We don't have memset symbol available.
+		for (uint32_t offset = phdr.p_filesz; offset < phdr.p_memsz; offset++)
+		{
+			((uint8_t *)segment.get())[offset] = 0;
+		}
 	}
 }
 
@@ -128,7 +125,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
 	uart->init();
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
-	read_blocks(spi_flash, uart, sram);
+	read_elf(spi_flash, uart, sram);
 
 	write_str(uart, prefix);
 	write_str(uart, "Booting into program, hopefully.\r\n");
