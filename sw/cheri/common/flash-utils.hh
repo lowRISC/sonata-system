@@ -35,8 +35,8 @@ class SpiFlash
 	void read_jedec_id(uint8_t *jedec_id_out)
 	{
 		set_cs(true);
-		spi->tx(&CmdReadJEDECId, 1);
-		spi->rx(jedec_id_out, 3);
+		spi->blocking_write(&CmdReadJEDECId, 1);
+		spi->blocking_read(jedec_id_out, 3);
 		set_cs(false);
 	}
 
@@ -48,20 +48,20 @@ class SpiFlash
 		                              uint8_t(address & 0xff)};
 
 		set_cs(true);
-		spi->tx(&CmdWriteEnable, 1);
+		spi->blocking_write(&CmdWriteEnable, 1);
 		set_cs(false);
 
 		set_cs(true);
-		spi->tx(erase_cmd, 4);
+		spi->blocking_write(erase_cmd, 4);
 		set_cs(false);
 
 		set_cs(true);
-		spi->tx(&CmdReadStatusRegister1, 1);
+		spi->blocking_write(&CmdReadStatusRegister1, 1);
 
 		uint8_t status;
 		do
 		{
-			spi->rx(&status, 1);
+			spi->blocking_read(&status, 1);
 		} while ((status & 0x1) == 1);
 
 		set_cs(false);
@@ -75,21 +75,21 @@ class SpiFlash
 		                              uint8_t(address & 0xff)};
 
 		set_cs(true);
-		spi->tx(&CmdWriteEnable, 1);
+		spi->blocking_write(&CmdWriteEnable, 1);
 		set_cs(false);
 
 		set_cs(true);
-		spi->tx(write_cmd, 4);
-		spi->tx(data, 256);
+		spi->blocking_write(write_cmd, 4);
+		spi->blocking_write(data, 256);
 		set_cs(false);
 
 		set_cs(true);
-		spi->tx(&CmdReadStatusRegister1, 1);
+		spi->blocking_write(&CmdReadStatusRegister1, 1);
 
 		uint8_t status;
 		do
 		{
-			spi->rx(&status, 1);
+			spi->blocking_read(&status, 1);
 		} while ((status & 0x1) == 1);
 
 		set_cs(false);
@@ -102,8 +102,8 @@ class SpiFlash
 		                             uint8_t((address >> 8) & 0xff),
 		                             uint8_t(address & 0xff)};
 		set_cs(true);
-		spi->tx(read_cmd, 4);
-		spi->rx(data_out, len);
+		spi->blocking_write(read_cmd, 4);
+		spi->blocking_read(data_out, len);
 		set_cs(false);
 	}
 };

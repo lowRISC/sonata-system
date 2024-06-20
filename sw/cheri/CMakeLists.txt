@@ -3,7 +3,7 @@ include(FetchContent)
 
 FetchContent_Declare(CHERIOT_RTOS
   GIT_REPOSITORY    https://github.com/lowRISC/CHERIoT-RTOS
-  GIT_TAG           02ed83a80d9eb61c914ec712fb3d45c3ee71ff26 # a sonata branch snapshot
+  GIT_TAG           58e3aee92a22604b9c75715fad45822e80229f46
 )
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
