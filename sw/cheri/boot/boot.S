@@ -30,5 +30,5 @@ start:
 	// and we have 32 KiB of IROM so wasting a few bytes doesn't really matter.
 	auipcc           cra, 0
 	li               t0, 0x00101000
-	csetaddr         cra, cra, t0
-	cjr              cra
+	csetaddr         ct0, cra, t0
+	cjr              ct0
