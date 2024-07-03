@@ -273,90 +273,89 @@ module sonata_system #(
   logic spi_eth_irq;
 
   logic [181:0] intr_vector;
-  assign intr_vector = {
-      110'b0, // IDs [71 +: 118]
+  always_comb begin : interrupt_vector
+    intr_vector[72 +: 110] = 110'b0;
+    intr_vector[71 +: 1] = uart4_rx_parity_err_irq;
+    intr_vector[70 +: 1] = uart4_rx_timeout_irq;
+    intr_vector[69 +: 1] = uart4_rx_break_err_irq;
+    intr_vector[68 +: 1] = uart4_rx_frame_err_irq;
+    intr_vector[67 +: 1] = uart4_rx_overflow_irq;
+    intr_vector[66 +: 1] = uart4_tx_empty_irq;
+    intr_vector[65 +: 1] = uart4_rx_watermark_irq;
+    intr_vector[64 +: 1] = uart4_tx_watermark_irq;
 
-      uart4_rx_parity_err_irq, // IDs [70 +: 1]
-      uart4_rx_timeout_irq, // IDs [69 +: 1]
-      uart4_rx_break_err_irq, // IDs [68 +: 1]
-      uart4_rx_frame_err_irq, // IDs [67 +: 1]
-      uart4_rx_overflow_irq, // IDs [66 +: 1]
-      uart4_tx_empty_irq, // IDs [65 +: 1]
-      uart4_rx_watermark_irq, // IDs [64 +: 1]
-      uart4_tx_watermark_irq, // IDs [63 +: 1]
+    intr_vector[63 +: 1] = uart3_rx_parity_err_irq;
+    intr_vector[62 +: 1] = uart3_rx_timeout_irq;
+    intr_vector[61 +: 1] = uart3_rx_break_err_irq;
+    intr_vector[60 +: 1] = uart3_rx_frame_err_irq;
+    intr_vector[59 +: 1] = uart3_rx_overflow_irq;
+    intr_vector[58 +: 1] = uart3_tx_empty_irq;
+    intr_vector[57 +: 1] = uart3_rx_watermark_irq;
+    intr_vector[56 +: 1] = uart3_tx_watermark_irq;
 
-      uart3_rx_parity_err_irq, // IDs [62 +: 1]
-      uart3_rx_timeout_irq, // IDs [61 +: 1]
-      uart3_rx_break_err_irq, // IDs [60 +: 1]
-      uart3_rx_frame_err_irq, // IDs [59 +: 1]
-      uart3_rx_overflow_irq, // IDs [58 +: 1]
-      uart3_tx_empty_irq, // IDs [57 +: 1]
-      uart3_rx_watermark_irq, // IDs [56 +: 1]
-      uart3_tx_watermark_irq, // IDs [55 +: 1]
+    intr_vector[55 +: 1] = uart2_rx_parity_err_irq;
+    intr_vector[54 +: 1] = uart2_rx_timeout_irq;
+    intr_vector[53 +: 1] = uart2_rx_break_err_irq;
+    intr_vector[52 +: 1] = uart2_rx_frame_err_irq;
+    intr_vector[51 +: 1] = uart2_rx_overflow_irq;
+    intr_vector[50 +: 1] = uart2_tx_empty_irq;
+    intr_vector[49 +: 1] = uart2_rx_watermark_irq;
+    intr_vector[48 +: 1] = uart2_tx_watermark_irq;
 
-      uart2_rx_parity_err_irq, // IDs [54 +: 1]
-      uart2_rx_timeout_irq, // IDs [53 +: 1]
-      uart2_rx_break_err_irq, // IDs [52 +: 1]
-      uart2_rx_frame_err_irq, // IDs [51 +: 1]
-      uart2_rx_overflow_irq, // IDs [50 +: 1]
-      uart2_tx_empty_irq, // IDs [50 +: 1]
-      uart2_rx_watermark_irq, // IDs [49 +: 1]
-      uart2_tx_watermark_irq, // IDs [48 +: 1]
+    intr_vector[47 +: 1] = spi_eth_irq;
 
-      spi_eth_irq, // IDs [47 +: 1]
+    intr_vector[46 +: 1] = i2c1_host_timeout_irq;
+    intr_vector[45 +: 1] = i2c1_unexp_stop_irq;
+    intr_vector[44 +: 1] = i2c1_acq_full_irq;
+    intr_vector[43 +: 1] = i2c1_tx_threshold_irq;
+    intr_vector[42 +: 1] = i2c1_tx_stretch_irq;
+    intr_vector[41 +: 1] = i2c1_cmd_complete_irq;
+    intr_vector[40 +: 1] = i2c1_sda_unstable_irq;
+    intr_vector[39 +: 1] = i2c1_stretch_timeout_irq;
+    intr_vector[38 +: 1] = i2c1_sda_interference_irq;
+    intr_vector[37 +: 1] = i2c1_scl_interference_irq;
+    intr_vector[36 +: 1] = i2c1_nak_irq;
+    intr_vector[35 +: 1] = i2c1_rx_overflow_irq;
+    intr_vector[34 +: 1] = i2c1_acq_threshold_irq;
+    intr_vector[33 +: 1] = i2c1_rx_threshold_irq;
+    intr_vector[32 +: 1] = i2c1_fmt_threshold_irq;
 
-      i2c1_host_timeout_irq, // IDs [46 +: 1]
-      i2c1_unexp_stop_irq, // IDs [45 +: 1]
-      i2c1_acq_full_irq, // IDs [44 +: 1]
-      i2c1_tx_threshold_irq, // IDs [43 +: 1]
-      i2c1_tx_stretch_irq, // IDs [42 +: 1]
-      i2c1_cmd_complete_irq, // IDs [41 +: 1]
-      i2c1_sda_unstable_irq, // IDs [40 +: 1]
-      i2c1_stretch_timeout_irq, // IDs [39 +: 1]
-      i2c1_sda_interference_irq, // IDs [38 +: 1]
-      i2c1_scl_interference_irq, // IDs [37 +: 1]
-      i2c1_nak_irq, // IDs [36 +: 1]
-      i2c1_rx_overflow_irq, // IDs [35 +: 1]
-      i2c1_acq_threshold_irq, // IDs [34 +: 1]
-      i2c1_rx_threshold_irq, // IDs [33 +: 1]
-      i2c1_fmt_threshold_irq, // IDs [32 +: 1]
+    intr_vector[31 +: 1] = i2c0_host_timeout_irq;
+    intr_vector[30 +: 1] = i2c0_unexp_stop_irq;
+    intr_vector[29 +: 1] = i2c0_acq_full_irq;
+    intr_vector[28 +: 1] = i2c0_tx_threshold_irq;
+    intr_vector[27 +: 1] = i2c0_tx_stretch_irq;
+    intr_vector[26 +: 1] = i2c0_cmd_complete_irq;
+    intr_vector[25 +: 1] = i2c0_sda_unstable_irq;
+    intr_vector[24 +: 1] = i2c0_stretch_timeout_irq;
+    intr_vector[23 +: 1] = i2c0_sda_interference_irq;
+    intr_vector[22 +: 1] = i2c0_scl_interference_irq;
+    intr_vector[21 +: 1] = i2c0_nak_irq;
+    intr_vector[20 +: 1] = i2c0_rx_overflow_irq;
+    intr_vector[19 +: 1] = i2c0_acq_threshold_irq;
+    intr_vector[18 +: 1] = i2c0_rx_threshold_irq;
+    intr_vector[17 +: 1] = i2c0_fmt_threshold_irq;
 
-      i2c0_host_timeout_irq, // IDs [31 +: 1]
-      i2c0_unexp_stop_irq, // IDs [30 +: 1]
-      i2c0_acq_full_irq, // IDs [29 +: 1]
-      i2c0_tx_threshold_irq, // IDs [28 +: 1]
-      i2c0_tx_stretch_irq, // IDs [27 +: 1]
-      i2c0_cmd_complete_irq, // IDs [26 +: 1]
-      i2c0_sda_unstable_irq, // IDs [25 +: 1]
-      i2c0_stretch_timeout_irq, // IDs [24 +: 1]
-      i2c0_sda_interference_irq, // IDs [23 +: 1]
-      i2c0_scl_interference_irq, // IDs [22 +: 1]
-      i2c0_nak_irq, // IDs [21 +: 1]
-      i2c0_rx_overflow_irq, // IDs [20 +: 1]
-      i2c0_acq_threshold_irq, // IDs [19 +: 1]
-      i2c0_rx_threshold_irq, // IDs [18 +: 1]
-      i2c0_fmt_threshold_irq, // IDs [17 +: 1]
+    intr_vector[16 +: 1] = uart1_rx_parity_err_irq;
+    intr_vector[15 +: 1] = uart1_rx_timeout_irq;
+    intr_vector[14 +: 1] = uart1_rx_break_err_irq;
+    intr_vector[13 +: 1] = uart1_rx_frame_err_irq;
+    intr_vector[12 +: 1] = uart1_rx_overflow_irq;
+    intr_vector[11 +: 1] = uart1_tx_empty_irq;
+    intr_vector[10 +: 1] = uart1_rx_watermark_irq;
+    intr_vector[9 +: 1]  = uart1_tx_watermark_irq;
 
-      uart1_rx_parity_err_irq, // IDs [16 +: 1]
-      uart1_rx_timeout_irq, // IDs [15 +: 1]
-      uart1_rx_break_err_irq, // IDs [14 +: 1]
-      uart1_rx_frame_err_irq, // IDs [13 +: 1]
-      uart1_rx_overflow_irq, // IDs [12 +: 1]
-      uart1_tx_empty_irq, // IDs [11 +: 1]
-      uart1_rx_watermark_irq, // IDs [10 +: 1]
-      uart1_tx_watermark_irq, // IDs [9 +: 1]
+    intr_vector[8 +: 1]  = uart0_rx_parity_err_irq;
+    intr_vector[7 +: 1]  = uart0_rx_timeout_irq;
+    intr_vector[6 +: 1]  = uart0_rx_break_err_irq;
+    intr_vector[5 +: 1]  = uart0_rx_frame_err_irq;
+    intr_vector[4 +: 1]  = uart0_rx_overflow_irq;
+    intr_vector[3 +: 1]  = uart0_tx_empty_irq;
+    intr_vector[2 +: 1]  = uart0_rx_watermark_irq;
+    intr_vector[1 +: 1]  = uart0_tx_watermark_irq;
 
-      uart0_rx_parity_err_irq, // IDs [8 +: 1]
-      uart0_rx_timeout_irq, // IDs [7 +: 1]
-      uart0_rx_break_err_irq, // IDs [6 +: 1]
-      uart0_rx_frame_err_irq, // IDs [5 +: 1]
-      uart0_rx_overflow_irq, // IDs [4 +: 1]
-      uart0_tx_empty_irq, // IDs [3 +: 1]
-      uart0_rx_watermark_irq, // IDs [2 +: 1]
-      uart0_tx_watermark_irq, // IDs [1 +: 1]
-
-      1'b 0 // ID [0 +: 1] is a special case and tied to zero.
-  };
+    intr_vector[0 +: 1]  = 1'b0; // This is a special case and tied to zero.
+  end : interrupt_vector
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
