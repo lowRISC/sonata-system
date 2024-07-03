@@ -14,6 +14,8 @@
 #include <platform-uart.hh>
 #include <stdint.h>
 
+#define DEBUG_ELF_HEADER 0
+
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
 typedef CHERI::Capability<volatile OpenTitanUart<>> &UartRef;
@@ -52,8 +54,10 @@ void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
 		                  "ELF file is not 32-bit CHERI RISC-V executable\r\n");
 	}
 
+#if DEBUG_ELF_HEADER
 	write_str(uart, prefix);
 	write_str(uart, "Offset   VirtAddr FileSize MemSize\r\n");
+#endif
 
 	Elf32_Phdr phdr;
 	for (uint32_t i = 0; i < ehdr.e_phnum; i++)
@@ -65,6 +69,7 @@ void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
 		if (phdr.p_type != PT_LOAD)
 			continue;
 
+#if DEBUG_ELF_HEADER
 		write_str(uart, prefix);
 		write_hex(uart, phdr.p_offset);
 		write_str(uart, " ");
@@ -74,6 +79,7 @@ void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
 		write_str(uart, " ");
 		write_hex(uart, phdr.p_memsz);
 		write_str(uart, "\r\n");
+#endif
 
 		auto segment      = sram;
 		segment.address() = phdr.p_vaddr;
