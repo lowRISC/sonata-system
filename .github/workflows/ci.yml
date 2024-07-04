@@ -60,6 +60,9 @@ jobs:
     - name: Nix Format Check
       run: nix fmt -- . --check
 
+    - name: Nix Checks
+      run: nix flake check -L
+
     - name: Build Documentation
       run: |
         nix build .#sonata-documentation
