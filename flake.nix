@@ -58,6 +58,21 @@
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
+      sonata-simulator-lint = pkgs.stdenvNoCC.mkDerivation {
+        name = "sonta-simulator-lint";
+        src = ./.;
+        buildInputs = with pkgs; [libelf zlib];
+        nativeBuildInputs = [pkgs.verilator pythonEnv];
+        dontBuild = true;
+        doCheck = true;
+        checkPhase = ''
+          HOME=$TMPDIR fusesoc --cores-root=. run \
+            --target=lint --setup --build lowrisc:sonata:system \
+            --verilator_options="+define+RVFI -j $NIX_BUILD_CORES"
+        '';
+        installPhase = "mkdir $out";
+      };
+
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
         inherit version;
         pname = "sonata-simulator";
@@ -66,10 +81,8 @@
         nativeBuildInputs = [pkgs.verilator pythonEnv];
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
-            --target=sim --tool=verilator --setup \
-            --build lowrisc:sonata:system \
-            --verilator_options="+define+RVFI -j $NIX_BUILD_CORES" \
-            --make_options="-j $NIX_BUILD_CORES"
+            --target=sim --setup --build lowrisc:sonata:system \
+            --verilator_options="-j $NIX_BUILD_CORES" --make_options="-j $NIX_BUILD_CORES"
         '';
         installPhase = ''
           mkdir -p $out/bin/
@@ -113,6 +126,7 @@
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
       packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation;};
+      checks = {inherit sonata-simulator-lint;};
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
