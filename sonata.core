@@ -103,3 +103,15 @@ targets:
           - "--unroll-count 72"
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
+
+  lint:
+    <<: *default_target
+    default_tool: verilator
+    filesets_append:
+      - files_verilator
+    toplevel: top_verilator
+    tools:
+      verilator:
+        mode: lint-only
+    parameters:
+      - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
