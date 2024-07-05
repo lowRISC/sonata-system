@@ -1,7 +1,7 @@
 # Sonata system
 
 Sonata is a system for evaluating the usage of [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
-The system contain a number of peripherals (I2C, SPI, GPIO, PWM, UART, and DMA) and a CHERIoT enabled debug module along with the CHERIoT Ibex core itself.
+The system contain a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
 
 It is designed for use on FPGA and specifically targets the [Sonata FPGA board](https://github.com/newaetech/sonata-pcb), but as the entire design (from example PCB to software) is open-source it can be run on any similar system.
 
