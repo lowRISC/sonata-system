@@ -1,0 +1,16 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "cheriot_safe",
+  target_dir: "cheriot_safe",
+
+  upstream: {
+    url: "https://github.com/microsoft/cheriot-safe.git",
+    rev: "main",
+  }
+
+  mapping: [
+    {from: "src/msft_cheri_subsystem/msftDvIp_mmreg.sv", to: "ip/msftDvIp_mmreg.sv"},
+  ]
+}
