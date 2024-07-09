@@ -183,11 +183,17 @@ module sonata_system #(
     PmodGpio,
     Pwm,
     Timer,
-    RevTags
+    RevTags,
+    HwRev
   } bus_device_e;
 
-  localparam int NrDevices = 7;
+  localparam int NrDevices = 8;
   localparam int NrHosts = 2;
+
+  // Signals for hardware revoker
+  logic [127:0] hardware_revoker_control_reg_rdata;
+  logic [63:0]  hardware_revoker_control_reg_wdata;
+  logic         hardware_revoker_irq;
 
   // Interrupts.
   logic timer_irq;
@@ -274,7 +280,10 @@ module sonata_system #(
 
   logic [181:0] intr_vector;
   always_comb begin : interrupt_vector
-    intr_vector[72 +: 110] = 110'b0;
+    intr_vector[73 +: 109] = 109'b0;
+
+    intr_vector[72 +: 1] = hardware_revoker_irq;
+
     intr_vector[71 +: 1] = uart4_rx_parity_err_irq;
     intr_vector[70 +: 1] = uart4_rx_timeout_irq;
     intr_vector[69 +: 1] = uart4_rx_break_err_irq;
@@ -396,6 +405,7 @@ module sonata_system #(
   assign device_req[PmodGpio] = device_re[PmodGpio] | device_we[PmodGpio];
   assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
   assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
+  assign device_req[HwRev]    = device_re[HwRev]    | device_we[HwRev];
 
   // Instruction fetch signals.
   logic                    core_instr_req;
@@ -443,6 +453,7 @@ module sonata_system #(
   assign device_err[ArdGpio]  = 1'b0;
   assign device_err[PmodGpio] = 1'b0;
   assign device_err[Pwm]      = 1'b0;
+  assign device_err[HwRev]    = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -513,8 +524,10 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_spi_mkr_d2h;
   tlul_pkg::tl_h2d_t tl_usbdev_h2d;
   tlul_pkg::tl_d2h_t tl_usbdev_d2h;
-  tlul_pkg::tl_h2d_t tl_rev_h2d;
-  tlul_pkg::tl_d2h_t tl_rev_d2h;
+  tlul_pkg::tl_h2d_t tl_rev_tag_h2d;
+  tlul_pkg::tl_d2h_t tl_rev_tag_d2h;
+  tlul_pkg::tl_h2d_t tl_hw_rev_h2d;
+  tlul_pkg::tl_d2h_t tl_hw_rev_d2h;
 
   xbar_main xbar (
     // Clock and reset.
@@ -532,8 +545,8 @@ module sonata_system #(
     // Device interfaces.
     .tl_sram_o        (tl_sram_h2d_d),
     .tl_sram_i        (tl_sram_d2h_d),
-    .tl_rev_tag_o     (tl_rev_h2d),
-    .tl_rev_tag_i     (tl_rev_d2h),
+    .tl_rev_tag_o     (tl_rev_tag_h2d),
+    .tl_rev_tag_i     (tl_rev_tag_d2h),
     .tl_gpio_o        (tl_gpio_h2d),
     .tl_gpio_i        (tl_gpio_d2h),
     .tl_pwm_o         (tl_pwm_h2d),
@@ -546,6 +559,8 @@ module sonata_system #(
     .tl_pmod_gpio_i   (tl_pmod_gpio_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
+    .tl_hw_rev_o      (tl_hw_rev_h2d),
+    .tl_hw_rev_i      (tl_hw_rev_d2h),
     .tl_timer_o       (tl_timer_h2d),
     .tl_timer_i       (tl_timer_d2h),
     .tl_uart0_o       (tl_uart0_h2d),
@@ -738,6 +753,35 @@ module sonata_system #(
     .tl_b_i (tl_ibex_ins_h2d),
     .tl_b_o (tl_ibex_ins_d2h)
   );
+
+  tlul_adapter_reg #(
+    .EnableRspIntgGen ( 1 ),
+    .AccessLatency    ( 1 )
+  ) hardware_revoker_control_reg_device_adapter (
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
+
+    // TL-UL interface.
+    .tl_i         (tl_hw_rev_h2d),
+    .tl_o         (tl_hw_rev_d2h),
+
+    // Control interface.
+    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+    .intg_error_o (),
+
+    // Register interface.
+    .re_o         (device_re[HwRev]),
+    .we_o         (device_we[HwRev]),
+    .addr_o       (device_addr[HwRev][RegAddrWidth-1:0]),
+    .wdata_o      (device_wdata[HwRev]),
+    .be_o         (device_be[HwRev]),
+    .busy_i       ('0),
+    .rdata_i      (device_rdata[HwRev]),
+    .error_i      (device_err[HwRev])
+  );
+
+  // Tie off upper bits of address.
+  assign device_addr[HwRev][BusAddrWidth-1:RegAddrWidth] = '0;
 
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
@@ -937,8 +981,8 @@ module sonata_system #(
     .rst_ni       (rst_sys_ni),
 
     // TL-UL interface.
-    .tl_i         (tl_rev_h2d),
-    .tl_o         (tl_rev_d2h),
+    .tl_i         (tl_rev_tag_h2d),
+    .tl_o         (tl_rev_tag_d2h),
 
     // Control interface.
     .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
@@ -1057,9 +1101,8 @@ module sonata_system #(
     .tsmap_addr_o           (tsmap_addr),
     .tsmap_rdata_i          (tsmap_rdata),
 
-    // TODO fill this in to control hardware revocation engine.
-    .mmreg_corein_i         (128'b0),
-    .mmreg_coreout_o        (),
+    .mmreg_corein_i         (hardware_revoker_control_reg_rdata),
+    .mmreg_coreout_o        (hardware_revoker_control_reg_wdata),
     .cheri_fatal_err_o      (),
 
     .irq_software_i         (1'b0),
@@ -1082,6 +1125,22 @@ module sonata_system #(
     .alert_major_internal_o (  ),
     .alert_major_bus_o      (  ),
     .core_sleep_o           (  )
+  );
+
+  msftDvIp_mmreg hardware_revoker_control_reg (
+    .clk_i           (clk_sys_i),
+    .rstn_i          (rst_sys_ni),
+
+    .reg_en_i        (device_req[HwRev]),
+    .reg_addr_i      (device_addr[HwRev]),
+    .reg_wdata_i     (device_wdata[HwRev]),
+    .reg_we_i        (device_we[HwRev]),
+    .reg_rdata_o     (device_rdata[HwRev]),
+    .reg_ready_o     (),
+
+    .mmreg_coreout_i (hardware_revoker_control_reg_wdata),
+    .mmreg_corein_o  (hardware_revoker_control_reg_rdata),
+    .tbre_intr_o     (hardware_revoker_irq)
   );
 
   gpio #(
