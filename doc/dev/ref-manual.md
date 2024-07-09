@@ -33,29 +33,30 @@ Wherever possible, we reuse existing, high-quality, open-source hardware IP bloc
 
 For all registers in this section, the functionality is mapped onto the least significant bits of registers and each register is 32 bits wide.
 
-| Base address |    Size | Functionality      |
-|--------------|--------:|--------------------|
-| 0x0010_0000  | 256 KiB | Internal SRAM      |
-| 0x3000_0000  |   4 KiB | Revocation tags    |
-| 0x4000_0000  |   1 MiB | Tagged RAM         |
-| 0x4010_0000  |   7 MiB | Untagged RAM       |
-| 0x8000_0000  |   4 KiB | [GPIO][]           |
-| 0x8000_1000  |   4 KiB | [PWM][]            |
-| 0x8000_2000  |   4 KiB | [DMA][]            |
-| 0x8000_3000  |   4 KiB | [HyperRAM][]       |
-| 0x8000_4000  |   4 KiB | [ADC][]            |
-| 0x8000_5000  |   4 KiB | [Pinmux][]         |
-| 0x8000_6000  |   4 KiB | R-Pi Header GPIO   |
-| 0x8000_7000  |   4 KiB | Arduino GPIO       |
-| 0x8000_8000  |   4 KiB | PMOD GPIO          |
-| 0x8000_9000  |   4 KiB | RGB LED controller |
-| 0x8004_0000  |  64 KiB | [Timer][]          |
-| 0x8010_0000  |   1 MiB | [UART][]           |
-| 0x8020_0000  |   1 MiB | [I2C host][]       |
-| 0x8030_0000  |   1 MiB | [SPI host][]       |
-| 0x8040_0000  |   1 MiB | [USB device][]     |
-| 0x8800_0000  |  64 MiB | [PLIC][]           |
-| 0xB000_0000  |   4 KiB | [Debug module][]   |
+| Base address |    Size | Functionality        |
+|--------------|--------:|----------------------|
+| 0x0010_0000  | 256 KiB | Internal SRAM        |
+| 0x3000_0000  |   4 KiB | Revocation tags      |
+| 0x4000_0000  |   1 MiB | Tagged RAM           |
+| 0x4010_0000  |   7 MiB | Untagged RAM         |
+| 0x8000_0000  |   4 KiB | [GPIO][]             |
+| 0x8000_1000  |   4 KiB | [PWM][]              |
+| 0x8000_2000  |   4 KiB | [DMA][]              |
+| 0x8000_3000  |   4 KiB | [HyperRAM][]         |
+| 0x8000_4000  |   4 KiB | [ADC][]              |
+| 0x8000_5000  |   4 KiB | [Pinmux][]           |
+| 0x8000_6000  |   4 KiB | R-Pi Header GPIO     |
+| 0x8000_7000  |   4 KiB | Arduino GPIO         |
+| 0x8000_8000  |   4 KiB | PMOD GPIO            |
+| 0x8000_9000  |   4 KiB | RGB LED controller   |
+| 0x8000_A000  |   4 KiB | [Hardware revoker][] |
+| 0x8004_0000  |  64 KiB | [Timer][]            |
+| 0x8010_0000  |   1 MiB | [UART][]             |
+| 0x8020_0000  |   1 MiB | [I2C host][]         |
+| 0x8030_0000  |   1 MiB | [SPI host][]         |
+| 0x8040_0000  |   1 MiB | [USB device][]       |
+| 0x8800_0000  |  64 MiB | [PLIC][]             |
+| 0xB000_0000  |   4 KiB | [Debug module][]     |
 
 [Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
@@ -70,6 +71,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [PWM]: ../ip/pwm.md
 [PLIC]: ../ip/plic.md
 [Pinmux]: ../ip/pinmux.md
+[Hardware revoker]: ../ip/revoker.md
 
 ## Clocking infrastructure
 
