@@ -109,6 +109,16 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:  "hw_rev", // Hardware revoker control register
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x8000A000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "timer", // Interrupt timer
       type:  "device",
       clock: "clk_sys_i",
@@ -290,8 +300,9 @@
       "rpi_gpio",
       "ard_gpio",
       "pmod_gpio",
-      "timer",
       "rgbled_ctrl",
+      "hw_rev",
+      "timer",
       "uart0",
       "uart1",
       "uart2",
