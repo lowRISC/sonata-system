@@ -1,6 +1,7 @@
 # Building Examples
 
-The following contains some simple examples you can build for the Sonata board. Once you've got these builds working, you can easily add more features to the example code.
+The following contains some simple examples you can build for the Sonata board.
+Once you've got these builds working, you can easily add more features to the example code.
 
 ## Using our template
 
@@ -37,9 +38,12 @@ On Mac this is similar
 screen /dev/tty.usbserial-LN100302 115200
 ```
 
-On Windows, connecting to serial ports directly from within WSL2 (default) is not possible. Connecting from WSL1 is possible, but we recommend to use [PuTTY](https://www.putty.org/) to connect to serial ports. Alternatively you can use [Termite](https://www.compuphase.com/software_termite.htm).
+On Windows, connecting to serial ports directly from within WSL2 (default) is not possible.
+Connecting from WSL1 is possible, but we recommend to use [PuTTY](https://www.putty.org/) to connect to serial ports.
+Alternatively you can use [Termite](https://www.compuphase.com/software_termite.htm).
 
-Select "Serial" as "Connection type", put the COM port in the "Serial line" text field, and set "Speed" to 115200. To find out what serial ports are available, you can open Device Manager and all connected serial ports are listed under "Ports (COM & LPT)" section.
+Select "Serial" as "Connection type", put the COM port in the "Serial line" text field, and set "Speed" to 115200.
+To find out what serial ports are available, you can open Device Manager and all connected serial ports are listed under "Ports (COM & LPT)" section.
 
 ## Baremetal examples
 
@@ -101,4 +105,5 @@ You can load software onto the FPGA over USB (JTAG) using:
 ```sh
 ./util/mem_helper.sh load_program -e sw/cheri/build/tests/spi_test
 ```
-There are actually four different ways of loading the program - we normally use JTAG for development, but you can also program it into the serial flash device on the board. See the page [Programming the Sonata Software](../dev/sw-programming.md).
+There are actually four different ways of loading the program - we normally use JTAG for development, but you can also program it into the serial flash device on the board.
+See the page [Programming the Sonata Software](../dev/sw-programming.md).
