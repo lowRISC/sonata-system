@@ -1,7 +1,7 @@
 #pragma once
 
 #define CPU_TIMER_HZ (30'000'000)
-#define BAUD_RATE    (   115'200)
+#define BAUD_RATE    (   921'600)
 
 #define RGBLED_CTRL_ADDRESS (0x8000'9000)
 #define RGBLED_CTRL_BOUNDS  (0x0000'0010)

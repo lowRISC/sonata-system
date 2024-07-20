@@ -128,7 +128,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
 	sram.bounds()                    = 0x00040000 - 0x1000;
 
 	spi->init(false, false, true, 0);
-	uart->init();
+	uart->init(BAUD_RATE);
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
 	read_elf(spi_flash, uart, sram);
