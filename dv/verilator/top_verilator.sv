@@ -6,7 +6,7 @@
 module top_verilator (input logic clk_i, rst_ni);
 
   localparam ClockFrequency = 30_000_000;
-  localparam BaudRate       = 115_200;
+  localparam BaudRate       = 921_600;
   localparam EnableCHERI    = 1'b1;
 
   logic uart_sys_rx, uart_sys_tx;

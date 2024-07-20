@@ -42,7 +42,7 @@ using namespace CHERI;
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
 
 	spi->init(false, false, true, 0);
-	uart->init();
+	uart->init(BAUD_RATE);
 	write_str(uart, "Hello World!\r\n");
 
 	uint8_t jedec_id[3];

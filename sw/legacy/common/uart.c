@@ -7,7 +7,7 @@
 #include "sonata_system.h"
 #include "dev_access.h"
 
-#define BAUD_RATE (115200)
+#define BAUD_RATE (921600)
 
 void uart_enable_rx_int(void) {
   enable_interrupts(UART_IRQ);
