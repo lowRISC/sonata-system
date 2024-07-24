@@ -35,5 +35,5 @@ More interrupts may be added to this table in the future.
 | 29, 44 | I2C 0, 1  | Acquire FIFO full
 | 30, 45 | I2C 0, 1  | Unexpected stop
 | 31, 46 | I2C 0, 1  | Host timeout
-| 47     | Ethernet  | Packet ready to read via the SPI connected to the ethernet chip
+| 47     | Ethernet  | Interrupt from external SPI ethernet chip (KSZ8851SNLI-TR). Check the interrupt status register for details.
 
