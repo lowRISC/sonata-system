@@ -15,6 +15,8 @@
       - [GPIO](doc/ip/gpio.md)
       - [PWM](doc/ip/pwm.md)
       - [HyperRAM](doc/ip/ram.md)
+      - [ADC](doc/ip/adc.md)
+      - [Pinmux](doc/ip/pinmux.md)
       - [Revoker](doc/ip/revoker.md)
       - [Timer](doc/ip/timer.md)
       - [UART](doc/ip/uart.md)
