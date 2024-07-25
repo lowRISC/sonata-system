@@ -22,6 +22,7 @@
       - [HyperRAM](doc/ip/ram.md)
       - [PWM](doc/ip/pwm.md)
       - [PLIC](doc/ip/plic.md)
+      - [Revoker](doc/ip/revoker.md)
   - [FPGA development](doc/dev/fpga-development.md)
       - [FPGA programming](doc/dev/fpga-programming.md)
   - [Simulation environment](doc/dev/simulation.md)
