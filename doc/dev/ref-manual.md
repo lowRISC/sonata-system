@@ -41,7 +41,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x4010_0000  |   7 MiB | Untagged RAM         |
 | 0x8000_0000  |   4 KiB | [GPIO][]             |
 | 0x8000_1000  |   4 KiB | [PWM][]              |
-| 0x8000_2000  |   4 KiB | [DMA][]              |
+| 0x8000_2000  |   4 KiB | Reserved for DMA     |
 | 0x8000_3000  |   4 KiB | [HyperRAM][]         |
 | 0x8000_4000  |   4 KiB | [ADC][]              |
 | 0x8000_5000  |   4 KiB | [Pinmux][]           |
@@ -66,7 +66,6 @@ For all registers in this section, the functionality is mapped onto the least si
 [SPI host]: ../ip/spi.md
 [USB device]: ../ip/usb.md
 [HyperRAM]: ../ip/ram.md
-[DMA]: ../ip/dma.md
 [ADC]: ../ip/adc.md
 [PWM]: ../ip/pwm.md
 [PLIC]: ../ip/plic.md
