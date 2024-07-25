@@ -58,19 +58,19 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8800_0000  |  64 MiB | [PLIC][]             |
 | 0xB000_0000  |   4 KiB | [Debug module][]     |
 
-[Debug module]: ../ip/dm.md
 [GPIO]: ../ip/gpio.md
-[UART]: ../ip/uart.md
+[PWM]: ../ip/pwm.md
+[HyperRAM]: ../ip/ram.md
+[ADC]: ../ip/adc.md
+[Pinmux]: ../ip/pinmux.md
+[Hardware revoker]: ../ip/revoker.md
 [Timer]: ../ip/timer.md
+[UART]: ../ip/uart.md
 [I2C host]: ../ip/i2c.md
 [SPI host]: ../ip/spi.md
 [USB device]: ../ip/usb.md
-[HyperRAM]: ../ip/ram.md
-[ADC]: ../ip/adc.md
-[PWM]: ../ip/pwm.md
 [PLIC]: ../ip/plic.md
-[Pinmux]: ../ip/pinmux.md
-[Hardware revoker]: ../ip/revoker.md
+[Debug module]: ../ip/dm.md
 
 ## Clocking infrastructure
 
