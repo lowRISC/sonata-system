@@ -94,7 +94,7 @@ Since capability tags are out of band information and do not need to be memory m
 
 We envision that code can live in HyperRAM with an instruction cache for improved performance.
 However, this does require code to be able to live in untagged memory.
-This should be fine as CHERI capabilities are derived and manipulated at runtime, but does require toolchain changes to LLVM and the corresponding RTOS (see [software architecture](software.md)).
+This should be fine as CHERI capabilities are derived and manipulated at runtime, but does require toolchain changes to LLVM and the corresponding RTOS.
 
 ### Revocation tags
 

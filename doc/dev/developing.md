@@ -51,7 +51,7 @@ The toolchain will build on top of the work already done on CHERIoT, which uses 
 Through Sonata, we are not proposing any changes to the CHERIoT instruction set.
 We may need some changes to allow code to be stored in memory that does not have associated tags.
 
-The toolchain for software development was described in the [Getting Started](../guide/toolchain-setup.md) section. If these instructions ever go out of date, you should be able to find the up to date instructions to build the toolchain [from the CI YAML file](https://github.com/CHERIoT-Platform/llvm-project/blob/cheriot/.cirrus.yml).
+The toolchain for software development is described in the [Software toolchain setup](../dev/toolchain-setup.md) section. If these instructions ever go out of date, you should be able to find the up to date instructions to build the toolchain [from the CI YAML file](https://github.com/CHERIoT-Platform/llvm-project/blob/cheriot/.cirrus.yml).
 
 ### Applications
 
