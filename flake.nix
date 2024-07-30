@@ -30,6 +30,7 @@
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
       fs = pkgs.lib.fileset;
+      getExe = pkgs.lib.getExe;
 
       pythonEnv = let
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
@@ -54,6 +55,17 @@
             ./util/mdbook_wavejson.py
           ];
         };
+      };
+
+      lint-markdown = pkgs.writeShellApplication {
+        name = "lint-markdown";
+        text = ''
+          ${getExe pkgs.lychee} --offline --include-fragments --no-progress . \
+            --exclude-path ./vendor \
+            --exclude-path ./build \
+            --exclude-path './sw/cheri/build' \
+            --exclude-path './sw/legacy/build'
+        '';
       };
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
@@ -127,6 +139,12 @@
       };
       packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation;};
       checks = {inherit sonata-simulator-lint;};
+      apps = {
+        lint-markdown = {
+          type = "app";
+          program = getExe lint-markdown;
+        };
+      };
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;

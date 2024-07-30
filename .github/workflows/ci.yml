@@ -60,6 +60,9 @@ jobs:
     - name: Nix Format Check
       run: nix fmt -- . --check
 
+    - name: Check Documentation Links
+      run: nix run .#lint-markdown
+
     - name: Nix Checks
       run: nix flake check -L
 
