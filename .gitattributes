@@ -1,2 +1,4 @@
 rtl/bus/tl_main_pkg.sv linguist-generated=true
+rtl/bus/tl_ifetch_pkg.sv linguist-generated=true
 rtl/bus/xbar_main.sv linguist-generated=true
+rtl/bus/xbar_ifetch.sv linguist-generated=true
