@@ -1,0 +1,22 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "OpenHBMC",
+  target_dir: "open_hbmc"
+  patch_dir: "patches/open_hbmc",
+
+  upstream: {
+    url: "https://github.com/OVGN/OpenHBMC.git"
+    rev: "master"
+  }
+
+  mapping: [
+    {from: "OpenHBMC/hdl", to:   ".", patch_dir: "."},
+    {from: "LICENSE" to: "LICENSE"}
+  ]
+
+  exclude_from_upstream: [
+    "OpenHBMC/hdl/ip*"
+  ]
+}

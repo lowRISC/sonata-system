@@ -1,0 +1,71 @@
+diff --git a/hbmc_ctrl.v b/hbmc_ctrl.v
+index 1c08482..8c4f0de 100644
+--- a/hbmc_ctrl.v
++++ b/hbmc_ctrl.v
+@@ -519,9 +519,9 @@ module hbmc_ctrl #
+     
+     
+     task wr_xfer;
+-        input wire [47:0] cmd;
+-        input wire [15:0] wr_size;
+-        input wire [15:0] reg_data;
++        input [47:0] cmd;
++        input [15:0] wr_size;
++        input [15:0] reg_data;
+     begin
+         case (wr_state)
+             
+@@ -615,8 +615,8 @@ module hbmc_ctrl #
+     
+     
+     task rd_xfer;
+-        input  wire [47:0] cmd;
+-        input  wire [15:0] rd_size;
++        input  [47:0] cmd;
++        input  [15:0] rd_size;
+         output reg  [15:0] reg_data;   // register access output value
+     begin
+     
+@@ -698,8 +698,8 @@ module hbmc_ctrl #
+ /*----------------------------------------------------------------------------------------------------------------------------*/
+ 
+     task wr_reg;
+-        input wire [47:0] cmd;
+-        input wire [15:0] reg_data;
++        input [47:0] cmd;
++        input [15:0] reg_data;
+     begin
+         wr_xfer(cmd, 16'd2, reg_data);
+     end
+@@ -708,7 +708,7 @@ module hbmc_ctrl #
+ /*----------------------------------------------------------------------------------------------------------------------------*/
+ 
+     task rd_reg;
+-        input  wire [47:0] cmd;
++        input  [47:0] cmd;
+         output reg  [15:0] reg_data;
+     begin
+         mem_access <= 1'b0;
+@@ -719,8 +719,8 @@ module hbmc_ctrl #
+ /*----------------------------------------------------------------------------------------------------------------------------*/
+ 
+     task wr_burst;
+-        input wire [47:0] cmd;
+-        input wire [15:0] wr_size;
++        input [47:0] cmd;
++        input [15:0] wr_size;
+     begin
+         wr_xfer(cmd, wr_size, 16'h0000);
+     end
+@@ -729,8 +729,8 @@ module hbmc_ctrl #
+ /*----------------------------------------------------------------------------------------------------------------------------*/
+ 
+     task rd_burst;
+-        input wire [47:0] cmd;
+-        input wire [15:0] rd_size;
++        input [47:0] cmd;
++        input [15:0] rd_size;
+         
+         reg [15:0]  dummy_reg;
+     begin
+
