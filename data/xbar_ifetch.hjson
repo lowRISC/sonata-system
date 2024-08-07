@@ -1,0 +1,50 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "ifetch",
+  type: "xbar",
+  clock: "clk_sys_i", // Main clock, used in sockets
+  clock_connections: {
+    clk_sys_i: "main"
+  },
+  reset: "rst_sys_ni",
+  reset_connections: {
+    rst_sys_ni: "sys"
+  }
+  nodes: [
+    { name:     "ibex_ifetch", // Ibex instruction fetch
+      type:     "host",
+      clock:    "clk_sys_i",
+      reset:    "rst_sys_ni",
+      xbar:     false,
+      pipeline: false,
+    },
+    { name:  "sram", // SRAM memory
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x00100000",
+        size_byte: "0x00040000",
+      }],
+    },
+    { name:  "hyperram", // HyperRAM memory
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x40000000",
+        size_byte: "0x00100000",
+      }],
+    }
+  ],
+  connections: {
+    ibex_ifetch: [
+      "sram",
+      "hyperram"
+    ]
+  }
+}
