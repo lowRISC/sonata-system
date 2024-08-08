@@ -4,6 +4,7 @@
 
 // This is the top level that connects the system to the virtual devices.
 module top_verilator (input logic clk_i, rst_ni);
+  parameter bit EnableHyperram = 1'b1;
 
   localparam ClockFrequency = 30_000_000;
   localparam BaudRate       = 921_600;
@@ -35,7 +36,9 @@ module top_verilator (input logic clk_i, rst_ni);
   wire rst_usb_n = rst_ni;
 
   // Instantiating the Sonata System.
-  sonata_system u_sonata_system (
+  sonata_system #(
+    .EnableHyperram(EnableHyperram)
+  ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_i),
     .rst_sys_ni     (rst_ni),
@@ -43,6 +46,11 @@ module top_verilator (input logic clk_i, rst_ni);
     // USB device clock and reset
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
+
+    // SRAM model used for hyperram so no hyperram clock is provided
+    .clk_hr_i   (1'b0),
+    .clk_hr90p_i(1'b0),
+    .clk_hr3x_i (1'b0),
 
     .gp_i     (0),
     .gp_o     ( ),
@@ -145,7 +153,15 @@ module top_verilator (input logic clk_i, rst_ni);
     .td_i   ('0),
     .td_o   (),
 
-    .rgbled_dout_o ()
+    .rgbled_dout_o (),
+
+    // SRAM model used for hyperram so don't connect hyperram IO
+    .hyperram_dq  (),
+    .hyperram_rwds(),
+    .hyperram_ckp (),
+    .hyperram_ckn (),
+    .hyperram_nrst(),
+    .hyperram_cs  ()
   );
 
   // Virtual UART

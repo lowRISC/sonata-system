@@ -69,7 +69,7 @@ module sram #(
     .tl_o        (tl_a_o),
 
     // Control interface.
-    .en_ifetch_i (prim_mubi_pkg::MuBi4False),
+    .en_ifetch_i (prim_mubi_pkg::MuBi4True),
 
     // SRAM interface.
     .req_o       (mem_a_req),

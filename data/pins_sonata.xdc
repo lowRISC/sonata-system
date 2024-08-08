@@ -271,7 +271,69 @@ set_property -dict { PACKAGE_PIN D4  IOSTANDARD LVCMOS18 } [get_ports ethmac_cip
 set_property -dict { PACKAGE_PIN H6  IOSTANDARD LVCMOS18  PULLTYPE PULLUP } [get_ports ethmac_intr];
 set_property -dict { PACKAGE_PIN H5  IOSTANDARD LVCMOS18 } [get_ports ethmac_cs];
 
+# HyperRAM
+set_property -dict { PACKAGE_PIN   B1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[0] }];
+set_property -dict { PACKAGE_PIN   E2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[1] }];
+set_property -dict { PACKAGE_PIN   H1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[2] }];
+set_property -dict { PACKAGE_PIN   A1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[3] }];
+set_property -dict { PACKAGE_PIN   E1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[4] }];
+set_property -dict { PACKAGE_PIN   B2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[5] }];
+set_property -dict { PACKAGE_PIN   C1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[6] }];
+set_property -dict { PACKAGE_PIN   D2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[7] }];
+
+set_property -dict { PACKAGE_PIN   F1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_rwds }];
+set_property -dict { PACKAGE_PIN   H2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_ckp }];
+set_property -dict { PACKAGE_PIN   G2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_ckn }];
+set_property -dict { PACKAGE_PIN   C2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_nrst }];
+set_property -dict { PACKAGE_PIN   J2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_cs }];
+
 ## Voltage and bistream
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+
+set_false_path -to [get_ports hyperram_ckp]
+set_false_path -to [get_ports hyperram_ckn]
+set_false_path -to [get_ports hyperram_rwds]
+set_false_path -to [get_ports hyperram_dq[*]]
+
+# set input false path. dq[*] and rwds are supposed to
+# be fully asynchronous for the data recovery logic
+set_false_path -from [get_ports hyperram_rwds]
+set_false_path -from [get_ports hyperram_dq[*]]
+
+# False path for 'hb_cs_n' and 'hb_reset_n'
+set_false_path -to [get_ports hyperram_cs]
+set_false_path -to [get_ports hyperram_nrst]
+
+set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/u_hbmc_cmd_fifo/*storage*/*]]
+set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/hbmc_ufifo_inst/u_fifo/*storage*/*]]
+set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/hbmc_dfifo_inst/u_fifo/*storage*/*]]
+
+# TODO: Want some general constraints that will setup appropriate false paths
+# for all CDC prims. An attempt is below but it isn't working yet.
+#set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
+#
+#foreach sync_cell $sync_cells {
+#  set sync_pins [get_pins -of [get_cells -hier -regexp $sync_cell/.*u_sync_1.*]]
+#  if {[info exists endpoint_sync_pins_for_false_paths]} {
+#    set endpoint_sync_pins_for_false_paths $sync_pins
+#  } else {
+#    lappend endpoint_sync_pins_for_false_paths $sync_pins
+#  }
+#}
+#
+#set_false_path -to $endpoint_sync_pins_for_false_paths
+#
+#set async_fifo_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async}]
+#
+#foreach async_fifo_cell $async_fifo_cells {
+#  set async_fifo_pins [get_pins -of [get_cells -hier -regexp $async_fifo_cell/.*storage.*]]
+#  if {[info exists startpoint_fifo_async_pins_for_false_paths]} {
+#    set startpoint_fifo_async_pins_for_false_paths $async_fifo_pins
+#  } else {
+#    lappend startpoint_fifo_async_pins_for_false_paths $async_fifo_pins
+#  }
+#}
+#
+#set_false_path -from $startpoint_fifo_async_pins_for_false_paths

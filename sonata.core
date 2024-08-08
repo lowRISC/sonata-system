@@ -58,6 +58,16 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
 
+  EnableHyperram:
+    datatype: bool
+    paramtype: vlogparam
+    description: Include hyperram controller in the system
+
+  USE_HYPERRAM_SIM_MODEL:
+    datatype: bool
+    paramtype: vlogdefine
+    description: Use an SRAM simulation model rather than the real hyperram controller
+
 targets:
   default: &default_target
     filesets:
@@ -76,6 +86,7 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+      - EnableHyperram=true
 
   sim:
     <<: *default_target
@@ -103,6 +114,8 @@ targets:
           - "--unroll-count 72"
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
+      - EnableHyperram=true
+      - USE_HYPERRAM_SIM_MODEL=true
 
   lint:
     <<: *default_target
@@ -115,3 +128,7 @@ targets:
         mode: lint-only
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
+      - EnableHyperram=true
+      # TODO: Introduce some blackboxes for the Xilinx IP used in the hyperram
+      # controller so we can lint it, for now just exclude it from the lint run.
+      - USE_HYPERRAM_SIM_MODEL=true
