@@ -165,12 +165,21 @@ module top_sonata (
   input  logic       appspi_d1, // CIPO (controller input peripheral output)
   output logic       appspi_d2, // WP_N (write protect negated)
   output logic       appspi_d3, // HOLD_N or RESET_N
-  output logic       appspi_cs  // Chip select negated
+  output logic       appspi_cs, // Chip select negated
+
+  inout  wire [7:0]  hyperram_dq,
+  inout  wire        hyperram_rwds,
+  output wire        hyperram_ckp,
+  output wire        hyperram_ckn,
+  output wire        hyperram_nrst,
+  output wire        hyperram_cs
 );
   // System clock frequency.
-  parameter int SysClkFreq = 30_000_000;
+  parameter int unsigned SysClkFreq = 30_000_000;
+  parameter int unsigned HRClkFreq  = 100_000_000;
 
-  parameter SRAMInitFile = "";
+  parameter SRAMInitFile   = "";
+  parameter EnableHyperram = 1'b1;
 
   // Main system clock and reset
   logic main_clk_buf;
@@ -180,6 +189,8 @@ module top_sonata (
   // USB device clock and reset
   logic clk_usb;
   wire  rst_usb_n = rst_sys_n;
+
+  logic clk_hr, clk_hr90p, clk_hr3x;
 
   logic [7:0] reset_counter;
   logic pll_locked;
@@ -296,12 +307,14 @@ module top_sonata (
   logic rgbled_dout;
 
   sonata_system #(
-    .GpiWidth     ( 14           ),
-    .GpoWidth     ( 23           ),
-    .PwmWidth     (  1           ),
-    .CheriErrWidth(  9           ),
-    .SRAMInitFile ( SRAMInitFile ),
-    .SysClkFreq   ( SysClkFreq   )
+    .GpiWidth       ( 14             ),
+    .GpoWidth       ( 23             ),
+    .PwmWidth       (  1             ),
+    .CheriErrWidth  (  9             ),
+    .SRAMInitFile   ( SRAMInitFile   ),
+    .SysClkFreq     ( SysClkFreq     ),
+    .HRClkFreq      ( HRClkFreq      ),
+    .EnableHyperram ( EnableHyperram )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_sys),
@@ -310,6 +323,11 @@ module top_sonata (
     // USB device clock and reset
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
+
+    // Hyperram clocks
+    .clk_hr_i       (clk_hr),
+    .clk_hr90p_i    (clk_hr90p),
+    .clk_hr3x_i     (clk_hr3x),
 
     // GPIO
     .gp_i           ({
@@ -468,7 +486,14 @@ module top_sonata (
     .td_i,
     .td_o,
 
-    .rgbled_dout_o(rgbled_dout)
+    .rgbled_dout_o(rgbled_dout),
+
+    .hyperram_dq,
+    .hyperram_rwds,
+    .hyperram_ckp,
+    .hyperram_ckn,
+    .hyperram_nrst,
+    .hyperram_cs
   );
 
   assign rgbled0 = ~rgbled_dout;
@@ -483,12 +508,16 @@ module top_sonata (
 
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
   clkgen_sonata #(
-    .SysClkFreq(SysClkFreq)
+    .SysClkFreq(SysClkFreq),
+    .HRClkFreq (HRClkFreq)
   ) u_clkgen(
     .IO_CLK    (mainClk),
     .IO_CLK_BUF(main_clk_buf),
     .clk_sys,
     .clk_usb,
+    .clk_hr,
+    .clk_hr90p,
+    .clk_hr3x,
     .locked    (pll_locked)
   );
 
