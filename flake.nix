@@ -29,8 +29,7 @@
 
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
-      fs = pkgs.lib.fileset;
-      getExe = pkgs.lib.getExe;
+      inherit (pkgs.lib) fileset getExe;
 
       pythonEnv = let
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
@@ -47,9 +46,9 @@
       sonata-documentation = lrDoc.buildMdbookSite {
         inherit version;
         pname = "sonata-documentation";
-        src = fs.toSource {
+        src = fileset.toSource {
           root = ./.;
-          fileset = fs.unions [
+          fileset = fileset.unions [
             (lrDoc.standardMdbookFileset ./.)
             ./util/mdbook
             ./util/mdbook_wavejson.py
@@ -70,9 +69,22 @@
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
+      sonataSimulatorFileset = fileset.toSource {
+        root = ./.;
+        fileset = fileset.unions [
+          ./rtl
+          ./dv
+          ./vendor
+          ./sonata.core
+          ./sonata_system.core
+          ./rv_timer.core
+          ./pulp_riscv_dbg.core
+          ./open_hbmc.core
+        ];
+      };
       sonata-simulator-lint = pkgs.stdenvNoCC.mkDerivation {
         name = "sonta-simulator-lint";
-        src = ./.;
+        src = sonataSimulatorFileset;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
         dontBuild = true;
@@ -84,11 +96,10 @@
         '';
         installPhase = "mkdir $out";
       };
-
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
         inherit version;
         pname = "sonata-simulator";
-        src = ./.;
+        src = sonataSimulatorFileset;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
         buildPhase = ''
