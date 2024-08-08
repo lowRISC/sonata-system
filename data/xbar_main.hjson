@@ -39,6 +39,16 @@
         size_byte: "0x00040000",
       }],
     },
+    { name:  "hyperram", // HyperRAM memory
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x40000000",
+        size_byte: "0x00100000",
+      }],
+    },
     { name:  "rev_tag", // Revocation tag memory
       type:  "device",
       clock: "clk_sys_i",
@@ -294,6 +304,7 @@
   connections: {
     ibex_lsu: [
       "sram",
+      "hyperram",
       "rev_tag",
       "gpio",
       "pwm",
