@@ -1,0 +1,35 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "open_hbmc:hyperram:controller"
+description: "OpenHBMC HyperRAM Controller Module"
+
+filesets:
+  files_src:
+    depend:
+      - lowrisc:prim:fifo
+      - lowrisc:prim:rst_sync
+    files:
+      # hbmc_ufifo and hbmc_dfifo reimplemented using OT primitives
+      - rtl/ip/hyperram/rtl/hbmc_ufifo.sv: { file_type: systemVerilogSource }
+      - rtl/ip/hyperram/rtl/hbmc_dfifo.sv: { file_type: systemVerilogSource }
+      - vendor/open_hbmc/hbmc_iobuf.v
+      - vendor/open_hbmc/hbmc_elastic_buf.v
+      - vendor/open_hbmc/hbmc_dru.v
+      - vendor/open_hbmc/hbmc_ctrl.v
+      - vendor/open_hbmc/hbmc_clk_obuf.v
+      - vendor/open_hbmc/hbmc_bus_sync.v
+      - vendor/open_hbmc/hbmc_bit_sync.v
+      - vendor/open_hbmc/hbmc_arst_sync.v
+    file_type: verilogSource
+
+  files_verilator:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+
+targets:
+  default:
+    filesets:
+      - files_src
