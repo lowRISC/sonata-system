@@ -4,6 +4,8 @@
 
 // This is the top level that connects the system to the virtual devices.
 module top_verilator (input logic clk_i, rst_ni);
+  import sonata_pkg::*;
+
   parameter bit DisableHyperram = 1'b0;
 
   // System clock frequency.
@@ -17,6 +19,8 @@ module top_verilator (input logic clk_i, rst_ni);
   // The symbolic file descriptors are presently unknown to Verilator
   // (described in IEEE 1800-2012).
   localparam int unsigned STDERR = 32'h8000_0002;
+
+  logic unused_uart[3];
 
   logic uart_sys_rx, uart_sys_tx;
 
@@ -145,7 +149,19 @@ module top_verilator (input logic clk_i, rst_ni);
     end
   end
 
+  logic spi_rx[SPI_NUM];
+  logic spi_tx[SPI_NUM];
+  logic spi_sck[SPI_NUM];
+
+  assign spi_rx[0] = appspi_d1;
+  assign appspi_d0 = spi_tx[0];
+  assign lcd_copi = spi_tx[1];
+  assign appspi_clk = spi_sck[0];
+  assign lcd_clk = spi_sck[1];
+
   // Instantiating the Sonata System.
+  // TODO instantiate this with only two UARTs and no SPI when bus is
+  // parameterized.
   sonata_system #(
     .GpiWidth        ( 14              ),
     .GpoWidth        ( 23              ),
@@ -168,105 +184,49 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_hr90p_i(1'b0),
     .clk_hr3x_i (1'b0),
 
-    .gp_i           (0),
-    .gp_o           ({
-                      mb0, // mikroBUS Click reset
-                      mb1, // mikroBUS Click chip select
-                      ah_tmpio10, // Arduino shield chip select
-                      rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
-                      rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
-                      ethmac_rst, ethmac_cs, // Ethernet
-                      appspi_cs, // Flash
-                      usrLed, // User LEDs (8 bits)
-                      lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
-                    }),
-
-    // R-Pi Header GPIO
-    .rp_gp_i        (0),
-    .rp_gp_o        ( ),
-
-    // Arduino Shield GPIO
-    .ard_gp_i       (0),
-    .ard_gp_o       ( ),
-
-    // PMOD GPIO
-    .pmod_gp_i      (0),
-    .pmod_gp_o      ( ),
+    .gp_i         (0),
+    .gp_o         ({
+                    mb0, // mikroBUS Click reset
+                    mb1, // mikroBUS Click chip select
+                    ah_tmpio10, // Arduino shield chip select
+                    rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
+                    rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
+                    ethmac_rst, ethmac_cs, // Ethernet
+                    appspi_cs, // Flash
+                    usrLed, // User LEDs (8 bits)
+                    lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
+                  }),
+    .pwm_o        ( ),
+    .gp_headers_i ('{default: '0}),
+    .gp_headers_o ( ),
 
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (0),
     .ard_an_p_i     (0),
     .ard_an_n_i     (0),
 
-    // UART 0 TX and RX
-    .uart0_rx_i     (uart_sys_rx),
-    .uart0_tx_o     (uart_sys_tx),
+    // UARTs
+    .uart_rx_i     ('{uart_sys_rx, uart_aux_rx, 0, 0, 0}),
+    .uart_tx_o     ('{uart_sys_tx, uart_aux_tx, unused_uart[0], unused_uart[1], unused_uart[2]}),
 
-    // UART 1 TX and RX
-    .uart1_rx_i     (uart_aux_rx),
-    .uart1_tx_o     (uart_aux_tx),
-
-    .uart2_rx_i     (),
-    .uart2_tx_o     (),
-
-    .uart3_rx_i     (),
-    .uart3_tx_o     (),
-
-    .uart4_rx_i     (),
-    .uart4_tx_o     (),
-
-    // PWM
-    .pwm_o          ( ),
-
-    .spi_flash_rx_i (appspi_d1),
-    .spi_flash_tx_o (appspi_d0),
-    .spi_flash_sck_o(appspi_clk),
-
-    .spi_lcd_rx_i   (0),
-    .spi_lcd_tx_o   (lcd_copi),
-    .spi_lcd_sck_o  (lcd_clk),
-
-    .spi_eth_rx_i  (0),
-    .spi_eth_tx_o  ( ),
-    .spi_eth_sck_o ( ),
+    // SPI hosts
+    .spi_rx_i (spi_rx),
+    .spi_tx_o (spi_tx),
+    .spi_sck_o(spi_sck),
     .spi_eth_irq_ni(1'b1),
 
-    .spi_rp0_rx_i (0),
-    .spi_rp0_tx_o ( ),
-    .spi_rp0_sck_o( ),
-
-    .spi_rp1_rx_i (0),
-    .spi_rp1_tx_o ( ),
-    .spi_rp1_sck_o( ),
-
-    .spi_ard_rx_i (0),
-    .spi_ard_tx_o ( ),
-    .spi_ard_sck_o( ),
-
-    .spi_mkr_rx_i (0),
-    .spi_mkr_tx_o ( ),
-    .spi_mkr_sck_o( ),
-
-    .cheri_en_i     (EnableCHERI),
+    .cheri_en_i (EnableCHERI),
     // CHERI output
     .cheri_err_o    (cheri_err),
     .cheri_en_o     (cheri_en),
 
-    // I2C bus 0
-    .i2c0_scl_i     (scl0_in),
-    .i2c0_scl_o     (scl0_o),
-    .i2c0_scl_en_o  (scl0_oe),
-    .i2c0_sda_i     (sda0_in),
-    .i2c0_sda_o     (sda0_o),
-    .i2c0_sda_en_o  (sda0_oe),
-
-    // I2C bus 1
-    .i2c1_scl_i     (scl1_in),
-    .i2c1_scl_o     (scl1_o),
-    .i2c1_scl_en_o  (scl1_oe),
-    .i2c1_sda_i     (sda1_in),
-    .i2c1_sda_o     (sda1_o),
-    .i2c1_sda_en_o  (sda1_oe),
+    // I2C buses
+    .i2c_scl_i     ('{scl0_in, scl1_in}),
+    .i2c_scl_o     ('{scl0_o,  scl1_o}),
+    .i2c_scl_en_o  ('{scl0_oe, scl1_oe}),
+    .i2c_sda_i     ('{sda0_in, sda1_in}),
+    .i2c_sda_o     ('{sda0_o,  sda1_o}),
+    .i2c_sda_en_o  ('{sda0_oe, sda1_oe}),
 
     // Reception from USB host via transceiver
     .usb_dp_i         (usb_dp_p2d),

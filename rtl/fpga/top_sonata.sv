@@ -358,125 +358,97 @@ module top_sonata (
                       lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
                     }),
 
-    // R-Pi Header GPIO
-    .rp_gp_i        ({
-                      rph_27,
-                      rph_26,
-                      rph_25,
-                      rph_24,
-                      rph_23,
-                      rph_22,
-                      rph_13,
-                      rph_12,
-                      rph_6,
-                      rph_5,
-                      rph_4
-                    }),
-    .rp_gp_o        ({rp_gp_oe, rp_gp_o}),
-
-    // Arduino Shield GPIO
-    .ard_gp_i       ({
-                      ah_tmpio9,
-                      ah_tmpio8,
-                      ah_tmpio7,
-                      ah_tmpio6,
-                      ah_tmpio5,
-                      ah_tmpio4,
-                      ah_tmpio3,
-                      ah_tmpio2,
-                      ah_tmpio1,
-                      ah_tmpio0
-                    }),
-    .ard_gp_o       ({ard_gp_oe, ard_gp_o}),
-
-    // PMOD GPIO
-    .pmod_gp_i      ({pmod1, pmod0}),
-    .pmod_gp_o       ({pmod_gp_oe, pmod_gp_o}),
-
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (ard_an_di),
     .ard_an_p_i     (ard_an_p),
     .ard_an_n_i     (ard_an_n),
 
-    // UART 0
-    .uart0_rx_i     (ser0_rx),
-    .uart0_tx_o     (ser0_tx),
-
-    // UART 1
-    .uart1_rx_i     (ser1_rx),
-    .uart1_tx_o     (ser1_tx),
-
-    // UART 2
-    .uart2_rx_i     (rph_rxd0),
-    .uart2_tx_o     (rph_txd0),
-
-    // UART 3
-    .uart3_rx_i     (mb8),
-    .uart3_tx_o     (mb7),
-
-    // UART 4
-    .uart4_rx_i     (rs232_rx),
-    .uart4_tx_o     (rs232_tx),
-
     // PWM
     .pwm_o({mb10}),
 
-    // SPI for LCD screen
-    .spi_lcd_rx_i   (1'b0),
-    .spi_lcd_tx_o   (lcd_copi),
-    .spi_lcd_sck_o  (lcd_clk),
+    // GPIO headers
+    .gp_headers_i   ('{
+                       {rph_27, rph_26, rph_25, rph_24, rph_23, rph_22, rph_13, rph_12, rph_6, rph_5, rph_4},
+                       {'0},
+                       {ah_tmpio9, ah_tmpio8, ah_tmpio7, ah_tmpio6, ah_tmpio5, ah_tmpio4, ah_tmpio3, ah_tmpio2, ah_tmpio1, ah_tmpio0},
+                       {'0},
+                       {pmod1, pmod0}
+                    }),
 
-    // SPI for flash memory
-    .spi_flash_rx_i (appspi_d1),
-    .spi_flash_tx_o (appspi_d0),
-    .spi_flash_sck_o(appspi_clk),
+    .gp_headers_o   ('{
+                       {rp_gp_oe, rp_gp_o},
+                       { },
+                       {ard_gp_oe, ard_gp_o},
+                       { },
+                       {pmod_gp_oe, pmod_gp_o}
+                    }),
 
-    // SPI for ethernet
-    .spi_eth_rx_i   (ethmac_cipo),
-    .spi_eth_tx_o   (ethmac_copi),
-    .spi_eth_sck_o  (ethmac_sclk),
+    // UARTs
+    .uart_rx_i     ('{
+                      ser0_rx,
+                      ser1_rx,
+                      rph_rxd0,
+                      mb8,
+                      rs232_rx
+                   }),
+    .uart_tx_o     ('{
+                      ser0_tx,
+                      ser1_tx,
+                      rph_txd0,
+                      mb7,
+                      rs232_tx
+                   }),
+
+    // I2C hosts
+    .i2c_scl_i     ('{scl0_i,  scl1_i}),
+    .i2c_scl_o     ('{scl0_o,  scl1_o}),
+    .i2c_scl_en_o  ('{scl0_oe, scl1_oe}),
+    .i2c_sda_i     ('{sda0_i,  sda1_i}),
+    .i2c_sda_o     ('{sda0_o,  sda1_o}),
+    .i2c_sda_en_o  ('{sda0_oe, sda1_oe}),
+
+    // SPI connections for
+    // - LCD screen
+    // - Flash memory
+    // - Ethernet
+    // - 2x Raspberry Pi HAT
+    // - Arduino Shield
+    // - mikroBUS Click
+    .spi_rx_i  ('{
+                  1'b0,
+                  appspi_d1,
+                  ethmac_cipo,
+                  rph_g9_cipo,
+                  rph_g19_cipo,
+                  ah_tmpio12,
+                  mb3
+               }),
+    .spi_tx_o  ('{
+                  lcd_copi,
+                  appspi_d0,
+                  ethmac_copi,
+                  rph_g10_copi,
+                  rph_g20_copi,
+                  ah_tmpio11,
+                  mb4
+               }),
+    .spi_sck_o ('{
+                  lcd_clk,
+                  appspi_clk,
+                  ethmac_sclk,
+                  rph_g1_sclk,
+                  rph_g21_sclk,
+                  ah_tmpio13,
+                  mb2
+               }),
+    // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
-
-    // SPI0 on the R-Pi header
-    .spi_rp0_rx_i   (rph_g9_cipo),
-    .spi_rp0_tx_o   (rph_g10_copi),
-    .spi_rp0_sck_o  (rph_g11_sclk),
-
-    // SPI1 on the R-Pi header
-    .spi_rp1_rx_i   (rph_g19_cipo),
-    .spi_rp1_tx_o   (rph_g20_copi),
-    .spi_rp1_sck_o  (rph_g21_sclk),
-
-    // SPI on Arduino shield
-    .spi_ard_rx_i   (ah_tmpio12), // CIPO
-    .spi_ard_tx_o   (ah_tmpio11), // COPI
-    .spi_ard_sck_o  (ah_tmpio13), // SCLK
-
-    // SPI on mikroBUS Click
-    .spi_mkr_rx_i   (mb3), // CIPO
-    .spi_mkr_tx_o   (mb4), // COPI
-    .spi_mkr_sck_o  (mb2), // SCLK
 
     // CHERI signals
     .cheri_en_i     (enable_cheri),
     .cheri_err_o    (cheriErr),
     .cheri_en_o     (cheri_en),
 
-    // I2C bus 0
-    .i2c0_scl_i     (scl0_i),
-    .i2c0_scl_o     (scl0_o),
-    .i2c0_scl_en_o  (scl0_oe),
-    .i2c0_sda_i     (sda0_i),
-    .i2c0_sda_o     (sda0_o),
-    .i2c0_sda_en_o  (sda0_oe),
-
-    // I2C bus 1
-    .i2c1_scl_i     (scl1_i),
-    .i2c1_scl_o     (scl1_o),
-    .i2c1_scl_en_o  (scl1_oe),
-    .i2c1_sda_i     (sda1_i),
-    .i2c1_sda_o     (sda1_o),
-    .i2c1_sda_en_o  (sda1_oe),
 
     // Reception from USB host via transceiver
     .usb_dp_i         (usrusb_v_p),
