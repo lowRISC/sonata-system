@@ -18,7 +18,7 @@ from enum import UNIQUE, IntEnum, verify
 from glob import glob
 from pathlib import Path
 from queue import Queue
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, run
 from typing import Generator
 
 import serial
@@ -39,7 +39,7 @@ class ReturnCode(IntEnum):
     BAD_INPUT = 2
     TIMEOUT = 3
     SIMULATOR_DIED = 4
-    FPGA_FILESYSEM_NOT_FOUND = 5
+    FPGA_FILESYSTEM_NOT_FOUND = 5
 
     def __str__(self) -> str:
         match self:
@@ -53,7 +53,7 @@ class ReturnCode(IntEnum):
                 return "tests timed out"
             case self.SIMULATOR_DIED:
                 return "simulator died unexpectedly"
-            case self.SIMULATOR_DIED:
+            case self.FPGA_FILESYSTEM_NOT_FOUND:
                 return "a mounted fpga filesystem could not be found"
             case _:
                 raise NotImplementedError
@@ -98,10 +98,19 @@ class Config(argparse.Namespace):
             "-u",
             "--uf2-file",
             type=Path,
-            default=Path(
-                "./build/cheriot/cheriot/release/sonata_test_suite.uf2"
-            ),
             help="Test suite uf2 file",
+        )
+        fpga_parser.add_argument(
+            "-e",
+            "--elf-file",
+            type=Path,
+            help="Test suite elf file",
+        )
+        fpga_parser.add_argument(
+            "-t",
+            "--tcl-file",
+            type=Path,
+            help="Test suite elf file",
         )
 
         sim_parser = subparsers.add_parser("sim", help="Run test on simulator")
@@ -133,28 +142,35 @@ class Config(argparse.Namespace):
         # Set the attributs of this object from the program arguments
         parser.parse_args(namespace=self)
 
-        if not self.fpga:
+        def check_path(path):
+            if not os.path.exists(path):  # noqa: PTH110
+                print(f"'{path}' doesn't exist.")
+                exit(ReturnCode.BAD_INPUT)
+
+        if self.fpga:
+            check_path(self.tty)
+            if self.uf2_file:
+                check_path(self.uf2_file)
+            elif self.elf_file and self.tcl_file:
+                check_path(self.elf_file)
+                check_path(self.tcl_file)
+            else:
+                print(
+                    "Must provide either a uf2 file or both "
+                    "an elf file and openocd tcl config file."
+                )
+                exit(ReturnCode.BAD_INPUT)
+        else:
+            check_path(self.elf_file)
             if not self.simulator_binary:
                 self.simulator_binary: Path = Path(
                     str(binary)
                     if (binary := shutil.which("sonata-simulator"))
                     else "./sonata-simulator"
                 )
-            if not self.sim_boot_stub:
-                if stub := os.getenv("SONATA_SIM_BOOT_STUB"):
-                    self.sim_boot_stub: Path = Path(stub)
-                else:
-                    print("No simulator boot stub found")
-                    exit(ReturnCode.BAD_INPUT)
-
-        for path in (
-            (self.uf2_file, self.tty)
-            if self.fpga
-            else (self.simulator_binary, self.sim_boot_stub, self.elf_file)
-        ):
-            if not os.path.exists(path):  # noqa: PTH110
-                print(f"'{path}' doesn't exist.")
-                exit(ReturnCode.BAD_INPUT)
+                check_path(self.simulator_binary)
+            if self.sim_boot_stub:
+                check_path(self.sim_boot_stub)
 
 
 def run_simulator(config: Config) -> None:
@@ -162,13 +178,9 @@ def run_simulator(config: Config) -> None:
 
     The process is killed if `main_finished` is set.
     """
-    command = [
-        config.simulator_binary,
-        "-E",
-        config.sim_boot_stub,
-        "-E",
-        config.elf_file,
-    ]
+    command = [config.simulator_binary]
+    command += ["-E", config.sim_boot_stub] if config.sim_boot_stub else []
+    command += ["-E", config.elf_file]
     with Popen(command, stdout=PIPE, stderr=PIPE) as proc:
         while True:
             if (code := proc.poll()) is not None:
@@ -181,6 +193,26 @@ def run_simulator(config: Config) -> None:
                 proc.terminate()
                 break
             time.sleep(TICK_SECONDS)
+
+
+def load_fpga(config: Config) -> None:
+    if config.uf2_file:
+        # Start the test running on the fpga by copying the firmware over to
+        # it.
+        try:
+            fpga_drive = find_sonata_drive()
+            shutil.copy(config.uf2_file, fpga_drive)
+        except FileNotFoundError:
+            return_code.put(ReturnCode.FPGA_FILESYSTEM_NOT_FOUND)
+    else:
+        command = [
+            "openocd",
+            "-f", str(config.tcl_file),
+            f"-c load_image {config.elf_file}  0x0",
+            f"-c verify_image {config.elf_file}  0x0",
+            "-c exit",
+        ]
+        run(command, check=True)
 
 
 def watch_output(config: Config) -> None:
@@ -243,13 +275,7 @@ def main(config: Config) -> None:
     threading.Thread(target=watch_output, args=(config,), daemon=True).start()
 
     if config.fpga:
-        # Start the test running on the fpga by copying the firmware over to
-        # it.
-        try:
-            fpga_drive = find_sonata_drive()
-            shutil.copy(config.uf2_file, fpga_drive)
-        except FileNotFoundError:
-            return_code.put(ReturnCode.FPGA_FILESYSEM_NOT_FOUND)
+        load_fpga(config)
     else:
         # Start the simulator in a seperate thread.
         simulator_thread = threading.Thread(
