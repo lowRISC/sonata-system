@@ -2,17 +2,9 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// The Sonata system, which instantiates and connects the following blocks:
-// - TileLink Uncached Lightweight (TL-UL) bus.
-// - Ibex top module.
-// - RAM memory to contain code and data.
-// - GPIO driving logic.
-// - Two I2C controllers for serial peripherals.
-// - SPI for driving LCD screen, flash and Ethernet.
-// - Timer.
-// - Two UARTs for serial communication.
-// - USB device.
-// - Debug module.
+// The Sonata system, which instantiates a CHERIoT Ibex, TileLink Uncached
+// Lightweight bus and a number of common peripherals, usc as I2C, SPI, UART,
+// USB.
 module sonata_system #(
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,

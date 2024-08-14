@@ -77,7 +77,7 @@ module pwm_wrapper #(
 
   // Generating the device bus output.
   // Reading from PWM currently not possible.
-  assign device_rdata_o = 32'b0;
+  assign device_rdata_o = DataWidth'('0);
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       device_rvalid_o <= 1'b0;
