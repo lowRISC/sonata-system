@@ -20,14 +20,14 @@ const int HyperramSize = (1024 * 1024) / 4;
 #define CC_GREEN "32"
 #define CC_RESET "0"
 
-void set_console_mode(Capability<volatile OpenTitanUart<>> uart,
+void set_console_mode(Capability<volatile OpenTitanUart> uart,
                       const char *cc) {
   write_str(uart, "\x1b[");
   write_str(uart, cc);
   write_str(uart, "m");
 }
 
-void write_test_result(Capability<volatile OpenTitanUart<>> uart,
+void write_test_result(Capability<volatile OpenTitanUart> uart,
                        int failures) {
   if (failures == 0) {
     set_console_mode(uart, CC_GREEN);
@@ -257,8 +257,8 @@ int execute_test(Capability<volatile uint32_t> &hyperram_area,
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
-  Capability<volatile OpenTitanUart<>> uart =
-      root.cast<volatile OpenTitanUart<>>();
+  Capability<volatile OpenTitanUart> uart =
+      root.cast<volatile OpenTitanUart>();
   uart.address() = UART_ADDRESS;
   uart.bounds() = UART_BOUNDS;
 
