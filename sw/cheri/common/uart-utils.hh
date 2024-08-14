@@ -2,7 +2,7 @@
 #include "../../common/defs.h"
 #include <platform-uart.hh>
 
-typedef volatile OpenTitanUart<> *UartPtr;
+typedef volatile OpenTitanUart *UartPtr;
 
 static void write_str(UartPtr uart, const char *str)
 {
@@ -31,7 +31,7 @@ static void to_hex(char str_buf[Digits + 1], uint32_t num)
 	str_buf[Digits] = 0;
 }
 
-[[maybe_unused]] static void write_hex(volatile OpenTitanUart<> *uart,
+[[maybe_unused]] static void write_hex(volatile OpenTitanUart *uart,
                                        uint32_t                  num)
 {
 	char str_buf[9];
@@ -39,7 +39,7 @@ static void to_hex(char str_buf[Digits + 1], uint32_t num)
 	write_str(uart, str_buf);
 }
 
-[[maybe_unused]] static void write_hex8b(volatile OpenTitanUart<> *uart,
+[[maybe_unused]] static void write_hex8b(volatile OpenTitanUart *uart,
                                          uint8_t                   num)
 {
 	char str_buf[3];

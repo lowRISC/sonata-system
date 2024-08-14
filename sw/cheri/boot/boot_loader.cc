@@ -23,7 +23,7 @@ extern "C" {
 
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
-typedef CHERI::Capability<volatile OpenTitanUart<>> &UartRef;
+typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
 
 [[noreturn]] void complain_and_loop(UartRef uart, const char *str)
 {
@@ -110,8 +110,8 @@ extern "C" void rom_loader_entry(void *rwRoot)
 	CHERI::Capability<void> root{rwRoot};
 
 	// Create a bounded capability to the UART
-	CHERI::Capability<volatile OpenTitanUart<>> uart =
-	  root.cast<volatile OpenTitanUart<>>();
+	CHERI::Capability<volatile OpenTitanUart> uart =
+	  root.cast<volatile OpenTitanUart>();
 	uart.address() = UART_ADDRESS;
 	uart.bounds()  = UART_BOUNDS;
 

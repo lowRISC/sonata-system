@@ -9,7 +9,7 @@
 
 using namespace CHERI;
 
-void write(volatile OpenTitanUart<>* uart, const char* str) {
+void write(volatile OpenTitanUart* uart, const char* str) {
   for (; *str != '\0'; ++str) {
     uart->blocking_write(*str);
   }
@@ -25,7 +25,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
-  Capability<volatile OpenTitanUart<>> uart = root.cast<volatile OpenTitanUart<>>();
+  Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
   uart.address() = UART_ADDRESS;
   uart.bounds()  = UART_BOUNDS;
 

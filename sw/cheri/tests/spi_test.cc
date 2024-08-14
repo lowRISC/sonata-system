@@ -26,8 +26,8 @@ using namespace CHERI;
 	uint8_t read_data[256];
 
 	// Create a bounded capability to the UART
-	Capability<volatile OpenTitanUart<>> uart =
-	  root.cast<volatile OpenTitanUart<>>();
+	Capability<volatile OpenTitanUart> uart =
+	  root.cast<volatile OpenTitanUart>();
 	uart.address() = UART_ADDRESS;
 	uart.bounds()  = UART_BOUNDS;
 
