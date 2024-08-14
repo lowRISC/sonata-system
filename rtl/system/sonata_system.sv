@@ -8,10 +8,8 @@
 module sonata_system #(
   parameter int unsigned GpiWidth      = 13,
   parameter int unsigned GpoWidth      = 24,
-  parameter int unsigned RpiGpiWidth   = 11,
-  parameter int unsigned ArdGpiWidth   = 10,
-  parameter int unsigned PmodGpiWidth  = 16,
   parameter int unsigned ArdAniWidth   = 6,
+  parameter int unsigned HalfWordWidth = 16,
   parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
@@ -36,13 +34,15 @@ module sonata_system #(
   // General purpose input and output
   input  logic [GpiWidth-1:0]      gp_i,
   output logic [GpoWidth-1:0]      gp_o,
+  // 0: Raspberry Pi HAT g0-15
+  // 1: Raspberry Pi HAT g16-27
+  // 2: Arduino Shield 0-15
+  // 3: Arduino Shield 16-17
+  // 4: PMOD
+  input  logic [HalfWordWidth-1:0] gp_headers_i [sonata_pkg::GPIO_NUM],
+  output logic [WordWidth-1:0]     gp_headers_o [sonata_pkg::GPIO_NUM],
+
   output logic [PwmWidth-1:0]      pwm_o,
-  input  logic [RpiGpiWidth-1:0]   rp_gp_i,
-  output logic [WordWidth-1:0]     rp_gp_o,
-  input  logic [ArdGpiWidth-1:0]   ard_gp_i,
-  output logic [WordWidth-1:0]     ard_gp_o,
-  input  logic [PmodGpiWidth-1:0]  pmod_gp_i,
-  output logic [WordWidth-1:0]     pmod_gp_o,
 
   // Arduino shield analog(ue) inputs:
   // Digital version of inputs, then p & n true analog(ue) inputs
@@ -50,61 +50,35 @@ module sonata_system #(
   input  wire  [ArdAniWidth-1:0]   ard_an_p_i,
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
-  // UART 0
-  input  logic                     uart0_rx_i,
-  output logic                     uart0_tx_o,
+  // UARTs
+  //   0 and 1: FTDI chip
+  //   2: Raspberry Pi HAT
+  //   3: mikroBUS Click
+  //   4: RS-232
+  input  logic                     uart_rx_i [sonata_pkg::UART_NUM],
+  output logic                     uart_tx_o [sonata_pkg::UART_NUM],
 
-  // UART 1
-  input  logic                     uart1_rx_i,
-  output logic                     uart1_tx_o,
+  // I2C buses
+  input  logic                     i2c_scl_i    [sonata_pkg::I2C_NUM],
+  output logic                     i2c_scl_o    [sonata_pkg::I2C_NUM],
+  output logic                     i2c_scl_en_o [sonata_pkg::I2C_NUM],
+  input  logic                     i2c_sda_i    [sonata_pkg::I2C_NUM],
+  output logic                     i2c_sda_o    [sonata_pkg::I2C_NUM],
+  output logic                     i2c_sda_en_o [sonata_pkg::I2C_NUM],
 
-  // UART 2 Raspberry Pi HAT
-  input  logic                     uart2_rx_i,
-  output logic                     uart2_tx_o,
+  // SPI hosts
+  //   0: flash
+  //   1: LCD
+  //   2: ethernet
+  //   3: Raspberry Pi HAT SPI0
+  //   4: Raspberry Pi HAT SPI1
+  //   5: Arduino Shield
+  //   6: mikroBUS Click
+  input  logic                     spi_rx_i  [sonata_pkg::SPI_NUM],
+  output logic                     spi_tx_o  [sonata_pkg::SPI_NUM],
+  output logic                     spi_sck_o [sonata_pkg::SPI_NUM],
 
-  // UART 3 mikroBUS Click
-  input  logic                     uart3_rx_i,
-  output logic                     uart3_tx_o,
-
-  // UART 4 RS-232
-  input  logic                     uart4_rx_i,
-  output logic                     uart4_tx_o,
-
-  // SPI flash
-  input  logic                     spi_flash_rx_i,
-  output logic                     spi_flash_tx_o,
-  output logic                     spi_flash_sck_o,
-
-  // SPI for LCD screen
-  input  logic                     spi_lcd_rx_i,
-  output logic                     spi_lcd_tx_o,
-  output logic                     spi_lcd_sck_o,
-
-  // SPI for ethernet
-  input  logic                     spi_eth_rx_i,
-  output logic                     spi_eth_tx_o,
-  output logic                     spi_eth_sck_o,
   input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
-
-  // SPI0 on the R-Pi header
-  input  logic                     spi_rp0_rx_i,
-  output logic                     spi_rp0_tx_o,
-  output logic                     spi_rp0_sck_o,
-
-  // SPI1 on the R-Pi header
-  input  logic                     spi_rp1_rx_i,
-  output logic                     spi_rp1_tx_o,
-  output logic                     spi_rp1_sck_o,
-
-  // SPI on Arduino shield
-  input  logic                     spi_ard_rx_i,
-  output logic                     spi_ard_tx_o,
-  output logic                     spi_ard_sck_o,
-
-  // SPI on mikroBUS Click
-  input  logic                     spi_mkr_rx_i,
-  output logic                     spi_mkr_tx_o,
-  output logic                     spi_mkr_sck_o,
 
   // User JTAG
   input  logic                     tck_i,   // JTAG test clock pad
@@ -117,22 +91,6 @@ module sonata_system #(
   input  logic                     cheri_en_i, // TODO: Development assistance.
   output logic [CheriErrWidth-1:0] cheri_err_o,
   output logic                     cheri_en_o,
-
-  // I2C bus 0
-  input  logic                     i2c0_scl_i,
-  output logic                     i2c0_scl_o,
-  output logic                     i2c0_scl_en_o,
-  input  logic                     i2c0_sda_i,
-  output logic                     i2c0_sda_o,
-  output logic                     i2c0_sda_en_o,
-
-  // I2C bus 1
-  input  logic                     i2c1_scl_i,
-  output logic                     i2c1_scl_o,
-  output logic                     i2c1_scl_en_o,
-  input  logic                     i2c1_sda_i,
-  output logic                     i2c1_sda_o,
-  output logic                     i2c1_sda_en_o,
 
   // Reception from USB host via transceiver
   input  logic                     usb_dp_i,
@@ -160,6 +118,8 @@ module sonata_system #(
   output wire                      hyperram_nrst,
   output wire                      hyperram_cs
 );
+
+  import sonata_pkg::*;
 
   ///////////////////////////////////////////////
   // Signals, types and parameters for system. //
@@ -192,16 +152,14 @@ module sonata_system #(
 
   typedef enum int {
     Gpio,
-    RpiGpio,
-    ArdGpio,
-    PmodGpio,
     Pwm,
     Timer,
     RevTags,
     HwRev
   } bus_device_e;
 
-  localparam int NrDevices = 8;
+  localparam int NrNonGpioDevices = 5;
+  localparam int NrDevices = NrNonGpioDevices + GPIO_NUM;
   localparam int NrHosts = 2;
 
   // Signals for hardware revoker
@@ -213,82 +171,30 @@ module sonata_system #(
   logic timer_irq;
   logic external_irq;
 
-  logic uart0_tx_watermark_irq;
-  logic uart0_rx_watermark_irq;
-  logic uart0_tx_empty_irq;
-  logic uart0_rx_overflow_irq;
-  logic uart0_rx_frame_err_irq;
-  logic uart0_rx_break_err_irq;
-  logic uart0_rx_timeout_irq;
-  logic uart0_rx_parity_err_irq;
+  logic uart_tx_watermark_irq [UART_NUM];
+  logic uart_rx_watermark_irq [UART_NUM];
+  logic uart_tx_empty_irq     [UART_NUM];
+  logic uart_rx_overflow_irq  [UART_NUM];
+  logic uart_rx_frame_err_irq [UART_NUM];
+  logic uart_rx_break_err_irq [UART_NUM];
+  logic uart_rx_timeout_irq   [UART_NUM];
+  logic uart_rx_parity_err_irq[UART_NUM];
 
-  logic uart1_tx_watermark_irq;
-  logic uart1_rx_watermark_irq;
-  logic uart1_tx_empty_irq;
-  logic uart1_rx_overflow_irq;
-  logic uart1_rx_frame_err_irq;
-  logic uart1_rx_break_err_irq;
-  logic uart1_rx_timeout_irq;
-  logic uart1_rx_parity_err_irq;
-
-  logic uart2_tx_watermark_irq;
-  logic uart2_rx_watermark_irq;
-  logic uart2_tx_empty_irq;
-  logic uart2_rx_overflow_irq;
-  logic uart2_rx_frame_err_irq;
-  logic uart2_rx_break_err_irq;
-  logic uart2_rx_timeout_irq;
-  logic uart2_rx_parity_err_irq;
-
-  logic uart3_tx_watermark_irq;
-  logic uart3_rx_watermark_irq;
-  logic uart3_tx_empty_irq;
-  logic uart3_rx_overflow_irq;
-  logic uart3_rx_frame_err_irq;
-  logic uart3_rx_break_err_irq;
-  logic uart3_rx_timeout_irq;
-  logic uart3_rx_parity_err_irq;
-
-  logic uart4_tx_watermark_irq;
-  logic uart4_rx_watermark_irq;
-  logic uart4_tx_empty_irq;
-  logic uart4_rx_overflow_irq;
-  logic uart4_rx_frame_err_irq;
-  logic uart4_rx_break_err_irq;
-  logic uart4_rx_timeout_irq;
-  logic uart4_rx_parity_err_irq;
-
-  logic i2c0_fmt_threshold_irq;
-  logic i2c0_rx_threshold_irq;
-  logic i2c0_acq_threshold_irq;
-  logic i2c0_rx_overflow_irq;
-  logic i2c0_nak_irq;
-  logic i2c0_scl_interference_irq;
-  logic i2c0_sda_interference_irq;
-  logic i2c0_stretch_timeout_irq;
-  logic i2c0_sda_unstable_irq;
-  logic i2c0_cmd_complete_irq;
-  logic i2c0_tx_stretch_irq;
-  logic i2c0_tx_threshold_irq;
-  logic i2c0_acq_full_irq;
-  logic i2c0_unexp_stop_irq;
-  logic i2c0_host_timeout_irq;
-
-  logic i2c1_fmt_threshold_irq;
-  logic i2c1_rx_threshold_irq;
-  logic i2c1_acq_threshold_irq;
-  logic i2c1_rx_overflow_irq;
-  logic i2c1_nak_irq;
-  logic i2c1_scl_interference_irq;
-  logic i2c1_sda_interference_irq;
-  logic i2c1_stretch_timeout_irq;
-  logic i2c1_sda_unstable_irq;
-  logic i2c1_cmd_complete_irq;
-  logic i2c1_tx_stretch_irq;
-  logic i2c1_tx_threshold_irq;
-  logic i2c1_acq_full_irq;
-  logic i2c1_unexp_stop_irq;
-  logic i2c1_host_timeout_irq;
+  logic i2c_fmt_threshold_irq   [I2C_NUM];
+  logic i2c_rx_threshold_irq    [I2C_NUM];
+  logic i2c_acq_threshold_irq   [I2C_NUM];
+  logic i2c_rx_overflow_irq     [I2C_NUM];
+  logic i2c_nak_irq             [I2C_NUM];
+  logic i2c_scl_interference_irq[I2C_NUM];
+  logic i2c_sda_interference_irq[I2C_NUM];
+  logic i2c_stretch_timeout_irq [I2C_NUM];
+  logic i2c_sda_unstable_irq    [I2C_NUM];
+  logic i2c_cmd_complete_irq    [I2C_NUM];
+  logic i2c_tx_stretch_irq      [I2C_NUM];
+  logic i2c_tx_threshold_irq    [I2C_NUM];
+  logic i2c_acq_full_irq        [I2C_NUM];
+  logic i2c_unexp_stop_irq      [I2C_NUM];
+  logic i2c_host_timeout_irq    [I2C_NUM];
 
   logic spi_eth_irq;
 
@@ -312,111 +218,109 @@ module sonata_system #(
   logic usbdev_av_setup_empty_irq;
 
   logic [181:0] intr_vector;
-  always_comb begin : interrupt_vector
-    intr_vector[91 +: 91] = 91'b0;
 
-    intr_vector[90 +: 1] = usbdev_av_setup_empty_irq;
-    intr_vector[89 +: 1] = usbdev_frame_irq;
-    intr_vector[88 +: 1] = usbdev_rx_bitstuff_err_irq;
-    intr_vector[87 +: 1] = usbdev_rx_pid_err_irq;
-    intr_vector[86 +: 1] = usbdev_rx_crc_err_irq;
-    intr_vector[85 +: 1] = usbdev_link_out_err_irq;
-    intr_vector[84 +: 1] = usbdev_link_in_err_irq;
-    intr_vector[83 +: 1] = usbdev_av_overflow_irq;
-    intr_vector[82 +: 1] = usbdev_rx_full_irq;
-    intr_vector[81 +: 1] = usbdev_av_out_empty_irq;
-    intr_vector[80 +: 1] = usbdev_link_resume_irq;
-    intr_vector[79 +: 1] = usbdev_link_suspend_irq;
-    intr_vector[78 +: 1] = usbdev_link_reset_irq;
-    intr_vector[77 +: 1] = usbdev_host_lost_irq;
-    intr_vector[76 +: 1] = usbdev_disconnected_irq;
-    intr_vector[75 +: 1] = usbdev_powered_irq;
-    intr_vector[74 +: 1] = usbdev_pkt_sent_irq;
-    intr_vector[73 +: 1] = usbdev_pkt_received_irq;
+  localparam int unsigned UartIrqs = 8;
+  localparam int unsigned I2cIrqs  = 15;
+  localparam int unsigned ExtraUarts = UART_NUM > 5 ? UART_NUM - 5 : 0;
+  localparam int unsigned ExtraI2cs  =  I2C_NUM > 2 ?  I2C_NUM - 2 : 0;
+  assign intr_vector[181 : (100 + UartIrqs*ExtraUarts + I2cIrqs*ExtraI2cs)] = '0;
 
-    intr_vector[72 +: 1] = hardware_revoker_irq;
+  for (genvar i = 0; i < ExtraI2cs; i++) begin : gen_i2c_intr_1
+    assign intr_vector[(114 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_host_timeout_irq    [i];
+    assign intr_vector[(113 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_unexp_stop_irq      [i];
+    assign intr_vector[(112 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_acq_full_irq        [i];
+    assign intr_vector[(111 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_tx_threshold_irq    [i];
+    assign intr_vector[(110 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_tx_stretch_irq      [i];
+    assign intr_vector[(109 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_cmd_complete_irq    [i];
+    assign intr_vector[(108 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_sda_unstable_irq    [i];
+    assign intr_vector[(107 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_stretch_timeout_irq [i];
+    assign intr_vector[(106 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_sda_interference_irq[i];
+    assign intr_vector[(105 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_scl_interference_irq[i];
+    assign intr_vector[(104 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_nak_irq             [i];
+    assign intr_vector[(103 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_rx_overflow_irq     [i];
+    assign intr_vector[(102 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_acq_threshold_irq   [i];
+    assign intr_vector[(101 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_rx_threshold_irq    [i];
+    assign intr_vector[(100 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_fmt_threshold_irq   [i];
+  end : gen_i2c_intr_1
 
-    intr_vector[71 +: 1] = uart4_rx_parity_err_irq;
-    intr_vector[70 +: 1] = uart4_rx_timeout_irq;
-    intr_vector[69 +: 1] = uart4_rx_break_err_irq;
-    intr_vector[68 +: 1] = uart4_rx_frame_err_irq;
-    intr_vector[67 +: 1] = uart4_rx_overflow_irq;
-    intr_vector[66 +: 1] = uart4_tx_empty_irq;
-    intr_vector[65 +: 1] = uart4_rx_watermark_irq;
-    intr_vector[64 +: 1] = uart4_tx_watermark_irq;
+  for (genvar i = 0; i < ExtraUarts; i++) begin : gen_uart_intr_2
+    assign intr_vector[(107 + i*UartIrqs) +: 1] = uart_rx_parity_err_irq[i];
+    assign intr_vector[(106 + i*UartIrqs) +: 1] = uart_rx_timeout_irq   [i];
+    assign intr_vector[(105 + i*UartIrqs) +: 1] = uart_rx_break_err_irq [i];
+    assign intr_vector[(104 + i*UartIrqs) +: 1] = uart_rx_frame_err_irq [i];
+    assign intr_vector[(103 + i*UartIrqs) +: 1] = uart_rx_overflow_irq  [i];
+    assign intr_vector[(102 + i*UartIrqs) +: 1] = uart_tx_empty_irq     [i];
+    assign intr_vector[(101 + i*UartIrqs) +: 1] = uart_rx_watermark_irq [i];
+    assign intr_vector[(100 + i*UartIrqs) +: 1] = uart_tx_watermark_irq [i];
+  end : gen_uart_intr_2
 
-    intr_vector[63 +: 1] = uart3_rx_parity_err_irq;
-    intr_vector[62 +: 1] = uart3_rx_timeout_irq;
-    intr_vector[61 +: 1] = uart3_rx_break_err_irq;
-    intr_vector[60 +: 1] = uart3_rx_frame_err_irq;
-    intr_vector[59 +: 1] = uart3_rx_overflow_irq;
-    intr_vector[58 +: 1] = uart3_tx_empty_irq;
-    intr_vector[57 +: 1] = uart3_rx_watermark_irq;
-    intr_vector[56 +: 1] = uart3_tx_watermark_irq;
+  assign intr_vector[99 +: 1] = usbdev_av_setup_empty_irq;
+  assign intr_vector[98 +: 1] = usbdev_frame_irq;
+  assign intr_vector[97 +: 1] = usbdev_rx_bitstuff_err_irq;
+  assign intr_vector[96 +: 1] = usbdev_rx_pid_err_irq;
+  assign intr_vector[95 +: 1] = usbdev_rx_crc_err_irq;
+  assign intr_vector[94 +: 1] = usbdev_link_out_err_irq;
+  assign intr_vector[93 +: 1] = usbdev_link_in_err_irq;
+  assign intr_vector[92 +: 1] = usbdev_av_overflow_irq;
+  assign intr_vector[91 +: 1] = usbdev_rx_full_irq;
+  assign intr_vector[90 +: 1] = usbdev_av_out_empty_irq;
+  assign intr_vector[89 +: 1] = usbdev_link_resume_irq;
+  assign intr_vector[88 +: 1] = usbdev_link_suspend_irq;
+  assign intr_vector[87 +: 1] = usbdev_link_reset_irq;
+  assign intr_vector[86 +: 1] = usbdev_host_lost_irq;
+  assign intr_vector[85 +: 1] = usbdev_disconnected_irq;
+  assign intr_vector[84 +: 1] = usbdev_powered_irq;
+  assign intr_vector[83 +: 1] = usbdev_pkt_sent_irq;
+  assign intr_vector[82 +: 1] = usbdev_pkt_received_irq;
 
-    intr_vector[55 +: 1] = uart2_rx_parity_err_irq;
-    intr_vector[54 +: 1] = uart2_rx_timeout_irq;
-    intr_vector[53 +: 1] = uart2_rx_break_err_irq;
-    intr_vector[52 +: 1] = uart2_rx_frame_err_irq;
-    intr_vector[51 +: 1] = uart2_rx_overflow_irq;
-    intr_vector[50 +: 1] = uart2_tx_empty_irq;
-    intr_vector[49 +: 1] = uart2_rx_watermark_irq;
-    intr_vector[48 +: 1] = uart2_tx_watermark_irq;
+  // Reserved for future use.
+  assign intr_vector[73 +: 9] = 9'b0;
 
-    intr_vector[47 +: 1] = spi_eth_irq;
+  assign intr_vector[72 +: 1] = hardware_revoker_irq;
 
-    intr_vector[46 +: 1] = i2c1_host_timeout_irq;
-    intr_vector[45 +: 1] = i2c1_unexp_stop_irq;
-    intr_vector[44 +: 1] = i2c1_acq_full_irq;
-    intr_vector[43 +: 1] = i2c1_tx_threshold_irq;
-    intr_vector[42 +: 1] = i2c1_tx_stretch_irq;
-    intr_vector[41 +: 1] = i2c1_cmd_complete_irq;
-    intr_vector[40 +: 1] = i2c1_sda_unstable_irq;
-    intr_vector[39 +: 1] = i2c1_stretch_timeout_irq;
-    intr_vector[38 +: 1] = i2c1_sda_interference_irq;
-    intr_vector[37 +: 1] = i2c1_scl_interference_irq;
-    intr_vector[36 +: 1] = i2c1_nak_irq;
-    intr_vector[35 +: 1] = i2c1_rx_overflow_irq;
-    intr_vector[34 +: 1] = i2c1_acq_threshold_irq;
-    intr_vector[33 +: 1] = i2c1_rx_threshold_irq;
-    intr_vector[32 +: 1] = i2c1_fmt_threshold_irq;
+  for (genvar i = 2; i < 5; i++) begin : gen_uart_intr_1
+    assign intr_vector[(55 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_parity_err_irq[i] : 1'b0;
+    assign intr_vector[(54 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_timeout_irq   [i] : 1'b0;
+    assign intr_vector[(53 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_break_err_irq [i] : 1'b0;
+    assign intr_vector[(52 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_frame_err_irq [i] : 1'b0;
+    assign intr_vector[(51 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_overflow_irq  [i] : 1'b0;
+    assign intr_vector[(50 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_empty_irq     [i] : 1'b0;
+    assign intr_vector[(49 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_watermark_irq [i] : 1'b0;
+    assign intr_vector[(48 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_watermark_irq [i] : 1'b0;
+  end : gen_uart_intr_1
 
-    intr_vector[31 +: 1] = i2c0_host_timeout_irq;
-    intr_vector[30 +: 1] = i2c0_unexp_stop_irq;
-    intr_vector[29 +: 1] = i2c0_acq_full_irq;
-    intr_vector[28 +: 1] = i2c0_tx_threshold_irq;
-    intr_vector[27 +: 1] = i2c0_tx_stretch_irq;
-    intr_vector[26 +: 1] = i2c0_cmd_complete_irq;
-    intr_vector[25 +: 1] = i2c0_sda_unstable_irq;
-    intr_vector[24 +: 1] = i2c0_stretch_timeout_irq;
-    intr_vector[23 +: 1] = i2c0_sda_interference_irq;
-    intr_vector[22 +: 1] = i2c0_scl_interference_irq;
-    intr_vector[21 +: 1] = i2c0_nak_irq;
-    intr_vector[20 +: 1] = i2c0_rx_overflow_irq;
-    intr_vector[19 +: 1] = i2c0_acq_threshold_irq;
-    intr_vector[18 +: 1] = i2c0_rx_threshold_irq;
-    intr_vector[17 +: 1] = i2c0_fmt_threshold_irq;
+  assign intr_vector[47 +: 1] = spi_eth_irq;
 
-    intr_vector[16 +: 1] = uart1_rx_parity_err_irq;
-    intr_vector[15 +: 1] = uart1_rx_timeout_irq;
-    intr_vector[14 +: 1] = uart1_rx_break_err_irq;
-    intr_vector[13 +: 1] = uart1_rx_frame_err_irq;
-    intr_vector[12 +: 1] = uart1_rx_overflow_irq;
-    intr_vector[11 +: 1] = uart1_tx_empty_irq;
-    intr_vector[10 +: 1] = uart1_rx_watermark_irq;
-    intr_vector[9 +: 1]  = uart1_tx_watermark_irq;
+  for (genvar i = 0; i < 2; i++) begin : gen_i2c_intr_0
+    assign intr_vector[(31 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_host_timeout_irq    [i] : 1'b0;
+    assign intr_vector[(30 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_unexp_stop_irq      [i] : 1'b0;
+    assign intr_vector[(29 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_acq_full_irq        [i] : 1'b0;
+    assign intr_vector[(28 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_tx_threshold_irq    [i] : 1'b0;
+    assign intr_vector[(27 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_tx_stretch_irq      [i] : 1'b0;
+    assign intr_vector[(26 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_cmd_complete_irq    [i] : 1'b0;
+    assign intr_vector[(25 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_sda_unstable_irq    [i] : 1'b0;
+    assign intr_vector[(24 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_stretch_timeout_irq [i] : 1'b0;
+    assign intr_vector[(23 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_sda_interference_irq[i] : 1'b0;
+    assign intr_vector[(22 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_scl_interference_irq[i] : 1'b0;
+    assign intr_vector[(21 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_nak_irq             [i] : 1'b0;
+    assign intr_vector[(20 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_rx_overflow_irq     [i] : 1'b0;
+    assign intr_vector[(19 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_acq_threshold_irq   [i] : 1'b0;
+    assign intr_vector[(18 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_rx_threshold_irq    [i] : 1'b0;
+    assign intr_vector[(17 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_fmt_threshold_irq   [i] : 1'b0;
+  end : gen_i2c_intr_0
 
-    intr_vector[8 +: 1]  = uart0_rx_parity_err_irq;
-    intr_vector[7 +: 1]  = uart0_rx_timeout_irq;
-    intr_vector[6 +: 1]  = uart0_rx_break_err_irq;
-    intr_vector[5 +: 1]  = uart0_rx_frame_err_irq;
-    intr_vector[4 +: 1]  = uart0_rx_overflow_irq;
-    intr_vector[3 +: 1]  = uart0_tx_empty_irq;
-    intr_vector[2 +: 1]  = uart0_rx_watermark_irq;
-    intr_vector[1 +: 1]  = uart0_tx_watermark_irq;
+  for (genvar i = 0; i < 2; i++) begin : gen_uart_intr_0
+    assign intr_vector[( 8 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_parity_err_irq[i] : 1'b0;
+    assign intr_vector[( 7 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_timeout_irq   [i] : 1'b0;
+    assign intr_vector[( 6 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_break_err_irq [i] : 1'b0;
+    assign intr_vector[( 5 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_frame_err_irq [i] : 1'b0;
+    assign intr_vector[( 4 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_overflow_irq  [i] : 1'b0;
+    assign intr_vector[( 3 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_empty_irq     [i] : 1'b0;
+    assign intr_vector[( 2 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_watermark_irq [i] : 1'b0;
+    assign intr_vector[( 1 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_watermark_irq [i] : 1'b0;
+  end : gen_uart_intr_0
 
-    intr_vector[0 +: 1]  = 1'b0; // This is a special case and tied to zero.
-  end : interrupt_vector
+  assign intr_vector[ 0 +: 1] = 1'b0; // This is a special case and tied to zero.
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
@@ -452,9 +356,6 @@ module sonata_system #(
 
   // Generate requests from read and write enables.
   assign device_req[Gpio]     = device_re[Gpio]     | device_we[Gpio];
-  assign device_req[RpiGpio]  = device_re[RpiGpio]  | device_we[RpiGpio];
-  assign device_req[ArdGpio]  = device_re[ArdGpio]  | device_we[ArdGpio];
-  assign device_req[PmodGpio] = device_re[PmodGpio] | device_we[PmodGpio];
   assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
   assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
   assign device_req[HwRev]    = device_re[HwRev]    | device_we[HwRev];
@@ -497,9 +398,6 @@ module sonata_system #(
 
   // Tie-off unused error signals.
   assign device_err[Gpio]     = 1'b0;
-  assign device_err[RpiGpio]  = 1'b0;
-  assign device_err[ArdGpio]  = 1'b0;
-  assign device_err[PmodGpio] = 1'b0;
   assign device_err[Pwm]      = 1'b0;
   assign device_err[HwRev]    = 1'b0;
 
@@ -534,50 +432,24 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_hyperram_ds_d2h;
   tlul_pkg::tl_h2d_t tl_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
-  tlul_pkg::tl_h2d_t tl_rpi_gpio_h2d;
-  tlul_pkg::tl_d2h_t tl_rpi_gpio_d2h;
-  tlul_pkg::tl_h2d_t tl_ard_gpio_h2d;
-  tlul_pkg::tl_d2h_t tl_ard_gpio_d2h;
-  tlul_pkg::tl_h2d_t tl_pmod_gpio_h2d;
-  tlul_pkg::tl_d2h_t tl_pmod_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_xadc_h2d;
   tlul_pkg::tl_d2h_t tl_xadc_d2h;
-  tlul_pkg::tl_h2d_t tl_uart0_h2d;
-  tlul_pkg::tl_d2h_t tl_uart0_d2h;
-  tlul_pkg::tl_h2d_t tl_uart1_h2d;
-  tlul_pkg::tl_d2h_t tl_uart1_d2h;
-  tlul_pkg::tl_h2d_t tl_uart2_h2d;
-  tlul_pkg::tl_d2h_t tl_uart2_d2h;
-  tlul_pkg::tl_h2d_t tl_uart3_h2d;
-  tlul_pkg::tl_d2h_t tl_uart3_d2h;
-  tlul_pkg::tl_h2d_t tl_uart4_h2d;
-  tlul_pkg::tl_d2h_t tl_uart4_d2h;
+  tlul_pkg::tl_h2d_t tl_gpio_headers_h2d[GPIO_NUM];
+  tlul_pkg::tl_d2h_t tl_gpio_headers_d2h[GPIO_NUM];
+  tlul_pkg::tl_h2d_t tl_uart_h2d[UART_NUM];
+  tlul_pkg::tl_d2h_t tl_uart_d2h[UART_NUM];
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
   tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
   tlul_pkg::tl_d2h_t tl_rgbled_ctrl_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
   tlul_pkg::tl_d2h_t tl_pwm_d2h;
-  tlul_pkg::tl_h2d_t tl_i2c0_h2d;
-  tlul_pkg::tl_d2h_t tl_i2c0_d2h;
-  tlul_pkg::tl_h2d_t tl_i2c1_h2d;
-  tlul_pkg::tl_d2h_t tl_i2c1_d2h;
+  tlul_pkg::tl_h2d_t tl_i2c_h2d[I2C_NUM];
+  tlul_pkg::tl_d2h_t tl_i2c_d2h[I2C_NUM];
   tlul_pkg::tl_h2d_t tl_rv_plic_h2d;
   tlul_pkg::tl_d2h_t tl_rv_plic_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_flash_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_flash_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_eth_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_eth_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_rp0_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_rp0_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_rp1_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_rp1_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_ard_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_ard_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_mkr_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_mkr_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_h2d[SPI_NUM];
+  tlul_pkg::tl_d2h_t tl_spi_d2h[SPI_NUM];
   tlul_pkg::tl_h2d_t tl_usbdev_h2d;
   tlul_pkg::tl_d2h_t tl_usbdev_d2h;
   tlul_pkg::tl_h2d_t tl_rev_tag_h2d;
@@ -585,7 +457,7 @@ module sonata_system #(
   tlul_pkg::tl_h2d_t tl_hw_rev_h2d;
   tlul_pkg::tl_d2h_t tl_hw_rev_d2h;
 
-  xbar_main xbar (
+  sonata_xbar_main xbar (
     // Clock and reset.
     .clk_sys_i        (clk_sys_i),
     .rst_sys_ni       (rst_sys_ni),
@@ -609,12 +481,8 @@ module sonata_system #(
     .tl_gpio_i        (tl_gpio_d2h),
     .tl_pwm_o         (tl_pwm_h2d),
     .tl_pwm_i         (tl_pwm_d2h),
-    .tl_rpi_gpio_o    (tl_rpi_gpio_h2d),
-    .tl_rpi_gpio_i    (tl_rpi_gpio_d2h),
-    .tl_ard_gpio_o    (tl_ard_gpio_h2d),
-    .tl_ard_gpio_i    (tl_ard_gpio_d2h),
-    .tl_pmod_gpio_o   (tl_pmod_gpio_h2d),
-    .tl_pmod_gpio_i   (tl_pmod_gpio_d2h),
+    .tl_gpio_headers_o(tl_gpio_headers_h2d),
+    .tl_gpio_headers_i(tl_gpio_headers_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
@@ -623,40 +491,16 @@ module sonata_system #(
     .tl_xadc_i        (tl_xadc_d2h),
     .tl_timer_o       (tl_timer_h2d),
     .tl_timer_i       (tl_timer_d2h),
-    .tl_uart0_o       (tl_uart0_h2d),
-    .tl_uart0_i       (tl_uart0_d2h),
-    .tl_uart1_o       (tl_uart1_h2d),
-    .tl_uart1_i       (tl_uart1_d2h),
-    .tl_uart2_o       (tl_uart2_h2d),
-    .tl_uart2_i       (tl_uart2_d2h),
-    .tl_uart3_o       (tl_uart3_h2d),
-    .tl_uart3_i       (tl_uart3_d2h),
-    .tl_uart4_o       (tl_uart4_h2d),
-    .tl_uart4_i       (tl_uart4_d2h),
-    .tl_i2c0_o        (tl_i2c0_h2d),
-    .tl_i2c0_i        (tl_i2c0_d2h),
-    .tl_i2c1_o        (tl_i2c1_h2d),
-    .tl_i2c1_i        (tl_i2c1_d2h),
-    .tl_spi_flash_o   (tl_spi_flash_h2d),
-    .tl_spi_flash_i   (tl_spi_flash_d2h),
-    .tl_spi_lcd_o     (tl_spi_lcd_h2d),
-    .tl_spi_lcd_i     (tl_spi_lcd_d2h),
-    .tl_spi_eth_o     (tl_spi_eth_h2d),
-    .tl_spi_eth_i     (tl_spi_eth_d2h),
-    .tl_spi_rp0_o     (tl_spi_rp0_h2d),
-    .tl_spi_rp0_i     (tl_spi_rp0_d2h),
-    .tl_spi_rp1_o     (tl_spi_rp1_h2d),
-    .tl_spi_rp1_i     (tl_spi_rp1_d2h),
-    .tl_spi_ard_o     (tl_spi_ard_h2d),
-    .tl_spi_ard_i     (tl_spi_ard_d2h),
-    .tl_spi_mkr_o     (tl_spi_mkr_h2d),
-    .tl_spi_mkr_i     (tl_spi_mkr_d2h),
+    .tl_uart_o        (tl_uart_h2d),
+    .tl_uart_i        (tl_uart_d2h),
+    .tl_i2c_o         (tl_i2c_h2d),
+    .tl_i2c_i         (tl_i2c_d2h),
+    .tl_spi_o         (tl_spi_h2d),
+    .tl_spi_i         (tl_spi_d2h),
     .tl_usbdev_o      (tl_usbdev_h2d),
     .tl_usbdev_i      (tl_usbdev_d2h),
     .tl_rv_plic_o     (tl_rv_plic_h2d),
-    .tl_rv_plic_i     (tl_rv_plic_d2h),
-
-    .scanmode_i       (prim_mubi_pkg::MuBi4False)
+    .tl_rv_plic_i     (tl_rv_plic_d2h)
   );
 
   xbar_ifetch u_xbar_ifetch (
@@ -960,93 +804,6 @@ module sonata_system #(
   tlul_adapter_reg #(
     .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
-  ) rpi_gpio_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_rpi_gpio_h2d),
-    .tl_o         (tl_rpi_gpio_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[RpiGpio]),
-    .we_o         (device_we[RpiGpio]),
-    .addr_o       (device_addr[RpiGpio][RegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[RpiGpio]),
-    .be_o         (device_be[RpiGpio]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[RpiGpio]),
-    .error_i      (device_err[RpiGpio])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[RpiGpio][BusAddrWidth-1:RegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
-    .AccessLatency    ( 1 )
-  ) ard_gpio_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_ard_gpio_h2d),
-    .tl_o         (tl_ard_gpio_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[ArdGpio]),
-    .we_o         (device_we[ArdGpio]),
-    .addr_o       (device_addr[ArdGpio][RegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[ArdGpio]),
-    .be_o         (device_be[ArdGpio]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[ArdGpio]),
-    .error_i      (device_err[ArdGpio])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[ArdGpio][BusAddrWidth-1:RegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
-    .AccessLatency    ( 1 )
-  ) pmod_gpio_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_pmod_gpio_h2d),
-    .tl_o         (tl_pmod_gpio_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[PmodGpio]),
-    .we_o         (device_we[PmodGpio]),
-    .addr_o       (device_addr[PmodGpio][RegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[PmodGpio]),
-    .be_o         (device_be[PmodGpio]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[PmodGpio]),
-    .error_i      (device_err[PmodGpio])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[PmodGpio][BusAddrWidth-1:RegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
-    .AccessLatency    ( 1 )
   ) pwm_device_adapter (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
@@ -1309,68 +1066,58 @@ module sonata_system #(
     .gp_o
   );
 
-  // GPIO for the Raspberry Pi HAT.
-  gpio #(
-    .GpiWidth ( RpiGpiWidth ),
-    .GpoWidth ( WordWidth   )
-  ) u_rpi_gpio (
-    .clk_i           (clk_sys_i),
-    .rst_ni          (rst_sys_ni),
+  for (genvar i = 0; i < sonata_pkg::GPIO_NUM; i++) begin : gen_gpio_headers
+    tlul_adapter_reg #(
+      .EnableRspIntgGen ( 1 ),
+      .AccessLatency    ( 1 )
+    ) rpi_gpio_device_adapter (
+      .clk_i        (clk_sys_i),
+      .rst_ni       (rst_sys_ni),
 
-    // Bus interface.
-    .device_req_i    (device_req[RpiGpio]),
-    .device_addr_i   (device_addr[RpiGpio]),
-    .device_we_i     (device_we[RpiGpio]),
-    .device_be_i     (device_be[RpiGpio]),
-    .device_wdata_i  (device_wdata[RpiGpio]),
-    .device_rvalid_o (device_rvalid[RpiGpio]),
-    .device_rdata_o  (device_rdata[RpiGpio]),
+      // TL-UL interface.
+      .tl_i         (tl_gpio_headers_h2d[i]),
+      .tl_o         (tl_gpio_headers_d2h[i]),
 
-    .gp_i            (rp_gp_i),
-    .gp_o            (rp_gp_o)
-  );
+      // Control interface.
+      .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
+      .intg_error_o (),
 
-  // GPIO for the Arduino Shield.
-  gpio #(
-    .GpiWidth ( ArdGpiWidth ),
-    .GpoWidth ( WordWidth   )
-  ) u_ard_gpio (
-    .clk_i           (clk_sys_i),
-    .rst_ni          (rst_sys_ni),
+      // Register interface.
+      .re_o         (device_re   [NrNonGpioDevices+i]),
+      .we_o         (device_we   [NrNonGpioDevices+i]),
+      .addr_o       (device_addr [NrNonGpioDevices+i][RegAddrWidth-1:0]),
+      .wdata_o      (device_wdata[NrNonGpioDevices+i]),
+      .be_o         (device_be   [NrNonGpioDevices+i]),
+      .busy_i       ('0),
+      .rdata_i      (device_rdata[NrNonGpioDevices+i]),
+      .error_i      (device_err  [NrNonGpioDevices+i])
+    );
 
-    // Bus interface.
-    .device_req_i    (device_req[ArdGpio]),
-    .device_addr_i   (device_addr[ArdGpio]),
-    .device_we_i     (device_we[ArdGpio]),
-    .device_be_i     (device_be[ArdGpio]),
-    .device_wdata_i  (device_wdata[ArdGpio]),
-    .device_rvalid_o (device_rvalid[ArdGpio]),
-    .device_rdata_o  (device_rdata[ArdGpio]),
+    assign device_req [NrNonGpioDevices+i] = device_re[NrNonGpioDevices+i] | device_we[NrNonGpioDevices+i];
+    assign device_err [NrNonGpioDevices+i] = 1'b0;
+    assign device_addr[NrNonGpioDevices+i][BusAddrWidth-1:RegAddrWidth] = '0;
 
-    .gp_i            (ard_gp_i),
-    .gp_o            (ard_gp_o)
-  );
+    gpio #(
+      .GpiWidth ( HalfWordWidth ),
+      .GpoWidth ( WordWidth     )
+    ) u_rpi_gpio (
+      .clk_i           (clk_sys_i),
+      .rst_ni          (rst_sys_ni),
 
-  // GPIO for PMOD connectors.
-  gpio #(
-    .GpiWidth ( PmodGpiWidth ),
-    .GpoWidth ( WordWidth    )
-  ) u_pmod_gpio (
-    .clk_i           (clk_sys_i),
-    .rst_ni          (rst_sys_ni),
+      // Bus interface.
+      .device_req_i    (device_req   [NrNonGpioDevices+i]),
+      .device_addr_i   (device_addr  [NrNonGpioDevices+i]),
+      .device_we_i     (device_we    [NrNonGpioDevices+i]),
+      .device_be_i     (device_be    [NrNonGpioDevices+i]),
+      .device_wdata_i  (device_wdata [NrNonGpioDevices+i]),
+      .device_rvalid_o (device_rvalid[NrNonGpioDevices+i]),
+      .device_rdata_o  (device_rdata [NrNonGpioDevices+i]),
 
-    // Bus interface.
-    .device_req_i    (device_req[PmodGpio]),
-    .device_addr_i   (device_addr[PmodGpio]),
-    .device_we_i     (device_we[PmodGpio]),
-    .device_be_i     (device_be[PmodGpio]),
-    .device_wdata_i  (device_wdata[PmodGpio]),
-    .device_rvalid_o (device_rvalid[PmodGpio]),
-    .device_rdata_o  (device_rdata[PmodGpio]),
+      .gp_i            (gp_headers_i[i]),
+      .gp_o            (gp_headers_o[i])
+    );
 
-    .gp_i            (pmod_gp_i),
-    .gp_o            (pmod_gp_o)
-  );
+  end : gen_gpio_headers
 
   // Digital inputs from Arduino sheild analog(ue) pins currently unused
   logic unused_ard_an_di;
@@ -1388,75 +1135,42 @@ module sonata_system #(
     .analog_n_i(ard_an_n_i)
   );
 
-  i2c u_i2c0 (
+  for (genvar i = 0; i < I2C_NUM; i++) begin : gen_i2c_hosts
+    i2c u_i2c (
       .clk_i                   (clk_sys_i),
       .rst_ni                  (rst_sys_ni),
       .ram_cfg_i               (10'b0),
 
       // Bus interface.
-      .tl_i                    (tl_i2c0_h2d),
-      .tl_o                    (tl_i2c0_d2h),
+      .tl_i                    (tl_i2c_h2d[i]),
+      .tl_o                    (tl_i2c_d2h[i]),
 
       // Generic IO.
-      .cio_scl_i               (i2c0_scl_i),
-      .cio_scl_o               (i2c0_scl_o),
-      .cio_scl_en_o            (i2c0_scl_en_o),
-      .cio_sda_i               (i2c0_sda_i),
-      .cio_sda_o               (i2c0_sda_o),
-      .cio_sda_en_o            (i2c0_sda_en_o),
+      .cio_scl_i               (i2c_scl_i   [i]),
+      .cio_scl_o               (i2c_scl_o   [i]),
+      .cio_scl_en_o            (i2c_scl_en_o[i]),
+      .cio_sda_i               (i2c_sda_i   [i]),
+      .cio_sda_o               (i2c_sda_o   [i]),
+      .cio_sda_en_o            (i2c_sda_en_o[i]),
 
       // Interrupts.
-      .intr_fmt_threshold_o    (i2c0_fmt_threshold_irq),
-      .intr_rx_threshold_o     (i2c0_rx_threshold_irq),
-      .intr_acq_threshold_o    (i2c0_acq_threshold_irq),
-      .intr_rx_overflow_o      (i2c0_rx_overflow_irq),
-      .intr_nak_o              (i2c0_nak_irq),
-      .intr_scl_interference_o (i2c0_scl_interference_irq),
-      .intr_sda_interference_o (i2c0_sda_interference_irq),
-      .intr_stretch_timeout_o  (i2c0_stretch_timeout_irq),
-      .intr_sda_unstable_o     (i2c0_sda_unstable_irq),
-      .intr_cmd_complete_o     (i2c0_cmd_complete_irq),
-      .intr_tx_stretch_o       (i2c0_tx_stretch_irq),
-      .intr_tx_threshold_o     (i2c0_tx_threshold_irq),
-      .intr_acq_full_o         (i2c0_acq_full_irq),
-      .intr_unexp_stop_o       (i2c0_unexp_stop_irq),
-      .intr_host_timeout_o     (i2c0_host_timeout_irq)
-  );
-
-  i2c u_i2c1 (
-      .clk_i                   (clk_sys_i),
-      .rst_ni                  (rst_sys_ni),
-      .ram_cfg_i               (10'b0),
-
-      // Bus interface.
-      .tl_i                    (tl_i2c1_h2d),
-      .tl_o                    (tl_i2c1_d2h),
-
-      // Generic IO.
-      .cio_scl_i               (i2c1_scl_i),
-      .cio_scl_o               (i2c1_scl_o),
-      .cio_scl_en_o            (i2c1_scl_en_o),
-      .cio_sda_i               (i2c1_sda_i),
-      .cio_sda_o               (i2c1_sda_o),
-      .cio_sda_en_o            (i2c1_sda_en_o),
-
-      // Interrupts.
-      .intr_fmt_threshold_o    (i2c1_fmt_threshold_irq),
-      .intr_rx_threshold_o     (i2c1_rx_threshold_irq),
-      .intr_acq_threshold_o    (i2c1_acq_threshold_irq),
-      .intr_rx_overflow_o      (i2c1_rx_overflow_irq),
-      .intr_nak_o              (i2c1_nak_irq),
-      .intr_scl_interference_o (i2c1_scl_interference_irq),
-      .intr_sda_interference_o (i2c1_sda_interference_irq),
-      .intr_stretch_timeout_o  (i2c1_stretch_timeout_irq),
-      .intr_sda_unstable_o     (i2c1_sda_unstable_irq),
-      .intr_cmd_complete_o     (i2c1_cmd_complete_irq),
-      .intr_tx_stretch_o       (i2c1_tx_stretch_irq),
-      .intr_tx_threshold_o     (i2c1_tx_threshold_irq),
-      .intr_acq_full_o         (i2c1_acq_full_irq),
-      .intr_unexp_stop_o       (i2c1_unexp_stop_irq),
-      .intr_host_timeout_o     (i2c1_host_timeout_irq)
-  );
+      .intr_fmt_threshold_o    (i2c_fmt_threshold_irq   [i]),
+      .intr_rx_threshold_o     (i2c_rx_threshold_irq    [i]),
+      .intr_acq_threshold_o    (i2c_acq_threshold_irq   [i]),
+      .intr_rx_overflow_o      (i2c_rx_overflow_irq     [i]),
+      .intr_nak_o              (i2c_nak_irq             [i]),
+      .intr_scl_interference_o (i2c_scl_interference_irq[i]),
+      .intr_sda_interference_o (i2c_sda_interference_irq[i]),
+      .intr_stretch_timeout_o  (i2c_stretch_timeout_irq [i]),
+      .intr_sda_unstable_o     (i2c_sda_unstable_irq    [i]),
+      .intr_cmd_complete_o     (i2c_cmd_complete_irq    [i]),
+      .intr_tx_stretch_o       (i2c_tx_stretch_irq      [i]),
+      .intr_tx_threshold_o     (i2c_tx_threshold_irq    [i]),
+      .intr_acq_full_o         (i2c_acq_full_irq        [i]),
+      .intr_unexp_stop_o       (i2c_unexp_stop_irq      [i]),
+      .intr_host_timeout_o     (i2c_host_timeout_irq    [i])
+    );
+  end : gen_i2c_hosts
 
   // Pulse width modulator.
   pwm_wrapper #(
@@ -1477,120 +1191,31 @@ module sonata_system #(
     .pwm_o
   );
 
-  uart u_uart0 (
-      .clk_i                (clk_sys_i  ),
-      .rst_ni               (rst_sys_ni ),
+  // UART for serial communication.
+  for (genvar i = 0; i < UART_NUM; i++) begin : gen_uart_blocks
+    uart u_uart (
+      .clk_i                (clk_sys_i),
+      .rst_ni               (rst_sys_ni),
 
-      .cio_rx_i             (uart0_rx_i ),
-      .cio_tx_o             (uart0_tx_o ),
-      .cio_tx_en_o          (           ),
+      .cio_rx_i             (uart_rx_i[i]),
+      .cio_tx_o             (uart_tx_o[i]),
+      .cio_tx_en_o          (),
 
       // Inter-module signals.
-      .tl_i                 (tl_uart0_h2d),
-      .tl_o                 (tl_uart0_d2h),
+      .tl_i                 (tl_uart_h2d[i]),
+      .tl_o                 (tl_uart_d2h[i]),
 
-      // Interrupt.
-      .intr_tx_watermark_o  (uart0_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart0_rx_watermark_irq),
-      .intr_tx_empty_o      (uart0_tx_empty_irq),
-      .intr_rx_overflow_o   (uart0_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart0_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart0_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart0_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart0_rx_parity_err_irq)
-  );
-
-  uart u_uart1 (
-      .clk_i                (clk_sys_i  ),
-      .rst_ni               (rst_sys_ni ),
-
-      .cio_rx_i             (uart1_rx_i ),
-      .cio_tx_o             (uart1_tx_o ),
-      .cio_tx_en_o          (           ),
-
-      // Inter-module signals
-      .tl_i                 (tl_uart1_h2d),
-      .tl_o                 (tl_uart1_d2h),
-
-      // Interrupt
-      .intr_tx_watermark_o  (uart1_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart1_rx_watermark_irq),
-      .intr_tx_empty_o      (uart1_tx_empty_irq),
-      .intr_rx_overflow_o   (uart1_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart1_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart1_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart1_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart1_rx_parity_err_irq)
-  );
-
-  uart u_uart2 (
-      .clk_i                (clk_sys_i  ),
-      .rst_ni               (rst_sys_ni ),
-
-      .cio_rx_i             (uart2_rx_i ),
-      .cio_tx_o             (uart2_tx_o ),
-      .cio_tx_en_o          (           ),
-
-      // Inter-module signals
-      .tl_i                 (tl_uart2_h2d),
-      .tl_o                 (tl_uart2_d2h),
-
-      // Interrupt
-      .intr_tx_watermark_o  (uart2_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart2_rx_watermark_irq),
-      .intr_tx_empty_o      (uart2_tx_empty_irq),
-      .intr_rx_overflow_o   (uart2_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart2_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart2_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart2_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart2_rx_parity_err_irq)
-  );
-
-  uart u_uart3 (
-      .clk_i                (clk_sys_i  ),
-      .rst_ni               (rst_sys_ni ),
-
-      .cio_rx_i             (uart3_rx_i ),
-      .cio_tx_o             (uart3_tx_o ),
-      .cio_tx_en_o          (           ),
-
-      // Inter-module signals
-      .tl_i                 (tl_uart3_h2d),
-      .tl_o                 (tl_uart3_d2h),
-
-      // Interrupt
-      .intr_tx_watermark_o  (uart3_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart3_rx_watermark_irq),
-      .intr_tx_empty_o      (uart3_tx_empty_irq),
-      .intr_rx_overflow_o   (uart3_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart3_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart3_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart3_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart3_rx_parity_err_irq)
-  );
-
-  uart u_uart4 (
-      .clk_i                (clk_sys_i  ),
-      .rst_ni               (rst_sys_ni ),
-
-      .cio_rx_i             (uart4_rx_i ),
-      .cio_tx_o             (uart4_tx_o ),
-      .cio_tx_en_o          (           ),
-
-      // Inter-module signals
-      .tl_i                 (tl_uart4_h2d),
-      .tl_o                 (tl_uart4_d2h),
-
-      // Interrupt
-      .intr_tx_watermark_o  (uart4_tx_watermark_irq),
-      .intr_rx_watermark_o  (uart4_rx_watermark_irq),
-      .intr_tx_empty_o      (uart4_tx_empty_irq),
-      .intr_rx_overflow_o   (uart4_rx_overflow_irq),
-      .intr_rx_frame_err_o  (uart4_rx_frame_err_irq),
-      .intr_rx_break_err_o  (uart4_rx_break_err_irq),
-      .intr_rx_timeout_o    (uart4_rx_timeout_irq),
-      .intr_rx_parity_err_o (uart4_rx_parity_err_irq)
-  );
+      // Interrupts.
+      .intr_tx_watermark_o  (uart_tx_watermark_irq [i]),
+      .intr_rx_watermark_o  (uart_rx_watermark_irq [i]),
+      .intr_tx_empty_o      (uart_tx_empty_irq     [i]),
+      .intr_rx_overflow_o   (uart_rx_overflow_irq  [i]),
+      .intr_rx_frame_err_o  (uart_rx_frame_err_irq [i]),
+      .intr_rx_break_err_o  (uart_rx_break_err_irq [i]),
+      .intr_rx_timeout_o    (uart_rx_timeout_irq   [i]),
+      .intr_rx_parity_err_o (uart_rx_parity_err_irq[i])
+    );
+  end : gen_uart_blocks
 
   // USB device.
   usbdev #(
@@ -1618,7 +1243,7 @@ module sonata_system #(
     .cio_usb_dn_en_o              (usb_dn_en_o),
     .usb_tx_se0_o                 (),
     .usb_tx_d_o                   (),
- 
+
     // Non-data I/O
     .cio_sense_i                  (usb_sense_i),
     .usb_dp_pullup_o              (usb_dp_pullup_o),
@@ -1661,71 +1286,29 @@ module sonata_system #(
     .intr_av_setup_empty_o        (usbdev_av_setup_empty_irq)
   );
 
-  // SPI host for talking to Flash memory.
-  spi u_spi_flash (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
+  // SPI hosts.
+  for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
+    spi u_spi (
+      .clk_i               (clk_sys_i),
+      .rst_ni              (rst_sys_ni),
 
-    // TileLink interface.
-    .tl_i                (tl_spi_flash_h2d),
-    .tl_o                (tl_spi_flash_d2h),
+      // TileLink interface.
+      .tl_i                (tl_spi_h2d[i]),
+      .tl_o                (tl_spi_d2h[i]),
 
-    // Interrupts currently disconnected.
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
+      // Interrupts currently disconnected.
+      .intr_rx_full_o      (),
+      .intr_rx_watermark_o (),
+      .intr_tx_empty_o     (),
+      .intr_tx_watermark_o (),
+      .intr_complete_o     (),
 
-    // SPI signals.
-    .spi_copi_o          (spi_flash_tx_o),
-    .spi_cipo_i          (spi_flash_rx_i),
-    .spi_clk_o           (spi_flash_sck_o)
-  );
-
-  // SPI host for writing to the LCD screen.
-  spi u_spi_lcd (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    // TileLink interface.
-    .tl_i                (tl_spi_lcd_h2d),
-    .tl_o                (tl_spi_lcd_d2h),
-
-    // Interrupts currently disconnected.
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    // SPI signals.
-    .spi_copi_o          (spi_lcd_tx_o),
-    .spi_cipo_i          (spi_lcd_rx_i),
-    .spi_clk_o           (spi_lcd_sck_o)
-  );
-
-  // SPI host for talking to ethernet chip.
-  spi u_spi_eth (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    // TileLink interface.
-    .tl_i                (tl_spi_eth_h2d),
-    .tl_o                (tl_spi_eth_d2h),
-
-    // Interrupts currently disconnected.
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    // SPI signals.
-    .spi_copi_o          (spi_eth_tx_o),
-    .spi_cipo_i          (spi_eth_rx_i),
-    .spi_clk_o           (spi_eth_sck_o)
-  );
+      // SPI signals.
+      .spi_copi_o          (spi_tx_o [i]),
+      .spi_cipo_i          (spi_rx_i [i]),
+      .spi_clk_o           (spi_sck_o[i])
+    );
+  end : gen_spi_hosts
 
   // Sample the ethernet interrupt pin.
   always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
@@ -1735,82 +1318,6 @@ module sonata_system #(
       spi_eth_irq <= !spi_eth_irq_ni;
     end
   end
-
-  // Host for SPI0 on the Raspberry Pi HAT.
-  spi u_spi_rp0 (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    .tl_i                (tl_spi_rp0_h2d),
-    .tl_o                (tl_spi_rp0_d2h),
-
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    .spi_copi_o          (spi_rp0_tx_o),
-    .spi_cipo_i          (spi_rp0_rx_i),
-    .spi_clk_o           (spi_rp0_sck_o)
-  );
-
-  // Host for SPI1 on the Raspberry Pi HAT.
-  spi u_spi_rp1 (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    .tl_i                (tl_spi_rp1_h2d),
-    .tl_o                (tl_spi_rp1_d2h),
-
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    .spi_copi_o          (spi_rp1_tx_o),
-    .spi_cipo_i          (spi_rp1_rx_i),
-    .spi_clk_o           (spi_rp1_sck_o)
-  );
-
-  // SPI host for the Arduino Shield.
-  spi u_spi_ard (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    .tl_i                (tl_spi_ard_h2d),
-    .tl_o                (tl_spi_ard_d2h),
-
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    .spi_copi_o          (spi_ard_tx_o),
-    .spi_cipo_i          (spi_ard_rx_i),
-    .spi_clk_o           (spi_ard_sck_o)
-  );
-
-  // SPI host for mikroBUS Click.
-  spi u_spi_mkr (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    .tl_i                (tl_spi_mkr_h2d),
-    .tl_o                (tl_spi_mkr_d2h),
-
-    .intr_rx_full_o      (),
-    .intr_rx_watermark_o (),
-    .intr_tx_empty_o     (),
-    .intr_tx_watermark_o (),
-    .intr_complete_o     (),
-
-    .spi_copi_o          (spi_mkr_tx_o),
-    .spi_cipo_i          (spi_mkr_rx_i),
-    .spi_clk_o           (spi_mkr_sck_o)
-  );
 
   // RISC-V timer.
   rv_timer #(

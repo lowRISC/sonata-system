@@ -22,6 +22,8 @@ filesets:
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
+      - rtl/system/sonata_pkg.sv
+      - rtl/bus/sonata_xbar_main.sv
       - rtl/system/jtag_id_pkg.sv
       - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv
