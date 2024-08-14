@@ -28,5 +28,5 @@ set(CHERIOT_SDK_INCLUDES
 )
 
 add_subdirectory(boot)
-add_subdirectory(tests)
+add_subdirectory(checks)
 add_subdirectory(error_leds)
