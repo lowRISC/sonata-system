@@ -10,6 +10,7 @@
 #define BAUD_RATE (921600)
 
 void uart_enable_rx_int(void) {
+  // TODO this must now instead be done using the PLIC
   enable_interrupts(UART_IRQ);
   arch_local_irq_enable();
 }

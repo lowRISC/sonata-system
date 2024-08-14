@@ -5,6 +5,7 @@ target/
 
 # FuseSoC and Sofware builds are placed in build
 build/
+sw/cheri/sim_boot_stub/sim_boot_stub
 
 # Nix based builds a placed are symlinked to result
 result
