@@ -131,6 +131,7 @@ extern "C" void rom_loader_entry(void *rwRoot)
 	uart->init(BAUD_RATE);
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
+	spi_flash.reset();
 	read_elf(spi_flash, uart, sram);
 
 	write_str(uart, prefix);

@@ -1,4 +1,5 @@
 #pragma once
+#include "timer-utils.hh"
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-spi.hh>
@@ -6,6 +7,8 @@
 typedef CHERI::Capability<volatile SonataGPIO> &GpioRef;
 typedef CHERI::Capability<volatile SonataSpi>  &SpiRef;
 
+static const uint8_t CmdEnableReset         = 0x66;
+static const uint8_t CmdReset               = 0x99;
 static const uint8_t CmdReadJEDECId         = 0x9f;
 static const uint8_t CmdWriteEnable         = 0x06;
 static const uint8_t CmdSectorErase         = 0x20;
@@ -30,6 +33,20 @@ class SpiFlash
 	SpiFlash(SpiRef spi_, GpioRef gpio_, size_t csn_index)
 	  : spi(spi_), gpio(gpio_), csn_bit(1 << csn_index)
 	{
+	}
+
+	void reset()
+	{
+		set_cs(true);
+		spi->blocking_write(&CmdEnableReset, 1);
+		set_cs(false);
+
+		set_cs(true);
+		spi->blocking_write(&CmdReset, 1);
+		set_cs(false);
+
+		// Need to wait at least 30us for the reset to complete.
+		wait_mcycle(2000);
 	}
 
 	void read_jedec_id(uint8_t *jedec_id_out)
