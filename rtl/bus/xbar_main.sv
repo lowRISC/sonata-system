@@ -25,13 +25,13 @@
 //     -> uart4
 //     -> i2c0
 //     -> i2c1
-//     -> spi_flash
-//     -> spi_lcd
-//     -> spi_eth
-//     -> spi_rp0
-//     -> spi_rp1
-//     -> spi_ard
-//     -> spi_mkr
+//     -> spi0
+//     -> spi1
+//     -> spi2
+//     -> spi3
+//     -> spi4
+//     -> spi5
+//     -> spi6
 //     -> asf_34
 //       -> usbdev
 //     -> gpio0
@@ -89,20 +89,20 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_i2c0_i,
   output tlul_pkg::tl_h2d_t tl_i2c1_o,
   input  tlul_pkg::tl_d2h_t tl_i2c1_i,
-  output tlul_pkg::tl_h2d_t tl_spi_flash_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_flash_i,
-  output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
-  output tlul_pkg::tl_h2d_t tl_spi_eth_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_eth_i,
-  output tlul_pkg::tl_h2d_t tl_spi_rp0_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_rp0_i,
-  output tlul_pkg::tl_h2d_t tl_spi_rp1_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_rp1_i,
-  output tlul_pkg::tl_h2d_t tl_spi_ard_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_ard_i,
-  output tlul_pkg::tl_h2d_t tl_spi_mkr_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_mkr_i,
+  output tlul_pkg::tl_h2d_t tl_spi0_o,
+  input  tlul_pkg::tl_d2h_t tl_spi0_i,
+  output tlul_pkg::tl_h2d_t tl_spi1_o,
+  input  tlul_pkg::tl_d2h_t tl_spi1_i,
+  output tlul_pkg::tl_h2d_t tl_spi2_o,
+  input  tlul_pkg::tl_d2h_t tl_spi2_i,
+  output tlul_pkg::tl_h2d_t tl_spi3_o,
+  input  tlul_pkg::tl_d2h_t tl_spi3_i,
+  output tlul_pkg::tl_h2d_t tl_spi4_o,
+  input  tlul_pkg::tl_d2h_t tl_spi4_i,
+  output tlul_pkg::tl_h2d_t tl_spi5_o,
+  input  tlul_pkg::tl_d2h_t tl_spi5_i,
+  output tlul_pkg::tl_h2d_t tl_spi6_o,
+  input  tlul_pkg::tl_d2h_t tl_spi6_i,
   output tlul_pkg::tl_h2d_t tl_usbdev_o,
   input  tlul_pkg::tl_d2h_t tl_usbdev_i,
   output tlul_pkg::tl_h2d_t tl_gpio0_o,
@@ -201,26 +201,26 @@ module xbar_main (
   assign tl_i2c1_o = tl_s1n_32_ds_h2d[15];
   assign tl_s1n_32_ds_d2h[15] = tl_i2c1_i;
 
-  assign tl_spi_flash_o = tl_s1n_32_ds_h2d[16];
-  assign tl_s1n_32_ds_d2h[16] = tl_spi_flash_i;
+  assign tl_spi0_o = tl_s1n_32_ds_h2d[16];
+  assign tl_s1n_32_ds_d2h[16] = tl_spi0_i;
 
-  assign tl_spi_lcd_o = tl_s1n_32_ds_h2d[17];
-  assign tl_s1n_32_ds_d2h[17] = tl_spi_lcd_i;
+  assign tl_spi1_o = tl_s1n_32_ds_h2d[17];
+  assign tl_s1n_32_ds_d2h[17] = tl_spi1_i;
 
-  assign tl_spi_eth_o = tl_s1n_32_ds_h2d[18];
-  assign tl_s1n_32_ds_d2h[18] = tl_spi_eth_i;
+  assign tl_spi2_o = tl_s1n_32_ds_h2d[18];
+  assign tl_s1n_32_ds_d2h[18] = tl_spi2_i;
 
-  assign tl_spi_rp0_o = tl_s1n_32_ds_h2d[19];
-  assign tl_s1n_32_ds_d2h[19] = tl_spi_rp0_i;
+  assign tl_spi3_o = tl_s1n_32_ds_h2d[19];
+  assign tl_s1n_32_ds_d2h[19] = tl_spi3_i;
 
-  assign tl_spi_rp1_o = tl_s1n_32_ds_h2d[20];
-  assign tl_s1n_32_ds_d2h[20] = tl_spi_rp1_i;
+  assign tl_spi4_o = tl_s1n_32_ds_h2d[20];
+  assign tl_s1n_32_ds_d2h[20] = tl_spi4_i;
 
-  assign tl_spi_ard_o = tl_s1n_32_ds_h2d[21];
-  assign tl_s1n_32_ds_d2h[21] = tl_spi_ard_i;
+  assign tl_spi5_o = tl_s1n_32_ds_h2d[21];
+  assign tl_s1n_32_ds_d2h[21] = tl_spi5_i;
 
-  assign tl_spi_mkr_o = tl_s1n_32_ds_h2d[22];
-  assign tl_s1n_32_ds_d2h[22] = tl_spi_mkr_i;
+  assign tl_spi6_o = tl_s1n_32_ds_h2d[22];
+  assign tl_s1n_32_ds_d2h[22] = tl_spi6_i;
 
   assign tl_asf_34_us_h2d = tl_s1n_32_ds_h2d[23];
   assign tl_s1n_32_ds_d2h[23] = tl_asf_34_us_d2h;
@@ -323,31 +323,31 @@ module xbar_main (
       dev_sel_s1n_32 = 5'd15;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_FLASH)) == ADDR_SPACE_SPI_FLASH) begin
+                  ~(ADDR_MASK_SPI0)) == ADDR_SPACE_SPI0) begin
       dev_sel_s1n_32 = 5'd16;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
+                  ~(ADDR_MASK_SPI1)) == ADDR_SPACE_SPI1) begin
       dev_sel_s1n_32 = 5'd17;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_ETH)) == ADDR_SPACE_SPI_ETH) begin
+                  ~(ADDR_MASK_SPI2)) == ADDR_SPACE_SPI2) begin
       dev_sel_s1n_32 = 5'd18;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_RP0)) == ADDR_SPACE_SPI_RP0) begin
+                  ~(ADDR_MASK_SPI3)) == ADDR_SPACE_SPI3) begin
       dev_sel_s1n_32 = 5'd19;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_RP1)) == ADDR_SPACE_SPI_RP1) begin
+                  ~(ADDR_MASK_SPI4)) == ADDR_SPACE_SPI4) begin
       dev_sel_s1n_32 = 5'd20;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_ARD)) == ADDR_SPACE_SPI_ARD) begin
+                  ~(ADDR_MASK_SPI5)) == ADDR_SPACE_SPI5) begin
       dev_sel_s1n_32 = 5'd21;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_MKR)) == ADDR_SPACE_SPI_MKR) begin
+                  ~(ADDR_MASK_SPI6)) == ADDR_SPACE_SPI6) begin
       dev_sel_s1n_32 = 5'd22;
 
     end else if ((tl_s1n_32_us_h2d.a_address &
