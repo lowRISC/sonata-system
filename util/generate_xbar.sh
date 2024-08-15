@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 mkdir -p rtl/bus
-vendor/lowrisc_ip/util/tlgen.py -t data/xbar_main.hjson -o rtl/bus
+vendor/lowrisc_ip/util/tlgen.py -t data/xbar_main_generated.hjson -o rtl/bus
 vendor/lowrisc_ip/util/tlgen.py -t data/xbar_ifetch.hjson -o rtl/bus
 rm -r rtl/bus/data
 rm -r rtl/bus/dv
