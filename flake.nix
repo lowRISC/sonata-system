@@ -128,15 +128,35 @@
         '';
       };
 
+      cheriotRtosSource = pkgs.fetchFromGitHub {
+        owner = "lowRISC";
+        repo = "CHERIoT-RTOS";
+        rev = "30148bad7ef45026d4e4b754871bf2b396ce2ca8";
+        fetchSubmodules = true;
+        hash = "sha256-3yatAEfZ5eWOfQB7w5I6OOHaG39pRUeyzCGgix3T4PI=";
+      };
+
+      sonata-system-software = pkgs.stdenv.mkDerivation rec {
+        inherit version;
+        pname = "sonata-system-software";
+        src = fileset.toSource {
+          root = ./sw;
+          fileset = fileset.unions [
+            ./sw/cheri
+            ./sw/common
+          ];
+        };
+        sourceRoot = "${src.name}/cheri";
+        nativeBuildInputs = cheriotPkgs ++ (with pkgs; [cmake]);
+        cmakeFlags = [
+          "-DFETCHCONTENT_SOURCE_DIR_CHERIOT_RTOS=${cheriotRtosSource}"
+        ];
+        dontFixup = true;
+      };
+
       cheriot-rtos-test-suite = pkgs.stdenvNoCC.mkDerivation {
         name = "cheriot-rtos-test-suite";
-        src = pkgs.fetchFromGitHub {
-          owner = "HU90m";
-          repo = "cheriot-rtos";
-          rev = "30148bad7ef45026d4e4b754871bf2b396ce2ca8";
-          fetchSubmodules = true;
-          hash = "sha256-3yatAEfZ5eWOfQB7w5I6OOHaG39pRUeyzCGgix3T4PI=";
-        };
+        src = cheriotRtosSource;
         buildInputs = cheriotPkgs ++ [lrPkgs.uf2conv];
         dontFixup = true;
         buildPhase = ''
@@ -155,11 +175,17 @@
         };
       };
 
-      tests-runner =
-        pkgs.writers.writePython3Bin "tests-runner" {
-          libraries = [pkgs.python3Packages.pyserial];
-        }
-        ./util/test_runner.py;
+      tests-runner = pkgs.writeShellApplication {
+        name = "tests-runner";
+        runtimeInputs = with pkgs; [
+          openocd
+          (python3.withPackages (pyPkg: with pyPkg; [pyserial]))
+        ];
+        checkPhase = "";
+        text = ''
+          python ./util/test_runner.py $@
+        '';
+      };
 
       tests-fpga-runner = pkgs.writers.writeBashBin "tests-fpga-runner" ''
         set -e
@@ -168,6 +194,9 @@
             "as the first argument."
           exit 2
         fi
+        ${getExe tests-runner} -t 30 fpga $1 \
+          --elf-file ${sonata-system-software}/bin/test_runner \
+          --tcl-file ${./util/sonata-openocd-cfg.tcl}
         ${getExe tests-runner} -t 30 fpga $1 --uf2-file ${cheriot-rtos-test-suite}/share/test-suite.uf2
       '';
 
@@ -177,9 +206,12 @@
         dontBuild = true;
         doCheck = true;
         buildInputs = [sonata-simulator];
-        SONATA_SIM_BOOT_STUB = "${sonata-sim-boot-stub.out}/share/sim_boot_stub";
         checkPhase = ''
-          ${getExe tests-runner} -t 600 sim --elf-file ${cheriot-rtos-test-suite}/share/test-suite
+          ${getExe tests-runner} -t 30 sim \
+              --elf-file ${sonata-system-software}/bin/test_runner
+          ${getExe tests-runner} -t 600 sim \
+            --sim-boot-stub ${sonata-sim-boot-stub.out}/share/sim_boot_stub \
+            --elf-file ${cheriot-rtos-test-suite}/share/test-suite
         '';
         installPhase = "mkdir $out";
       };
@@ -204,7 +236,7 @@
           ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
-      packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation cheriot-rtos-test-suite;};
+      packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation sonata-system-software cheriot-rtos-test-suite;};
       checks = {inherit sonata-simulator-lint tests-simulator;};
       apps = builtins.listToAttrs (map (program: {
         inherit (program) name;

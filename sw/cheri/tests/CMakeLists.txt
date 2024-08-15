@@ -8,4 +8,5 @@ foreach(TEST ${TESTS})
   add_executable(${NAME} ${TEST} boot.S)
   target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
 
+  install(TARGETS ${NAME})
 endforeach()
