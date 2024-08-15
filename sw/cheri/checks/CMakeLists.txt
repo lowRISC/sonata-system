@@ -1,4 +1,4 @@
-set(TESTS
+set(CHECKS
   cheri_sanity.cc
   gpio_check.cc
   uart_check.cc
@@ -7,10 +7,10 @@ set(TESTS
   rgbled_test.cc
 )
 
-foreach(TEST ${TESTS})
-  get_filename_component(NAME ${TEST} NAME_WE)
+foreach(CHECK ${CHECKS})
+  get_filename_component(NAME ${CHECK} NAME_WE)
 
-  add_executable(${NAME} ${TEST} boot.S)
+  add_executable(${NAME} ${CHECK} boot.S)
   target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
 
   add_custom_command(
@@ -19,6 +19,8 @@ foreach(TEST ${TESTS})
     COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
     VERBATIM
   )
+
+  install(TARGETS ${NAME})
 endforeach()
 
 set(NAME tag_test)
@@ -32,6 +34,7 @@ add_custom_command(
   COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
   VERBATIM
 )
+install(TARGETS ${NAME})
 
 set(NAME hyperram_test)
 
@@ -44,3 +47,4 @@ add_custom_command(
   COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
   VERBATIM
 )
+install(TARGETS ${NAME})
