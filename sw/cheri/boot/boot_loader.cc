@@ -35,6 +35,27 @@ typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
 	}
 }
 
+static void debug_print_phdr(UartRef uart, Elf32_Phdr &phdr)
+{
+	write_str(uart, prefix);
+	write_hex(uart, phdr.p_offset);
+	write_str(uart, " ");
+	write_hex(uart, phdr.p_vaddr);
+	write_str(uart, " ");
+	write_hex(uart, phdr.p_filesz);
+	write_str(uart, " ");
+	write_hex(uart, phdr.p_memsz);
+	write_str(uart, "\r\n");
+}
+
+static void write_hex_with_prefix(UartRef uart, const char *msg, uint32_t value)
+{
+	write_str(uart, prefix);
+	write_str(uart, msg);
+	write_hex(uart, value);
+	write_str(uart, "\r\n");
+}
+
 uint32_t read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
 {
 	write_str(uart, prefix);
@@ -75,15 +96,7 @@ uint32_t read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram
 			continue;
 
 #if DEBUG_ELF_HEADER
-		write_str(uart, prefix);
-		write_hex(uart, phdr.p_offset);
-		write_str(uart, " ");
-		write_hex(uart, phdr.p_vaddr);
-		write_str(uart, " ");
-		write_hex(uart, phdr.p_filesz);
-		write_str(uart, " ");
-		write_hex(uart, phdr.p_memsz);
-		write_str(uart, "\r\n");
+		debug_print_phdr(uart, phdr);
 #endif
 
 		auto segment      = sram;
@@ -140,4 +153,31 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
 	write_str(uart, prefix);
 	write_str(uart, "Booting into program, hopefully.\r\n");
 	return entrypoint;
+}
+
+// This is using GNU statement expression extension so we can return a value
+// from a macro: https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html
+#define READ_CSR(name)                                                         \
+	({                                                                         \
+		uint32_t result;                                                       \
+		asm volatile("csrr %0, " name : "=r"(result));                         \
+		result;                                                                \
+	})
+
+extern "C" void exception_handler(void *rwRoot)
+{
+	CHERI::Capability<void> root{rwRoot};
+
+	// Create a bounded capability to the UART
+	CHERI::Capability<volatile OpenTitanUart> uart =
+	  root.cast<volatile OpenTitanUart>();
+	uart.address() = UART_ADDRESS;
+	uart.bounds()  = UART_BOUNDS;
+
+	write_str(uart, prefix);
+	write_str(uart, "Exception happened during loading.\r\n");
+
+	write_hex_with_prefix(uart, "mepc  : ", READ_CSR("mepc"));
+	write_hex_with_prefix(uart, "mcause: ", READ_CSR("mcause"));
+	write_hex_with_prefix(uart, "mtval : ", READ_CSR("mtval"));
 }
