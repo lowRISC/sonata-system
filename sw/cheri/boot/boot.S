@@ -28,10 +28,7 @@ start:
 	ccall            rom_loader_entry
 
 	// Jump to the newly loaded binary.
-	// This could be a relative jump, but I'd need to get the relocations right
-	// and we have 32 KiB of IROM so wasting a few bytes doesn't really matter.
-	li               t0, 0x00101000
-	csetaddr         ct0, cs1, t0
+	csetaddr         ct0, cs1, a0
 	cjr              ct0
 
 .section .text.bl_memset, "ax", @progbits

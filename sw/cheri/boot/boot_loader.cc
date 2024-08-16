@@ -35,7 +35,7 @@ typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
 	}
 }
 
-void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
+uint32_t read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
 {
 	write_str(uart, prefix);
 	write_str(uart, "Loading software from flash...\r\n");
@@ -99,13 +99,15 @@ void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
 
 		bl_memset(segment.get() + phdr.p_filesz, 0, phdr.p_memsz - phdr.p_filesz);
 	}
+
+	return ehdr.e_entry;
 }
 
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-extern "C" void rom_loader_entry(void *rwRoot)
+extern "C" uint32_t rom_loader_entry(void *rwRoot)
 {
 	CHERI::Capability<void> root{rwRoot};
 
@@ -133,8 +135,9 @@ extern "C" void rom_loader_entry(void *rwRoot)
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
 	spi_flash.reset();
-	read_elf(spi_flash, uart, sram);
+	uint32_t entrypoint = read_elf(spi_flash, uart, sram);
 
 	write_str(uart, prefix);
 	write_str(uart, "Booting into program, hopefully.\r\n");
+	return entrypoint;
 }
