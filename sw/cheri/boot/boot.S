@@ -11,6 +11,11 @@ start:
 	cspecialr        cs0, mtdc
 	auipcc           cs1, 0
 
+	// Install a trap handler to allow diagnostics when things go wrong.
+	la_abs           t0, trap
+	csetaddr         ct0, cs1, t0
+	cspecialw        mtcc, ct0
+
 	// No bounds on stack, grows down from the end of IRAM
 	li               sp, 0x00100ff0
 	csetaddr         csp, cs0, sp
@@ -64,3 +69,20 @@ bl_memset:
 
 .Lret:
 	cret
+
+.section .text.trap, "ax", @progbits
+// Trap handler must be 4 byte aligned.
+.p2align 2
+trap:
+	cspecialr       ca0, mtdc
+
+	// No bounds on stack, grows down from the end of IRAM
+	li              sp, 0x00100ff0
+	csetaddr        csp, ca0, sp
+
+	ccall           exception_handler
+
+	// Infinite loop if the exception handler even returns
+1:
+	wfi
+	j 1b
