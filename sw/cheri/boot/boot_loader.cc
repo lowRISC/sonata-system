@@ -14,6 +14,11 @@
 #include <platform-uart.hh>
 #include <stdint.h>
 
+extern "C" {
+	// Use a different name to avoid resolve to CHERIoT-RTOS memset symbol.
+	void bl_memset(void *, int, size_t);
+}
+
 #define DEBUG_ELF_HEADER 0
 
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
@@ -30,7 +35,7 @@ typedef CHERI::Capability<volatile OpenTitanUart<>> &UartRef;
 	}
 }
 
-void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
+void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
 {
 	write_str(uart, prefix);
 	write_str(uart, "Loading software from flash...\r\n");
@@ -89,14 +94,10 @@ void read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint32_t> sram)
 		{
 			uint32_t size = std::min(phdr.p_filesz, offset + 0x400) - offset;
 			flash.read(
-			  phdr.p_offset + offset, (uint8_t *)segment.get() + offset, size);
+			  phdr.p_offset + offset, segment.get() + offset, size);
 		}
 
-		// We don't have memset symbol available.
-		for (uint32_t offset = phdr.p_filesz; offset < phdr.p_memsz; offset++)
-		{
-			((uint8_t *)segment.get())[offset] = 0;
-		}
+		bl_memset(segment.get() + phdr.p_filesz, 0, phdr.p_memsz - phdr.p_filesz);
 	}
 }
 
@@ -123,9 +124,9 @@ extern "C" void rom_loader_entry(void *rwRoot)
 	gpio.address() = GPIO_ADDRESS;
 	gpio.bounds()  = GPIO_BOUNDS;
 
-	CHERI::Capability<uint32_t> sram = root.cast<uint32_t>();
-	sram.address()                   = 0x00101000;
-	sram.bounds()                    = 0x00040000 - 0x1000;
+	CHERI::Capability<uint8_t> sram = root.cast<uint8_t>();
+	sram.address()                  = SRAM_ADDRESS + 0x1000;
+	sram.bounds()                   = SRAM_BOUNDS - 0x1000;
 
 	spi->init(false, false, true, 0);
 	uart->init(BAUD_RATE);
