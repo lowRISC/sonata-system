@@ -56,7 +56,10 @@ static void write_hex_with_prefix(UartRef uart, const char *msg, uint32_t value)
 	write_str(uart, "\r\n");
 }
 
-uint32_t read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram)
+uint32_t read_elf(SpiFlash                  &flash,
+                  UartRef                    uart,
+                  CHERI::Capability<uint8_t> sram,
+                  CHERI::Capability<uint8_t> hyperram)
 {
 	write_str(uart, prefix);
 	write_str(uart, "Loading software from flash...\r\n");
@@ -99,9 +102,16 @@ uint32_t read_elf(SpiFlash &flash, UartRef uart, CHERI::Capability<uint8_t> sram
 		debug_print_phdr(uart, phdr);
 #endif
 
-		auto segment      = sram;
+		auto segment      = phdr.p_vaddr >= sram.top() ? hyperram : sram;
 		segment.address() = phdr.p_vaddr;
 		segment.bounds().set_inexact(phdr.p_memsz);
+
+		if (!segment.is_valid())
+		{
+			debug_print_phdr(uart, phdr);
+			complain_and_loop(uart,
+			                  "Cannot get a valid capability for segment\n");
+		}
 
 		for (uint32_t offset = 0; offset < phdr.p_filesz; offset += 0x400)
 		{
@@ -143,12 +153,16 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
 	sram.address()                  = SRAM_ADDRESS + 0x1000;
 	sram.bounds()                   = SRAM_BOUNDS - 0x1000;
 
+	CHERI::Capability<uint8_t> hyperram = root.cast<uint8_t>();
+	hyperram.address()                  = HYPERRAM_ADDRESS;
+	hyperram.bounds()                   = HYPERRAM_BOUNDS;
+
 	spi->init(false, false, true, 0);
 	uart->init(BAUD_RATE);
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
 	spi_flash.reset();
-	uint32_t entrypoint = read_elf(spi_flash, uart, sram);
+	uint32_t entrypoint = read_elf(spi_flash, uart, sram, hyperram);
 
 	write_str(uart, prefix);
 	write_str(uart, "Booting into program, hopefully.\r\n");
