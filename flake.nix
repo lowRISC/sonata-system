@@ -67,6 +67,21 @@
         '';
       };
 
+      lint-python = pkgs.writeShellApplication {
+        name = "lint-python";
+        runtimeInputs = [pythonEnv];
+        text = ''
+          ruff format --check .
+          ruff check .
+          mypy .
+        '';
+      };
+
+      lint-all = pkgs.writers.writeBashBin "lint-all" ''
+        ${getExe lint-markdown}
+        ${getExe lint-python}
+      '';
+
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
       sonataSimulatorFileset = fileset.toSource {
@@ -244,7 +259,7 @@
           type = "app";
           program = getExe program;
         };
-      }) [lint-markdown tests-runner tests-fpga-runner]);
+      }) [lint-all lint-markdown lint-python tests-runner tests-fpga-runner]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;

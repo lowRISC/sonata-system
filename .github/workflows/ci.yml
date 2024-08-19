@@ -60,11 +60,10 @@ jobs:
     - name: Nix Format Check
       run: nix fmt -- . --check
 
-    - name: Check Documentation Links
-      run: nix run .#lint-markdown -L
-
-    - name: Simulator Lint
-      run: nix build .#checks.x86_64-linux.sonata-simulator-lint -L
+    - name: Run Lints
+      run: |
+        nix run .#lint-all -L
+        nix build .#checks.x86_64-linux.sonata-simulator-lint -L
 
     - name: Build Documentation
       run: |
