@@ -1233,7 +1233,7 @@ module sonata_system #(
 
   msftDvIp_mmreg hardware_revoker_control_reg (
     .clk_i           (clk_sys_i),
-    .rstn_i          (rst_sys_ni),
+    .rstn_i          (rst_core_n),
 
     .reg_en_i        (device_req[HwRev]),
     .reg_addr_i      (device_addr[HwRev]),
