@@ -109,6 +109,28 @@ module top_sonata (
   input  logic       ah_tmpio12, // CIPO
   output logic       ah_tmpio13, // SCLK
 
+  // Arduino shield analog(ue) pins digital inputs
+  input logic        analog0_digital,
+  input logic        analog1_digital,
+  input logic        analog2_digital,
+  input logic        analog3_digital,
+  input logic        analog4_digital,
+  input logic        analog5_digital,
+
+  // Arduino shield analog(ue) pins actual analog(ue) input pairs
+  input wire         analog0_p,
+  input wire         analog0_n,
+  input wire         analog1_p,
+  input wire         analog1_n,
+  input wire         analog2_p,
+  input wire         analog2_n,
+  input wire         analog3_p,
+  input wire         analog3_n,
+  input wire         analog4_p,
+  input wire         analog4_n,
+  input wire         analog5_p,
+  input wire         analog5_n,
+
   // mikroBUS Click other
   output logic       mb10, // PWM
   input  logic       mb9,  // Interrupt
@@ -381,6 +403,26 @@ module top_sonata (
     // PMOD GPIO
     .pmod_gp_i      ({pmod1, pmod0}),
     .pmod_gp_o       ({pmod_gp_oe, pmod_gp_o}),
+
+    // Arduino Shield Analog(ue)
+    .analog0_digital (analog0_digital),
+    .analog1_digital (analog1_digital),
+    .analog2_digital (analog2_digital),
+    .analog3_digital (analog3_digital),
+    .analog4_digital (analog4_digital),
+    .analog5_digital (analog5_digital),
+    .analog0_p      (analog0_p),
+    .analog0_n      (analog0_n),
+    .analog1_p      (analog1_p),
+    .analog1_n      (analog1_n),
+    .analog2_p      (analog2_p),
+    .analog2_n      (analog2_n),
+    .analog3_p      (analog3_p),
+    .analog3_n      (analog3_n),
+    .analog4_p      (analog4_p),
+    .analog4_n      (analog4_n),
+    .analog5_p      (analog5_p),
+    .analog5_n      (analog5_n),
 
     // UART 0
     .uart0_rx_i     (ser0_rx),

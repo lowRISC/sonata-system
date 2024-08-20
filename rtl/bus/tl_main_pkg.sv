@@ -16,6 +16,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_PMOD_GPIO   = 32'h 80008000;
   localparam logic [31:0] ADDR_SPACE_RGBLED_CTRL = 32'h 80009000;
   localparam logic [31:0] ADDR_SPACE_HW_REV      = 32'h 8000a000;
+  localparam logic [31:0] ADDR_SPACE_XADC        = 32'h 8000b000;
   localparam logic [31:0] ADDR_SPACE_TIMER       = 32'h 80040000;
   localparam logic [31:0] ADDR_SPACE_UART0       = 32'h 80100000;
   localparam logic [31:0] ADDR_SPACE_UART1       = 32'h 80101000;
@@ -44,6 +45,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_PMOD_GPIO   = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_RGBLED_CTRL = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_HW_REV      = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_XADC        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_TIMER       = 32'h 0000ffff;
   localparam logic [31:0] ADDR_MASK_UART0       = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_UART1       = 32'h 00000fff;
@@ -63,7 +65,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 27;
+  localparam int N_DEVICE = 28;
 
   typedef enum int {
     TlSram = 0,
@@ -76,23 +78,24 @@ package tl_main_pkg;
     TlPmodGpio = 7,
     TlRgbledCtrl = 8,
     TlHwRev = 9,
-    TlTimer = 10,
-    TlUart0 = 11,
-    TlUart1 = 12,
-    TlUart2 = 13,
-    TlUart3 = 14,
-    TlUart4 = 15,
-    TlI2C0 = 16,
-    TlI2C1 = 17,
-    TlSpiFlash = 18,
-    TlSpiLcd = 19,
-    TlSpiEth = 20,
-    TlSpiRp0 = 21,
-    TlSpiRp1 = 22,
-    TlSpiArd = 23,
-    TlSpiMkr = 24,
-    TlUsbdev = 25,
-    TlRvPlic = 26
+    TlXadc = 10,
+    TlTimer = 11,
+    TlUart0 = 12,
+    TlUart1 = 13,
+    TlUart2 = 14,
+    TlUart3 = 15,
+    TlUart4 = 16,
+    TlI2C0 = 17,
+    TlI2C1 = 18,
+    TlSpiFlash = 19,
+    TlSpiLcd = 20,
+    TlSpiEth = 21,
+    TlSpiRp0 = 22,
+    TlSpiRp1 = 23,
+    TlSpiArd = 24,
+    TlSpiMkr = 25,
+    TlUsbdev = 26,
+    TlRvPlic = 27
   } tl_device_e;
 
   typedef enum int {

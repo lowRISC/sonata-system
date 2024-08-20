@@ -51,6 +51,26 @@ module sonata_system #(
   input  logic [PmodGpiWidth-1:0]  pmod_gp_i,
   output logic [WordWidth-1:0]     pmod_gp_o,
 
+  // Analog(ue) input
+  input logic        analog0_digital,
+  input logic        analog1_digital,
+  input logic        analog2_digital,
+  input logic        analog3_digital,
+  input logic        analog4_digital,
+  input logic        analog5_digital,
+  input wire         analog0_p,
+  input wire         analog0_n,
+  input wire         analog1_p,
+  input wire         analog1_n,
+  input wire         analog2_p,
+  input wire         analog2_n,
+  input wire         analog3_p,
+  input wire         analog3_n,
+  input wire         analog4_p,
+  input wire         analog4_n,
+  input wire         analog5_p,
+  input wire         analog5_n,
+
   // UART 0
   input  logic                     uart0_rx_i,
   output logic                     uart0_tx_o,
@@ -517,6 +537,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_timer_d2h;
   tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
   tlul_pkg::tl_d2h_t tl_rgbled_ctrl_d2h;
+  tlul_pkg::tl_h2d_t tl_xadc_h2d;
+  tlul_pkg::tl_d2h_t tl_xadc_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
   tlul_pkg::tl_d2h_t tl_pwm_d2h;
   tlul_pkg::tl_h2d_t tl_i2c0_h2d;
@@ -578,6 +600,8 @@ module sonata_system #(
     .tl_pmod_gpio_i   (tl_pmod_gpio_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
+    .tl_xadc_o        (tl_xadc_h2d),
+    .tl_xadc_i        (tl_xadc_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
     .tl_hw_rev_i      (tl_hw_rev_d2h),
     .tl_timer_o       (tl_timer_h2d),
@@ -1560,7 +1584,7 @@ module sonata_system #(
     .cio_usb_dn_en_o              (usb_dn_en_o),
     .usb_tx_se0_o                 (),
     .usb_tx_d_o                   (),
- 
+
     // Non-data I/O
     .cio_sense_i                  (usb_sense_i),
     .usb_dp_pullup_o              (usb_dp_pullup_o),
@@ -1801,6 +1825,28 @@ module sonata_system #(
     .tl_o   (tl_rgbled_ctrl_d2h),
 
     .rgbled_dout_o
+  );
+
+  // XADC - Xilinx Hard-IP Analog(ue) to Digital Converter
+  xadc u_xadc(
+    .clk_i     (clk_sys_i),
+    .rst_ni    (rst_sys_ni),
+
+    .tl_i      (tl_xadc_h2d),
+    .tl_o      (tl_xadc_d2h),
+
+    .analog0_p,
+    .analog0_n,
+    .analog1_p,
+    .analog1_n,
+    .analog2_p,
+    .analog2_n,
+    .analog3_p,
+    .analog3_n,
+    .analog4_p,
+    .analog4_n,
+    .analog5_p,
+    .analog5_n
   );
 
   // Debug module top.
