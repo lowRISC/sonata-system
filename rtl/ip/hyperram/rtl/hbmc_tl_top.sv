@@ -481,20 +481,18 @@ module hbmc_tl_top import tlul_pkg::*; #(
   // Command FIFO provides reads and writes from tilelink requests. Writes just happen without any
   // response and reads writes to rdata_fifo to be picked up by the tilelink response.
 
-  // 1 tag bit per 64 bits so divide HRSize by 8
+  // 1 tag bit per 64 bits so divide HyperRAMSize by 8
   localparam TAG_ADDR_W = $clog2(HyperRAMSize) - 3;
   localparam TAG_FIFO_DEPTH = 4;
 
   typedef struct packed {
     logic [TAG_ADDR_W-1:0] addr;
     logic                  write;
+    logic                  wdata;
   } tag_cmd_t;
 
   tag_cmd_t tag_cmd_in, tag_cmd_out;
   logic tag_cmd_valid;
-
-  logic tag_wdata_rvalid, tag_wdata_rready;
-  logic tag_wdata;
 
   logic tag_rdata;
   logic tag_rdata_valid_q, tag_rdata_valid_d;
@@ -502,6 +500,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
 
   assign tag_cmd_in.addr  = cmd_mem_addr[TAG_ADDR_W + 1:2];
   assign tag_cmd_in.write = cmd_wr_not_rd;
+  assign tag_cmd_in.wdata = tl_i.a_user.capability;
 
   prim_fifo_sync #(
     .Width($bits(tag_cmd_t)),
@@ -517,26 +516,6 @@ module hbmc_tl_top import tlul_pkg::*; #(
     .rvalid_o (tag_cmd_valid),
     .rready_i (1'b1),
     .rdata_o  (tag_cmd_out),
-
-    .full_o  (),
-    .depth_o (),
-    .err_o   ()
-  );
-
-  prim_fifo_sync #(
-    .Width(1),
-    .Depth(TAG_FIFO_DEPTH),
-    .Pass(1'b0)
-  ) u_tag_wdata_fifo (
-    .clk_i    (clk_i),
-    .rst_ni   (rst_ni),
-    .clr_i    (1'b0),
-    .wvalid_i (dfifo_wr_ena),
-    .wready_o (),
-    .wdata_i  (tl_i.a_user.capability),
-    .rvalid_o (tag_wdata_rvalid),
-    .rready_i (tag_wdata_rready),
-    .rdata_o  (tag_wdata),
 
     .full_o  (),
     .depth_o (),
@@ -563,12 +542,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
     .err_o   ()
   );
 
-  `ASSERT(always_tag_wdata_valid_when_cmd_write,
-    tag_cmd_valid & tag_cmd_out.write |-> tag_wdata_rvalid)
-
   `ASSERT(always_tag_rdata_valid_when_read_data_response, ufifo_rd_ena |-> tag_rdata_fifo_rvalid)
-
-  assign tag_wdata_rready = tag_cmd_valid & tag_cmd_out.write;
 
   assign tag_rdata_valid_d = tag_cmd_valid & ~tag_cmd_out.write;
 
@@ -588,7 +562,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
     .req_i   (tag_cmd_valid),
     .write_i (tag_cmd_out.write),
     .addr_i  (tag_cmd_out.addr),
-    .wdata_i (tag_wdata),
+    .wdata_i (tag_cmd_out.wdata),
     .wmask_i ('1),
     .rdata_o (tag_rdata),
     .cfg_i   ('0)
