@@ -267,6 +267,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
   always_comb begin
     tl_o_int           = '0;
     tl_req_fifo_rready = 1'b0;
+    ufifo_rd_ena       = 1'b0;
 
     if (tl_req_fifo_rvalid) begin
       // We have an incoming request that needs a response
