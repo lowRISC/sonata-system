@@ -2,22 +2,14 @@
 ## Licensed under the Apache License, Version 2.0, see LICENSE for details.
 ## SPDX-License-Identifier: Apache-2.0
 
+# This file is for physical constraints.
+
 # Using the names in the PCB design, they should match this file with a case-insensitive search:
 # https://github.com/newaetech/sonata-pcb/tree/main
 
 ## Clocks
-create_clock -period 40.000 -name mainClk -waveform {0.000 20.000} [get_ports mainClk]
-create_clock -period 100.000 -name tck_i -waveform {0.000 50.000} [get_ports tck_i]
-
 set_property -dict { PACKAGE_PIN P15 IOSTANDARD LVCMOS33 } [get_ports mainClk];
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i]
-
-## Clock Domain Crossings
-set clks_sys_unbuf  [get_clocks -of_objects [get_pin u_clkgen/pll/CLKOUT0]]
-set clks_usb_unbuf  [get_clocks -of_objects [get_pin u_clkgen/pll/CLKOUT1]]
-
-## Set asynchronous clock groups
-set_clock_groups -group ${clks_sys_unbuf} -group ${clks_usb_unbuf} -group mainClk -asynchronous
 
 ## Reset
 ## PCB revision 0.3 and above
@@ -291,49 +283,3 @@ set_property -dict { PACKAGE_PIN   J2  IOSTANDARD   LVCMOS18 } [get_ports { hype
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
-
-set_false_path -to [get_ports hyperram_ckp]
-set_false_path -to [get_ports hyperram_ckn]
-set_false_path -to [get_ports hyperram_rwds]
-set_false_path -to [get_ports hyperram_dq[*]]
-
-# set input false path. dq[*] and rwds are supposed to
-# be fully asynchronous for the data recovery logic
-set_false_path -from [get_ports hyperram_rwds]
-set_false_path -from [get_ports hyperram_dq[*]]
-
-# False path for 'hb_cs_n' and 'hb_reset_n'
-set_false_path -to [get_ports hyperram_cs]
-set_false_path -to [get_ports hyperram_nrst]
-
-set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/u_hbmc_cmd_fifo/*storage*/*]]
-set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/hbmc_ufifo_inst/u_fifo/*storage*/*]]
-set_false_path -from [get_pins -of [get_cells u_sonata_system/g_hyperram.u_hyperram/u_hbmc_tl_top/hbmc_dfifo_inst/u_fifo/*storage*/*]]
-
-# TODO: Want some general constraints that will setup appropriate false paths
-# for all CDC prims. An attempt is below but it isn't working yet.
-#set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
-#
-#foreach sync_cell $sync_cells {
-#  set sync_pins [get_pins -of [get_cells -hier -regexp $sync_cell/.*u_sync_1.*]]
-#  if {[info exists endpoint_sync_pins_for_false_paths]} {
-#    set endpoint_sync_pins_for_false_paths $sync_pins
-#  } else {
-#    lappend endpoint_sync_pins_for_false_paths $sync_pins
-#  }
-#}
-#
-#set_false_path -to $endpoint_sync_pins_for_false_paths
-#
-#set async_fifo_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async}]
-#
-#foreach async_fifo_cell $async_fifo_cells {
-#  set async_fifo_pins [get_pins -of [get_cells -hier -regexp $async_fifo_cell/.*storage.*]]
-#  if {[info exists startpoint_fifo_async_pins_for_false_paths]} {
-#    set startpoint_fifo_async_pins_for_false_paths $async_fifo_pins
-#  } else {
-#    lappend startpoint_fifo_async_pins_for_false_paths $async_fifo_pins
-#  }
-#}
-#
-#set_false_path -from $startpoint_fifo_async_pins_for_false_paths

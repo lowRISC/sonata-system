@@ -35,8 +35,15 @@ filesets:
 
   files_constraints_sonata:
     files:
-      - data/pins_sonata.xdc
+      # Per AMD advice (UG949):
+      - data/pins_sonata.xdc  # 1 file for physical +
+      - data/synth_timing.xdc # 1 file for timing (synthesis) +
+      - data/impl_timing.xdc  # 1 file for timing (implementation)
     file_type: xdc
+
+  files_tcl:
+    files:
+      - flow/vivado_setup.tcl : { file_type: tclSource }
 
 parameters:
   # XXX: This parameter needs to be absolute, or relative to the *.runs/synth_1
@@ -78,6 +85,7 @@ targets:
     filesets_append:
       - files_sonata
       - files_constraints_sonata
+      - files_tcl
     toplevel: top_sonata
     tools:
       vivado:
