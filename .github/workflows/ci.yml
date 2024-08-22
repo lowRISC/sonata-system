@@ -63,7 +63,7 @@ jobs:
     - name: Run Lints
       run: |
         nix run .#lint-all -L
-        nix build .#checks.x86_64-linux.sonata-simulator-lint -L
+        nix build .#sonata-simulator-lint -L
 
     - name: Build Documentation
       run: |

@@ -129,7 +129,7 @@
         meta.mainProgram = pname;
       };
 
-      sonata-sim-boot-stub = pkgs.stdenv.mkDerivation rec {
+      sonata-sim-boot-stub = pkgs.stdenv.mkDerivation {
         inherit version;
         pname = "sonata-sim-boot-stub";
         src = sw/cheri/sim_boot_stub/.;
@@ -190,43 +190,31 @@
         };
       };
 
-      tests-runner = pkgs.writeShellApplication {
-        name = "tests-runner";
-        runtimeInputs = with pkgs; [
-          openocd
-          (python3.withPackages (pyPkg: with pyPkg; [pyserial]))
-        ];
-        checkPhase = "";
+      tests-fpga = pkgs.writeShellApplication {
+        name = "tests-fpga";
+        runtimeInputs = [pythonEnv];
         text = ''
-          python ./util/test_runner.py $@
+          set +u
+          if [ -z "$1" ]; then
+            echo "Please provide the tty device location (e.g. /dev/ttyUSB2)" \
+              "as the first argument."
+            exit 2
+          fi
+          ${./util/test_runner.py} -t 30 fpga "$1" \
+            --elf-file ${sonata-system-software}/bin/test_runner \
+            --tcl-file ${./util/sonata-openocd-cfg.tcl}
         '';
       };
-
-      tests-fpga-runner = pkgs.writers.writeBashBin "tests-fpga-runner" ''
-        set -e
-        if [ -z "$1" ]; then
-          echo "Please provide the tty device location (e.g. /dev/ttyUSB2)" \
-            "as the first argument."
-          exit 2
-        fi
-        ${getExe tests-runner} -t 30 fpga $1 \
-          --elf-file ${sonata-system-software}/bin/test_runner \
-          --tcl-file ${./util/sonata-openocd-cfg.tcl}
-        #$\{getExe tests-runner} -t 30 fpga $1 --uf2-file $\{cheriot-rtos-test-suite}/share/test-suite.uf2
-      '';
 
       tests-simulator = pkgs.stdenvNoCC.mkDerivation {
         name = "tests-simulator";
         src = ./.;
         dontBuild = true;
         doCheck = true;
-        buildInputs = [sonata-simulator];
+        buildInputs = [sonata-simulator pythonEnv];
         checkPhase = ''
-          ${getExe tests-runner} -t 30 sim \
+          python ${./util/test_runner.py} -t 30 sim \
               --elf-file ${sonata-system-software}/bin/test_runner
-          #$\{getExe tests-runner} -t 600 sim \
-          #  --sim-boot-stub $\{sonata-sim-boot-stub.out}/share/sim_boot_stub \
-          #  --elf-file $\{cheriot-rtos-test-suite}/share/test-suite
         '';
         installPhase = "mkdir $out";
       };
@@ -251,15 +239,24 @@
           ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
-      packages = {inherit sonata-simulator sonata-sim-boot-stub sonata-documentation sonata-system-software cheriot-rtos-test-suite;};
-      checks = {inherit sonata-simulator-lint tests-simulator;};
+      packages = {
+        inherit
+          sonata-simulator
+          sonata-simulator-lint
+          sonata-sim-boot-stub
+          sonata-documentation
+          sonata-system-software
+          cheriot-rtos-test-suite
+          ;
+      };
+      checks = {inherit tests-simulator;};
       apps = builtins.listToAttrs (map (program: {
         inherit (program) name;
         value = {
           type = "app";
           program = getExe program;
         };
-      }) [lint-all lint-markdown lint-python tests-runner tests-fpga-runner]);
+      }) [lint-all lint-markdown lint-python tests-fpga]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;

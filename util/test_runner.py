@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright lowRISC Contributors.
 # SPDX-License-Identifier: Apache-2.0
 
