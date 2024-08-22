@@ -8,8 +8,8 @@ It surrounds wavejson code-blocks with script tags of type WaveDrom.
 """
 
 import json
-import sys
 import re
+import sys
 
 from mdbook import utils as md_utils
 
