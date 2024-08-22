@@ -27,3 +27,24 @@ fusesoc = { git = "https://github.com/lowRISC/fusesoc.git", tag = "ot-0.4" }
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+strict = true
+disable_error_code = ["import-untyped"]
+exclude = [
+  "^cheriot-rtos/",
+  "^vendor/",
+  "build/",
+  "util/vendor.py",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 79
+extend-exclude = [
+  "vendor/",
+  "util/vendor.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "SIM", "PTH", "C4", "A", "RUF", "PERF"]
