@@ -142,7 +142,7 @@ class Config(argparse.Namespace):
         # Set the attributs of this object from the program arguments
         parser.parse_args(namespace=self)
 
-        def check_path(path):
+        def check_path(path: Path | str) -> None:
             if not os.path.exists(path):  # noqa: PTH110
                 print(f"'{path}' doesn't exist.")
                 exit(ReturnCode.BAD_INPUT)
@@ -178,7 +178,7 @@ def run_simulator(config: Config) -> None:
 
     The process is killed if `main_finished` is set.
     """
-    command = [config.simulator_binary]
+    command = [str(config.simulator_binary)]
     command += ["-E", config.sim_boot_stub] if config.sim_boot_stub else []
     command += ["-E", config.elf_file]
     with Popen(command, stdout=PIPE, stderr=PIPE) as proc:
@@ -207,7 +207,8 @@ def load_fpga(config: Config) -> None:
     else:
         command = [
             "openocd",
-            "-f", str(config.tcl_file),
+            "-f",
+            str(config.tcl_file),
             f"-c load_image {config.elf_file}  0x0",
             f"-c verify_image {config.elf_file}  0x0",
             "-c exit",
@@ -242,7 +243,7 @@ def watch_output(config: Config) -> None:
                 with config.uart_log.open() as uart:
                     while True:
                         yield uart.readline()
-            except FileNotFoundError:
+            except FileNotFoundError:  # noqa: PERF203
                 # Keep attempting to open the UART log file, until it exists.
                 time.sleep(TICK_SECONDS)
 
