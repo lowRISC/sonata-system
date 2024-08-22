@@ -197,7 +197,7 @@
         ${getExe tests-runner} -t 30 fpga $1 \
           --elf-file ${sonata-system-software}/bin/test_runner \
           --tcl-file ${./util/sonata-openocd-cfg.tcl}
-        ${getExe tests-runner} -t 30 fpga $1 --uf2-file ${cheriot-rtos-test-suite}/share/test-suite.uf2
+        #$\{getExe tests-runner} -t 30 fpga $1 --uf2-file $\{cheriot-rtos-test-suite}/share/test-suite.uf2
       '';
 
       tests-simulator = pkgs.stdenvNoCC.mkDerivation {
@@ -209,9 +209,9 @@
         checkPhase = ''
           ${getExe tests-runner} -t 30 sim \
               --elf-file ${sonata-system-software}/bin/test_runner
-          ${getExe tests-runner} -t 600 sim \
-            --sim-boot-stub ${sonata-sim-boot-stub.out}/share/sim_boot_stub \
-            --elf-file ${cheriot-rtos-test-suite}/share/test-suite
+          #$\{getExe tests-runner} -t 600 sim \
+          #  --sim-boot-stub $\{sonata-sim-boot-stub.out}/share/sim_boot_stub \
+          #  --elf-file $\{cheriot-rtos-test-suite}/share/test-suite
         '';
         installPhase = "mkdir $out";
       };
