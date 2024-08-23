@@ -19,6 +19,7 @@ module sonata_system #(
   parameter int unsigned RpiGpiWidth   = 11,
   parameter int unsigned ArdGpiWidth   = 10,
   parameter int unsigned PmodGpiWidth  = 16,
+  parameter int unsigned ArdAniWidth   = 6,
   parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
@@ -50,6 +51,12 @@ module sonata_system #(
   output logic [WordWidth-1:0]     ard_gp_o,
   input  logic [PmodGpiWidth-1:0]  pmod_gp_i,
   output logic [WordWidth-1:0]     pmod_gp_o,
+
+  // Arduino shield analog(ue) inputs:
+  // Digital version of inputs, then p & n true analog(ue) inputs
+  input  logic [ArdAniWidth-1:0]   ard_an_di_i,
+  input  wire  [ArdAniWidth-1:0]   ard_an_p_i,
+  input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
   // UART 0
   input  logic                     uart0_rx_i,
@@ -503,6 +510,8 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_ard_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_pmod_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_pmod_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_xadc_h2d;
+  tlul_pkg::tl_d2h_t tl_xadc_d2h;
   tlul_pkg::tl_h2d_t tl_uart0_h2d;
   tlul_pkg::tl_d2h_t tl_uart0_d2h;
   tlul_pkg::tl_h2d_t tl_uart1_h2d;
@@ -580,6 +589,8 @@ module sonata_system #(
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
     .tl_hw_rev_i      (tl_hw_rev_d2h),
+    .tl_xadc_o        (tl_xadc_h2d),
+    .tl_xadc_i        (tl_xadc_d2h),
     .tl_timer_o       (tl_timer_h2d),
     .tl_timer_i       (tl_timer_d2h),
     .tl_uart0_o       (tl_uart0_h2d),
@@ -1328,6 +1339,22 @@ module sonata_system #(
 
     .gp_i            (pmod_gp_i),
     .gp_o            (pmod_gp_o)
+  );
+
+  // Digital inputs from Arduino sheild analog(ue) pins currently unused
+  logic unused_ard_an_di;
+  assign unused_ard_an_di = ^ard_an_di_i;
+
+  // XADC - Xilinx Hard-IP Analog(ue) to Digital Converter
+  xadc u_xadc(
+    .clk_i     (clk_sys_i),
+    .rst_ni    (rst_sys_ni),
+
+    .tl_i      (tl_xadc_h2d),
+    .tl_o      (tl_xadc_d2h),
+
+    .analog_p_i(ard_an_p_i),
+    .analog_n_i(ard_an_n_i)
   );
 
   i2c u_i2c0 (
