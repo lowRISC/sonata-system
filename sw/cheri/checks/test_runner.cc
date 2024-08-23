@@ -9,7 +9,7 @@
 //#include <thread.h>
 
 
-extern "C" uint32_t rom_loader_entry(void *rwRoot)
+extern "C" uint32_t entry_point(void *rwRoot)
 {
     using namespace CHERI;
 	Capability<void> root{rwRoot};

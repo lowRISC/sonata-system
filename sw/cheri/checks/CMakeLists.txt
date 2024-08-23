@@ -10,8 +10,9 @@ set(CHECKS
 foreach(CHECK ${CHECKS})
   get_filename_component(NAME ${CHECK} NAME_WE)
 
-  add_executable(${NAME} ${CHECK} boot.S)
+  add_executable(${NAME} ${CHECK})
   target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
+  target_link_libraries(${NAME} common)
 
   add_custom_command(
     TARGET ${NAME} POST_BUILD
@@ -37,9 +38,9 @@ add_custom_command(
 install(TARGETS ${NAME})
 
 set(NAME hyperram_test)
-
-add_executable(${NAME} hyperram_exec_test.S hyperram_test.cc  boot.S)
+add_executable(${NAME}  hyperram_test.cc)
 target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
+target_link_libraries(${NAME} common)
 
 add_custom_command(
   TARGET ${NAME} POST_BUILD

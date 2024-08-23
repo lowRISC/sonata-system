@@ -106,7 +106,7 @@ class OpenTitanUart
  * read-write root in the first argument.
  */
 [[noreturn]]
-extern "C" void rom_loader_entry(void *rwRoot)
+extern "C" void entry_point(void *rwRoot)
 {
   Capability<void> root{rwRoot};
 

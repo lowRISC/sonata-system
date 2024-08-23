@@ -14,7 +14,7 @@ static constexpr uint32_t wait_cycles = (CPU_TIMER_HZ / 10);
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-extern "C" uint32_t rom_loader_entry(void *rwRoot)
+extern "C" uint32_t entry_point(void *rwRoot)
 {
   Capability<void> root{rwRoot};
 
