@@ -1,3 +1,6 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 rtl/bus/tl_main_pkg.sv linguist-generated=true
 rtl/bus/tl_ifetch_pkg.sv linguist-generated=true
 rtl/bus/xbar_main.sv linguist-generated=true

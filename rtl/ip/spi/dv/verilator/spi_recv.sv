@@ -1,3 +1,8 @@
+/**
+ * Copyright lowRISC contributors.
+ * Licensed under the Apache License, Version 2.0, see LICENSE for details.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 module spi_recv #(parameter bit CPHA = 1'b0) (
   input spi_clk,
   input spi_copi_i

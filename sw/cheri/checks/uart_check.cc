@@ -1,3 +1,9 @@
+/**
+ * Copyright lowRISC contributors.
+ * Licensed under the Apache License, Version 2.0, see LICENSE for details.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #define CHERIOT_NO_AMBIENT_MALLOC
 #define CHERIOT_NO_NEW_DELETE
 #define CHERIOT_PLATFORM_CUSTOM_UART

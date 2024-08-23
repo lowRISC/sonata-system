@@ -1,3 +1,7 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 set(LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/link.ld")
 
 set(CMAKE_SYSTEM_NAME Generic)

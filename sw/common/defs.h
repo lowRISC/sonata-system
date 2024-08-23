@@ -1,3 +1,9 @@
+/**
+ * Copyright lowRISC contributors.
+ * Licensed under the Apache License, Version 2.0, see LICENSE for details.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #pragma once
 
 #define CPU_TIMER_HZ (30'000'000)

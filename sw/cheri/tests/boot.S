@@ -10,12 +10,10 @@
 	.p2align 2
     .type start,@function
 start:
-	// Enable the ICache
-	csrsi            0x7c0, 1
 	// ca0 (first argument) contains the read-write root
 	cspecialr        ca0, mtdc
 
-	// No bounds on stack, grows down from the end of IRAM
+	// No bounds on stack, grows down from the end
 	li               sp, 0x0010E000
 	csetaddr         csp, ca0, sp
 	auipcc           cra, 0
@@ -29,11 +27,3 @@ start:
 	// Clear capability from stack
 	csc              cnull, 0(csp)
 	cjalr            cra
-
-	// Jump to the newly loaded binary.
-	// This could be a relative jump, but I'd need to get the relocations right
-	// and we have 32 KiB of IROM so wasting a few bytes doesn't really matter.
-	auipcc           cra, 0
-	li               t0, 0x00140000
-	csetaddr         cra, cra, t0
-	cjr              cra
