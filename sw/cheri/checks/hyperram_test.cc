@@ -3,6 +3,7 @@
 #define CHERIOT_PLATFORM_CUSTOM_UART
 
 #include "../../common/defs.h"
+#include "../common/console-utils.hh"
 #include "../common/uart-utils.hh"
 
 #include <cheri.hh>
@@ -14,30 +15,6 @@ using namespace CHERI;
 
 const int RandTestBlockSize = 256;
 const int HyperramSize = (1024 * 1024) / 4;
-
-#define CC_BOLD "1"
-#define CC_RED "31"
-#define CC_GREEN "32"
-#define CC_RESET "0"
-
-void set_console_mode(Capability<volatile OpenTitanUart> uart,
-                      const char *cc) {
-  write_str(uart, "\x1b[");
-  write_str(uart, cc);
-  write_str(uart, "m");
-}
-
-void write_test_result(Capability<volatile OpenTitanUart> uart,
-                       int failures) {
-  if (failures == 0) {
-    set_console_mode(uart, CC_GREEN);
-    write_str(uart, "PASS!\n");
-  } else {
-    set_console_mode(uart, CC_RED);
-    write_str(uart, "FAIL!\n");
-  }
-  set_console_mode(uart, CC_RESET);
-}
 
 // Write random values to a block of memory (size given by 'RandTestBlockSize'
 // global constant). Reads them all back and checks read values matched written
