@@ -1,3 +1,7 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 set(TEST boot_loader.cc)
 
 get_filename_component(NAME ${TEST} NAME_WE)

@@ -1,3 +1,7 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.13)
 include(FetchContent)
 

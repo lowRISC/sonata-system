@@ -1,3 +1,7 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 # This is the same sets of compilation flags used in ibex CoreMark core_portme.mak.
 set(CMAKE_C_FLAGS "-mtune=sifive-3-series -O2 -falign-functions=16 -funroll-all-loops -finline-functions -falign-jumps=4 -mstrict-align")
 

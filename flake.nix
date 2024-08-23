@@ -1,3 +1,6 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 {
   description = "Sonata System";
   inputs = {
@@ -78,6 +81,7 @@
       };
 
       lint-all = pkgs.writers.writeBashBin "lint-all" ''
+        ${getExe pkgs.reuse} --suppress-deprecation lint
         ${getExe lint-markdown}
         ${getExe lint-python}
       '';

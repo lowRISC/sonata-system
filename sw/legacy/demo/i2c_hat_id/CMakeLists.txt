@@ -1,3 +1,7 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
 add_executable(i2c_hat_id i2c_hat_id.c)
 
 # pull in core dependencies and additional i2c hardware support
