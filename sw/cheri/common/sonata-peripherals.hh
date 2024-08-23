@@ -7,6 +7,7 @@
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGPIO *GpioPtr;
 typedef volatile OpenTitanUart *UartPtr;
+typedef volatile uint32_t *HyperramPtr;
 
 [[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root) {
 	CHERI::Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
@@ -27,3 +28,10 @@ typedef volatile OpenTitanUart *UartPtr;
 	uart.bounds()  = UART_BOUNDS;
 	return uart;
 };
+
+[[maybe_unused]] static HyperramPtr hyperram_ptr(CapRoot root) {
+	CHERI::Capability<volatile uint32_t> hyperram = root.cast<volatile uint32_t>();
+	hyperram.address() = HYPERRAM_ADDRESS;
+	hyperram.bounds()  = HYPERRAM_BOUNDS;
+	return hyperram;
+}
