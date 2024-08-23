@@ -230,7 +230,7 @@ int execute_test(Capability<volatile uint32_t> &hyperram_area,
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-[[noreturn]] extern "C" void rom_loader_entry(void *rwRoot) {
+[[noreturn]] extern "C" void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
