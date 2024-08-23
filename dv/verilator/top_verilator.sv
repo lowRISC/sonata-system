@@ -62,6 +62,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .pmod_gp_i(0),
     .pmod_gp_o( ),
 
+    .ard_an_di_i(0),
+    .ard_an_p_i (0),
+    .ard_an_n_i (0),
+
     // UART 0 TX and RX
     .uart0_rx_i     (uart_sys_rx),
     .uart0_tx_o     (uart_sys_tx),

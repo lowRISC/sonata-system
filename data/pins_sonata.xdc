@@ -239,6 +239,28 @@ set_property -dict { PACKAGE_PIN U13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio3]
 set_property -dict { PACKAGE_PIN R12 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio2];
 set_property -dict { PACKAGE_PIN U12 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio1];
 set_property -dict { PACKAGE_PIN T11 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio0];
+## Digital inputs from analog(ue) pins via 1k resistor
+set_property -dict { PACKAGE_PIN G13 IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[0]}];
+set_property -dict { PACKAGE_PIN D14 IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[1]}];
+set_property -dict { PACKAGE_PIN C14 IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[2]}];
+set_property -dict { PACKAGE_PIN C9  IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[3]}];
+set_property -dict { PACKAGE_PIN B9  IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[4]}];
+set_property -dict { PACKAGE_PIN B8  IOSTANDARD LVCMOS33 } [get_ports {ard_an_di[5]}];
+## Analog(ue) input pairs from analog(ue) pins via buffer and impedance network
+## UG480: "...an IOSTANDARD must be selected that is compatible for the bank
+##         even though the IOSTANDARD does not affect the input programming."
+set_property -dict { PACKAGE_PIN C6  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[0]}]; # VAUX4P
+set_property -dict { PACKAGE_PIN C5  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[0]}]; # VAUX4N
+set_property -dict { PACKAGE_PIN B7  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[1]}]; # VAUX12P
+set_property -dict { PACKAGE_PIN B6  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[1]}]; # VAUX12N
+set_property -dict { PACKAGE_PIN A6  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[2]}]; # VAUX5P
+set_property -dict { PACKAGE_PIN A5  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[2]}]; # VAUX5N
+set_property -dict { PACKAGE_PIN E6  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[3]}]; # VAUX13P
+set_property -dict { PACKAGE_PIN E5  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[3]}]; # VAUX13N
+set_property -dict { PACKAGE_PIN C4  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[4]}]; # VAUX6P
+set_property -dict { PACKAGE_PIN B4  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[4]}]; # VAUX6N
+set_property -dict { PACKAGE_PIN A4  IOSTANDARD LVCMOS18 } [get_ports {ard_an_p[5]}]; # VAUX14P
+set_property -dict { PACKAGE_PIN A3  IOSTANDARD LVCMOS18 } [get_ports {ard_an_n[5]}]; # VAUX14N
 
 ## RGB LED
 set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]

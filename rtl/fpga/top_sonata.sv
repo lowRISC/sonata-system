@@ -109,6 +109,13 @@ module top_sonata (
   input  logic       ah_tmpio12, // CIPO
   output logic       ah_tmpio13, // SCLK
 
+  // Arduino shield analog(ue) pins digital inputs
+  input logic [5:0]  ard_an_di,
+
+  // Arduino shield analog(ue) pins actual analog(ue) input pairs
+  input wire  [5:0]  ard_an_p,
+  input wire  [5:0]  ard_an_n,
+
   // mikroBUS Click other
   output logic       mb10, // PWM
   input  logic       mb9,  // Interrupt
@@ -381,6 +388,11 @@ module top_sonata (
     // PMOD GPIO
     .pmod_gp_i      ({pmod1, pmod0}),
     .pmod_gp_o       ({pmod_gp_oe, pmod_gp_o}),
+
+    // Arduino Shield Analog(ue)
+    .ard_an_di_i    (ard_an_di),
+    .ard_an_p_i     (ard_an_p),
+    .ard_an_n_i     (ard_an_n),
 
     // UART 0
     .uart0_rx_i     (ser0_rx),
