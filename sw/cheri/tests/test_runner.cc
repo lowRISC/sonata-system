@@ -8,6 +8,7 @@
 #include "../../common/defs.h"
 #include "test_runner.hh"
 #include "uart_tests.hh"
+#include "hyperram_tests.hh"
 #include "../common/uart-utils.hh"
 #include "../common/sonata-peripherals.hh"
 #include <cheri.hh>
@@ -21,5 +22,6 @@ extern "C" void entry_point(void *rwRoot)
 
 	console->init(BAUD_RATE);
 	uart_tests(root, console);
+	hyperram_tests(root, console);
 	finish_running(console, "All tests finished");
 }
