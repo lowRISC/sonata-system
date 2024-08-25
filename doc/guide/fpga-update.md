@@ -1,10 +1,5 @@
 # Reloading the FPGA Image
 
-*We have seen some issues with the standard FPGA loading flow using the RP2040.
-Until these are fixed we recommend using a special version of the RP2040 firmware that has the FPGA's bitstream pre-built into it.
-This is named `tmp_rpi_rp2_part1_v0.2.uf2` in the [current release](https://github.com/lowRISC/sonata-system/releases/tag/v0.2).
-When using that firmware you do not need to follow the instructions below.*
-
 The first thing you should do before building the firmware is to get the latest version of the FPGA image, called the "bitstream". This contains the configuration
 for the microcontroller core & peripherals. The "release version" of the bitstream *must* match the
 configuration you use to build the software, as if the bitstream is a different version than what
@@ -15,16 +10,18 @@ software setup.
 
 While you can build your own bitstream as described
 in [FPGA Development](../dev/fpga-development.md), we recommend starting with our prebuilt bitstream first. Building the bitstream requires
-installing Vivado which takes a large amount of hard drive space and requires a seperate manual installation process (as well as the build
+installing Vivado which takes a large amount of hard drive space and requires a separate manual installation process (as well as the build
 process is much slower than a software compile, so adds delay until you can play with CHERIoT).
 
 ## Selecting a Bitstream
 
 When the Sonata board is plugged in, it loads one of three bitstreams. This is selected by the switch below the USB port labeled `Bitstream`:
-
 ![](img/sonata-selectbs.jpeg)
 
-The LEDs besides the switch show the current image selected as well for confirmation. We recommend using Slot 2 (the middle setting), leaving Slot 1 as the test image we shipped.
+The LEDs besides the switch show the current image selected as well for confirmation.
+
+The slot used by a bitstream is selected by the uf2 file.
+The bitstream uf2 provided in the release uses Slot 1.
 
 In case you have trouble with the board, you can quickly switch to Slot 1 to confirm the LCD, LEDs, and similar are all functioning correctly. However there is no problem
 to overwrite any of the slots, the default image can easily be copied back if you want later.
@@ -34,9 +31,9 @@ to overwrite any of the slots, the default image can easily be copied back if yo
 To program the Sonata bitstream:
 
 1. Download the bitstream from [our releases](https://github.com/lowRISC/sonata-system/releases)
-2. Select slot 2 using switch SW3 (`Bitstream`)
-3. Plug in Sonata board. You should see a SONATA drive (see troubleshooting section if unsure).
-4. Drag the updated `.bit` file and wait for the copy to complete (on Linux note the copy command may return immediately, so you need to wait until it's done.)
+2. Make sure that you have the bitstream switch (SW3) set to 1.
+3. Plug in your Sonata board using the main USB. You should see a `SONATA` drive (see troubleshooting section if unsure).
+4. Copy the updated FPGA `sonata-vX.Y.bit.slot1.uf2` file to the drive and wait for the copy to complete (on Linux note the copy command may return immediately, so you need to wait until it's done.)
 5. The board should automatically restart once the image is copied over. You should see the `FPGA Config` LED come on:
 
 ![](img/sonata-fpgaconfig.jpeg)
@@ -50,8 +47,8 @@ This indicates the FPGA configuration succeeded. This LED should stay on. You sh
 Here is the commands you'd need to do all of that, assuming Sonata was already plugged in and has been mounted at `/media/sonata`
 
 ```sh
-wget THEBESTURL.COM/lowrisc_sonata_system_0.bit
-cp lowrisc_sonata_system_0.bit /media/sonata/.
+wget https://github.com/lowRISC/sonata-system/releases/download/v0.3/sonata-v0.3.bit.slot1.uf2
+cp sonata-v0.3.bit.slot1.uf2 /media/sonata/
 ```
 
 Many Linux desktop distributions will automount if you open the drive via the graphical interface, so you may find it easier to do this from your Linux desktop,
@@ -80,12 +77,15 @@ be because the `RPI Boot` button was held down when plugging in the board.
 The Sonata board will print status and messages to the `LOG.TXT` which can be helpful for debugging. It should show the status of valid-looking bitstreams:
 
 ```
-CRIT: FW_VER 0.1.2
-INFO: No bitstream in slot 0
-INFO: No bitstream in slot 1
-INFO: No bitstream in slot 2
-INFO: Using slot 2
-INFO: No bitstream in flash @ 1400000
+TEST CRC Test PASS
+CRIT: FW_VER 0.4.0
+INFO: Bitstream found in slot 0
+INFO: Bitstream found in slot 1
+INFO: Bitstream found in slot 2
+INFO: Firmware found in slot 0
+INFO: No firmware in slot 1
+INFO: No firmware in slot 2
+INFO: Using slot 0
 ```
 
 ### FPGA Config Led not coming on
