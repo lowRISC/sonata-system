@@ -61,22 +61,22 @@ module top_sonata (
   inout  logic       rph_g0,  // ID_SD
 
   // R-Pi header SPI buses
-  output logic       rph_g11_sclk, // SPI0
-  output logic       rph_g10_copi, // SPI0
-  input  logic       rph_g9_cipo,  // SPI0
+  inout  logic       rph_g11_sclk, // SPI0
+  inout  logic       rph_g10_copi, // SPI0
+  inout  logic       rph_g9_cipo,  // SPI0
   output logic       rph_g8_ce0,   // SPI0
   output logic       rph_g7_ce1,   // SPI0
 
-  output logic       rph_g21_sclk, // SPI1
-  output logic       rph_g20_copi, // SPI1
-  input  logic       rph_g19_cipo, // SPI1
+  inout  logic       rph_g21_sclk, // SPI1
+  inout  logic       rph_g20_copi, // SPI1
+  inout  logic       rph_g19_cipo, // SPI1
   output logic       rph_g18,      // SPI1 CE0
   output logic       rph_g17,      // SPI1 CE1
   output logic       rph_g16_ce2,  // SPI1
 
   // R-Pi header UART
-  output logic       rph_txd0,
-  input  logic       rph_rxd0,
+  inout  logic       rph_txd0,
+  inout  logic       rph_rxd0,
 
   // R-Pi header GPIO
   inout  logic       rph_g27,
@@ -106,9 +106,9 @@ module top_sonata (
 
   // Arduino shield SPI bus
   output logic       ah_tmpio10, // Chip select
-  output logic       ah_tmpio11, // COPI
-  input  logic       ah_tmpio12, // CIPO
-  output logic       ah_tmpio13, // SCLK
+  inout  logic       ah_tmpio11, // COPI
+  inout  logic       ah_tmpio12, // CIPO or GP
+  inout  logic       ah_tmpio13, // SCLK
 
   // Arduino shield analog(ue) pins digital inputs
   input logic [5:0]  ard_an_di,
@@ -182,6 +182,8 @@ module top_sonata (
   output wire        hyperram_nrst,
   output wire        hyperram_cs
 );
+  import sonata_pkg::*;
+
   // System clock frequency.
   parameter int unsigned SysClkFreq = 30_000_000;
   parameter int unsigned HRClkFreq  = 100_000_000;
@@ -225,90 +227,120 @@ module top_sonata (
 
   logic cheri_en;
 
-  logic scl0_o, scl0_oe;
-  logic sda0_o, sda0_oe;
+  logic uart_tx[UART_NUM];
+  logic uart_rx[UART_NUM];
+  logic i2c_scl_h2d[I2C_NUM];
+  logic i2c_scl_en_h2d[I2C_NUM];
+  logic i2c_scl_d2h[I2C_NUM];
+  logic i2c_sda_h2d[I2C_NUM];
+  logic i2c_sda_en_h2d[I2C_NUM];
+  logic i2c_sda_d2h[I2C_NUM];
+  logic spi_sck[SPI_NUM];
+  logic spi_tx[SPI_NUM];
+  logic spi_rx[SPI_NUM];
+  logic [15:0] gpio_h2d[GPIO_NUM];
+  logic [15:0] gpio_en_h2d[GPIO_NUM];
+  logic [15:0] gpio_d2h[GPIO_NUM];
 
-  logic scl1_o, scl1_oe;
-  logic sda1_o, sda1_oe;
+  pinmux u_pinmux (
+    .uart_tx_i(uart_tx),
+    .uart_rx_o(uart_rx),
+    .i2c_scl_i(i2c_scl_h2d),
+    .i2c_scl_en_i(i2c_scl_en_h2d),
+    .i2c_scl_o(i2c_scl_d2h),
+    .i2c_sda_i(i2c_sda_h2d),
+    .i2c_sda_en_i(i2c_sda_en_h2d),
+    .i2c_sda_o(i2c_sda_d2h),
+    .spi_sck_i(spi_sck),
+    .spi_tx_i(spi_tx),
+    .spi_rx_o(spi_rx),
+    .gpio_ios_i(gpio_h2d),
+    .gpio_ios_en_i(gpio_en_h2d),
+    .gpio_ios_o(gpio_d2h),
+    .ser0_tx,
+    .ser0_rx,
+    .ser1_tx,
+    .ser1_rx,
+    .rs232_tx,
+    .rs232_rx,
+    .scl0,
+    .sda0,
+    .scl1,
+    .sda1,
+    .lcd_copi,
+    .lcd_clk,
+    .appspi_d0,
+    .appspi_d1,
+    .appspi_clk,
+    .ethmac_copi,
+    .ethmac_cipo,
+    .ethmac_sclk,
+    .rph_g0,
+    .rph_g1,
+    .rph_g2_sda,
+    .rph_g3_scl,
+    .rph_g4,
+    .rph_g5,
+    .rph_g6,
+    .rph_g7_ce1(), // Already connected in manual GPIO.
+    .rph_g8_ce0(), // Already connected in manual GPIO.
+    .rph_g9_cipo,
+    .rph_g10_copi,
+    .rph_g11_sclk,
+    .rph_g12,
+    .rph_g13,
+    .rph_txd0,
+    .rph_rxd0,
+    .rph_g16_ce2(), // Already connected in manual GPIO.
+    .rph_g17(), // Already connected in manual GPIO.
+    .rph_g18(), // Already connected in manual GPIO.
+    .rph_g19_cipo,
+    .rph_g20_copi,
+    .rph_g21_sclk,
+    .rph_g22,
+    .rph_g23,
+    .rph_g24,
+    .rph_g25,
+    .rph_g26,
+    .rph_g27,
+    .ah_tmpio0,
+    .ah_tmpio1,
+    .ah_tmpio2,
+    .ah_tmpio3,
+    .ah_tmpio4,
+    .ah_tmpio5,
+    .ah_tmpio6,
+    .ah_tmpio7,
+    .ah_tmpio8,
+    .ah_tmpio9,
+    .ah_tmpio10(), // Already connected in manual GPIO.
+    .ah_tmpio11,
+    .ah_tmpio12,
+    .ah_tmpio13,
+    // TODO connect 14, 15 and 17 through XDC
+    .ah_tmpio14(),
+    .ah_tmpio15(),
+    .ah_tmpio16,
+    .ah_tmpio17(),
+    .mb2,
+    .mb3,
+    .mb4,
+    .mb5,
+    .mb6,
+    .mb7,
+    .mb8,
+    .pmod0,
+    .pmod1,
+    .tl_i(0),
+    .tl_o()
+  );
 
-  logic [15:0] rp_gp_oe;
-  logic [15:0] rp_gp_o;
+  logic [31:0] gpio_h2d_combined[GPIO_NUM];
 
-  logic [15:0] ard_gp_oe;
-  logic [15:0] ard_gp_o;
-
-  logic [15:0] pmod_gp_oe;
-  logic [15:0] pmod_gp_o;
-
-  // R-Pi header GPIO
-  assign rph_g4  = rp_gp_oe[0]  ? rp_gp_o[0]  : 1'bZ;
-  assign rph_g5  = rp_gp_oe[1]  ? rp_gp_o[1]  : 1'bZ;
-  assign rph_g6  = rp_gp_oe[2]  ? rp_gp_o[2]  : 1'bZ;
-  assign rph_g12 = rp_gp_oe[3]  ? rp_gp_o[3]  : 1'bZ;
-  assign rph_g13 = rp_gp_oe[4]  ? rp_gp_o[4]  : 1'bZ;
-  assign rph_g22 = rp_gp_oe[5]  ? rp_gp_o[5]  : 1'bZ;
-  assign rph_g23 = rp_gp_oe[6]  ? rp_gp_o[6]  : 1'bZ;
-  assign rph_g24 = rp_gp_oe[7]  ? rp_gp_o[7]  : 1'bZ;
-  assign rph_g25 = rp_gp_oe[8]  ? rp_gp_o[8]  : 1'bZ;
-  assign rph_g26 = rp_gp_oe[9]  ? rp_gp_o[9]  : 1'bZ;
-  assign rph_g27 = rp_gp_oe[10] ? rp_gp_o[10] : 1'bZ;
-
-  // Arduino Shield GPIO
-  assign ah_tmpio0 = ard_gp_oe[0] ? ard_gp_o[0] : 1'bZ;
-  assign ah_tmpio1 = ard_gp_oe[1] ? ard_gp_o[1] : 1'bZ;
-  assign ah_tmpio2 = ard_gp_oe[2] ? ard_gp_o[2] : 1'bZ;
-  assign ah_tmpio3 = ard_gp_oe[3] ? ard_gp_o[3] : 1'bZ;
-  assign ah_tmpio4 = ard_gp_oe[4] ? ard_gp_o[4] : 1'bZ;
-  assign ah_tmpio5 = ard_gp_oe[5] ? ard_gp_o[5] : 1'bZ;
-  assign ah_tmpio6 = ard_gp_oe[6] ? ard_gp_o[6] : 1'bZ;
-  assign ah_tmpio7 = ard_gp_oe[7] ? ard_gp_o[7] : 1'bZ;
-  assign ah_tmpio8 = ard_gp_oe[8] ? ard_gp_o[8] : 1'bZ;
-  assign ah_tmpio9 = ard_gp_oe[9] ? ard_gp_o[9] : 1'bZ;
-
-  // PMOD GPIO
-  assign pmod0[0] = pmod_gp_oe[0]  ? pmod_gp_o[0]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[1]  ? pmod_gp_o[1]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[2]  ? pmod_gp_o[2]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[3]  ? pmod_gp_o[3]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[4]  ? pmod_gp_o[4]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[5]  ? pmod_gp_o[5]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[6]  ? pmod_gp_o[6]  : 1'bZ;
-  assign pmod0[0] = pmod_gp_oe[7]  ? pmod_gp_o[7]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[8]  ? pmod_gp_o[8]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[9]  ? pmod_gp_o[9]  : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[10] ? pmod_gp_o[10] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[11] ? pmod_gp_o[11] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[12] ? pmod_gp_o[12] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[13] ? pmod_gp_o[13] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[14] ? pmod_gp_o[14] : 1'bZ;
-  assign pmod1[0] = pmod_gp_oe[15] ? pmod_gp_o[15] : 1'bZ;
-
-  // Open Drain drivers onto I2C buses.
-  // TODO: move this into two parameterised I2C splitter modules?
-  assign scl0 = scl0_oe ? scl0_o : 1'bZ;
-  assign sda0 = sda0_oe ? sda0_o : 1'bZ;
-
-  assign scl1 = scl1_oe ? scl1_o : 1'bZ;
-  assign sda1 = sda1_oe ? sda1_o : 1'bZ;
-
-  // I2C bus to GPIO2/3
-  assign rph_g3_scl = scl1_oe ? scl1_o : 1'bZ;
-  assign rph_g2_sda = sda1_oe ? sda1_o : 1'bZ;
-
-  // HAT ID EEPROM
-  assign rph_g1 = scl0_oe ? scl0_o : 1'bZ;
-  assign rph_g0 = sda0_oe ? sda0_o : 1'bZ;
-
-  // mikroBUS Click I2C bus
-  assign mb6 = scl1_oe ? scl1_o : 1'bZ;
-  assign mb5 = sda1_oe ? sda1_o : 1'bZ;
-
-  // Inputs from I2C buses.
-  wire scl0_i = scl0 & rph_g1;
-  wire sda0_i = sda0 & rph_g0;
-
-  wire scl1_i = scl1 & rph_g3_scl & mb6;
-  wire sda1_i = sda1 & rph_g2_sda & mb5;
+  for (genvar i = 0; i < GPIO_NUM; i++) begin : gen_gpio_combined
+    assign gpio_h2d_combined[i][31:16] = gpio_en_h2d[i];
+    assign gpio_h2d_combined[i][15: 0] = gpio_h2d[i];
+  end : gen_gpio_combined
 
   // Enable CHERI by default.
   logic enable_cheri;
@@ -367,45 +399,20 @@ module top_sonata (
     .pwm_o({mb10}),
 
     // GPIO headers
-    .gp_headers_i   ('{
-                       {rph_27, rph_26, rph_25, rph_24, rph_23, rph_22, rph_13, rph_12, rph_6, rph_5, rph_4},
-                       {'0},
-                       {ah_tmpio9, ah_tmpio8, ah_tmpio7, ah_tmpio6, ah_tmpio5, ah_tmpio4, ah_tmpio3, ah_tmpio2, ah_tmpio1, ah_tmpio0},
-                       {'0},
-                       {pmod1, pmod0}
-                    }),
-
-    .gp_headers_o   ('{
-                       {rp_gp_oe, rp_gp_o},
-                       { },
-                       {ard_gp_oe, ard_gp_o},
-                       { },
-                       {pmod_gp_oe, pmod_gp_o}
-                    }),
+    .gp_headers_i   (gpio_d2h),
+    .gp_headers_o   (gpio_h2d_combined),
 
     // UARTs
-    .uart_rx_i     ('{
-                      ser0_rx,
-                      ser1_rx,
-                      rph_rxd0,
-                      mb8,
-                      rs232_rx
-                   }),
-    .uart_tx_o     ('{
-                      ser0_tx,
-                      ser1_tx,
-                      rph_txd0,
-                      mb7,
-                      rs232_tx
-                   }),
+    .uart_rx_i     (uart_rx),
+    .uart_tx_o     (uart_tx),
 
     // I2C hosts
-    .i2c_scl_i     ('{scl0_i,  scl1_i}),
-    .i2c_scl_o     ('{scl0_o,  scl1_o}),
-    .i2c_scl_en_o  ('{scl0_oe, scl1_oe}),
-    .i2c_sda_i     ('{sda0_i,  sda1_i}),
-    .i2c_sda_o     ('{sda0_o,  sda1_o}),
-    .i2c_sda_en_o  ('{sda0_oe, sda1_oe}),
+    .i2c_scl_i     (i2c_scl_d2h),
+    .i2c_scl_o     (i2c_scl_h2d),
+    .i2c_scl_en_o  (i2c_scl_en_h2d),
+    .i2c_sda_i     (i2c_sda_d2h),
+    .i2c_sda_o     (i2c_sda_h2d),
+    .i2c_sda_en_o  (i2c_sda_en_h2d),
 
     // SPI connections for
     // - LCD screen
@@ -414,33 +421,9 @@ module top_sonata (
     // - 2x Raspberry Pi HAT
     // - Arduino Shield
     // - mikroBUS Click
-    .spi_rx_i  ('{
-                  1'b0,
-                  appspi_d1,
-                  ethmac_cipo,
-                  rph_g9_cipo,
-                  rph_g19_cipo,
-                  ah_tmpio12,
-                  mb3
-               }),
-    .spi_tx_o  ('{
-                  lcd_copi,
-                  appspi_d0,
-                  ethmac_copi,
-                  rph_g10_copi,
-                  rph_g20_copi,
-                  ah_tmpio11,
-                  mb4
-               }),
-    .spi_sck_o ('{
-                  lcd_clk,
-                  appspi_clk,
-                  ethmac_sclk,
-                  rph_g1_sclk,
-                  rph_g21_sclk,
-                  ah_tmpio13,
-                  mb2
-               }),
+    .spi_rx_i  (spi_rx),
+    .spi_tx_o  (spi_tx),
+    .spi_sck_o (spi_sck),
     // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
 

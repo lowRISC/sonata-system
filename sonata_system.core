@@ -19,6 +19,7 @@ filesets:
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
       - lowrisc:opentitan:top_earlgrey_rv_plic
+      - lowrisc:prim:onehot
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
@@ -29,6 +30,7 @@ filesets:
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
       - rtl/system/gpio.sv
+      - rtl/system/pinmux.sv
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
       - rtl/system/pwm_fade.sv
