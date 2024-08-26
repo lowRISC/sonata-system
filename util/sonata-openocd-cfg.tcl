@@ -21,7 +21,7 @@ target create $_TARGETNAME riscv -chain-position $_TARGETNAME
 
 adapter speed 10000
 
-riscv set_prefer_sba on
+riscv set_mem_access sysbus
 reset_config none
 
 init
