@@ -30,8 +30,8 @@ lint_off -rule UNOPTFLAT -file "*tlul_adapter_sram.sv" -match "*Signal unoptimiz
 // to the error responder for the HyperRAM disabled config).
 lint_off -rule UNOPTFLAT -file "*tlul_socket_m1.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.u_hyperram_tl_socket.*'"
 
-// False warning we're using 32-bit initial values for EnableHyperram parameter
-lint_off -rule WIDTHTRUNC -file "*" -match "Operator VAR 'EnableHyperram' expects 1 bits on the Initial value*"
+// False warning we're using 32-bit initial values for DisableHyperram parameter
+lint_off -rule WIDTHTRUNC -file "*" -match "Operator VAR 'DisableHyperram' expects 1 bits on the Initial value*"
 
 // Lint error for PULP debug module.
 lint_off -rule UNUSED -file "*pulp_riscv_dbg*" -match "*not used*"

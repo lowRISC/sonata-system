@@ -185,8 +185,8 @@ module top_sonata (
   parameter int unsigned SysClkFreq = 30_000_000;
   parameter int unsigned HRClkFreq  = 100_000_000;
 
-  parameter SRAMInitFile   = "";
-  parameter EnableHyperram = 1'b1;
+  parameter SRAMInitFile    = "";
+  parameter DisableHyperram = 1'b0;
 
   // Main system clock and reset
   logic main_clk_buf;
@@ -314,14 +314,14 @@ module top_sonata (
   logic rgbled_dout;
 
   sonata_system #(
-    .GpiWidth       ( 14             ),
-    .GpoWidth       ( 23             ),
-    .PwmWidth       (  1             ),
-    .CheriErrWidth  (  9             ),
-    .SRAMInitFile   ( SRAMInitFile   ),
-    .SysClkFreq     ( SysClkFreq     ),
-    .HRClkFreq      ( HRClkFreq      ),
-    .EnableHyperram ( EnableHyperram )
+    .GpiWidth        ( 14             ),
+    .GpoWidth        ( 23             ),
+    .PwmWidth        (  1             ),
+    .CheriErrWidth   (  9             ),
+    .SRAMInitFile    ( SRAMInitFile   ),
+    .SysClkFreq      ( SysClkFreq     ),
+    .HRClkFreq       ( HRClkFreq      ),
+    .DisableHyperram ( DisableHyperram )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_sys),

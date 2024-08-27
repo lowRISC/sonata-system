@@ -26,7 +26,7 @@ module sonata_system #(
   parameter SRAMInitFile               = "",
   parameter int unsigned SysClkFreq    = 30_000_000,
   parameter int unsigned HRClkFreq     = 100_000_000,
-  parameter bit EnableHyperram         = 1'b1
+  parameter bit DisableHyperram        = 1'b0
 ) (
   // Main system clock and reset
   input logic                      clk_sys_i,
@@ -173,7 +173,7 @@ module sonata_system #(
   // Signals, types and parameters for system. //
   ///////////////////////////////////////////////
 
-  localparam int unsigned MemSize       = EnableHyperram ? 128 * 1024 : 256 * 1024; // 256 KiB
+  localparam int unsigned MemSize       = DisableHyperram ? 256 * 1024 : 128 * 1024; // 256 KiB
   localparam int unsigned SRAMAddrWidth = $clog2(MemSize);
   localparam int unsigned HyperRAMSize  = 1024 * 1024; // 1 MiB
   localparam int unsigned DebugStart    = 32'h1a110000;
@@ -799,29 +799,7 @@ module sonata_system #(
     .tl_b_o (tl_sram_b_d2h)
   );
 
-  if (EnableHyperram) begin : g_hyperram
-    hyperram #(
-      .HRClkFreq   (HRClkFreq),
-      .HyperRAMSize(HyperRAMSize)
-    ) u_hyperram (
-      .clk_i  (clk_sys_i),
-      .rst_ni (rst_sys_ni),
-
-      .clk_hr_i,
-      .clk_hr90p_i,
-      .clk_hr3x_i,
-
-      .tl_i (tl_hyperram_ds_h2d),
-      .tl_o (tl_hyperram_ds_d2h),
-
-      .hyperram_dq,
-      .hyperram_rwds,
-      .hyperram_ckp,
-      .hyperram_ckn,
-      .hyperram_nrst,
-      .hyperram_cs
-    );
-  end else begin : g_nohyperram
+  if (DisableHyperram) begin : g_no_hyperram
     logic unused_clk_hr;
     logic unused_clk_hr90p;
     logic unused_clk_hr3x;
@@ -842,6 +820,28 @@ module sonata_system #(
       .rst_ni (rst_sys_ni),
       .tl_h_i(tl_hyperram_ds_h2d),
       .tl_h_o(tl_hyperram_ds_d2h)
+    );
+  end else begin : g_hyperram
+    hyperram #(
+      .HRClkFreq   (HRClkFreq),
+      .HyperRAMSize(HyperRAMSize)
+    ) u_hyperram (
+      .clk_i  (clk_sys_i),
+      .rst_ni (rst_sys_ni),
+
+      .clk_hr_i,
+      .clk_hr90p_i,
+      .clk_hr3x_i,
+
+      .tl_i (tl_hyperram_ds_h2d),
+      .tl_o (tl_hyperram_ds_d2h),
+
+      .hyperram_dq,
+      .hyperram_rwds,
+      .hyperram_ckp,
+      .hyperram_ckn,
+      .hyperram_nrst,
+      .hyperram_cs
     );
   end
 
