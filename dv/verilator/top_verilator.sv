@@ -4,7 +4,7 @@
 
 // This is the top level that connects the system to the virtual devices.
 module top_verilator (input logic clk_i, rst_ni);
-  parameter bit EnableHyperram = 1'b1;
+  parameter bit DisableHyperram = 1'b0;
 
   localparam ClockFrequency = 30_000_000;
   localparam BaudRate       = 921_600;
@@ -60,7 +60,7 @@ module top_verilator (input logic clk_i, rst_ni);
 
   // Instantiating the Sonata System.
   sonata_system #(
-    .EnableHyperram(EnableHyperram)
+    .DisableHyperram(DisableHyperram)
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_i),
