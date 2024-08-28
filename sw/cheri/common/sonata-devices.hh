@@ -7,7 +7,9 @@
 #pragma once
 // clang-format off
 #include "../../common/defs.h"
+#include "sonata_plic.hh"
 // clang-format on
+
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-uart.hh>
@@ -16,6 +18,7 @@ typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGPIO *GpioPtr;
 typedef volatile OpenTitanUart *UartPtr;
 typedef volatile uint32_t *HyperramPtr;
+typedef PLIC::SonataPlic *PlicPtr;
 
 [[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root) {
   CHERI::Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
