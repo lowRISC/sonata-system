@@ -7,6 +7,7 @@ import toml
 from pydantic import BaseModel
 from enum import Enum
 from mako.template import Template
+import subprocess
 
 class BlockIoType(str, Enum):
     INOUT = 'inout'
@@ -209,3 +210,5 @@ if __name__ == "__main__":
         )
         with open(output_file, "w") as file:
             file.write(content)
+
+    subprocess.call(["sh", "util/generate_xbar.sh"])
