@@ -12,7 +12,7 @@
 #include <platform-uart.hh>
 
 #include "../common/console-utils.hh"
-#include "../common/sonata-peripherals.hh"
+#include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
 

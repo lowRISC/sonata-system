@@ -9,7 +9,7 @@
 // clang-format on
 #include <platform-uart.hh>
 
-#include "../common/sonata-peripherals.hh"
+#include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
 

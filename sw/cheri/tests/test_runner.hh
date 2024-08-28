@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include "../common/sonata-peripherals.hh"
+#include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 
 [[noreturn]] static void finish_running(UartPtr uart, const char *message) {

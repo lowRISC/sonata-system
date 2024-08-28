@@ -9,11 +9,14 @@
 
 // clang-format off
 #include "../../common/defs.h"
+#include "uart_tests.hh"
+#include "hyperram_tests.hh"
+#include "../common/uart-utils.hh"
+#include "../common/sonata-devices.hh"
 #include <cheri.hh>
 // clang-format on
 #include <platform-uart.hh>
 
-#include "../common/sonata-peripherals.hh"
 #include "../common/uart-utils.hh"
 #include "hyperram_tests.hh"
 #include "uart_tests.hh"
