@@ -29,6 +29,8 @@ module sonata_xbar_main (
   input  tlul_pkg::tl_d2h_t tl_gpio_i,
   output tlul_pkg::tl_h2d_t tl_pwm_o,
   input  tlul_pkg::tl_d2h_t tl_pwm_i,
+  output tlul_pkg::tl_h2d_t tl_pinmux_o,
+  input  tlul_pkg::tl_d2h_t tl_pinmux_i,
   output tlul_pkg::tl_h2d_t tl_gpio_headers_o[sonata_pkg::GPIO_NUM],
   input  tlul_pkg::tl_d2h_t tl_gpio_headers_i[sonata_pkg::GPIO_NUM],
   output tlul_pkg::tl_h2d_t tl_rgbled_ctrl_o,
@@ -75,6 +77,8 @@ module sonata_xbar_main (
     .tl_gpio_i        (tl_gpio_i),
     .tl_pwm_o         (tl_pwm_o),
     .tl_pwm_i         (tl_pwm_i),
+    .tl_pinmux_o      (tl_pinmux_o),
+    .tl_pinmux_i      (tl_pinmux_i),
     % for i in range(gpio_num):
     .tl_gpio${i}_o       (tl_gpio_headers_o[${i}]),
     .tl_gpio${i}_i       (tl_gpio_headers_i[${i}]),

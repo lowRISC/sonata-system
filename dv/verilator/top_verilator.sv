@@ -260,7 +260,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .hyperram_ckp (),
     .hyperram_ckn (),
     .hyperram_nrst(),
-    .hyperram_cs  ()
+    .hyperram_cs  (),
+
+    .tl_pinmux_o (),
+    .tl_pinmux_i (tlul_pkg::TL_D2H_DEFAULT)
   );
 
   // I2C 0 DPI

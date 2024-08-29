@@ -116,7 +116,10 @@ module sonata_system #(
   output wire                      hyperram_ckp,
   output wire                      hyperram_ckn,
   output wire                      hyperram_nrst,
-  output wire                      hyperram_cs
+  output wire                      hyperram_cs,
+
+  output tlul_pkg::tl_h2d_t        tl_pinmux_o,
+  input  tlul_pkg::tl_d2h_t        tl_pinmux_i
 );
 
   import sonata_pkg::*;
@@ -481,6 +484,8 @@ module sonata_system #(
     .tl_gpio_i        (tl_gpio_d2h),
     .tl_pwm_o         (tl_pwm_h2d),
     .tl_pwm_i         (tl_pwm_d2h),
+    .tl_pinmux_o      (tl_pinmux_o),
+    .tl_pinmux_i      (tl_pinmux_i),
     .tl_gpio_headers_o(tl_gpio_headers_h2d),
     .tl_gpio_headers_i(tl_gpio_headers_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
