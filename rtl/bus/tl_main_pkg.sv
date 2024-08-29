@@ -11,6 +11,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_REV_TAG     = 32'h 30000000;
   localparam logic [31:0] ADDR_SPACE_GPIO        = 32'h 80000000;
   localparam logic [31:0] ADDR_SPACE_PWM         = 32'h 80001000;
+  localparam logic [31:0] ADDR_SPACE_PINMUX      = 32'h 80005000;
   localparam logic [31:0] ADDR_SPACE_RGBLED_CTRL = 32'h 80009000;
   localparam logic [31:0] ADDR_SPACE_HW_REV      = 32'h 8000a000;
   localparam logic [31:0] ADDR_SPACE_XADC        = 32'h 8000b000;
@@ -42,6 +43,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_REV_TAG     = 32'h 00003fff;
   localparam logic [31:0] ADDR_MASK_GPIO        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_PWM         = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_PINMUX      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_RGBLED_CTRL = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_HW_REV      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_XADC        = 32'h 00000fff;
@@ -69,7 +71,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 30;
+  localparam int N_DEVICE = 31;
 
   typedef enum int {
     TlSram = 0,
@@ -77,31 +79,32 @@ package tl_main_pkg;
     TlRevTag = 2,
     TlGpio = 3,
     TlPwm = 4,
-    TlRgbledCtrl = 5,
-    TlHwRev = 6,
-    TlXadc = 7,
-    TlTimer = 8,
-    TlUart0 = 9,
-    TlUart1 = 10,
-    TlUart2 = 11,
-    TlUart3 = 12,
-    TlUart4 = 13,
-    TlI2C0 = 14,
-    TlI2C1 = 15,
-    TlSpi0 = 16,
-    TlSpi1 = 17,
-    TlSpi2 = 18,
-    TlSpi3 = 19,
-    TlSpi4 = 20,
-    TlSpi5 = 21,
-    TlSpi6 = 22,
-    TlUsbdev = 23,
-    TlGpio0 = 24,
-    TlGpio1 = 25,
-    TlGpio2 = 26,
-    TlGpio3 = 27,
-    TlGpio4 = 28,
-    TlRvPlic = 29
+    TlPinmux = 5,
+    TlRgbledCtrl = 6,
+    TlHwRev = 7,
+    TlXadc = 8,
+    TlTimer = 9,
+    TlUart0 = 10,
+    TlUart1 = 11,
+    TlUart2 = 12,
+    TlUart3 = 13,
+    TlUart4 = 14,
+    TlI2C0 = 15,
+    TlI2C1 = 16,
+    TlSpi0 = 17,
+    TlSpi1 = 18,
+    TlSpi2 = 19,
+    TlSpi3 = 20,
+    TlSpi4 = 21,
+    TlSpi5 = 22,
+    TlSpi6 = 23,
+    TlUsbdev = 24,
+    TlGpio0 = 25,
+    TlGpio1 = 26,
+    TlGpio2 = 27,
+    TlGpio3 = 28,
+    TlGpio4 = 29,
+    TlRvPlic = 30
   } tl_device_e;
 
   typedef enum int {

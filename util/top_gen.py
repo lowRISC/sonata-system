@@ -149,6 +149,9 @@ if __name__ == "__main__":
                             if pin.length is not None:
                                 pin_with_idx = pin_name + '[' + str(bit_idx-pin.block_ios[0].io) + ']'
                             input_pins.append(pin_with_idx)
+                        # Make sure there are always two values in the input list because the second one is always selected by default in the RTL.
+                        if len(input_pins) == 1:
+                            input_pins.append(def_val)
                         input_list.append((input_name, inst_idx, bit_idx, bit_str, input_pins))
             if io.type == BlockIoType.OUTPUT or io.type == BlockIoType.INOUT:
                 for bit_idx, pin_list in enumerate(io.pins):

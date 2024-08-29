@@ -227,6 +227,9 @@ module top_sonata (
 
   logic cheri_en;
 
+  tlul_pkg::tl_h2d_t tl_pinmux_h2d;
+  tlul_pkg::tl_d2h_t tl_pinmux_d2h;
+
   logic uart_tx[UART_NUM];
   logic uart_rx[UART_NUM];
   logic i2c_scl_h2d[I2C_NUM];
@@ -331,8 +334,8 @@ module top_sonata (
     .mb8,
     .pmod0,
     .pmod1,
-    .tl_i(0),
-    .tl_o()
+    .tl_i(tl_pinmux_h2d),
+    .tl_o(tl_pinmux_d2h)
   );
 
   logic [31:0] gpio_h2d_combined[GPIO_NUM];
@@ -464,7 +467,10 @@ module top_sonata (
     .hyperram_ckp,
     .hyperram_ckn,
     .hyperram_nrst,
-    .hyperram_cs
+    .hyperram_cs,
+
+    .tl_pinmux_o(tl_pinmux_h2d),
+    .tl_pinmux_i(tl_pinmux_d2h)
   );
 
   assign rgbled0 = ~rgbled_dout;
