@@ -15,7 +15,7 @@ import shutil
 import sys
 import threading
 import time
-from enum import UNIQUE, IntEnum, verify
+from enum import Enum
 from glob import glob
 from pathlib import Path
 from queue import Queue
@@ -31,8 +31,7 @@ SONATA_DRIVE_GLOBS: tuple[str, ...] = ("/run/media/**/SONATA",)
 BAUD_RATE: int = 921_600
 
 
-@verify(UNIQUE)
-class ReturnCode(IntEnum):
+class ReturnCode(int, Enum):
     """The return codes of this command line tool."""
 
     TESTS_PASSED = 0
