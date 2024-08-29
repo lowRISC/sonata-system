@@ -35,6 +35,29 @@ module top_verilator (input logic clk_i, rst_ni);
   wire clk_usb   = clk_i;
   wire rst_usb_n = rst_ni;
 
+  // In Verilator simulation where tri-stated drivers, pullups/pulldowns and drive strengths are
+  // not available, the USBDPI model is connected directly to the two-state inputs and outputs of
+  // USBDEV itself, i.e. these are not actual USB signals but rather two separated unidirectional
+  // buses.
+  //
+  // USB signals into the USB device from the DPI/host model; these model the VBUS/SENSE and data
+  // signals from the on-board TUSB1106 USB transceiver.
+  wire usb_sense;
+  wire usb_dp_p2d; // D+, differential signaling.
+  wire usb_dn_p2d; // D-
+  wire usb_d_p2d;  // D, simulated output from differential receiver.
+
+  // USB signals into the DPI/host model from the USB device; these model the signals from the
+  // Sonata FPGA to the on-board TUSB1106 transceiver, as well as permitting the differential
+  // receiver enable/disable to be tested.
+  wire usb_dp_d2p; // D+, differential signaling.
+  wire usb_dn_d2p; // D-
+  wire usb_dp_en_d2p; // D+ driver enable.
+  wire usb_dn_en_d2p; // D- driver enable.
+  wire usb_rx_enable; // Enable differential receiver.
+  wire usb_dp_pullup; // D+ pullup enable.
+  wire usb_dn_pullup; // D- pullup enable.
+
   // Instantiating the Sonata System.
   sonata_system #(
     .EnableHyperram(EnableHyperram)
@@ -134,21 +157,21 @@ module top_verilator (input logic clk_i, rst_ni);
     .i2c1_sda_en_o  (sda1_oe),
 
     // Reception from USB host via transceiver
-    .usb_dp_i         (1'b0),
-    .usb_dn_i         (1'b0),
-    .usb_rx_d_i       (1'b0),
+    .usb_dp_i         (usb_dp_p2d),
+    .usb_dn_i         (usb_dn_p2d),
+    .usb_rx_d_i       (usb_d_p2d),
 
     // Transmission to USB host via transceiver
-    .usb_dp_o         (),
-    .usb_dp_en_o      (),
-    .usb_dn_o         (),
-    .usb_dn_en_o      (),
+    .usb_dp_o         (usb_dp_d2p),
+    .usb_dp_en_o      (usb_dp_en_d2p),
+    .usb_dn_o         (usb_dn_d2p),
+    .usb_dn_en_o      (usb_dn_en_d2p),
 
     // Configuration and control of USB transceiver
-    .usb_sense_i      (1'b0),
-    .usb_dp_pullup_o  (),
-    .usb_dn_pullup_o  (),
-    .usb_rx_enable_o  (),
+    .usb_sense_i      (usb_sense),
+    .usb_dp_pullup_o  (usb_dp_pullup),
+    .usb_dn_pullup_o  (usb_dn_pullup),
+    .usb_rx_enable_o  (usb_rx_enable),
 
     // User JTAG
     .tck_i  ('0),
@@ -178,5 +201,38 @@ module top_verilator (input logic clk_i, rst_ni);
     .active(1'b1       ),
     .tx_o  (uart_sys_rx),
     .rx_i  (uart_sys_tx)
+  );
+
+  // USB DPI; simulated USB host.
+  usbdpi u_usbdpi (
+    .clk_i           (clk_usb),
+    .rst_ni          (rst_usb_n),
+    .clk_48MHz_i     (clk_usb),
+    .enable          (1'b1),
+    // D+ drivers and their enables.
+    .dp_en_p2d       (),
+    .dp_p2d          (usb_dp_p2d),
+    .dp_d2p          (usb_dp_d2p),
+    .dp_en_d2p       (usb_dp_en_d2p),
+    // D- drivers and their enables.
+    .dn_en_p2d       (),
+    .dn_p2d          (usb_dn_p2d),
+    .dn_d2p          (usb_dn_d2p),
+    .dn_en_d2p       (usb_dn_en_d2p),
+    // D drivers (used when external differential receiver is enabled).
+    .d_p2d           (usb_d_p2d),
+    .d_d2p           (1'b0),
+    .d_en_d2p        (1'b0),
+    .se0_d2p         (1'b0),
+    // Enable signal for external differential receiver.
+    .rx_enable_d2p   (usb_rx_enable),
+    // Sonata FPGA does not employ D/SE0 signaling in place of D+/D-.
+    .tx_use_d_se0_d2p(1'b0),
+
+    // VBUS/SENSE signal indicating the presence of the USB host.
+    .sense_p2d       (usb_sense),
+    // Pullup enables from the USB device.
+    .pullupdp_d2p    (usb_dp_pullup),
+    .pullupdn_d2p    (usb_dn_pullup)
   );
 endmodule

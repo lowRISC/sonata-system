@@ -30,6 +30,11 @@ static uint8_t cfg_dscr[] = {
   USB_BULK_EP_DSCR(1, 1, USBDEV_MAX_PACKET_LEN, 4),
 };
 
+// Default test descriptor, required by USBDPI model.
+static uint8_t test_dscr[] = {
+  USB_TESTUTILS_TEST_DSCR(0, 0, 0, 0, 0)
+};
+
 // Single USB device present.
 static usbdev_state_t usbdev;
 
@@ -43,7 +48,7 @@ int main(void) {
 
   // Initialize the USB device.
   usbdev_init(&usbdev, DEFAULT_USBDEV, dev_dscr, sizeof(dev_dscr),
-              cfg_dscr, sizeof(cfg_dscr));
+              cfg_dscr, sizeof(cfg_dscr), test_dscr, USB_TESTUTILS_TEST_DSCR_LEN);
 
   usbdev_ep_config(&usbdev, ep, true, true, false);
 

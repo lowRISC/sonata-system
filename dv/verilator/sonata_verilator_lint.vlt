@@ -80,3 +80,8 @@ lint_off -rule BLKSEQ -file "*/rtl/ibex_tracer.sv"
 // error (generated C++ doesn't currently specify a type an internal verilator
 // function)
 tracing_off -file "*uartdpi.sv"
+
+// USBDPI model includes diagnostic nets for viewing in waveforms, as well as having some unused
+// bit in the net 'p2d'.
+lint_off -rule UNUSED -file "*usbdpi.sv" -match "*Signal is not used*"
+lint_off -rule UNUSED -file "*usbdpi.sv" -match "*Bits of signal are not used*"
