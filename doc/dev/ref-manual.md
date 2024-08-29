@@ -4,8 +4,9 @@ In a classical microcontroller, you would have a core along with the peripherals
 of an open-source FPGA design, which allows you to modify the core to add new features (and for us to add updates to your core without
 needing you to desolder your main IC!).
 
-This also means you can customize your design. You may want to have a different number of UARTs or SPI blocks for example. This document
-describes the base configuration, but you can 
+This also means you can customize your design.
+You may want to have a different number of UARTs or SPI blocks for example.
+This document describes the base configuration.
 
 The FPGA image is parameterizable to enable custom setups.
 It should be easy, for example, to change the number of UART, SPI and I2C instances.
@@ -43,13 +44,14 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_1000  |   4 KiB | [PWM][]              |
 | 0x8000_2000  |   4 KiB | Reserved for DMA     |
 | 0x8000_3000  |   4 KiB | [HyperRAM][]         |
-| 0x8000_4000  |   4 KiB | [ADC][]              |
+| 0x8000_4000  |   4 KiB | Reserved             |
 | 0x8000_5000  |   4 KiB | [Pinmux][]           |
 | 0x8000_6000  |   4 KiB | R-Pi Header GPIO     |
 | 0x8000_7000  |   4 KiB | Arduino GPIO         |
 | 0x8000_8000  |   4 KiB | PMOD GPIO            |
 | 0x8000_9000  |   4 KiB | RGB LED controller   |
 | 0x8000_A000  |   4 KiB | [Hardware revoker][] |
+| 0x8000_B000  |   4 KiB | [ADC][]              |
 | 0x8004_0000  |  64 KiB | [Timer][]            |
 | 0x8010_0000  |   1 MiB | [UART][]             |
 | 0x8020_0000  |   1 MiB | [I2C host][]         |
