@@ -78,6 +78,20 @@
 
 // KEEP BLANK LINE ABOVE, it is in the macro!
 
+/***********************************************************************/
+/* Below this point are macros used to construct the test descriptor   */
+/* Use them to initialize a uint8_t array for test_dscr                */
+#define USB_TESTUTILS_TEST_DSCR_LEN 0x10u
+#define USB_TESTUTILS_TEST_DSCR(num, arg0, arg1, arg2, arg3)            \
+  0x7e, 0x57, 0xc0, 0xf1u,                /* Header signature        */ \
+      (USB_TESTUTILS_TEST_DSCR_LEN)&0xff, /* Descriptor length[0]    */ \
+      (USB_TESTUTILS_TEST_DSCR_LEN) >> 8, /* Descriptor length[1]    */ \
+      (num)&0xff,                         /* Test number[0]          */ \
+      (num) >> 8,                         /* Test number[1]          */ \
+      (arg0), (arg1), (arg2), (arg3),     /* Test-specific arugments */ \
+      0x1fu, 0x0cu, 0x75, 0xe7u           /* Tail signature */
+
+// KEEP BLANK LINE ABOVE, it is in the macro!
 
 // Device state
 typedef enum {
@@ -109,6 +123,10 @@ typedef struct {
   const uint8_t *cfg_dscr;
   uint16_t       cfg_len;
 
+  // Properties of Test Descriptor (Vendor Specific request from USBDPI model).
+  const uint8_t *test_dscr;
+  uint8_t        test_len;
+
   uint8_t        dev_addr;
 
   // Device state
@@ -121,8 +139,9 @@ typedef struct {
 
 // Initialize the USB device.
 int usbdev_init(usbdev_state_t *usbdev, uint32_t base,
-                const uint8_t *dev_dscr, uint8_t dev_len,  // Device Descriptor
-                const uint8_t *cfg_dscr, uint8_t cfg_len); // Config Descriptor
+                const uint8_t *dev_dscr, uint8_t dev_len,    // Device Descriptor
+                const uint8_t *cfg_dscr, uint16_t cfg_len,   // Config Descriptor
+                const uint8_t *test_dscr, uint8_t test_len); // Test Descriptor
 
 // Finalize the USB device.
 int usbdev_fin(usbdev_state_t *usb);

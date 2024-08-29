@@ -95,6 +95,12 @@ typedef enum usb_desc_type {  // Descriptor type (wValue hi)
   kUsbDescTypeInterfacePower,
 } usb_desc_type_t;
 
+// Vendor-specific requests defined by our device/test framework
+typedef enum vendor_setup_req {
+  kVendorSetupReqTestConfig = 0x7C,
+  kVendorSetupReqTestStatus = 0x7E
+} vendor_setup_req_t;
+
 static void usbdev_supply_buffers(usbdev_state_t *usbdev) {
   uint32_t usbstat = USBDEV_READ(USBDEV_USBSTAT);
   // Supply buffers for reception of SETUP DATA packets.
@@ -119,8 +125,9 @@ static void usbdev_supply_buffers(usbdev_state_t *usbdev) {
 
 // Initialize the USB device.
 int usbdev_init(usbdev_state_t *usbdev, uint32_t base,
-                const uint8_t *dev_dscr, uint8_t dev_len,
-                const uint8_t *cfg_dscr, uint8_t cfg_len) {
+                const uint8_t *dev_dscr, uint8_t dev_len,      // Device Descriptor.
+                const uint8_t *cfg_dscr, uint16_t cfg_len,     // Configuration Descriptor.
+                const uint8_t *test_dscr, uint8_t test_len) {  // Test Descriptor.
   // Initialize workspace.
   usbdev->base = base;
   usbdev->buf_free = (uint32_t)(((uint64_t)1u << USBDEV_NUM_BUFFERS) - 1u);
@@ -135,10 +142,12 @@ int usbdev_init(usbdev_state_t *usbdev, uint32_t base,
 
   // Remember the locations of the device descriptor
   // and configuration descriptor.
-  usbdev->dev_dscr = dev_dscr;
-  usbdev->dev_len  = dev_len;
-  usbdev->cfg_dscr = cfg_dscr;
-  usbdev->cfg_len  = cfg_len;
+  usbdev->dev_dscr  = dev_dscr;
+  usbdev->dev_len   = dev_len;
+  usbdev->cfg_dscr  = cfg_dscr;
+  usbdev->cfg_len   = cfg_len;
+  usbdev->test_dscr = test_dscr;
+  usbdev->test_len  = test_len;
 
   usbdev_supply_buffers(usbdev);
 
@@ -343,6 +352,15 @@ static bool usbdev_ep0_recv(usbdev_state_t *usbdev, bool setup, uint8_t buf, uin
           case kUsbSetupReqSetConfiguration:
             usbdev_packet_send(usbdev, 0u, buf, data, 0); // ZLP ACK.
             usbdev->ctrl_state = Ctrl_StatusSetConfig;
+            release = false;
+            break;
+
+          // Bespoke, vendor-defined Setup request to allow the USBDPI model to access the test
+          // configuration.
+          case kVendorSetupReqTestConfig:
+            if (wLen > usbdev->test_len) wLen = usbdev->test_len;
+            usbdev_packet_send(usbdev, 0u, buf, usbdev->test_dscr, wLen);
+            usbdev->ctrl_state = Ctrl_StatusGetDesc;
             release = false;
             break;
 

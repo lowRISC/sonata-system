@@ -26,6 +26,8 @@ filesets:
       - lowrisc:dv_verilator:ibex_pcounts
       - lowrisc:dv_dpi_c:uartdpi:0.1
       - lowrisc:dv_dpi_sv:uartdpi:0.1
+      - lowrisc:dv_dpi_c:usbdpi:0.1
+      - lowrisc:dv_dpi_sv:usbdpi:0.1
     files:
       - dv/verilator/top_verilator.sv: { file_type: systemVerilogSource }
       - dv/verilator/sonata_system.cc: { file_type: cppSource }

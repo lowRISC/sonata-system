@@ -1,0 +1,28 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:dv_dpi_c:usbdpi:0.1"
+description: "USB-DPI C code"
+
+filesets:
+  files_c:
+    files:
+      - usbdpi.c: { file_type: cppSource }
+      - usbdpi_stream.c: { file_type: cppSource }
+      - usbdpi_test.c: { file_type: cppSource }
+      - usb_crc.c: { file_type: cppSource }
+      - usb_monitor.c: { file_type: cppSource }
+      - usb_transfer.c: { file_type: cppSource }
+      - usb_utils.c: { file_type: cppSource }
+      - usbdpi.h: { file_type: cppSource, is_include_file: true }
+      - usbdpi_stream.h: { file_type: cppSource, is_include_file: true }
+      - usbdpi_test.h: { file_type: cppSource, is_include_file: true }
+      - usb_monitor.h: { file_type: cppSource, is_include_file: true }
+      - usb_transfer.h: { file_type: cppSource, is_include_file: true }
+      - usb_utils.h: { file_type: cppSource, is_include_file: true }
+
+targets:
+  default:
+    filesets:
+      - files_c
