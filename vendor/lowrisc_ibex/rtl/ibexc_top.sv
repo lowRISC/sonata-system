@@ -406,7 +406,7 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
     .ic_data_addr_o    (ic_data_addr),
     .ic_data_wdata_o   (ic_data_wdata),
     .ic_data_rdata_i   (ic_data_rdata),
-    .ic_scr_key_valid_i(1'b0)
+    .ic_scr_key_valid_i(1'b1)
   );
 
   assign data_wdata_intg_o = 7'h0;
