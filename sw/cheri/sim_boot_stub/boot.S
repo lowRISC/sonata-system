@@ -5,7 +5,7 @@
 	.p2align 2
     .type start,@function
 start:
-	auipcc           cra, 0
-	li               t0, 0x00101000
-	csetaddr         cra, cra, t0
-	cjr              cra
+  auipcc           ct1, 0
+  li               t0, 0x40000000
+  csetaddr         ct1, ct1, t0
+  cjr              ct1
