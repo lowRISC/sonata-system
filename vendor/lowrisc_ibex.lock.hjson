@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/lowrisc/cheriot-ibex.git
-    rev: 3081de9f03af988bf2c5200b9787d81c6a2d8bc7
+    rev: 091ccfc3ce5c9c8dad4acfe200ee45b9401e6a9c
   }
 }

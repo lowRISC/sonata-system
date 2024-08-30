@@ -37,6 +37,7 @@ module cheri_ex import cheri_pkg::*; #(
   input  logic [31:0]   rf_rdata_b_i,
   input  reg_cap_t      rf_rcap_b_i,
   output logic          rf_trsv_en_o,
+  input  logic  [4:0]   rf_waddr_i,
 
   // pcc interface
   input  pcc_cap_t      pcc_cap_i,
@@ -175,7 +176,7 @@ module cheri_ex import cheri_pkg::*; #(
   logic          is_intl, is_lbc;
 
   logic          addr_bound_vio;
-  logic          perm_vio;
+  logic          perm_vio, perm_vio_slc;
   logic          rv32_lsu_err;
   logic          addr_bound_vio_rv32;
   logic          perm_vio_rv32;
@@ -223,6 +224,7 @@ module cheri_ex import cheri_pkg::*; #(
   logic          cpu_lsu_cheri_err, cpu_lsu_is_cap;
 
   logic          illegal_scr_addr;
+  logic          scr_legalization;
 
   // data forwarding for CHERI instructions
   //  - note address 0 is a read-only location per RISC-V
@@ -302,6 +304,7 @@ module cheri_ex import cheri_pkg::*; #(
     csr_wcap_o           = NULL_REG_CAP;
     csr_op_o             = CHERI_CSR_NULL;
     csr_op_en_raw        = 1'b0;
+    scr_legalization     = 1'b0;
 
     branch_req_raw       = 1'b0;
     branch_req_spec_raw  = 1'b0;
@@ -403,6 +406,14 @@ module cheri_ex import cheri_pkg::*; #(
           tfcap.cperms       = compress_perms(tfcap.perms, tfcap.cperms[5:4]);
           tfcap.valid        = tfcap.valid & ~is_cap_sealed(rf_fullcap_a);
           result_cap_o       = full2regcap(tfcap);
+          cheri_rf_we_raw    = 1'b1;
+          cheri_ex_valid_raw = 1'b1;
+        end
+      cheri_operator_i[CSET_HIGH]:         // cd <-- cs1; cd.high <-- convert(rs2)
+        begin
+          // this only works for memcap_fmt0 for now QQQ
+          result_data_o      = rf_rdata_a;
+          result_cap_o       = mem2regcap_fmt0({1'b0, rf_rdata_b}, {1'b0, rf_rdata_a}, 4'h0);
           cheri_rf_we_raw    = 1'b1;
           cheri_ex_valid_raw = 1'b1;
         end
@@ -521,7 +532,7 @@ module cheri_ex import cheri_pkg::*; #(
           cheri_ex_valid_raw   = 1'b1;
           cheri_ex_err_raw     = 1'b0;       // acc err passed to LSU and processed later in WB
           csc_wcap             = rf_rcap_b;
-          csc_wcap.valid       = rf_rcap_b.valid & ~perm_vio_vec[PVIO_SLC];
+          csc_wcap.valid       = rf_rcap_b.valid & ~perm_vio_slc;
         end
       cheri_operator_i[CCSR_RW]:           // cd <-- scr; scr <-- cs1 if cs1 != C0
         begin
@@ -541,20 +552,29 @@ module cheri_ex import cheri_pkg::*; #(
           csr_addr_o         = cheri_cs2_dec_i;
 
           if (cheri_cs2_dec_i == CHERI_SCR_MTCC) begin
-            // MTVEC/MTCC or MEPCC, legalization (clear tag if checking fails)
+            // MTVEC/MTCC legalization (clear tag if checking fails)
+            // note we don't reall need set_address checks here - it's only used to update temp fields
+            //   so that RTL behavior would match sail
+            scr_legalization = 1'b1;
             csr_wdata_o      = {rf_rdata_a[31:2], 2'b00};          
-            trcap            = rf_rcap_a;
+            trcap            = full2regcap(setaddr1_outcap);
             if ((rf_rdata_a[1:0] != 2'b00) || ~rf_fullcap_a.perms[PERM_EX] || (rf_fullcap_a.otype != 0))
               trcap.valid = 1'b0; 
+            else
+              trcap.valid = rf_fullcap_a.valid; 
             csr_wcap_o       = trcap;
           end else if (cheri_cs2_dec_i == CHERI_SCR_MEPCC) begin
-            // MTVEC/MTCC or MEPCC, legalization (clear tag if checking fails)
+            // MEPCC legalization (clear tag if checking fails)
+            scr_legalization = 1'b1;
             csr_wdata_o      = {rf_rdata_a[31:1], 1'b0};          
-            trcap            = rf_rcap_a;
+            trcap            = full2regcap(setaddr1_outcap);
             if ((rf_rdata_a[0] != 1'b0) || ~rf_fullcap_a.perms[PERM_EX] || (rf_fullcap_a.otype != 0))
               trcap.valid = 1'b0; 
+            else
+              trcap.valid = rf_fullcap_a.valid; 
             csr_wcap_o       = trcap;
           end else begin
+            scr_legalization = 1'b0;
             csr_wdata_o      = rf_rdata_a;          
             csr_wcap_o       = rf_rcap_a;
           end 
@@ -586,7 +606,7 @@ module cheri_ex import cheri_pkg::*; #(
           // (link address == pc_id + delta, but pc_if should be the next executed PC (the jump target)
           //  if branch prediction works)
           result_data_o        = pc_id_nxt;
-          seal_type            = csr_mstatus_mie_i ? OTYPE_SENTRY_IE : OTYPE_SENTRY_ID;
+          seal_type            = csr_mstatus_mie_i ? OTYPE_SENTRY_IE_BKWD : OTYPE_SENTRY_ID_BKWD;
           tfcap                = seal_cap(setaddr1_outcap, seal_type);
           result_cap_o         = full2regcap(tfcap);
 
@@ -601,14 +621,17 @@ module cheri_ex import cheri_pkg::*; #(
 
           cheri_rf_we_raw      = ~instr_fault;    // err -> wb exception
           branch_req_raw       = ~instr_fault & cheri_operator_i[CJALR];    // update PCC in CSR
-          branch_req_spec_raw  = 1'b1;
+          // branch_req_spec_raw  = 1'b1;
+          branch_req_spec_raw  = ~instr_fault;    // set fetch PC
 
           cheri_wb_err_raw     = instr_fault;
           cheri_ex_err_raw     = 1'b0;
           csr_set_mie_raw      = ~instr_fault && cheri_operator_i[CJALR] && 
-                                 (rf_fullcap_a.otype == OTYPE_SENTRY_IE);
+                                 ((rf_fullcap_a.otype == OTYPE_SENTRY_IE_FWD) ||
+                                  (rf_fullcap_a.otype == OTYPE_SENTRY_IE_BKWD)) ;
           csr_clr_mie_raw      = ~instr_fault && cheri_operator_i[CJALR] && 
-                                 (rf_fullcap_a.otype == OTYPE_SENTRY_ID);
+                                 ((rf_fullcap_a.otype == OTYPE_SENTRY_ID_FWD) || 
+                                  (rf_fullcap_a.otype == OTYPE_SENTRY_ID_BKWD)) ;
           cheri_ex_valid_raw   = 1'b1;
         end
       default:;
@@ -688,8 +711,8 @@ module cheri_ex import cheri_pkg::*; #(
   //  - break out to make sure we can properly gate off operands to save power
   //
   always_comb begin: set_address_comb
-    full_cap_t   tfcap1, tfcap2;
-    logic [31:0] taddr1, taddr2;
+    full_cap_t   tfcap1;
+    logic [31:0] taddr1;
 
     // set_addr operation 1
     if (cheri_operator_i[CJAL] | cheri_operator_i[CJALR]) begin
@@ -703,6 +726,9 @@ module cheri_ex import cheri_pkg::*; #(
                  cheri_operator_i[CINC_ADDR_IMM] | cheri_operator_i[CAUICGP]) begin
       tfcap1  = rf_fullcap_a;
       taddr1  = addr_result;
+    end else if (scr_legalization) begin
+      tfcap1  = rf_fullcap_a;
+      taddr1  = csr_wdata_o;
     end else begin
       tfcap1  = NULL_FULL_CAP;
       taddr1  = 32'h0;
@@ -835,6 +861,7 @@ module cheri_ex import cheri_pkg::*; #(
     logic [32:0] top_chkaddr;
     logic        top_vio, base_vio, top_equal;
     logic        cs2_bad_type;
+    logic        cs1_otype_0, cs1_otype_1, cs1_otype_45, cs1_otype_23;
 
     // generate the address used to check top bound violation
     if (cheri_operator_i[CSEAL] | cheri_operator_i[CUNSEAL])
@@ -879,9 +906,16 @@ module cheri_ex import cheri_pkg::*; #(
 
     // main permission logic
     perm_vio_vec = 0;
+    perm_vio     = 0;
+    perm_vio_slc = 0;
     cs2_bad_type = 1'b0;
     illegal_scr_addr = 1'b0;
 
+    cs1_otype_0  =  (rf_fullcap_a.otype == 3'h0);
+    cs1_otype_1  =  (rf_fullcap_a.otype == 3'h1);
+    cs1_otype_45 = (rf_fullcap_a.otype == 3'h4) || (rf_fullcap_a.otype == 3'h5);
+    cs1_otype_23 = (rf_fullcap_a.otype == 3'h2) || (rf_fullcap_a.otype == 3'h3);
+ 
     // note cseal/unseal/cis_subject doesn't generate exceptions, 
     // so for all exceptions, violations can always be attributed to cs1, thus no need to further split
     // exceptions based on source operands.
@@ -896,7 +930,7 @@ module cheri_ex import cheri_pkg::*; #(
       perm_vio_vec[PVIO_SD]    = ~rf_fullcap_a.perms[PERM_SD];
       perm_vio_vec[PVIO_SC]    = (~rf_fullcap_a.perms[PERM_MC] && rf_fullcap_b.valid);
       perm_vio_vec[PVIO_ALIGN] = (cheri_ls_chkaddr[2:0] != 0); 
-      perm_vio_vec[PVIO_SLC]   = ~rf_fullcap_a.perms[PERM_SL] && rf_fullcap_b.valid && ~rf_fullcap_b.perms[PERM_GL];
+      perm_vio_slc             = ~rf_fullcap_a.perms[PERM_SL] && rf_fullcap_b.valid && ~rf_fullcap_b.perms[PERM_GL];
     end else if (cheri_operator_i[CSEAL]) begin
       cs2_bad_type = rf_fullcap_a.perms[PERM_EX] ? 
                      ((rf_rdata_b[31:3]!=0)||(rf_rdata_b[2:0]==0)||(rf_rdata_b[2:0]==3'h4)||(rf_rdata_b[2:0]==3'h5)) : 
@@ -912,8 +946,12 @@ module cheri_ex import cheri_pkg::*; #(
                                    (~rf_fullcap_b.perms[PERM_US]);
     end else if (cheri_operator_i[CJALR]) begin
       perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_a.valid;
-      perm_vio_vec[PVIO_SEAL]  = is_cap_sealed(rf_fullcap_a) && 
-                                  (~is_cap_sentry(rf_fullcap_a) || (cheri_imm12_i != 0));
+      perm_vio_vec[PVIO_SEAL]  = (is_cap_sealed(rf_fullcap_a) && (cheri_imm12_i != 0)) ||
+                                 ~(((rf_waddr_i == 0) && (rf_raddr_a_i == 5'h1) && cs1_otype_45) || 
+                                   ((rf_waddr_i == 0) && (rf_raddr_a_i != 5'h1) && (cs1_otype_0 || cs1_otype_1)) ||
+                                   ((rf_waddr_i == 5'h1) && (cs1_otype_0 | cs1_otype_23)) ||
+                                   ((rf_waddr_i != 0) && (cs1_otype_0 | cs1_otype_1)));
+                                 
       perm_vio_vec[PVIO_EX]    = ~rf_fullcap_a.perms[PERM_EX]; 
     end else if (cheri_operator_i[CCSR_RW]) begin
       perm_vio_vec[PVIO_ASR]   = ~pcc_cap_i.perms[PERM_SR];
@@ -923,12 +961,13 @@ module cheri_ex import cheri_pkg::*; #(
     end
 
     perm_vio = | perm_vio_vec;
+
   end
 
   // qualified by lsu_req later
   // store_local error only causes tag clearing unless escalated to fault for debugging
   assign cheri_lsu_err = cheri_pmode_i & ~debug_mode_i & 
-                         (addr_bound_vio | (|perm_vio_vec[7:0]) | (csr_dbg_tclr_fault_i & perm_vio_vec[PVIO_SLC]));
+                         (addr_bound_vio | perm_vio | (csr_dbg_tclr_fault_i & perm_vio_slc));
 
   //
   // fault case mtval generation
@@ -955,7 +994,8 @@ module cheri_ex import cheri_pkg::*; #(
     cheri_err_cause  = vio_cause_enc(addr_bound_vio_ext, perm_vio_vec);
     rv32_err_cause   = vio_cause_enc(addr_bound_vio_rv32, perm_vio_vec_rv32);
 
-    ls_addr_misaligned_only = perm_vio_vec[PVIO_ALIGN] && (cheri_err_cause == 0);
+    
+    ls_addr_misaligned_only = perm_vio_vec[PVIO_ALIGN] && (perm_vio_vec[PVIO_ALIGN-1:0] == 0) && ~addr_bound_vio_ext;
     
     if (cheri_exec_id_i & ~CheriPPLBC & cheri_tsafe_en_i & is_load_cap & cheri_lsu_err)  
       // 2-stage ppl load/store, error treated as EX error, cheri CLC check error
@@ -971,12 +1011,12 @@ module cheri_ex import cheri_pkg::*; #(
     // bit 12: illegal_scr_addr
     // bit 11: alignment error (load/store)
     // bit 10:0 mtval as defined by CHERIoT arch spec
-    if (cheri_operator_i[CCSR_RW] & cheri_wb_err_raw & perm_vio & cheri_exec_id_i)
-      // cspecialrw traps, PERM_SR
-      cheri_wb_err_info_d = {5'h0, 1'b1, cheri_cs2_dec_i, cheri_err_cause};
-    else if (cheri_operator_i[CCSR_RW] & cheri_wb_err_raw & cheri_exec_id_i)
+    if (cheri_operator_i[CCSR_RW] & cheri_wb_err_raw & illegal_scr_addr & cheri_exec_id_i)
       // cspecialrw trap, illegal addr, treated as illegal_insn
       cheri_wb_err_info_d = {3'h0, 1'b1, 12'h0};
+    else if (cheri_operator_i[CCSR_RW] & cheri_wb_err_raw & cheri_exec_id_i)
+      // cspecialrw traps, PERM_SR
+      cheri_wb_err_info_d = {5'h0, 1'b1, cheri_cs2_dec_i, cheri_err_cause};
     else if (cheri_wb_err_raw  & cheri_exec_id_i)
       cheri_wb_err_info_d = {5'h0, 1'b0, rf_raddr_a_i, cheri_err_cause};
     else if ((is_load_cap | is_store_cap) & cheri_lsu_err & cheri_exec_id_i)

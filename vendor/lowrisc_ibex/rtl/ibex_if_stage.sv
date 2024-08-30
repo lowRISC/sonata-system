@@ -176,6 +176,7 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
   logic        [7:0] unused_csr_mtvec;
 
   logic              cheri_acc_vio, cheri_bound_vio;
+  logic              cheri_force_uc;
 
   assign unused_boot_addr = boot_addr_i[7:0];
   assign unused_csr_mtvec = csr_mtvec_i[7:0];
@@ -290,6 +291,8 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
         .err_o               ( fetch_err                  ),
         .err_plus2_o         ( fetch_err_plus2            ),
 
+        .cheri_force_uc_i    ( cheri_force_uc            ),
+
         .instr_req_o         ( instr_req_o                ),
         .instr_addr_o        ( instr_addr_o               ),
         .instr_gnt_i         ( instr_gnt_i                ),
@@ -352,28 +355,39 @@ module ibex_if_stage import ibex_pkg::*; import cheri_pkg::*; #(
   assign if_instr_err = if_instr_bus_err | if_instr_pmp_err | cheri_acc_vio | cheri_bound_vio;
 
   // Capture the second half of the address for errors on the second part of an instruction
+  // LEC_NOT_COMPATIBLE
   assign if_instr_err_plus2 = ((if_instr_addr[1] & ~instr_is_compressed & pmp_err_if_plus2_i) |
                                fetch_err_plus2) & ~pmp_err_if_i;
 
-  // let's only check this in pure-cap mode. otherwise jalr/ret gives so much headache
   // pre-calculate headroom to improve memory read timing
-  logic [2:0]  unused_instr_len;
-  logic [32:0] instr_hdrm;
-  logic        hdrm_ge4, hdrm_ge2, hdrm_ok;
+  logic [33:0] instr_hdrm;
+  logic        hdrm_ge4, hdrm_ge2, hdrm_ok, base_ok;
+  logic        allow_all;
 
-  assign unused_instr_len  = (fetch_valid & ~fetch_err & instr_is_compressed) ? 2 : 4;
-  assign instr_hdrm = pcc_cap_i.top33 - if_instr_addr;
-  assign hdrm_ge4   = (instr_hdrm >= 4);
-  assign hdrm_ge2   = (instr_hdrm >= 2);
-  assign hdrm_ok    = instr_is_compressed ? hdrm_ge2 : hdrm_ge4;
+  // allow_all is used to permit the pc wraparound case (pc = 0xffff_fffe, uncompressed instruction)
+  // - in this case fetch should be allowed if pcc bounds is specified as the entire 32-bit space. 
+  // - If we don't treat this as a specail case the fetch would be erred since headroom < 4
+  assign allow_all  = (pcc_cap_i.base32==0) & (pcc_cap_i.top33==33'h1_0000_0000);
+
+  assign instr_hdrm = {1'b0, pcc_cap_i.top33} - {2'b00, if_instr_addr};
+  assign hdrm_ge4   = (|instr_hdrm[32:2]) & ~instr_hdrm[33];     // >= 4
+  assign hdrm_ge2   = (|instr_hdrm[32:1]) & ~instr_hdrm[33];     // >= 2
+  assign hdrm_ok    = allow_all || (instr_is_compressed ? hdrm_ge2 : hdrm_ge4);
+  assign base_ok    = ~(if_instr_addr < pcc_cap_i.base32);
 
   // only issue cheri_acc_vio on valid fetches
-  assign cheri_bound_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & fetch_valid & ~fetch_err & pcc_cap_i.valid  &
-                           ((if_instr_addr < pcc_cap_i.base32) || instr_hdrm[32] || ~hdrm_ok);
+  assign cheri_bound_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & (~base_ok  || ~hdrm_ok);
+
+  // In order to have constant timing (avoid side-channel leakage due to data-dependent behavior), 
+  // if base vio or headroom < 4 (we are only authorized to fetch 2 bytes), force the fetch_fifo
+  // to treat the current rdata as a unaligned compressed instruction if pc[1]=1, and push it to 
+  // ID stage without waiting for the 2nd part of 32-bit instruciton. 
+  // 
+  assign cheri_force_uc = CHERIoTEn & cheri_pmode_i & ~allow_all & (~base_ok | ~hdrm_ge4);
 
   // we still check seal/perm here to be safe, however by ISA those can't happen at fetch time 
   // since they are check elsewhere already
-  assign cheri_acc_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & fetch_valid & ~fetch_err &
+  assign cheri_acc_vio = CHERIoTEn & cheri_pmode_i & ~debug_mode_i & 
                          (~pcc_cap_i.perms[PERM_EX] || ~pcc_cap_i.valid || (pcc_cap_i.otype!=0));
 
   // compressed instruction decoding, or more precisely compressed instruction
