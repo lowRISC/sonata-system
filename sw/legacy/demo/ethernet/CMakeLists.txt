@@ -3,7 +3,7 @@ set(CMAKE_C_FLAGS "-O2")
 include(FetchContent)
 FetchContent_Declare(
   lwip
-  GIT_REPOSITORY http://git.savannah.gnu.org/git/lwip.git
+  GIT_REPOSITORY https://github.com/lwip-tcpip/lwip.git
   GIT_TAG STABLE-2_2_0_RELEASE
 )
 FetchContent_Populate(lwip)
