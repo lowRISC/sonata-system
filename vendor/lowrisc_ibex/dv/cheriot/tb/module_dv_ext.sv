@@ -17,6 +17,7 @@ module bindfiles;
   bind cheri_tbre_wrapper    cheri_tbre_wrapper_dv_ext tbre_wrapper_dv_ext_i (.*);
   bind cheri_tbre            cheri_tbre_dv_ext         tbre_dv_ext_i (.*);
   bind cheri_stkz            cheri_stkz_dv_ext         stkz_dv_ext_i (.*);
+  bind ibex_cs_registers     ibex_cs_registers_dv_ext  cs_reg_dv_ext_i (.*);
   bind ibex_core             ibex_core_dv_ext          ibex_core_dv_ext_i (.*);
   bind ibex_top              ibex_top_dv_ext           ibex_top_dv_ext_i (.*);
 endmodule
@@ -26,15 +27,22 @@ endmodule
 // ibex_if_stage
 ////////////////////////////////////////////////////////////////
 
-module ibex_if_stage_dv_ext (
+module ibex_if_stage_dv_ext import cheri_pkg::*; import cheriot_dv_pkg::*; (
   input  logic                  clk_i,
-  input  logic                  rst_ni
+  input  logic                  rst_ni,
+  input  logic                  if_instr_valid,
+  input  logic [31:0]           pc_if_o,
+  input  pcc_cap_t              pcc_cap_i
 );
+
+  logic fcov_pending_fetch_bound_vio;
 
   `DV_FCOV_SIGNAL_GEN_IF(logic [1:0], dummy_instr_type,
     gen_dummy_instr.dummy_instr_i.lfsr_data.instr_type, if_stage_i.DummyInstructions)
   `DV_FCOV_SIGNAL_GEN_IF(logic, insert_dummy_instr,
     gen_dummy_instr.insert_dummy_instr, if_stage_i.DummyInstructions)
+
+   assign fcov_pending_fetch_bound_vio = ~if_instr_valid & ~is_representable(pcc2fullcap(pcc_cap_i), pc_if_o);
 
 endmodule
 
@@ -50,7 +58,8 @@ module ibex_id_stage_dv_ext (
   input  logic [4:0]  rf_raddr_a_o,
   input  logic        rf_ren_b,
   input  logic [4:0]  rf_raddr_b_o,
-  input  logic        cheri_rf_we,
+  input  logic        rf_we_id_o,
+  input  logic        rf_we_dec,
   input  logic [4:0]  rf_waddr_id_o,
   input  logic        cheri_exec_id_o,
   input  logic        instr_executing
@@ -60,9 +69,12 @@ module ibex_id_stage_dv_ext (
 
   assign fcov_trvk_stall_cause[0] = rf_ren_a && ~rf_reg_rdy_i[rf_raddr_a_o];
   assign fcov_trvk_stall_cause[1] = rf_ren_b && ~rf_reg_rdy_i[rf_raddr_b_o];
-  assign fcov_trvk_stall_cause[2] = cheri_rf_we && ~rf_reg_rdy_i[rf_waddr_id_o]; 
+  assign fcov_trvk_stall_cause[2] = rf_we_id_o && ~rf_reg_rdy_i[rf_waddr_id_o]; 
 
   `ASSERT(IbexExecInclCheri, (cheri_exec_id_o |-> instr_executing))
+
+  // rf_we_dec is now a superset of cheri_rf_we_dec
+  `ASSERT(IbexCheriRfWe, (decoder_i.cheri_rf_we_dec |-> rf_we_dec))
  
 
 
@@ -149,9 +161,13 @@ module ibex_lsu_dv_ext import ibex_pkg::*; import cheri_pkg::*; (
   input  logic         resp_is_tbre_q,
   input  cap_rx_fsm_t  cap_rx_fsm_q,
   input  logic         data_we_q,  
-  input  logic         cap_lsw_err_q  
-
+  input  logic         cap_lsw_err_q,
+  input  logic [32:0]  data_rdata_i,
+  input  logic [32:0]  cap_lsw_q
 );
+
+  localparam MemCapFmt = load_store_unit_i.MemCapFmt;
+
   // Set when awaiting the response for the second half of a misaligned access
   logic fcov_mis_2_en_d, fcov_mis_2_en_q;
 
@@ -197,33 +213,43 @@ module ibex_lsu_dv_ext import ibex_pkg::*; import cheri_pkg::*; (
   `DV_FCOV_SIGNAL(logic, ls_mis_pmp_err_2,
     (ls_fsm_cs inside {WAIT_RVALID_MIS, WAIT_RVALID_MIS_GNTS_DONE}) && data_pmp_err_i)
 
-   logic [1:0] fcov_ls_exception_type;
-   assign fcov_ls_exception_type = fcov_ls_error_exception ? 1 : fcov_ls_pmp_exception ? 2 :
-                                   fcov_ls_cheri_exception ? 3 : 0;
+  logic [1:0] fcov_ls_exception_type;
+  assign fcov_ls_exception_type = fcov_ls_error_exception ? 1 : fcov_ls_pmp_exception ? 2 :
+                                  fcov_ls_cheri_exception ? 3 : 0;
 
-   logic [2:0] fcov_clsc_mem_err;
-   always_comb begin
-     fcov_clsc_mem_err = 3'h0;       // no error;
-     if ((cap_rx_fsm_q == CRX_WAIT_RESP2) && data_rvalid_i) begin
-       if (data_err_i & ~data_we_q & cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h1;       // clc both word error
-       else if (data_err_i & ~data_we_q & ~cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h2;       // clc word 1 error only
-       else if (~data_err_i & ~data_we_q & ~cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h3;       // clc word 0 error only
-       else if (data_err_i & data_we_q & cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h4;       // csc both word error
-       else if (data_err_i & data_we_q & ~cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h5;       // csc word 1 error only
-       else if (~data_err_i & data_we_q & cap_lsw_err_q)
-          fcov_clsc_mem_err = 3'h6;       // csc word 0 error only
-       else 
-          fcov_clsc_mem_err = 3'h0;       // no error;
-     end
-   end
-    
+  logic [2:0] fcov_clsc_mem_err;
+  always_comb begin
+    fcov_clsc_mem_err = 3'h0;       // no error;
+    if ((cap_rx_fsm_q == CRX_WAIT_RESP2) && data_rvalid_i) begin
+      if (data_err_i & ~data_we_q & cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h1;       // clc both word error
+      else if (data_err_i & ~data_we_q & ~cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h2;       // clc word 1 error only
+      else if (~data_err_i & ~data_we_q & ~cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h3;       // clc word 0 error only
+      else if (data_err_i & data_we_q & cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h4;       // csc both word error
+      else if (data_err_i & data_we_q & ~cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h5;       // csc word 1 error only
+      else if (~data_err_i & data_we_q & cap_lsw_err_q)
+         fcov_clsc_mem_err = 3'h6;       // csc word 0 error only
+      else 
+         fcov_clsc_mem_err = 3'h0;       // no error;
+    end
+  end
+ 
+  full_cap_t   fcov_clc_mem_cap;
+  logic [12:0] mem_raw_perms;
+  logic [1:0]  fcov_clc_mem_cap_valid;
+      
+  //if (MemCapFmt) begin
+    assign fcov_clc_mem_cap = mem2fullcap_fmt0_raw(data_rdata_i, cap_lsw_q);
+  //end else begin
+    //assign mem_raw_cap = mem2regcap_fmt1(data_rdata_i, cap_lsw_q, 4'h0);
+  //end
 
-
+  assign fcov_clc_mem_cap_valid  = {cap_lsw_q[32], data_rdata_i[32]};
+ 
 
   ////////////////
   // Assertions //
@@ -659,6 +685,27 @@ module cheri_stkz_dv_ext import ibex_pkg::*; import cheri_pkg::*; (
     else 
       fcov_ztop_wr_type = 2'h3;
   end
+
+endmodule
+
+////////////////////////////////////////////////////////////////
+// ibex_if_stage
+////////////////////////////////////////////////////////////////
+
+module ibex_cs_registers_dv_ext import ibex_pkg::*; import cheri_pkg::*; (
+  input  logic         clk_i,
+  input  logic         rst_ni,
+  input  logic [31:0]  cheri_csr_wdata_i,
+  input  reg_cap_t     cheri_csr_wcap_i,
+  input  pcc_cap_t     pcc_cap_o
+  );
+
+  full_cap_t fcov_scr_wfcap;
+
+  assign fcov_scr_wfcap = reg2fullcap(cheri_csr_wcap_i, cheri_csr_wdata_i);
+
+  `ASSERT(PccOtypeInvalid, (pcc_cap_o.valid |-> (pcc_cap_o.otype==0)))
+  `ASSERT(PccPermEx0, (pcc_cap_o.valid |-> pcc_cap_o.perms[PERM_EX]))
 
 endmodule
 

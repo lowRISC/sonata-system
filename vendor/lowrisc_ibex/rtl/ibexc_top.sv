@@ -40,7 +40,8 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
   parameter bit          CheriSBND2       = 1'b0,
   parameter bit          CheriTBRE        = 1'b0,
   parameter int unsigned MMRegDinW        = 128,
-  parameter int unsigned MMRegDoutW       = 64
+  parameter int unsigned MMRegDoutW       = 64,
+  parameter bit          ICache           = 1'b0
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -158,6 +159,10 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
   localparam bit          ResetAll          = 1'b1;
   localparam int unsigned RegFileDataWidth  = 32;
 
+  localparam int unsigned BusSizeECC        = BUS_SIZE;
+  localparam int unsigned LineSizeECC       = BusSizeECC * IC_LINE_BEATS;
+  localparam int unsigned TagSizeECC        = IC_TAG_SIZE;
+
   // Clock signals
   logic                        clk;
   logic                        core_busy_d, core_busy_q;
@@ -180,6 +185,17 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
   logic          rf_trvk_clrtag;
   logic [4:0]    rf_trsv_addr;
   logic          rf_trsv_en;
+
+  logic [IC_NUM_WAYS-1:0]      ic_tag_req;
+  logic                        ic_tag_write;
+  logic [IC_INDEX_W-1:0]       ic_tag_addr;
+  logic [TagSizeECC-1:0]       ic_tag_wdata;
+  logic [TagSizeECC-1:0]       ic_tag_rdata [IC_NUM_WAYS];
+  logic [IC_NUM_WAYS-1:0]      ic_data_req;
+  logic                        ic_data_write;
+  logic [IC_INDEX_W-1:0]       ic_data_addr;
+  logic [LineSizeECC-1:0]      ic_data_wdata;
+  logic [LineSizeECC-1:0]      ic_data_rdata [IC_NUM_WAYS];
 
   fetch_enable_t fetch_enable_buf;
 
@@ -244,7 +260,7 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
     .RV32M            (RV32MFast),
     .RV32B            (RV32BNone),
     .BranchTargetALU  (1'b1),
-    .ICache           (1'b0),
+    .ICache           (ICache),
     .ICacheECC        (1'b0),
     .BusSizeECC       (BUS_SIZE),
     .TagSizeECC       (IC_TAG_SIZE),
@@ -379,17 +395,18 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
     .alert_major_o(alert_major_internal_o),
     .icache_inval_o(),
     .core_busy_o   (core_busy_d),
-    .ic_scr_key_valid_i (1'b0),
-    .ic_data_rdata_i    (),
-    .ic_data_wdata_o    (),
-    .ic_data_addr_o     (),
-    .ic_data_write_o    (),
-    .ic_data_req_o      (),
-    .ic_tag_rdata_i     (),
-    .ic_tag_wdata_o     (),
-    .ic_tag_addr_o      (),
-    .ic_tag_write_o     (), 
-    .ic_tag_req_o       ()
+
+    .ic_tag_req_o      (ic_tag_req),
+    .ic_tag_write_o    (ic_tag_write),
+    .ic_tag_addr_o     (ic_tag_addr),
+    .ic_tag_wdata_o    (ic_tag_wdata),
+    .ic_tag_rdata_i    (ic_tag_rdata),
+    .ic_data_req_o     (ic_data_req),
+    .ic_data_write_o   (ic_data_write),
+    .ic_data_addr_o    (ic_data_addr),
+    .ic_data_wdata_o   (ic_data_wdata),
+    .ic_data_rdata_i   (ic_data_rdata),
+    .ic_scr_key_valid_i(1'b0)
   );
 
   assign data_wdata_intg_o = 7'h0;
@@ -455,6 +472,47 @@ module ibexc_top import ibex_pkg::*; import cheri_pkg::*; #(
       .trvk_par_i    (7'h0),
       .par_rst_ni    (1'b0),
       .alert_o       ()
+    );
+  end
+
+  for (genvar way = 0; way < IC_NUM_WAYS; way++) begin : gen_rams_inner
+
+    // Tag RAM instantiation
+    prim_ram_1p #(
+      .Width            (TagSizeECC),
+      .Depth            (IC_NUM_LINES),
+      .DataBitsPerMask  (TagSizeECC)
+    ) tag_bank (
+      .clk_i,
+
+      .req_i       (ic_tag_req[way]),
+
+      .write_i     (ic_tag_write),
+      .addr_i      (ic_tag_addr),
+      .wdata_i     (ic_tag_wdata),
+      .wmask_i     ({TagSizeECC{1'b1}}),
+
+      .rdata_o     (ic_tag_rdata[way]),
+      .cfg_i       (ram_cfg_i)
+    );
+
+    // Data RAM instantiation
+    prim_ram_1p #(
+      .Width              (LineSizeECC),
+      .Depth              (IC_NUM_LINES),
+      .DataBitsPerMask    (LineSizeECC)
+    ) data_bank (
+      .clk_i,
+
+      .req_i       (ic_data_req[way]),
+
+      .write_i     (ic_data_write),
+      .addr_i      (ic_data_addr),
+      .wdata_i     (ic_data_wdata),
+      .wmask_i     ({LineSizeECC{1'b1}}),
+
+      .rdata_o     (ic_data_rdata[way]),
+      .cfg_i       (ram_cfg_i)
     );
   end
 

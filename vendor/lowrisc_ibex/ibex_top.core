@@ -13,7 +13,10 @@ filesets:
       - lowrisc:prim:buf
       - lowrisc:prim:clock_mux2
       - lowrisc:prim:flop
-      - lowrisc:prim:ram_1p_scr
+      # Note this should be ram_1p_scr however with ibexc_top only the
+      # unscrambled ICache is supported so there's no need for the scrambling
+      # primitives
+      - lowrisc:prim:ram_1p
     files:
       - rtl/ibex_register_file_ff.sv # generic FF-based
       - rtl/ibex_register_file_fpga.sv # FPGA
