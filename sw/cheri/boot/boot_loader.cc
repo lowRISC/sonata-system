@@ -16,6 +16,7 @@
 #include <platform-spi.hh>
 #include <platform-uart.hh>
 
+#include "../common/asm.hh"
 #include "../common/flash-utils.hh"
 #include "../common/uart-utils.hh"
 #include "elf.h"
@@ -181,15 +182,6 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
   write_str(uart, "Booting into program, hopefully.\r\n");
   return entrypoint;
 }
-
-// This is using GNU statement expression extension so we can return a value
-// from a macro: https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html
-#define READ_CSR(name)                                                                                                 \
-  ({                                                                                                                   \
-    uint32_t result;                                                                                                   \
-    asm volatile("csrr %0, " name : "=r"(result));                                                                     \
-    result;                                                                                                            \
-  })
 
 extern "C" void exception_handler(void *rwRoot) {
   CHERI::Capability<void> root{rwRoot};
