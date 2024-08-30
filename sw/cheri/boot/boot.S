@@ -23,10 +23,10 @@ start:
 	cspecialw        mtcc, ct0
 
 	// No bounds on stack, grows down from the end of IRAM
-	li               sp, 0x00100ff0
+	li               sp, 0x00101000
 	csetaddr         csp, cs0, sp
 
-	// Clear the revocation bitmap before entering C code.
+	// Clear the revocation bitmap before entering C/C++ code.
 	// The bitmap is not cleared upon reset so memset to return it to a
 	// pristine state.
 	li               a0, 0x30000000
@@ -34,6 +34,11 @@ start:
 	li               a1, 0
 	li               a2, 4096
 	ccall            bl_memset
+
+	// Set cgp to correct location so globals can be used.
+.extern __global_pointer$
+	la_abs           t0, __global_pointer$
+	csetaddr         cgp, cs0, t0
 
 	cmove            ca0, cs0
 	ccall            rom_loader_entry

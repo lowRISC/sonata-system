@@ -12,28 +12,67 @@
 start:
 	// Enable the ICache
 	csrsi            0x7c0, 1
-	// ca0 (first argument) contains the read-write root
-	cspecialr        ca0, mtdc
+
+	// Upon reset mtdc contains the read-write root and pcc contains the execution root.
+	cspecialr        cs0, mtdc
+	auipcc           cs1, 0
 
 	// No bounds on stack, grows down from the end of IRAM
-	li               sp, 0x0010E000
-	csetaddr         csp, ca0, sp
-	auipcc           cra, 0
-	// Call the C++ entry point
-	la_abs           t0, entry_point
-	csetaddr         cra, cra, t0
-	// Store capability to stack
-	csc              cra, 0(csp)
-	// Load capability from stack
-	clc              cra, 0(csp)
-	// Clear capability from stack
-	csc              cnull, 0(csp)
-	cjalr            cra
+	li               sp, 0x00120000
+	csetaddr         csp, cs0, sp
 
-	// Jump to the newly loaded binary.
-	// This could be a relative jump, but I'd need to get the relocations right
-	// and we have 32 KiB of IROM so wasting a few bytes doesn't really matter.
-	auipcc           cra, 0
-	li               t0, 0x00140000
-	csetaddr         cra, cra, t0
-	cjr              cra
+	// Clear the revocation bitmap before entering C/C++ code.
+	// The bitmap is not cleared upon reset so memset to return it to a
+	// pristine state.
+	li               a0, 0x30000000
+	csetaddr         ca0, cs0, a0
+	li               a1, 0
+	li               a2, 4096
+	ccall            bl_memset
+
+	// Set cgp to correct location so globals can be used.
+.extern __global_pointer$
+	la_abs           t0, __global_pointer$
+	csetaddr         cgp, cs0, t0
+
+	cmove            ca0, cs0
+	ccall            entry_point
+
+	// Infinite loop if the entry point ever returns
+1:
+	wfi
+	j 1b
+
+.section .text.bl_memset, "ax", @progbits
+.global bl_memset
+bl_memset:
+	// Check if everything is aligned, and if so use word fill.
+	andi            a3, a0, 3
+	bnez            a3, .Lbytes_fill
+	andi            a3, a2, 3
+	bnez            a3, .Lbytes_fill
+
+	// Broadcast a1 to all bytes.
+	andi            a1, a1, 0xff
+	slli            a3, a1, 8
+	or              a1, a3, a1
+	slli            a3, a1, 16
+	or              a1, a3, a1
+
+0:
+	beqz            a2, .Lret
+	csw             a1, (ca0)
+	cincoffset      ca0, ca0, 4
+	addi            a2, a2, -4
+	j               0b
+
+.Lbytes_fill:
+0:
+	beqz            a2, .Lret
+	csb             a1, (ca0)
+	cincoffset      ca0, ca0, 1
+	addi            a2, a2, -1
+	j               0b
+
+.Lret:
+	cret
