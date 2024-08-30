@@ -7,7 +7,8 @@
 
 class SonataSystem {
  public:
-  SonataSystem(const char *ram_hier_path, int ram_size_words);
+  SonataSystem(const char *ram_hier_path, int ram_size_words,
+    const char *hyperram_hier_path, int hyperram_size_words);
   virtual ~SonataSystem() {}
   virtual int Main(int argc, char **argv);
 
@@ -16,6 +17,7 @@ class SonataSystem {
   top_verilator _top;
   VerilatorMemUtil _memutil;
   MemArea _ram;
+  MemArea _hyperram;
 
   virtual int Setup(int argc, char **argv, bool &exit_app);
   virtual void Run();

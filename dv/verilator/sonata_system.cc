@@ -13,8 +13,10 @@
 #include "verilator_memutil.h"
 #include "verilator_sim_ctrl.h"
 
-SonataSystem::SonataSystem(const char *ram_hier_path, int ram_size_words)
-    : _ram(ram_hier_path, ram_size_words, 4) {}
+SonataSystem::SonataSystem(const char *ram_hier_path, int ram_size_words,
+  const char *hyperram_hier_path, int hyperram_size_words)
+    : _ram(ram_hier_path, ram_size_words, 4),
+      _hyperram(hyperram_hier_path, hyperram_size_words, 4) {}
 
 int SonataSystem::Main(int argc, char **argv) {
   bool exit_app;
@@ -40,6 +42,7 @@ int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
                  VerilatorSimCtrlFlags::ResetPolarityNegative);
 
   _memutil.RegisterMemoryArea("ram", 0x100000, &_ram);
+  _memutil.RegisterMemoryArea("hyperram", 0x40000000, &_hyperram);
   simctrl.RegisterExtension(&_memutil);
 
   exit_app = false;
