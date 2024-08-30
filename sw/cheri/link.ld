@@ -11,6 +11,7 @@ SECTIONS
 	.rom_loader :
 	{
 		*(.text.start);
+		*(.vectors);
 		*(.text .text.* .rodata .rodata.* .data.rel.ro);
 		. = ALIGN(4);
 	}
