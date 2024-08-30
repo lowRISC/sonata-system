@@ -7,6 +7,8 @@
 	.p2align 2
     .type start,@function
 start:
+	// Enable the ICache
+	csrsi            0x7c0, 1
 	// Upon reset mtdc contains the read-write root and pcc contains the execution root.
 	cspecialr        cs0, mtdc
 	auipcc           cs1, 0
@@ -31,6 +33,9 @@ start:
 
 	cmove            ca0, cs0
 	ccall            rom_loader_entry
+
+	// Flush ICache now we've loaded new code
+	fence.i
 
 	// Jump to the newly loaded binary.
 	csetaddr         ct0, cs1, a0

@@ -7,6 +7,8 @@
 	.p2align 2
     .type start,@function
 start:
+	// Enable the ICache
+	csrsi            0x7c0, 1
 	// ca0 (first argument) contains the read-write root
 	cspecialr        ca0, mtdc
 
