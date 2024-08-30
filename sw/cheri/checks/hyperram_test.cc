@@ -186,6 +186,8 @@ void write_prog(Capability<volatile uint32_t> &hyperram_area, uint32_t addr) {
   hyperram_area[addr + 2] = 0x00552023;
   hyperram_area[addr + 3] = 0x00000517;
   hyperram_area[addr + 4] = 0x8082;
+
+  asm volatile ("fence.i" : : : "memory");
 }
 
 // Writes a short function to a random area of hyperram and executes it checking
