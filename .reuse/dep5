@@ -28,20 +28,6 @@ Files: vendor/open_hbmc/*
 Copyright: © 2020-2022, Vaagn Oganesyan <ovgn@protonmail.com>
 License: Apache-2.0
 
-Files: vendor/newae/crypto/tiny-AES128-C/*
-Copyright: tiny-AES-c contributors
-License: Unlicense
-
-Files: vendor/newae/simpleserial*
-       vendor/newae/hal/hal.h
-       vendor/newae/basic-passwdcheck/basic-passwdcheck.c
-Copyright: 2012-2017 NewAE Technology Inc
-License: GPL-3.0-or-later
-
-Files: vendor/newae/crypto/aes-independant.*
-Copyright: 2012 Colin O'Flynn <coflynn@newae.com>
-License: GPL-3.0-or-later
-
 Files: sw/legacy/demo/lcd_st7735/coremark/ee_printf.c
 Copyright: 2018 Embedded Microprocessor Benchmark Consortium (EEMBC)
 License: Apache-2.0
