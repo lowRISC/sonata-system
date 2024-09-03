@@ -7,7 +7,7 @@ Users would be better served by the [`cheriot-rtos`][] and [`sonata-software`][]
 [`cheriot-rtos`]: https://github.com/CHERIoT-Platform/cheriot-rtos
 [`sonata-software`]: https://github.com/lowRISC/sonata-software
 
-See the [getting started guide](../../doc/guide/getting-started.md) for how to install dependencies.
+See the [getting started guide](../../doc/guide/README.md) for how to install dependencies.
 
 ## Directory Structure
 - `boot` contains the sonata bootloader that loads a program from flash on start-up.
