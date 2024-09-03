@@ -45,3 +45,8 @@ License: GPL-3.0-or-later
 Files: sw/legacy/demo/lcd_st7735/coremark/ee_printf.c
 Copyright: 2018 Embedded Microprocessor Benchmark Consortium (EEMBC)
 License: Apache-2.0
+
+Files: rtl/ip/xadc/rtl/xadc_wiz_0.v
+Copyright: 2009 - 2013 Xilinx, Inc. All rights reserved.
+License: LicenseRef-Xilinx
+
