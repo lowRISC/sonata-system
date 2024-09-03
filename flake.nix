@@ -81,6 +81,7 @@
       };
 
       lint-all = pkgs.writers.writeBashBin "lint-all" ''
+        set -e
         ${getExe pkgs.reuse} --suppress-deprecation lint
         ${getExe lint-markdown}
         ${getExe lint-python}

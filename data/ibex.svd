@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
- Copyright lowRISC contributors.
- Licensed under the Apache License, Version 2.0, see LICENSE for details.
- SPDX-License-Identifier: Apache-2.0
--->
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd">
   <vendor>lowRISC</vendor>
   <name>Sonata System</name>
@@ -14,9 +9,11 @@
     1 x UART, 1 x SPI controller, 1 x PWM channels\n
     </description>
   <licenseText>
-    Copyright lowRISC contributors.\n
-    Licensed under the Apache License, Version 2.0, see LICENSE for details.\n
-    SPDX-License-Identifier: Apache-2.0\n
+    Copyright lowRISC contributors.
+    \n
+    Licensed under the Apache License, Version 2.0, see LICENSE for details. \n
+    SPDX-License-Identifier: Apache-2.0
+    \n
   </licenseText>
   <cpu>
     <name>Ibex</name>
