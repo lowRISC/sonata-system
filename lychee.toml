@@ -1,0 +1,10 @@
+# Copyright lowRISC Contributors.
+# SPDX-License-Identifier: Apache-2.0
+
+include_fragments = true
+exclude_path = [
+  "./vendor",
+  "./build",
+  "./sw/cheri/build",
+  "./sw/legacy/build",
+]

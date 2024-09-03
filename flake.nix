@@ -59,17 +59,6 @@
         };
       };
 
-      lint-markdown = pkgs.writeShellApplication {
-        name = "lint-markdown";
-        text = ''
-          ${getExe pkgs.lychee} --offline --include-fragments --no-progress . \
-            --exclude-path ./vendor \
-            --exclude-path ./build \
-            --exclude-path './sw/cheri/build' \
-            --exclude-path './sw/legacy/build'
-        '';
-      };
-
       lint-python = pkgs.writeShellApplication {
         name = "lint-python";
         runtimeInputs = [pythonEnv];
@@ -83,7 +72,7 @@
       lint-all = pkgs.writers.writeBashBin "lint-all" ''
         set -e
         ${getExe pkgs.reuse} --suppress-deprecation lint
-        ${getExe lint-markdown}
+        ${getExe pkgs.lychee} --offline --no-progress .
         ${getExe lint-python}
       '';
 
@@ -261,7 +250,7 @@
           type = "app";
           program = getExe program;
         };
-      }) [lint-all lint-markdown lint-python tests-fpga]);
+      }) [lint-all lint-python tests-fpga]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
