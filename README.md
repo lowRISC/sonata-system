@@ -1,4 +1,4 @@
-# Sonata system
+# Sonata System
 
 Sonata is a system for evaluating the usage of [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
 The system contain a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
@@ -8,6 +8,8 @@ It is designed for use on FPGA and specifically targets the [Sonata FPGA board](
 This project is designed to look like a normal microcontroller in terms of usability, including SDK, examples, and normal capabilities such as debuggers. But underneath that the [CHERIoT](https://www.microsoft.com/en-us/research/publication/cheriot-rethinking-security-for-low-cost-embedded-systems/) capabilities provides a high level of "default security" that simplifies designing embedded systems in a secure manner. You can see the [complete documentation](https://lowrisc.org/sonata-system/) for the project, but note it is under active development so substantial improvements are to be made.
 
 Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
+
+![The sonata developement system](doc/img/sonata-development-system.svg)
 
 ## Current status
 
@@ -31,7 +33,7 @@ For support with the board itself please use the [forum][newae-forum] on the New
 
 ![](doc/img/sonata-full.jpeg)
 
-If you have a Sonata board, you can jump to the [Getting Started](doc/guide/getting-started.md) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself
+If you have a Sonata board, you can jump to the [Getting Started](doc/guide/README.md) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself
 
 You can also work with a simulated environment, see the simulator page. This simulates the entire soft-core in Verilator, allow you to develop both hardware (the FPGA) and software (running code) programs.
 

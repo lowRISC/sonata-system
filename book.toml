@@ -8,6 +8,9 @@ multilingual = false
 src = "."
 title = "Sonata System Documentation"
 
+[build]
+create-missing = false
+
 [output.html]
 git-repository-url = "https://github.com/lowRISC/sonata-system"
 edit-url-template = "https://github.com/lowRISC/sonata-system/edit/main/{path}"
