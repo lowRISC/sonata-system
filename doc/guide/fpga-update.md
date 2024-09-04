@@ -16,15 +16,13 @@ process is much slower than a software compile, so adds delay until you can play
 ## Selecting a Bitstream
 
 When the Sonata board is plugged in, it loads one of three bitstreams. This is selected by the switch below the USB port labeled `Bitstream`:
+
 ![](img/sonata-selectbs.jpeg)
 
 The LEDs besides the switch show the current image selected as well for confirmation.
 
-The slot used by a bitstream is selected by the uf2 file.
-The bitstream uf2 provided in the release uses Slot 1.
-
-In case you have trouble with the board, you can quickly switch to Slot 1 to confirm the LCD, LEDs, and similar are all functioning correctly. However there is no problem
-to overwrite any of the slots, the default image can easily be copied back if you want later.
+The slot used by a bitstream is selected by the UF2 file.
+The bitstream UF2 provided in the release uses Slot 1.
 
 ## Drag & Drop Programming
 
@@ -32,9 +30,9 @@ To program the Sonata bitstream:
 
 1. Download the bitstream from [our releases](https://github.com/lowRISC/sonata-system/releases)
 2. Make sure that you have the bitstream switch (SW3) set to 1.
-3. Plug in your Sonata board using the main USB. You should see a `SONATA` drive (see troubleshooting section if unsure).
+3. Plug in your Sonata board using the main USB. You should see a 'SONATA' drive (see troubleshooting section if unsure).
 4. Copy the updated FPGA `sonata-vX.Y.bit.slot1.uf2` file to the drive and wait for the copy to complete (on Linux note the copy command may return immediately, so you need to wait until it's done.)
-5. The board should automatically restart once the image is copied over. You should see the `FPGA Config` LED come on:
+5. The board should automatically restart once the image is copied over. You should see the 'FPGA Config' LED come on:
 
 ![](img/sonata-fpgaconfig.jpeg)
 
@@ -43,16 +41,6 @@ This indicates the FPGA configuration succeeded. This LED should stay on. You sh
 > The `FPGA Config` LED reflects the state of the FPGA `DONE` pin. If this LED is not on your board will not work, as there is no logic (core)
 > loaded, or it has become corrupted. This is true even if you are not building Sonata designs but using the board as a general-purpose FPGA
 > board. See troubleshooting below if this LED does not come on, or appears to only come on briefly.
-
-Here is the commands you'd need to do all of that, assuming Sonata was already plugged in and has been mounted at `/media/sonata`
-
-```sh
-wget https://github.com/lowRISC/sonata-system/releases/download/v0.3/sonata-v0.3.bit.slot1.uf2
-cp sonata-v0.3.bit.slot1.uf2 /media/sonata/
-```
-
-Many Linux desktop distributions will automount if you open the drive via the graphical interface, so you may find it easier to do this from your Linux desktop,
-which 2024 is certainly the year of.
 
 ### Programming on Power Cycle
 
@@ -86,9 +74,12 @@ INFO: Firmware found in slot 0
 INFO: No firmware in slot 1
 INFO: No firmware in slot 2
 INFO: Using slot 0
+INFO: Bitstream in flash @ 0, programming 18AC70 bytes...
+INFO: Finished programming CRC=98E5AFD6
+INFO: Bitstream prog success
 ```
 
-### FPGA Config Led not coming on
+### FPGA Config LED not coming on
 
 If the `FPGA Config` LED is not coming on, this could indicate the bitstream was designed for a different FPGA, or some other hardware issue. This should be troubleshooted with the OpenFPGALoader utility as described further down this page.
 
@@ -109,16 +100,16 @@ openFPGALoader -c ft4232 -X
 This will print several XADC values, pay careful attention to `minvccint`:
 
 ```
-{"temp": 39.9061, 
-    "maxtemp": 40.3194, 
-    "mintemp": 25.9852, 
+{"temp": 39.9061,
+    "maxtemp": 40.3194,
+    "mintemp": 25.9852,
 "raw":  {"0": 40684, "1": 21949, "2": 39270, "3": 0, "4": 0, "5": 0, "6": 21948, "7": 0},
-"vccint": 1.00415, 
-   "maxvccint": 1.00635, 
-   "minvccint": 1.00195, 
-"vccaux": 1.79663, 
-   "maxvccaux": 1.79883, 
-   "minvccaux": 1.79517, 
+"vccint": 1.00415,
+   "maxvccint": 1.00635,
+   "minvccint": 1.00195,
+"vccaux": 1.79663,
+   "maxvccaux": 1.79883,
+   "minvccaux": 1.79517,
 }
 ```
 
