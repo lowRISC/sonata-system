@@ -1,4 +1,4 @@
-# Sonata System
+# Sonata system
 
 Sonata is a system for evaluating the usage of [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
 The system contain a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
@@ -14,30 +14,33 @@ Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funde
 ## Current status
 
 We are delighted to announce the release of the Sonata system!
-The latest release is available now from GitHub [here][release-v0.3].
+The latest release is available now from GitHub [here][release-v0.4.1].
 
 This new release provides a base FPGA image with I2C/SPI/UART peripherals that are suitable for use with the expansion headers as well as the on-board hardware.
-Please note that full ethernet support will still be pending software work and not available in this first release.
 
-On the software side a full build flow for Microsoft's CHERIoT RTOS is included along with driver support for the Sonata peripherals.
+On the software side a full build flow for Microsoft's CHERIoT RTOS is available along with driver support for the Sonata peripherals in the [sonata-software repository][sonata-software].
 A flash bootloader enables easy 'drag and drop' programming where a generated UF2 is copied to Sonata’s virtual USB drive (in a similar manner to the RP2040 and arm Mbed platforms).
 Environment setup and build instructions are available for Windows, macOS and Linux.
 
 If you find any issues with the Sonata system, or have features you would like to propose, please create an issue on GitHub.
-For support with the board itself please use the [forum][newae-forum] on the NewAE website, create an issue at <https://github.com/newaetech/sonata-pcb>, or reach out to NewAE directly.
+For support with the board itself please use the [forum][newae-forum] on the NewAE website, create an issue on the [sonata-pcb repository][sonata-pcb], or reach out to NewAE directly.
 
-[release-v0.3]: https://github.com/lowRISC/sonata-system/releases/tag/v0.3
+[release-v0.4.1]: https://github.com/lowRISC/sonata-system/releases/tag/v0.4.1
+[sonata-software]: https://github.com/lowRISC/sonata-software
 [newae-forum]: https://forum.newae.com/c/sonata-board/15
+[sonata-pcb]: https://github.com/newaetech/sonata-pcb
 
-## Getting Started
+## Getting started
 
 ![](doc/img/sonata-full.jpeg)
 
-If you have a Sonata board, you can jump to the [Getting Started](doc/guide/README.md) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself
+If you have a Sonata board, you can jump to the [Getting Started](doc/guide/README.md) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc.) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself.
 
-You can also work with a simulated environment, see the simulator page. This simulates the entire soft-core in Verilator, allow you to develop both hardware (the FPGA) and software (running code) programs.
+You can also work with a simulated environment, and there is a nice guide on this in the [sonata-software documentation][sonata-sim]. This simulates the entire in Verilator, allow you to develop both hardware (the FPGA) and software (running code) programs.
 
-## Documentation Intro
+[sonata-sim]: https://lowrisc.github.io/sonata-software/doc/guide/running-software.html#running-in-the-simulator
+
+## Documentation introduction
 
 This documentation is built using [mdBook](https://rust-lang.github.io/mdBook/). If you are reading this file in GitHub, you should instead see the pre-built documentation on the [lowRISC Website](https://lowrisc.org/sonata-system/) which includes the full documentation.
 
