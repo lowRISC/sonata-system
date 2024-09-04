@@ -5,11 +5,11 @@ Once you've got these builds working, you can easily add more features to the ex
 
 ## Using our template
 
-Please go to the [Sonata software repository](https://github.com/lowRISC/sonata-software) using the branch appropriate to your release (e.g. checkout the ['v0.3' branch](https://github.com/lowRISC/sonata-software/tree/v0.3)) and build a full application from there.
+Please go to the [Sonata software repository](https://github.com/lowRISC/sonata-software) using the branch appropriate to your release and build a full application from there.
 Inside your setup you should simply be able to build it like this:
 
 ```sh
-git clone --recurse-submodule -b v0.3 \
+git clone --recurse-submodule \
     https://github.com/lowRISC/sonata-software.git
 cd sonata-software
 nix develop .
@@ -30,12 +30,12 @@ You can drag and drop this UF2 file into the `SONATA` drive to program the firmw
 
 On Linux use the following command to check you can receive serial output:
 ```sh
-screen /dev/ttyUSB2 115200
+screen /dev/ttyUSB2 921600
 ```
 
 On Mac this is similar
 ```sh
-screen /dev/tty.usbserial-LN100302 115200
+screen /dev/tty.usbserial-LN100302 921600
 ```
 
 On Windows, connecting to serial ports directly from within WSL2 (default) is not possible.
@@ -44,8 +44,6 @@ Alternatively you can use [Termite](https://www.compuphase.com/software_termite.
 
 Select "Serial" as "Connection type", put the COM port in the "Serial line" text field, and set "Speed" to 921600.
 To find out what serial ports are available, you can open Device Manager and all connected serial ports are listed under "Ports (COM & LPT)" section.
-
-Note that the baremetal examples below use a higher baud rate, 921600, use that in place of 115200 when running the baremetal examples.
 
 ## Baremetal examples
 
