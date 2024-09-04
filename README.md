@@ -34,7 +34,7 @@ For support with the board itself please use the [forum][newae-forum] on the New
 
 ![](doc/img/sonata-full.jpeg)
 
-If you have a Sonata board, you can jump to the [Getting Started](doc/guide/README.md) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc.) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself.
+If you have a Sonata board, you can jump to the [Getting Started](doc/guide) guide. This will walk you through plugging in the board, building example software, and programming the software. For more advanced usage, you can see a [Reference Manual](doc/dev/ref-manual.md) similar to what a normal microcontroller reference manual (peripherals, features, etc.) and then see the [FPGA development](doc/dev/fpga-programming.md) flow if you wish to modify the soft-core itself.
 
 You can also work with a simulated environment, and there is a nice guide on this in the [sonata-software documentation][sonata-sim]. This simulates the entire in Verilator, allow you to develop both hardware (the FPGA) and software (running code) programs.
 
