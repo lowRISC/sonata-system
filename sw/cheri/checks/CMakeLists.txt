@@ -8,6 +8,7 @@ set(CHECKS
   spi_test.cc
   revocation_test.cc
   rgbled_test.cc
+  usbdev_check.cc
 )
 
 foreach(CHECK ${CHECKS})

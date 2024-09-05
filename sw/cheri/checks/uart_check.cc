@@ -8,18 +8,11 @@
 #define CHERIOT_NO_NEW_DELETE
 #define CHERIOT_PLATFORM_CUSTOM_UART
 
-#include "../../common/defs.h"
 #include <cheri.hh>
-#include <platform-uart.hh>
 #include <stdint.h>
+#include "../common/uart-utils.hh"
 
 using namespace CHERI;
-
-void write(volatile OpenTitanUart* uart, const char* str) {
-  for (; *str != '\0'; ++str) {
-    uart->blocking_write(*str);
-  }
-}
 
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
@@ -36,7 +29,7 @@ extern "C" void entry_point(void *rwRoot)
   uart.bounds()  = UART_BOUNDS;
 
   uart->init(BAUD_RATE);
-  write(uart, "Hello There!\r\n");
+  write_str(uart, "Hello There!\r\n");
 
   char ch = '\n';
   while (true) {
