@@ -22,6 +22,26 @@ namespace LOG {
   constexpr char const * consoleGreen = "32";
   constexpr char const * consoleReset = "0";
 
+  enum class Radix { Bin=2, Oct=8, Dec=10, Hex=16};
+
+  template<size_t N, typename T> requires std::integral<T>
+    static inline char * to_hex_str(std::array<char, N> &buf,  T num) {
+      assert(N > sizeof(T) * 2 + 1);
+      constexpr T shift  = (sizeof(T) * 8 - 4);
+
+      size_t i = 0;
+      for (; i < (sizeof(T) * 2); ++i) {
+        if (((num >> shift)& 0xf) < 10) {
+          buf[i] = ((num >> shift) & 0xf) + '0';
+        } else {
+          buf[i] = ((num >> shift) & 0xf) + 'a' - 10;
+        }
+        num <<= 4;
+      }
+      buf[i] = 0;
+      return buf.data();
+    }
+
   template<size_t N, typename T> requires std::integral<T>
     static inline char * to_str(std::array<char, N> &buf,  T num) {
       size_t head = 0;
@@ -44,15 +64,11 @@ namespace LOG {
       for (size_t i = 0; i < len; ++i) {
         buf[head+i] = buf[tail + i] ;
       }
-
       buf[len] = 0;
       return buf.data();
     }
 
   class OStream {
-    public: 
-      enum class Radix { Bin=2, Oct=8, Dec=10, Hex=16};
-
     protected:
       UartPtr fd;
       Radix radix;
@@ -60,10 +76,16 @@ namespace LOG {
 
     public:
       OStream(UartPtr fd): fd(fd), radix(Radix::Dec){};
+
       inline OStream& operator<<(const char* str){
         for (; *str != '\0'; ++str) {
           fd->blocking_write(*str);
         }
+        return *this;
+      }
+
+      inline OStream& operator<<(const Radix radix){
+        this->radix=radix;
         return *this;
       }
 
@@ -72,6 +94,9 @@ namespace LOG {
           switch (radix){
             case Radix::Dec: 
               *this << to_str(buffer, value);
+              break;
+            case Radix::Hex: 
+              *this << "0x" << to_hex_str(buffer, value);
               break;
             default:
               *this << "LOG::Ostream: Format not supported" ;

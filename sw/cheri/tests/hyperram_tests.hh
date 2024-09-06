@@ -275,7 +275,7 @@ void hyperram_tests(CapRoot root, LOG::OStream& console)
 
   for (size_t i = 0; i < TEST_ITERATIONS; i++) {
     console << LOG::endl << "running hyperram_test: " << i + 1 << "\\" << TEST_ITERATIONS << LOG::endl
-            << "Hyperram size: " << HYPERRAN_TEST_SIZE << LOG::endl;
+            << "Hyperram size: " << LOG::Radix::Hex << HYPERRAN_TEST_SIZE << LOG::Radix::Dec << LOG::endl;
 
     int failures = 0;
     console << "Running RND cap test...";
