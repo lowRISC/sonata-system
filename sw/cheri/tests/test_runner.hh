@@ -5,17 +5,16 @@
  */
 #pragma once
 #include "../common/sonata-peripherals.hh"
-#include "../common/uart-utils.hh"
+#include "../common/ostream.hh"
 
-[[noreturn]] static void finish_running(UartPtr uart, const char *message)
+[[noreturn]] static void finish_running(LOG::OStream& console, const char *message)
 {
-    write_str(uart, message);
-    write_str(uart, "\r\n");
+    console <<  message << LOG::endl;
 
     while(true) asm volatile ("wfi");
 }
 
-[[maybe_unused]] static void check_result(UartPtr console, bool result)
+[[maybe_unused]] static void check_result(LOG::OStream& console, bool result)
 {
 	if (result)
 	{

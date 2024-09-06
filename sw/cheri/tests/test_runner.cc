@@ -9,19 +9,21 @@
 #include "test_runner.hh"
 #include "uart_tests.hh"
 #include "hyperram_tests.hh"
-#include "../common/uart-utils.hh"
 #include "../common/sonata-peripherals.hh"
 #include <cheri.hh>
 #include <platform-uart.hh>
+#include "../common/ostream.hh"
 
 extern "C" void entry_point(void *rwRoot)
 {
 	CapRoot root{rwRoot};
 
-	auto console = uart_ptr(root);
+	auto uart0 = uart_ptr(root);
 
-	console->init(BAUD_RATE);
+	uart0->init(BAUD_RATE);
+  auto console = LOG::OStream(uart0);
+  
 	uart_tests(root, console);
-	hyperram_tests(root, console);
+	hyperram_tests(root, uart0);
 	finish_running(console, "All tests finished");
 }
