@@ -17,6 +17,38 @@
 namespace LOG {
   constexpr char const* endl = "\r\n";
 
+  constexpr char const *consoleBold = "1";
+  constexpr char const * consoleRed = "31";
+  constexpr char const * consoleGreen = "32";
+  constexpr char const * consoleReset = "0";
+
+  template<size_t N, typename T> requires std::integral<T>
+    static inline char * to_str(std::array<char, N> &buf,  T num) {
+      size_t head = 0;
+      size_t tail = N - 1;
+      if constexpr (std::signed_integral<T>) {
+        // This code won't be linked for unsigned T.
+        if (num < 0) {
+          buf[head++] = '-';
+          num *= -1;
+        }
+      }
+
+      for (; tail > 0 && num > 0; --tail) {
+        buf[tail] = num % 10 + '0' ;
+        num /= 10;
+      }
+
+      tail++;
+      size_t len = N - tail + head;
+      for (size_t i = 0; i < len; ++i) {
+        buf[head+i] = buf[tail + i] ;
+      }
+
+      buf[len] = 0;
+      return buf.data();
+    }
+
   class OStream {
     public: 
       enum class Radix { Bin=2, Oct=8, Dec=10, Hex=16};
@@ -34,5 +66,18 @@ namespace LOG {
         }
         return *this;
       }
+
+      template<typename T> requires std::integral<T>
+        inline OStream& operator<<(const T value){
+          switch (radix){
+            case Radix::Dec: 
+              *this << to_str(buffer, value);
+              break;
+            default:
+              *this << "LOG::Ostream: Format not supported" ;
+          }
+
+          return *this;
+        }
   };
 }
