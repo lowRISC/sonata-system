@@ -24,6 +24,6 @@ extern "C" void entry_point(void *rwRoot)
   auto console = LOG::OStream(uart0);
   
 	uart_tests(root, console);
-	hyperram_tests(root, uart0);
+	hyperram_tests(root, console);
 	finish_running(console, "All tests finished");
 }

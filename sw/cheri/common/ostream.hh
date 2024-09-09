@@ -80,4 +80,8 @@ namespace LOG {
           return *this;
         }
   };
+
+  [[maybe_unused]] static inline void set_console_mode(OStream& console, const char *cc) {
+    console << "\x1b[" << cc << "m";
+  }
 }

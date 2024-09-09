@@ -7,6 +7,7 @@
 #include "../../common/defs.h"
 #include "uart-utils.hh"
 #include <platform-uart.hh>
+#include "../common/ostream.hh"
 
 #define CC_BOLD "1"
 #define CC_RED "31"
@@ -32,3 +33,14 @@
   }
   set_console_mode(uart, CC_RESET);
 }
+
+    [[maybe_unused]] static void write_test_result(LOG::OStream& console, int failures) {
+      if (failures == 0) {
+        LOG::set_console_mode(console, LOG::consoleGreen);
+        console << "PASS!" << LOG::endl;
+      } else {
+        LOG::set_console_mode(console, LOG::consoleRed);
+        console << "FAIL!" << LOG::endl;
+      }
+      LOG::set_console_mode(console, LOG::consoleReset);
+    }

@@ -8,9 +8,9 @@
 #include <platform-uart.hh>
 #include "../../common/defs.h"
 #include "../common/console-utils.hh"
-#include "../common/uart-utils.hh"
 #include "../common/sonata-peripherals.hh"
 #include "test_runner.hh"
+#include "../common/ostream.hh"
 
 using namespace CHERI;
 
@@ -261,7 +261,7 @@ int execute_test(Capability<volatile uint32_t> hyperram_area,
   return failures;
 }
 
-void hyperram_tests(CapRoot root, UartPtr console)
+void hyperram_tests(CapRoot root, LOG::OStream& console)
 {
   auto hyperram_area = hyperram_ptr(root);
 
@@ -273,43 +273,37 @@ void hyperram_tests(CapRoot root, UartPtr console)
   ds::xoroshiro::P64R32 prng;
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
 
-
   for (size_t i = 0; i < TEST_ITERATIONS; i++) {
-    write_str(console, "\r\nrunning hyperram_test: ");
-    write_hex8b(console, i);
-    write_str(console, "\\");
-    write_hex8b(console, TEST_ITERATIONS-1);
-    write_str(console, "\r\n  ");
-    write_hex(console, HYPERRAN_TEST_SIZE);
-    write_str(console, "\r\n  ");
+    console << LOG::endl << "running hyperram_test: " << i + 1 << "\\" << TEST_ITERATIONS << LOG::endl
+            << "Hyperram size: " << HYPERRAN_TEST_SIZE << LOG::endl;
 
     int failures = 0;
-    write_str(console, "Running RND cap test...");
+    console << "Running RND cap test...";
     failures +=
       rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAN_TEST_SIZE);
     write_test_result(console, failures);
 
-    write_str(console, "Running RND data test...");
+    console << "Running RND data test...";
     failures = rand_data_test_full(hyperram_area, prng);
     write_test_result(console, failures);
 
-    write_str(console, "Running RND data & address test...");
+    console << "Running RND data & address test...";
     failures = rand_data_addr_test(hyperram_area, prng, HYPERRAN_TEST_SIZE);
     write_test_result(console, failures);
 
-    write_str(console, "Running 0101 stripe test...");
+    console << "Running 0101 stripe test...";
     failures = stripe_test(hyperram_area, 0x55555555);
     write_test_result(console, failures);
 
-    write_str(console, "Running 1001 stripe test...");
+    console << "Running 1001 stripe test...";
     failures = stripe_test(hyperram_area, 0x99999999);
     write_test_result(console, failures);
 
-    write_str(console, "Running 0000_1111 stripe test...");
+    console << "Running 0000_1111 stripe test...";
     failures = stripe_test(hyperram_area, 0x0F0F0F0F);
     write_test_result(console, failures);
 
-    write_str(console, "Running Execution test...");
+    console << "Running Execution test...";
     failures = execute_test(hyperram_area, prng, HYPERRAN_TEST_SIZE);
     write_test_result(console, failures);
   }
