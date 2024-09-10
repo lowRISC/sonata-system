@@ -26,9 +26,20 @@ extern "C" {
 
 #define DEBUG_ELF_HEADER 0
 
+#define ARR_LEN(X) ((sizeof(X)) / (sizeof(X[0])))
+
+const uint32_t SoftwareSlots[] = {
+	0 * 10 * 1024 * 1024,  // Slot 1
+	1 * 10 * 1024 * 1024,  // Slot 2
+	2 * 10 * 1024 * 1024,  // Slot 3
+};
+
+const uint8_t SoftwareSelectGpioPins[] = {14, 15, 16};
+
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
 typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
+typedef CHERI::Capability<volatile SonataGPIO> &GpioRef;
 
 [[noreturn]] void complain_and_loop(UartRef uart, const char *str)
 {
@@ -38,6 +49,18 @@ typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
 	{
 		asm("wfi");
 	}
+}
+
+uint8_t read_selected_software_slot(GpioRef gpio)
+{
+	for (uint8_t i = 0; i < ARR_LEN(SoftwareSelectGpioPins); i++)
+	{
+		if (gpio->input & (1 << SoftwareSelectGpioPins[i])) 
+		{
+			return i;
+		}
+	}
+	return 0;  // Default to software slot 1 (i.e. SW0)
 }
 
 static void debug_print_phdr(UartRef uart, Elf32_Phdr &phdr)
@@ -62,6 +85,7 @@ static void write_hex_with_prefix(UartRef uart, const char *msg, uint32_t value)
 }
 
 uint32_t read_elf(SpiFlash                  &flash,
+                  uint32_t                   addr,
                   UartRef                    uart,
                   CHERI::Capability<uint8_t> sram,
                   CHERI::Capability<uint8_t> hyperram)
@@ -70,7 +94,7 @@ uint32_t read_elf(SpiFlash                  &flash,
 	write_str(uart, "Loading software from flash...\r\n");
 
 	Elf32_Ehdr ehdr;
-	flash.read(0x0, (uint8_t *)&ehdr, sizeof(Elf32_Ehdr));
+	flash.read(addr, (uint8_t *)&ehdr, sizeof(Elf32_Ehdr));
 
 	// Check the ELF magic numbers.
 	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
@@ -96,7 +120,8 @@ uint32_t read_elf(SpiFlash                  &flash,
 	Elf32_Phdr phdr;
 	for (uint32_t i = 0; i < ehdr.e_phnum; i++)
 	{
-		flash.read(ehdr.e_phoff + ehdr.e_phentsize * i,
+		uint32_t phdr_read_addr = addr + ehdr.e_phoff;
+		flash.read(phdr_read_addr + ehdr.e_phentsize * i,
 		           (uint8_t *)&phdr,
 		           sizeof(Elf32_Phdr));
 
@@ -121,8 +146,7 @@ uint32_t read_elf(SpiFlash                  &flash,
 		for (uint32_t offset = 0; offset < phdr.p_filesz; offset += 0x400)
 		{
 			uint32_t size = std::min(phdr.p_filesz, offset + 0x400) - offset;
-			flash.read(
-			  phdr.p_offset + offset, segment.get() + offset, size);
+			flash.read(addr + phdr.p_offset + offset, segment.get() + offset, size);
 		}
 
 		bl_memset(segment.get() + phdr.p_filesz, 0, phdr.p_memsz - phdr.p_filesz);
@@ -167,7 +191,16 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot)
 
 	SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
 	spi_flash.reset();
-	uint32_t entrypoint = read_elf(spi_flash, uart, sram, hyperram);
+	
+	uint8_t software_slot = read_selected_software_slot(gpio);
+	write_str(uart, prefix);
+	write_str(uart, "Selected software slot: ");
+	char software_slot_str[] = "1\r\n";
+	software_slot_str[0] += software_slot;
+	write_str(uart, software_slot_str);
+	uint32_t flash_addr = SoftwareSlots[software_slot];
+	
+	uint32_t entrypoint = read_elf(spi_flash, flash_addr, uart, sram, hyperram);
 
 	write_str(uart, prefix);
 	write_str(uart, "Booting into program, hopefully.\r\n");

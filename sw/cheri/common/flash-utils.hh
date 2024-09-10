@@ -21,6 +21,7 @@ static const uint8_t CmdSectorErase         = 0x20;
 static const uint8_t CmdReadStatusRegister1 = 0x05;
 static const uint8_t CmdPageProgram         = 0x02;
 static const uint8_t CmdReadData            = 0x03;
+static const uint8_t CmdReadData4Addr       = 0x13;
 
 class SpiFlash
 {
@@ -120,12 +121,13 @@ class SpiFlash
 
 	void read(uint32_t address, uint8_t *data_out, uint32_t len)
 	{
-		const uint8_t read_cmd[4] = {CmdReadData,
+		const uint8_t read_cmd[5] = {CmdReadData4Addr,
+		                             uint8_t((address >> 24) & 0xff),
 		                             uint8_t((address >> 16) & 0xff),
 		                             uint8_t((address >> 8) & 0xff),
 		                             uint8_t(address & 0xff)};
 		set_cs(true);
-		spi->blocking_write(read_cmd, 4);
+		spi->blocking_write(read_cmd, 5);
 		spi->blocking_read(data_out, len);
 		set_cs(false);
 	}
