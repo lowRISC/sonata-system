@@ -16,6 +16,7 @@ module top_sonata (
 
   input  logic [4:0] navSw,
   input  logic [7:0] usrSw,
+  input  logic [2:0] selSw,
 
   output logic       lcd_rst,
   output logic       lcd_dc,
@@ -205,6 +206,7 @@ module top_sonata (
 
   logic [4:0] nav_sw_n;
   logic [7:0] user_sw_n;
+  logic [2:0] sel_sw_n;
 
   assign led_bootok = rst_sys_n;
 
@@ -212,6 +214,7 @@ module top_sonata (
   // on and 0 for off.
   assign nav_sw_n = ~navSw;
   assign user_sw_n = ~usrSw;
+  assign sel_sw_n = ~selSw;
 
   assign usrusb_spd = 1'b1;  // Full Speed operation.
 
@@ -314,7 +317,7 @@ module top_sonata (
   logic rgbled_dout;
 
   sonata_system #(
-    .GpiWidth        ( 14             ),
+    .GpiWidth        ( 17             ),
     .GpoWidth        ( 23             ),
     .PwmWidth        (  1             ),
     .CheriErrWidth   (  9             ),
@@ -338,6 +341,7 @@ module top_sonata (
 
     // GPIO
     .gp_i           ({
+                      sel_sw_n, // Software selection switches
                       mb9, // mikroBUS Click interrupt
                       user_sw_n, // user switches
                       nav_sw_n // joystick

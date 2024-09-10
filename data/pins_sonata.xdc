@@ -52,6 +52,9 @@ set_property -dict { PACKAGE_PIN D8  IOSTANDARD LVCMOS18 } [get_ports {navSw[1]}
 set_property -dict { PACKAGE_PIN C7  IOSTANDARD LVCMOS18 } [get_ports {navSw[2]}];
 set_property -dict { PACKAGE_PIN E7  IOSTANDARD LVCMOS18 } [get_ports {navSw[3]}];
 set_property -dict { PACKAGE_PIN D7  IOSTANDARD LVCMOS18 } [get_ports {navSw[4]}];
+set_property -dict { PACKAGE_PIN D3  IOSTANDARD LVCMOS18 } [get_ports {selSw[0]}];
+set_property -dict { PACKAGE_PIN F4  IOSTANDARD LVCMOS18 } [get_ports {selSw[1]}];
+set_property -dict { PACKAGE_PIN F3  IOSTANDARD LVCMOS18 } [get_ports {selSw[2]}];
 
 ## CHERI error LEDs
 set_property -dict { PACKAGE_PIN K6  IOSTANDARD LVCMOS33 } [get_ports {cheriErr[0]}];
@@ -268,6 +271,7 @@ set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports rgbled0]
 ## Switches
 set_property PULLTYPE PULLUP [get_ports usrSw[*]]
 set_property PULLTYPE PULLUP [get_ports navSw[*]]
+set_property PULLTYPE PULLUP [get_ports selSw[*]]
 
 ## SPI Flash
 set_property -dict { PACKAGE_PIN A8  IOSTANDARD LVCMOS33 } [get_ports appspi_clk];
