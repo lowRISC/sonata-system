@@ -59,6 +59,7 @@ The only difference between the registers is that the latter has debounced signa
 
 | Bit offset | Description |
 |------------|-------------|
+| 16-14      | Software select switches (1, 2, 3) |
 | 13         | mikroBUS interrupt |
 | 12-5       | DIP switches |
 | 4-0        | Joystick (left, down, up, right, press) |
