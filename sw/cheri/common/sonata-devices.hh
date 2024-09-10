@@ -13,10 +13,12 @@
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-uart.hh>
+#include <platform-i2c.hh>
 
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGPIO *GpioPtr;
 typedef volatile OpenTitanUart *UartPtr;
+typedef volatile OpenTitanI2c *I2cPtr;
 typedef volatile uint32_t *HyperramPtr;
 typedef PLIC::SonataPlic *PlicPtr;
 
@@ -38,6 +40,19 @@ typedef PLIC::SonataPlic *PlicPtr;
   };
   uart.bounds() = UART_BOUNDS;
   return uart;
+};
+
+[[maybe_unused]] static I2cPtr i2c_ptr(CapRoot root, uint32_t idx = 0) {
+  CHERI::Capability<volatile OpenTitanI2c> i2c = root.cast<volatile OpenTitanI2c>();
+  switch (idx) {
+    case 1:
+      i2c.address() = I2C1_ADDRESS;
+      break;
+    default:
+      i2c.address() = I2C_ADDRESS;
+  };
+  i2c.bounds() = I2C_BOUNDS;
+  return i2c;
 };
 
 [[maybe_unused]] static HyperramPtr hyperram_ptr(CapRoot root) {
