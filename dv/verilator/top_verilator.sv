@@ -3,7 +3,25 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // This is the top level that connects the system to the virtual devices.
-module top_verilator (input logic clk_i, rst_ni);
+module top_verilator #(
+`ifdef USE_SEPARATED_CLOCKS
+  // Employ separated clocks in simulation; this provides a much more accurate simulation of
+  // the FPGA implementation but at the cost of increased simulation time.
+  parameter bit SeparatedClocks = `USE_SEPARATED_CLOCKS
+`else
+  parameter bit SeparatedClocks = 1'b0
+`endif
+) (
+  // System clock and reset.
+  input logic clk_i,
+  input logic rst_ni,
+
+  // Supplementary clocks, used iff separated clocks are employed.
+  input logic clk_usb_i,
+  input logic clk_hr_i,
+  input logic clk_hr90p_i,
+  input logic clk_hr3x_i
+);
   import sonata_pkg::*;
 
   // System clock frequency.
@@ -78,9 +96,15 @@ module top_verilator (input logic clk_i, rst_ni);
 
   wire unused_ = uart_aux_tx;
 
-  // Simplified clocking scheme for simulations.
-  wire clk_usb   = clk_i;
+  // Typically a simplified clocking scheme is used for simulations, in which all of the logic runs
+  // from a single clock.
+  wire clk_usb   = SeparatedClocks ? clk_usb_i   : clk_i;
+  wire clk_hr    = SeparatedClocks ? clk_hr_i    : clk_i;
+  wire clk_hr90p = SeparatedClocks ? clk_hr90p_i : clk_i;
+  wire clk_hr3x  = SeparatedClocks ? clk_hr3x_i  : clk_i;
+  // Reset for USB device.
   wire rst_usb_n = rst_ni;
+  // Reset for HyperRAM interface.
   wire rst_hr_n  = rst_ni;
 
   // In Verilator simulation where tri-stated drivers, pullups/pulldowns and drive strengths are
@@ -324,10 +348,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    // SRAM model used for hyperram so no hyperram clock is provided
-    .clk_hr_i       (1'b0),
-    .clk_hr90p_i    (1'b0),
-    .clk_hr3x_i     (1'b0),
+    // Hyperram clocks
+    .clk_hr_i       (clk_hr),
+    .clk_hr90p_i    (clk_hr90p),
+    .clk_hr3x_i     (clk_hr3x),
     .rst_hr_ni      (rst_hr_n),
 
     .gp_i           ({
@@ -483,9 +507,9 @@ module top_verilator (input logic clk_i, rst_ni);
   ) u_uartdpi (
     .clk_i,
     .rst_ni,
-    .active(1'b1       ),
-    .tx_o  (uart_sys_rx),
-    .rx_i  (uart_sys_tx)
+    .active (1'b1       ),
+    .tx_o   (uart_sys_rx),
+    .rx_i   (uart_sys_tx)
   );
 
   // USB DPI; simulated USB host.
