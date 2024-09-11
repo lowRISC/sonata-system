@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "sonata_system.h"
+#include "sonata_system.hh"
 
 int main(int argc, char **argv) {
   SonataSystem sonata_system(
