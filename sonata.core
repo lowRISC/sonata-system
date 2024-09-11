@@ -94,6 +94,11 @@ parameters:
     #default: "../../../../../sw/legacy/build/boot/boot.vmem"
     paramtype: vlogparam
 
+  USE_SEPARATED_CLOCKS:
+    datatype: bool
+    paramtype: vlogdefine
+    description: Use separate clocks for a more accurate, but slower, simulation.
+
   # For value definition, please see ip/prim/rtl/prim_pkg.sv
   PRIM_DEFAULT_IMPL:
     datatype: str
@@ -164,6 +169,7 @@ targets:
           - '--trace-params'
           - '--trace-max-array 1024'
           - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator"'
+          # Add "-DUSE_SEPARATED_CLOCKS" to CFLAGS for a more accurate simulation.
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
           - "-Wwarn-IMPERFECTSCH"
@@ -171,6 +177,7 @@ targets:
           # Verilator without increasing the unroll count (see Verilator#1266)
           - "--unroll-count 72"
     parameters:
+      - USE_SEPARATED_CLOCKS=false
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
       - USE_HYPERRAM_SIM_MODEL=true
 
