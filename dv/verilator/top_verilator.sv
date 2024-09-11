@@ -6,7 +6,10 @@
 module top_verilator (input logic clk_i, rst_ni);
   parameter bit DisableHyperram = 1'b0;
 
-  localparam ClockFrequency = 30_000_000;
+  // System clock frequency.
+  localparam int unsigned SysClkFreq = 30_000_000;
+  // HyperRAM clock frequency.
+  localparam int unsigned HRClkFreq  = 100_000_000;
   localparam BaudRate       = 921_600;
   localparam EnableCHERI    = 1'b1;
 
@@ -58,9 +61,52 @@ module top_verilator (input logic clk_i, rst_ni);
   wire usb_dp_pullup; // D+ pullup enable.
   wire usb_dn_pullup; // D- pullup enable.
 
+  // SPI flash interface.
+  wire appspi_clk;
+  wire appspi_d0; // COPI (controller output peripheral input)
+  wire appspi_d1; // CIPO (controller input peripheral output)
+  wire appspi_d2; // WP_N (write protect negated)
+  wire appspi_d3; // HOLD_N or RESET_N
+  wire appspi_cs; // Chip select negated
+
+  // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
+  assign appspi_d2 = 1'b1;
+  assign appspi_d3 = 1'b1;
+
+  // LCD interface.
+  wire lcd_rst;
+  wire lcd_dc;
+  // SPI interface to LCD.
+  wire lcd_copi;
+  wire lcd_clk;
+  wire lcd_cs;
+  // LCD backlight on/off.
+  wire lcd_backlight;
+
+  // mikroBUS Click.
+  wire mb0, mb1;
+  // Arduino
+  wire ah_tmpio10;
+  // RPi header.
+  wire rph_g18, rph_g17, rph_g16_ce2, rph_g8_ce0, rph_g7_ce1;
+  // Ethernet
+  wire ethmac_rst, ethmac_cs;
+  // User LEDs.
+  wire [7:0] usrLed;
+  // None of these signals is used presently.
+  wire unused_io_ = ^{mb0, mb1, ah_tmpio10, rph_g18, rph_g17,
+                      rph_g16_ce2, rph_g8_ce0, rph_g7_ce1, ethmac_rst, ethmac_cs,
+                      usrLed};
+
   // Instantiating the Sonata System.
   sonata_system #(
-    .DisableHyperram(DisableHyperram)
+    .GpiWidth        ( 14              ),
+    .GpoWidth        ( 23              ),
+    .PwmWidth        (  1              ),
+    .CheriErrWidth   (  9              ),
+    .SysClkFreq      ( SysClkFreq      ),
+    .HRClkFreq       ( HRClkFreq       ),
+    .DisableHyperram ( DisableHyperram )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_i),
@@ -75,19 +121,35 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_hr90p_i(1'b0),
     .clk_hr3x_i (1'b0),
 
-    .gp_i     (0),
-    .gp_o     ( ),
-    .pwm_o    ( ),
-    .rp_gp_i  (0),
-    .rp_gp_o  ( ),
-    .ard_gp_i (0),
-    .ard_gp_o ( ),
-    .pmod_gp_i(0),
-    .pmod_gp_o( ),
+    .gp_i           (0),
+    .gp_o           ({
+                      mb0, // mikroBUS Click reset
+                      mb1, // mikroBUS Click chip select
+                      ah_tmpio10, // Arduino shield chip select
+                      rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
+                      rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
+                      ethmac_rst, ethmac_cs, // Ethernet
+                      appspi_cs, // Flash
+                      usrLed, // User LEDs (8 bits)
+                      lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
+                    }),
 
-    .ard_an_di_i(0),
-    .ard_an_p_i (0),
-    .ard_an_n_i (0),
+    // R-Pi Header GPIO
+    .rp_gp_i        (0),
+    .rp_gp_o        ( ),
+
+    // Arduino Shield GPIO
+    .ard_gp_i       (0),
+    .ard_gp_o       ( ),
+
+    // PMOD GPIO
+    .pmod_gp_i      (0),
+    .pmod_gp_o      ( ),
+
+    // Arduino Shield Analog(ue)
+    .ard_an_di_i    (0),
+    .ard_an_p_i     (0),
+    .ard_an_n_i     (0),
 
     // UART 0 TX and RX
     .uart0_rx_i     (uart_sys_rx),
@@ -106,13 +168,16 @@ module top_verilator (input logic clk_i, rst_ni);
     .uart4_rx_i     (),
     .uart4_tx_o     (),
 
-    .spi_flash_rx_i (0),
-    .spi_flash_tx_o ( ),
-    .spi_flash_sck_o( ),
+    // PWM
+    .pwm_o          ( ),
 
-    .spi_lcd_rx_i (0),
-    .spi_lcd_tx_o ( ),
-    .spi_lcd_sck_o( ),
+    .spi_flash_rx_i (appspi_d1),
+    .spi_flash_tx_o (appspi_d0),
+    .spi_flash_sck_o(appspi_clk),
+
+    .spi_lcd_rx_i   (0),
+    .spi_lcd_tx_o   (lcd_copi),
+    .spi_lcd_sck_o  (lcd_clk),
 
     .spi_eth_rx_i  (0),
     .spi_eth_tx_o  ( ),
@@ -193,8 +258,8 @@ module top_verilator (input logic clk_i, rst_ni);
 
   // Virtual UART
   uartdpi #(
-    .BAUD ( BaudRate       ),
-    .FREQ ( ClockFrequency )
+    .BAUD ( BaudRate    ),
+    .FREQ ( SysClkFreq  )
   ) u_uartdpi (
     .clk_i,
     .rst_ni,
@@ -234,5 +299,43 @@ module top_verilator (input logic clk_i, rst_ni);
     // Pullup enables from the USB device.
     .pullupdp_d2p    (usb_dp_pullup),
     .pullupdn_d2p    (usb_dn_pullup)
+  );
+
+  // SPI connection to flash.
+  spidpi #(
+    .ID       ("flash"),
+    .NDevices (1),
+    .DataW    (1),
+    .OOB_InW  (2),
+    .OOB_OutW (1)
+  ) u_spidpi_flash (
+    .rst_ni   (rst_ni),
+
+    .sck      (appspi_clk),
+    .cs       (appspi_cs),
+    .copi     (appspi_d0),
+    .cipo     (appspi_d1),
+
+    .oob_in   ({appspi_d3, appspi_d2}),
+    .oob_out  ( )
+  );
+
+  // SPI connection to LCD.
+  spidpi #(
+    .ID       ("lcd"),
+    .NDevices (1),
+    .DataW    (1),
+    .OOB_InW  (3),
+    .OOB_OutW (1)
+  ) u_spidpi_lcd (
+    .rst_ni   (rst_ni),
+
+    .sck      (lcd_clk),
+    .cs       (lcd_cs),
+    .copi     (lcd_copi),
+    .cipo     ( ),  // not used.
+
+    .oob_in   ({lcd_dc, lcd_rst, lcd_backlight}),
+    .oob_out  ( )  // not used.
   );
 endmodule

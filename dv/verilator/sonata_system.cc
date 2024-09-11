@@ -8,7 +8,7 @@
 
 #include "Vtop_verilator__Syms.h"
 #include "ibex_pcounts.h"
-#include "sonata_system.h"
+#include "sonata_system.hh"
 #include "verilated_toplevel.h"
 #include "verilator_memutil.h"
 #include "verilator_sim_ctrl.h"

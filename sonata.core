@@ -29,9 +29,16 @@ filesets:
       - lowrisc:dv_dpi_c:usbdpi:0.1
       - lowrisc:dv_dpi_sv:usbdpi:0.1
     files:
+      - dv/dpi/spidpi/spidpi.sv: { file_type: systemVerilogSource }
+      - dv/dpi/spidpi/spidpi.cc: { file_type: cppSource }
+      - dv/dpi/spidpi/spidpi.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/spidpi/spi_flash.cc: { file_type: cppSource }
+      - dv/dpi/spidpi/spi_flash.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/spidpi/spi_lcd.cc: { file_type: cppSource }
+      - dv/dpi/spidpi/spi_lcd.hh: { file_type: cppSource, is_include_file: true }
       - dv/verilator/top_verilator.sv: { file_type: systemVerilogSource }
       - dv/verilator/sonata_system.cc: { file_type: cppSource }
-      - dv/verilator/sonata_system.h:  { file_type: cppSource, is_include_file: true}
+      - dv/verilator/sonata_system.hh:  { file_type: cppSource, is_include_file: true }
       - dv/verilator/sonata_system_main.cc: { file_type: cppSource }
       - dv/verilator/sonata_verilator_lint.vlt:  { file_type: vlt }
 
