@@ -28,10 +28,8 @@ using namespace CHERI;
 //   be echoed on the UART output.
 static constexpr bool do_disconnect = true;
 
-static void write_strn(UartPtr uart, const char* str, size_t len)
-{
-  while (len-- > 0u)
-  {
+static void write_strn(UartPtr uart, const char *str, size_t len) {
+  while (len-- > 0u) {
     uart->blocking_write(*str);
     ++str;
   }
@@ -42,62 +40,52 @@ static void write_strn(UartPtr uart, const char* str, size_t len)
 static const uint8_t _Alignas(uint32_t) signon[] = "Hello from CHERI USB!\r\n";
 
 // Device Descriptor; see "Table 9-8. Standard Device Descriptor"
-static const uint8_t _Alignas(uint32_t) dev_dscr[] = {
-  0x12u, 1, 0, 2, 0, 0, 0, OpenTitanUsbdev::MaxPacketLen,
-  0xd1, 0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
-  0, 1, 0, 0, 0, 1
-};
+static const uint8_t _Alignas(uint32_t) dev_dscr[] = {0x12u, 1,    0,    2,    0, 0, 0, OpenTitanUsbdev::MaxPacketLen,
+                                                      0xd1,  0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
+                                                      0,     1,    0,    0,    0, 1};
 
 // Configuration Descriptor; see "Table 9-10. Standard Configuration Descriptor"
 static const uint8_t _Alignas(uint32_t) cfg_dscr[] = {
-  // Present a single interface consisting of an IN EP and and OUT EP.
-  USB_CFG_DSCR_HEAD(
-      USB_CFG_DSCR_LEN + (USB_INTERFACE_DSCR_LEN + 2 * USB_EP_DSCR_LEN),
-      1),
-  VEND_INTERFACE_DSCR(0, 2, 0x50, 1),
-  USB_BULK_EP_DSCR(0, 1, OpenTitanUsbdev::MaxPacketLen, 0),
-  USB_BULK_EP_DSCR(1, 1, OpenTitanUsbdev::MaxPacketLen, 4),
+    // Present a single interface consisting of an IN EP and and OUT EP.
+    USB_CFG_DSCR_HEAD(USB_CFG_DSCR_LEN + (USB_INTERFACE_DSCR_LEN + 2 * USB_EP_DSCR_LEN), 1),
+    VEND_INTERFACE_DSCR(0, 2, 0x50, 1),
+    USB_BULK_EP_DSCR(0, 1, OpenTitanUsbdev::MaxPacketLen, 0),
+    USB_BULK_EP_DSCR(1, 1, OpenTitanUsbdev::MaxPacketLen, 4),
 };
 
 // Default test descriptor; required by the USB DPI model and retrieved using a Vendor Specific
 // Control Transfer. Real USB host controllers will not retrieve this descriptor.
-static const uint8_t _Alignas(uint32_t) test_dscr[] = {
-  USB_TESTUTILS_TEST_DSCR(0, 0, 0, 0, 0)
-};
+static const uint8_t _Alignas(uint32_t) test_dscr[] = {USB_TESTUTILS_TEST_DSCR(0, 0, 0, 0, 0)};
 
 // Packet reception callback for endpoint 1
-static void rxCallback(void *rxHandle, uint8_t ep, bool setup, const uint8_t *data, uint16_t pktLen)
-{
+static void rxCallback(void *rxHandle, uint8_t ep, bool setup, const uint8_t *data, uint16_t pktLen) {
   Capability<volatile OpenTitanUart> *uart;
   uart = reinterpret_cast<Capability<volatile OpenTitanUart> *>(rxHandle);
   // Simply report any text to the UART output.
   write_strn(*uart, reinterpret_cast<const char *>(data), pktLen);
 }
 
-[[noreturn]]
-extern "C" void entry_point(void *rwRoot)
-{
+[[noreturn]] extern "C" void entry_point(void *rwRoot) {
   // Buffer for data transfer to/from the USB device.
-//  uint8_t _Alignas(uint32_t) data[OpenTitanUsbdev::MaxPacketLen];
+  //  uint8_t _Alignas(uint32_t) data[OpenTitanUsbdev::MaxPacketLen];
 
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
   Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address() = UART_ADDRESS;
-  uart.bounds()  = UART_BOUNDS;
+  uart.address()                          = UART_ADDRESS;
+  uart.bounds()                           = UART_BOUNDS;
 
   Capability<volatile OpenTitanUsbdev> usbdev = root.cast<volatile OpenTitanUsbdev>();
-  usbdev.address() = USBDEV_ADDRESS;
-  usbdev.bounds()  = USBDEV_BOUNDS;
+  usbdev.address()                            = USBDEV_ADDRESS;
+  usbdev.bounds()                             = USBDEV_BOUNDS;
 
   uart->init(BAUD_RATE);
 
   LOG("Initialising USB\r\n");
 
   // Initialise the handling of the standard Control Transfer requests on the Default Control Pipe.
-  UsbdevUtils usb(usbdev, dev_dscr, sizeof(dev_dscr), cfg_dscr, sizeof(cfg_dscr), test_dscr,
-                  sizeof(test_dscr));
+  UsbdevUtils usb(usbdev, dev_dscr, sizeof(dev_dscr), cfg_dscr, sizeof(cfg_dscr), test_dscr, sizeof(test_dscr));
 
   // Configure IN/OUT endpoint pair 1 to act as a simple serial port.
   bool ok = usb.setup_out_endpoint(1u, true, false, false, rxCallback, &uart);
@@ -114,35 +102,26 @@ extern "C" void entry_point(void *rwRoot)
   LOG("Connected\r\n");  // A brief progress indicator.
 
   bool sent = false;
-  while (true)
-  {
+  while (true) {
     usb.service();
 
     // Has the USB device been configured yet?
-    if (usb.configured())
-    {
+    if (usb.configured()) {
       // Disconnect now that we've been configured successfully?
-      if (do_disconnect)
-      {
-        if (usbdev->connected())
-        {
+      if (do_disconnect) {
+        if (usbdev->connected()) {
           // Disconnect from the USB/host controller.
           int rc = usbdev->disconnect();
           assert(!rc);
           LOG("Test passed; disconnected from USB.\r\n");
         }
-      }
-      else if (!sent)
-      {
+      } else if (!sent) {
         // Remain connected; send a sign-on message, and then echo any input from the simpleserial
         // connection on the UART output.
-        if (usb.send_data(1U, reinterpret_cast<const uint32_t *>(signon), sizeof(signon)))
-        {
+        if (usb.send_data(1U, reinterpret_cast<const uint32_t *>(signon), sizeof(signon))) {
           LOG("Sent sign-on message over USB.");
           sent = true;
-        }
-        else
-        {
+        } else {
           // Packet could not be sent; notify via the UART.
           LOG("Unable to send sign-on message over the USB.");
         }

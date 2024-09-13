@@ -19,6 +19,6 @@ void fbcon_init(St7735Context* ctx);
  *
  * @param str The string to print.
  */
-void fbcon_putstr(const char *str);
+void fbcon_putstr(const char* str);
 
 #endif

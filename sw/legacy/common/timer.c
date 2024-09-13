@@ -4,8 +4,8 @@
 
 #include "timer.h"
 
-#include "sonata_system.h"
 #include "dev_access.h"
+#include "sonata_system.h"
 
 volatile uint64_t time_elapsed;
 uint64_t time_increment;

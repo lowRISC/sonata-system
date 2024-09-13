@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "core_portme.h"
-#include "coremark.h"
 
+#include "coremark.h"
 #include "sonata_system.h"
 #include "timer.h"
 
@@ -31,17 +31,11 @@ volatile ee_s32 seed5_volatile = 0;
 
 static uint64_t start_time_val, stop_time_val;
 
-void start_time(void) {
-    start_time_val = timer_read();
-}
+void start_time(void) { start_time_val = timer_read(); }
 
-void stop_time(void) {
-    stop_time_val = timer_read();
-}
+void stop_time(void) { stop_time_val = timer_read(); }
 
-CORE_TICKS get_time(void) {
-    return (CORE_TICKS)(stop_time_val - start_time_val);
-}
+CORE_TICKS get_time(void) { return (CORE_TICKS)(stop_time_val - start_time_val); }
 
 secs_ret time_in_secs(CORE_TICKS ticks) {
   secs_ret retval = ((secs_ret)ticks) / (secs_ret)SYSCLK_FREQ;
@@ -50,9 +44,7 @@ secs_ret time_in_secs(CORE_TICKS ticks) {
 
 ee_u32 default_num_contexts = 1;
 
-void portable_init(core_portable *p, int *argc, char *argv[]) {
-  p->portable_id = 1;
-}
+void portable_init(core_portable *p, int *argc, char *argv[]) { p->portable_id = 1; }
 
 void portable_fini(core_portable *p) {
   CORE_TICKS elapsed = get_time();

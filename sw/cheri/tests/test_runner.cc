@@ -5,23 +5,26 @@
 #define CHERIOT_NO_NEW_DELETE
 #define CHERIOT_PLATFORM_CUSTOM_UART
 
-#include "../../common/defs.h"
 #include "test_runner.hh"
-#include "uart_tests.hh"
-#include "hyperram_tests.hh"
-#include "../common/uart-utils.hh"
-#include "../common/sonata-peripherals.hh"
+
+// clang-format off
+#include "../../common/defs.h"
 #include <cheri.hh>
+// clang-format on
 #include <platform-uart.hh>
 
-extern "C" void entry_point(void *rwRoot)
-{
-	CapRoot root{rwRoot};
+#include "../common/sonata-peripherals.hh"
+#include "../common/uart-utils.hh"
+#include "hyperram_tests.hh"
+#include "uart_tests.hh"
 
-	auto console = uart_ptr(root);
+extern "C" void entry_point(void *rwRoot) {
+  CapRoot root{rwRoot};
 
-	console->init(BAUD_RATE);
-	uart_tests(root, console);
-	hyperram_tests(root, console);
-	finish_running(console, "All tests finished");
+  auto console = uart_ptr(root);
+
+  console->init(BAUD_RATE);
+  uart_tests(root, console);
+  hyperram_tests(root, console);
+  finish_running(console, "All tests finished");
 }

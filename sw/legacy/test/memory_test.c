@@ -16,21 +16,21 @@
 #include "timer.h"
 
 #define TEST_DATA (0xDEADBEEF)
-#define TEST_SIZE ((224*1024)/4)
+#define TEST_SIZE ((224 * 1024) / 4)
 
 static uint32_t test_array[TEST_SIZE];
 
 int pass() {
   puts("Passed");
 
-  while(true);
+  while (true);
   return 0;
 }
 
 int fail() {
   puts("Failed");
 
-  while(true);
+  while (true);
   return -1;
 }
 
@@ -54,7 +54,7 @@ int main(void) {
   }
 
   // Byte read/write test
-  uint8_t *btest = (uint8_t*)test_array;
+  uint8_t *btest = (uint8_t *)test_array;
   for (int i = 0; i < TEST_SIZE; i++) {
     btest[i * 4 + (i & 3)] ^= i;
   }

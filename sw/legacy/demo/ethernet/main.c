@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <lwip/dhcp.h>
 #include <lwip/init.h>
 #include <lwip/netif.h>
-#include <lwip/dhcp.h>
 #include <lwip/timeouts.h>
 #include <netif/ethernet.h>
 
 #include "ksz8851.h"
+#include "rv_plic.h"
 #include "sonata_system.h"
 #include "spi.h"
 #include "timer.h"
-#include "rv_plic.h"
 
 enum {
   // GPIO Input
@@ -26,7 +26,7 @@ enum {
 void eth_callback(struct netif* netif, netif_nsc_reason_t reason, const netif_ext_callback_args_t* args) {
   if (reason & LWIP_NSC_IPV4_ADDR_VALID) {
     putstr("IPv4 address available: ");
-    ip4_addr_t *addr = ip_2_ip4(&netif->ip_addr);
+    ip4_addr_t* addr = ip_2_ip4(&netif->ip_addr);
     putdec(ip4_addr1(addr));
     putchar('.');
     putdec(ip4_addr2(addr));

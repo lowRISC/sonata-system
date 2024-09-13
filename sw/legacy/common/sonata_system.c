@@ -2,27 +2,16 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <ctype.h>
-
 #include "sonata_system.h"
+
+#include <ctype.h>
 
 #include "dev_access.h"
 #include "uart.h"
 
-
-static const char hex_udigits[16] = "0123456789ABCDEF";
-static const uint32_t dec_powers[] = {
-  1u,
-  10u,
-  100u,
-  1000u,
-  10000u,
-  100000u,
-  1000000u,
-  10000000u,
-  100000000u,
-  1000000000u
-};
+static const char hex_udigits[16]  = "0123456789ABCDEF";
+static const uint32_t dec_powers[] = {1u,      10u,      100u,      1000u,      10000u,
+                                      100000u, 1000000u, 10000000u, 100000000u, 1000000000u};
 
 int putchar(int c) {
 #ifdef SIM_CTRL_OUTPUT
@@ -55,11 +44,9 @@ int puts(const char* str) {
   return 0;
 }
 
-void puthex(uint32_t h) {
-  puthexn(h, 8u);
-}
+void puthex(uint32_t h) { puthexn(h, 8u); }
 
-unsigned snputhexn(char *buf, size_t sz, uint32_t h, unsigned n) {
+unsigned snputhexn(char* buf, size_t sz, uint32_t h, unsigned n) {
   if (n < 8u) {
     // Shift the wanted digits to the MSBs.
     h <<= (8u - n) * 4;
@@ -90,7 +77,7 @@ void puthexn(uint32_t h, unsigned n) {
 void putdec(uint32_t d) {
   if (d) {
     int idx = 0;
-    while (idx < sizeof(dec_powers)/sizeof(dec_powers[0]) && dec_powers[idx] <= d) {
+    while (idx < sizeof(dec_powers) / sizeof(dec_powers[0]) && dec_powers[idx] <= d) {
       idx++;
     }
     while (idx-- > 0) {
@@ -98,8 +85,7 @@ void putdec(uint32_t d) {
       d -= (num * dec_powers[idx]);
       putchar('0' + num);
     }
-  }
-  else {
+  } else {
     putchar('0');
   }
 }
@@ -175,6 +161,5 @@ void simple_exc_handler(void) {
   puthex(get_mtval());
   putchar('\n');
 
-  while (1)
-    ;
+  while (1);
 }

@@ -4,9 +4,9 @@
 
 #include <stdbool.h>
 
-#include "sonata_system.h"
 #include "gpio.h"
 #include "pwm.h"
+#include "sonata_system.h"
 #include "timer.h"
 
 /**
@@ -37,12 +37,12 @@ static inline void write_both(char ch0, char ch1) {
 }
 
 int main(void) {
-//  install_exception_handler(UART_IRQ_NUM, &test_uart_irq_handler);
-//  uart_enable_rx_int();
+  //  install_exception_handler(UART_IRQ_NUM, &test_uart_irq_handler);
+  //  uart_enable_rx_int();
   if (dual_uart) {
     const char *signon = "hello_world demo application; UART ";
-    uart0 = UART_FROM_BASE_ADDR(UART0_BASE);
-    uart1 = UART_FROM_BASE_ADDR(UART1_BASE);
+    uart0              = UART_FROM_BASE_ADDR(UART0_BASE);
+    uart1              = UART_FROM_BASE_ADDR(UART1_BASE);
     uart_init(uart0);
     uart_init(uart1);
     // Send a sign-on message to both UARTs.
@@ -70,7 +70,7 @@ int main(void) {
   uint64_t last_elapsed_time = get_elapsed_time();
 
   // Reset user LEDs to having just one on
-  set_outputs(GPIO_OUT, 0x10); // Bottom 4 bits are LCD control as you can see in top_sonata.sv
+  set_outputs(GPIO_OUT, 0x10);  // Bottom 4 bits are LCD control as you can see in top_sonata.sv
 
   // PWM variables
   uint32_t counter    = UINT8_MAX;
@@ -106,7 +106,7 @@ int main(void) {
       } else {
         // Cycle through LEDs unless BTN0 is pressed
         uint32_t out_val = read_gpio(GPIO_OUT);
-        out_val = (out_val << 1) & GPIO_LED_MASK;
+        out_val          = (out_val << 1) & GPIO_LED_MASK;
         if ((in_val & 0x1) || (out_val == 0)) {
           out_val = 0x10;
         }

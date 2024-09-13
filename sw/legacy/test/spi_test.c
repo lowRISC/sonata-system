@@ -4,28 +4,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "spi.h"
+
 #include <stdint.h>
 
-#include "sonata_system.h"
 #include "dev_access.h"
-#include "spi.h"
+#include "sonata_system.h"
 
 #define GPIO_BASE 0x80000000
 
-void spi_csn(uint32_t csn) {
-  DEV_WRITE(GPIO_BASE, (csn & 1) << 12);
-}
+void spi_csn(uint32_t csn) { DEV_WRITE(GPIO_BASE, (csn & 1) << 12); }
 
-uint8_t CmdReadJEDECId = 0x9f;
-uint8_t CmdWriteEnable = 0x06;
-uint8_t CmdSectorErase = 0x20;
+uint8_t CmdReadJEDECId         = 0x9f;
+uint8_t CmdWriteEnable         = 0x06;
+uint8_t CmdSectorErase         = 0x20;
 uint8_t CmdReadStatusRegister1 = 0x05;
-uint8_t CmdPageProgram = 0x02;
-uint8_t CmdReadData = 0x03;
+uint8_t CmdPageProgram         = 0x02;
+uint8_t CmdReadData            = 0x03;
 
 void flash_erase_sector(uint32_t sector_idx) {
-  uint8_t erase_cmd[4] = {CmdSectorErase, (sector_idx >> 16) & 0xff,
-    (sector_idx >> 8) & 0xff, sector_idx & 0xff};
+  uint8_t erase_cmd[4] = {CmdSectorErase, (sector_idx >> 16) & 0xff, (sector_idx >> 8) & 0xff, sector_idx & 0xff};
 
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
@@ -50,8 +48,7 @@ void flash_erase_sector(uint32_t sector_idx) {
 }
 
 void flash_write_page(uint32_t page_idx, uint8_t* data) {
-  uint8_t write_cmd[4] = {CmdPageProgram, (page_idx >> 16) & 0xff,
-    (page_idx >> 8) & 0xff, page_idx & 0xff};
+  uint8_t write_cmd[4] = {CmdPageProgram, (page_idx >> 16) & 0xff, (page_idx >> 8) & 0xff, page_idx & 0xff};
 
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
@@ -77,8 +74,7 @@ void flash_write_page(uint32_t page_idx, uint8_t* data) {
 }
 
 void flash_read(uint32_t address, uint8_t* data_out, uint32_t len) {
-  uint8_t read_cmd[4] = {CmdReadData, (address >> 16) & 0xff,
-    (address >> 8) & 0xff, address & 0xff};
+  uint8_t read_cmd[4] = {CmdReadData, (address >> 16) & 0xff, (address >> 8) & 0xff, address & 0xff};
 
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
@@ -142,4 +138,3 @@ int main(void) {
 
   return 0;
 }
-

@@ -7,9 +7,7 @@
 static St7735Context *ctx;
 static LCD_Point pos = {.x = 0, .y = 0};
 
-void fbcon_init(St7735Context* st_ctx) {
-    ctx = st_ctx;
-}
+void fbcon_init(St7735Context *st_ctx) { ctx = st_ctx; }
 
 static void newline() {
   pos.x = 0;
@@ -22,10 +20,7 @@ static void newline() {
 
   // Clear the content on the new line.
   lcd_st7735_fill_rectangle(
-      ctx,
-      (LCD_rectangle){
-          .origin = pos, .width = ctx->parent.width, .height = ctx->parent.font->height},
-      0xffffff);
+      ctx, (LCD_rectangle){.origin = pos, .width = ctx->parent.width, .height = ctx->parent.font->height}, 0xffffff);
 }
 
 void fbcon_putstr(const char *str) {

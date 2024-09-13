@@ -28,18 +28,15 @@ void lcd_show_menu(St7735Context *lcd, Menu_t *menu, size_t selected) {
   // Draw a boarder around the selected item.
   // Increment `selected` to skip the title bar.
   selected++;
-  lcd_st7735_draw_horizontal_line(
-      lcd, (LCD_Line){{.x = 0, .y = line_height * selected}, lcd->parent.width}, menu->selected_color);
-  lcd_st7735_draw_horizontal_line(
-      lcd, (LCD_Line){{.x = 0, .y = line_height * (selected + 1) - 1}, lcd->parent.width},
-      menu->selected_color);
-  lcd_st7735_draw_vertical_line(
-      lcd, (LCD_Line){{.x = 0, .y = line_height * selected}, line_height - 1},
-      menu->selected_color);
-  lcd_st7735_draw_vertical_line(
-      lcd,
-      (LCD_Line){{.x = lcd->parent.width - 1, .y = line_height * selected}, line_height - 1},
-      menu->selected_color);
+  lcd_st7735_draw_horizontal_line(lcd, (LCD_Line){{.x = 0, .y = line_height * selected}, lcd->parent.width},
+                                  menu->selected_color);
+  lcd_st7735_draw_horizontal_line(lcd, (LCD_Line){{.x = 0, .y = line_height * (selected + 1) - 1}, lcd->parent.width},
+                                  menu->selected_color);
+  lcd_st7735_draw_vertical_line(lcd, (LCD_Line){{.x = 0, .y = line_height * selected}, line_height - 1},
+                                menu->selected_color);
+  lcd_st7735_draw_vertical_line(lcd,
+                                (LCD_Line){{.x = lcd->parent.width - 1, .y = line_height * selected}, line_height - 1},
+                                menu->selected_color);
 }
 
 void lcd_println(St7735Context *lcd, const char *str, TextAlignment_t alignment, LCD_Point pos) {
