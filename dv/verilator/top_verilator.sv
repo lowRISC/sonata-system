@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // This is the top level that connects the system to the virtual devices.
-module top_verilator (input logic clk_i, rst_ni);
+module top_verilator (input logic clk_i, rst_ni, disable_cheri);
   parameter bit DisableHyperram = 1'b0;
 
   // System clock frequency.
@@ -11,7 +11,6 @@ module top_verilator (input logic clk_i, rst_ni);
   // HyperRAM clock frequency.
   localparam int unsigned HRClkFreq  = 100_000_000;
   localparam BaudRate       = 921_600;
-  localparam EnableCHERI    = 1'b1;
 
   logic uart_sys_rx, uart_sys_tx;
 
@@ -200,7 +199,7 @@ module top_verilator (input logic clk_i, rst_ni);
     .spi_mkr_tx_o ( ),
     .spi_mkr_sck_o( ),
 
-    .cheri_en_i (EnableCHERI),
+    .cheri_en_i (!disable_cheri),
     // CHERI output
     .cheri_err_o(),
     .cheri_en_o (),

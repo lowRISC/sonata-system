@@ -38,6 +38,17 @@ int SonataSystem::Main(int argc, char **argv) {
 int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
   VerilatorSimCtrl &simctrl = VerilatorSimCtrl::GetInstance();
 
+  // Default to CHERI enabled, but this may be overridden on the command line
+  // for running legacy non-CHERI software on the same build of the simulator.
+  _top.disable_cheri = 0;
+  for (int i = 1; i < argc; ++i) {
+    if (!strcmp(argv[i], "--run-legacy-software")) {
+      std::cout << "Disabling CHERI to run legacy software" << std::endl;
+      _top.disable_cheri = 1;
+      break;
+    }
+  }
+
   simctrl.SetTop(&_top, &_top.clk_i, &_top.rst_ni,
                  VerilatorSimCtrlFlags::ResetPolarityNegative);
 
