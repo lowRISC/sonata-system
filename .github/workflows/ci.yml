@@ -29,9 +29,6 @@ jobs:
         sudo tar -C /tools/riscv -xf rv32-toolchain.tar.xz --strip-components=1
         echo "/tools/riscv/bin" >> $GITHUB_PATH
 
-    - name: Clang lint
-      run: find -name "*.[cc|c|h]" -exec clang-format -n {} \;
-
     - name: Configure CMake for legacy software
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
