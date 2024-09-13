@@ -74,7 +74,28 @@
         ${getExe pkgs.reuse} --suppress-deprecation lint
         ${getExe pkgs.lychee} --offline --no-progress .
         ${getExe lint-python}
+        ${getExe lint-cpp}
       '';
+
+      lint-cpp = pkgs.writeShellApplication {
+        name = "lint-cpp";
+        runtimeInputs = [pkgs.clang-tools_18];
+        text = ''
+          set +u
+          EXCLUDE="sw/cheri/build"
+          FILES=$(find sw -type f -path "$EXCLUDE" -prune -o \( -name "*.c" -o -name "*.cc" -o -name "*.h" -o -name "*.hh" \))
+          ARG="$1"
+          [ -z "$1" ] && ARG="check"
+          case "$ARG" in
+            check)
+              echo "$FILES" | xargs clang-format -n --Werror
+            ;;
+            fix)
+              echo "$FILES" | xargs clang-format -i
+            ;;
+          esac
+        '';
+      };
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
@@ -250,7 +271,7 @@
           type = "app";
           program = getExe program;
         };
-      }) [lint-all lint-python tests-fpga]);
+      }) [lint-all lint-python tests-fpga lint-cpp]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
