@@ -4,15 +4,15 @@
 
 #include "core/lucida_console_10pt.h"
 #include "core/m3x6_16pt.h"
-#include "sonata_system.h"
+#include "fbcon.h"
 #include "fractal.h"
 #include "gpio.h"
 #include "lcd.h"
 #include "lowrisc_logo.h"
+#include "sonata_system.h"
 #include "spi.h"
 #include "st7735/lcd_st7735.h"
 #include "timer.h"
-#include "fbcon.h"
 
 // Constants.
 enum {
@@ -196,8 +196,7 @@ boot:
   }
 
   // Wait until navigation button is clicked.
-  while (scan_buttons(1000) != BTN_CLICK)
-    ;
+  while (scan_buttons(1000) != BTN_CLICK);
 
   // Return to the main menu.
   repaint = true;
@@ -232,8 +231,7 @@ static Buttons_t scan_buttons(uint32_t timeout) {
     in_val = (in_val >> 1) + 1;
 
     // Wait until the button is released to avoid an event being triggered multiple times.
-    while (read_gpio(GPIO_IN_DBNC) & in_val)
-      ;
+    while (read_gpio(GPIO_IN_DBNC) & in_val);
 
     return in_val;
   }

@@ -4,8 +4,8 @@
 
 #include "gpio.h"
 
-#include "sonata_system.h"
 #include "dev_access.h"
+#include "sonata_system.h"
 
 void set_outputs(gpio_t gpio, uint32_t outputs) { DEV_WRITE(gpio, outputs); }
 

@@ -23,8 +23,7 @@ extern "C" {
 /**
  * Sonata RV Timer
  */
-class SonataTimer
-{
+class SonataTimer {
   // Note: register space is sparse, so a list of 'RegisterType' members
   // doesn't work very well for this class.
   typedef uint32_t RegisterType;
@@ -36,13 +35,12 @@ class SonataTimer
   // Offsets of registers within address range.
   static constexpr uint32_t mtimecmp  = 0x4000u / 4;
   static constexpr uint32_t mtimecmph = mtimecmp + 1;
-  static constexpr uint32_t mtime  = 0xbff8u / 4;
-  static constexpr uint32_t mtimeh = mtime + 1;
+  static constexpr uint32_t mtime     = 0xbff8u / 4;
+  static constexpr uint32_t mtimeh    = mtime + 1;
 
-public:
-
+ public:
   volatile RegisterType *volatile &address() volatile { return base_; }
-  volatile uint32_t               &bounds()  volatile { return size_; }
+  volatile uint32_t &bounds() volatile { return size_; }
 
   // Set the current time.
   void set_time(uint64_t time) volatile {
@@ -80,27 +78,25 @@ public:
   static volatile SonataTimer &theTimer();
 
   // Simple interrupt handler that advances the timer comparison register.
-//  static void interrupt_handler(void);
+  //  static void interrupt_handler(void);
 };
 
 // Time intervals are in cycles of the system clock; we load the counter with a
 // value that is already close to spilling into the upper 32 bits to make the
 // test duration more practical.
-const uint64_t kInitialTime     = 0xffff0000u;
+const uint64_t kInitialTime = 0xffff0000u;
 #if SIMULATION
-const uint64_t kFinalTime       = kInitialTime + 0x00100000u;
+const uint64_t kFinalTime = kInitialTime + 0x00100000u;
 #else
-const uint64_t kFinalTime       = kInitialTime + 0x04000000u;
+const uint64_t kFinalTime = kInitialTime + 0x04000000u;
 #endif
 const uint64_t kTriggerInterval = 0x23456u;
 const uint64_t kMaxLatency      = 0x400u;
-const bool kVerbose = true;
+const bool kVerbose             = true;
 
 // TODO: In time this shall use Capability<>
 static volatile SonataTimer timer;
-volatile SonataTimer &SonataTimer::theTimer() {
-   return timer;
-}
+volatile SonataTimer &SonataTimer::theTimer() { return timer; }
 
 // The interrupt handler function must be assigned the special attribute to ensure
 // correct code generation and avoid interference with the foreground code.
@@ -123,11 +119,10 @@ int fail() {
 }
 
 //[[noreturn]] extern "C" void rom_loader_entry(void *rwRoot)
-extern "C" int rom_loader_entry(void *rwRoot)
-{
-  timer.address() = reinterpret_cast<volatile uint32_t*>(0x80040000);
+extern "C" int rom_loader_entry(void *rwRoot) {
+  timer.address() = reinterpret_cast<volatile uint32_t *>(0x80040000);
   // timer.address() = 0x80040000;
-  timer.bounds()  = 0x00010000;
+  timer.bounds() = 0x00010000;
 
   install_exception_handler(7, interrupt_handler);
 

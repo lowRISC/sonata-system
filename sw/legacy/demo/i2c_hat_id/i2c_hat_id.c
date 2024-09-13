@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
 
-#include "sonata_system.h"
-#include "i2c.h"
 #include "dev_access.h"
-#include "timer.h"
+#include "i2c.h"
 #include "rv_plic.h"
+#include "sonata_system.h"
+#include "timer.h"
 
 // Any Pi HAT with ID EEPROM present?
 #define RPI_HAT_ID 1
@@ -17,7 +17,6 @@
 #define RPI_HAT_SENSE 1
 // AS6212 Temperature sensor present (Sparkfun)?
 #define AS6212_TEMP_SENSOR 1
-
 
 // A timeout of 1 second should be plenty; reading at 100kbps.
 const uint32_t timeout_usecs = 1000 * 1000;
@@ -33,21 +32,19 @@ void i2c_irq_test(irq_t irq) {
 // Read  "WHO_AM_I" registers in the IMU on the RPi Sense HAT
 static int read_sense_imu(void) {
   uint8_t data[2];
-  uint8_t addr[] = { 0x0f };
+  uint8_t addr[] = {0x0f};
 
   i2c_t i2c = I2C_FROM_BASE_ADDR(I2C1_BASE);
 
   // Read from Accelerometer and gyroscope 'WHO_AM_I' register.
-  if (i2c_write(i2c, 0x6a, addr, 1u, true) ||
-    i2c_read(i2c, 0x6a, &data[0], 1u, timeout_usecs)) {
+  if (i2c_write(i2c, 0x6a, addr, 1u, true) || i2c_read(i2c, 0x6a, &data[0], 1u, timeout_usecs)) {
     puts("Failed to access Sense IMU");
     return -1;
   }
   putstr("Read 0x");
   puthex(data[0]);
   // Read from Magnetic Sensor 'WHO_AM_I' register.
-  if (i2c_write(i2c, 0x1c, addr, 1u, true) ||
-      i2c_read(i2c, 0x1c, &data[1], 1u, timeout_usecs)) {
+  if (i2c_write(i2c, 0x1c, addr, 1u, true) || i2c_read(i2c, 0x1c, &data[1], 1u, timeout_usecs)) {
     puts("Failed to access t'other one");
     return -2;
   }
@@ -73,15 +70,13 @@ static int as6212_temperature_report(void) {
 
   // Read from the Config register
   buf[0] = 1;
-  if (i2c_write(i2c, 0x48, buf, 1u, false) ||
-      i2c_read(i2c, 0x48, buf, 2u, timeout_usecs)) {
+  if (i2c_write(i2c, 0x48, buf, 1u, false) || i2c_read(i2c, 0x48, buf, 2u, timeout_usecs)) {
     return -1;
   }
   uint16_t config = (buf[0] << 8) | buf[1];
   // Read the Temperature
   buf[0] = 0;
-  if (i2c_write(i2c, 0x48, buf, 1u, false) ||
-      i2c_read(i2c, 0x48, buf, 2u, timeout_usecs)) {
+  if (i2c_write(i2c, 0x48, buf, 1u, false) || i2c_read(i2c, 0x48, buf, 2u, timeout_usecs)) {
     return -1;
   }
   uint16_t temp = (buf[0] << 8) | buf[1];
@@ -99,7 +94,7 @@ static int as6212_temperature_report(void) {
 #if RPI_HAT_ID
 static int id_eeprom_report(i2c_t i2c) {
   const uint8_t kIdAddr = 0x50u;
-  const uint8_t addr[] = { 0, 0 };
+  const uint8_t addr[]  = {0, 0};
   // Data buffer is static to avoid placing a lot of data on the stack.
   static uint8_t data[0x80u];
 
@@ -137,7 +132,7 @@ static int id_eeprom_report(i2c_t i2c) {
     // Each byte as printable character
     for (i = idx; i < eidx; i++) {
       char ch = (char)data[i];
-      ch = isprint(ch) ? ch : '.';
+      ch      = isprint(ch) ? ch : '.';
       putchar(ch);
     }
     putchar('\n');
@@ -177,7 +172,7 @@ int main(void) {
   // Set fmt threshold to 1
   DEV_WRITE(i2c0 + 0x24, 0x10000);
   // Enable fmt threshold IRQ
-  DEV_WRITE(i2c0 + 0x4,  0x1);
+  DEV_WRITE(i2c0 + 0x4, 0x1);
 
   puts("i2c_hat_id demo application");
 
@@ -185,7 +180,7 @@ int main(void) {
   setup_bus(i2c1);
 
   uint64_t last_elapsed_time = get_elapsed_time();
-  int iter = 0;
+  int iter                   = 0;
   while (1) {
     uint64_t cur_time = get_elapsed_time();
     if (cur_time != last_elapsed_time) {
@@ -217,4 +212,3 @@ int main(void) {
     }
   }
 }
-

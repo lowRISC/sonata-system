@@ -15,7 +15,7 @@
 #define UART_FIFO_STATUS_REG 0x24
 
 #define UART_STATUS_RX_EMPTY 0x20
-#define UART_STATUS_TX_FULL  1
+#define UART_STATUS_TX_FULL 1
 
 #define UART_EOF -1
 

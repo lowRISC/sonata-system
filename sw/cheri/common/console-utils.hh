@@ -4,25 +4,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+// clang-format off
 #include "../../common/defs.h"
-#include "uart-utils.hh"
+// clang-format on
 #include <platform-uart.hh>
+
+#include "uart-utils.hh"
 
 #define CC_BOLD "1"
 #define CC_RED "31"
 #define CC_GREEN "32"
 #define CC_RESET "0"
 
-
-[[maybe_unused]] static void set_console_mode(volatile OpenTitanUart *uart,
-                      const char *cc) {
+[[maybe_unused]] static void set_console_mode(volatile OpenTitanUart *uart, const char *cc) {
   write_str(uart, "\x1b[");
   write_str(uart, cc);
   write_str(uart, "m");
 }
 
-[[maybe_unused]] static void write_test_result(volatile OpenTitanUart *uart,
-                       int failures) {
+[[maybe_unused]] static void write_test_result(volatile OpenTitanUart *uart, int failures) {
   if (failures == 0) {
     set_console_mode(uart, CC_GREEN);
     write_str(uart, "PASS!\n");

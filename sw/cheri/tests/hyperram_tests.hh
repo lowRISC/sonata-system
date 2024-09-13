@@ -2,14 +2,18 @@
 // Copyright lowRISC Contributors.
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
+
+#include <functional>
+// clang-format off
+#include "../../common/defs.h"
 #include <ds/xoroshiro.h>
 #include <cheri.hh>
-#include <functional>
+// clang-format on
 #include <platform-uart.hh>
-#include "../../common/defs.h"
+
 #include "../common/console-utils.hh"
-#include "../common/uart-utils.hh"
 #include "../common/sonata-peripherals.hh"
+#include "../common/uart-utils.hh"
 #include "test_runner.hh"
 
 using namespace CHERI;
@@ -30,30 +34,29 @@ using namespace CHERI;
 // Test only 1% of the total memory to be fast enough for varilator.
 #define TEST_COVERAGE_AREA 1
 #endif
- _Static_assert(TEST_COVERAGE_AREA <= 100, "TEST_COVERAGE_AREA Should be less than 100");
+_Static_assert(TEST_COVERAGE_AREA <= 100, "TEST_COVERAGE_AREA Should be less than 100");
 
-#define  TEST_BLOCK_SIZE  256
-#define  HYPERRAM_SIZE  (1024 * 1024) / 4
+#define TEST_BLOCK_SIZE 256
+#define HYPERRAM_SIZE (1024 * 1024) / 4
 
 /*
  * Compute the number of addresses that will be tested.
  * We mask the LSB 8bits to makes sure it is aligned.
  */
-#define HYPERRAN_TEST_SIZE \
-  (uint32_t)((HYPERRAM_SIZE * TEST_COVERAGE_AREA / 100) & ~0xFF)
+#define HYPERRAN_TEST_SIZE (uint32_t)((HYPERRAM_SIZE * TEST_COVERAGE_AREA / 100) & ~0xFF)
 
-/* 
+/*
  * Write random values to a block of memory (size given by 'TEST_BLOCK_SIZE'
  * global constant). Reads them all back and checks read values matched written
  * values.
  */
-static int rand_data_test_block(Capability<volatile uint32_t> hyperram_area,
-    ds::xoroshiro::P64R32 &prng, uint32_t start_hr_addr) {
-  std::array<uint32_t,TEST_BLOCK_SIZE> write_values;
+static int rand_data_test_block(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng,
+                                uint32_t start_hr_addr) {
+  std::array<uint32_t, TEST_BLOCK_SIZE> write_values;
 
   uint32_t index = 0;
-  for (auto& write_value : write_values) {
-    write_value = prng();
+  for (auto &write_value : write_values) {
+    write_value                          = prng();
     hyperram_area[index + start_hr_addr] = write_value;
     index++;
   }
@@ -73,9 +76,7 @@ static int rand_data_test_block(Capability<volatile uint32_t> hyperram_area,
  * matched written values. It does this one 'TEST_BLOCK_SIZE' sized block at a
  * time.
  */
-int rand_data_test_full(Capability<volatile uint32_t> hyperram_area,
-    ds::xoroshiro::P64R32 &prng) {
-
+int rand_data_test_full(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng) {
   int failures = 0;
   for (uint32_t addr = 0; addr < HYPERRAN_TEST_SIZE; addr += TEST_BLOCK_SIZE) {
     failures += rand_data_test_block(hyperram_area, prng, addr);
@@ -88,9 +89,7 @@ int rand_data_test_full(Capability<volatile uint32_t> hyperram_area,
  * Writes a random value to a random address then reads it back to check the
  * written value matches the read value.
  */
-int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area,
-    ds::xoroshiro::P64R32 &prng, int iterations) {
-
+int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng, int iterations) {
   int failures = 0;
 
   for (int i = 0; i < iterations; ++i) {
@@ -99,10 +98,10 @@ int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area,
     uint32_t read_val;
 
     rand_addr = prng() % HYPERRAN_TEST_SIZE;
-    rand_val = prng();
+    rand_val  = prng();
 
     hyperram_area[rand_addr] = rand_val;
-    read_val = hyperram_area[rand_addr];
+    read_val                 = hyperram_area[rand_addr];
 
     if (read_val != rand_val) {
       failures += 1;
@@ -112,16 +111,15 @@ int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area,
   return failures;
 }
 
-/* 
+/*
  * Writes a random value to a random address and then writes a capability for
  * that random address to another random location. Reads back the capability and
  * then reads back the value via the capability to check it matches what we was
  * originally written.
  */
 int rand_cap_test(Capability<volatile uint32_t> hyperram_area,
-    Capability<Capability<volatile uint32_t>> hyperram_cap_area,
-    ds::xoroshiro::P64R32 &prng, int iterations) {
-
+                  Capability<Capability<volatile uint32_t>> hyperram_cap_area, ds::xoroshiro::P64R32 &prng,
+                  int iterations) {
   int failures = 0;
 
   for (int i = 0; i < iterations; ++i) {
@@ -146,7 +144,7 @@ int rand_cap_test(Capability<volatile uint32_t> hyperram_area,
     write_cap.address() += (rand_index * 4);
     write_cap.bounds() = 4;
 
-    hyperram_area[rand_index] = rand_val;
+    hyperram_area[rand_index]         = rand_val;
     hyperram_cap_area[rand_cap_index] = write_cap;
 
     asm volatile("" : : : "memory");
@@ -167,14 +165,13 @@ int rand_cap_test(Capability<volatile uint32_t> hyperram_area,
  * check read values match written values. The values written alternate between
  * 'initial_val' and the inversion of 'initial_val'.
  */
-int stripe_test(Capability<volatile uint32_t> hyperram_area,
-    uint32_t initial_val) {
-  uint32_t failures = 0;
+int stripe_test(Capability<volatile uint32_t> hyperram_area, uint32_t initial_val) {
+  uint32_t failures      = 0;
   uint32_t cur_write_val = initial_val;
 
   for (uint32_t addr = 0; addr < HYPERRAN_TEST_SIZE; addr++) {
     hyperram_area[addr] = cur_write_val;
-    cur_write_val = ~cur_write_val;
+    cur_write_val       = ~cur_write_val;
   }
 
   uint32_t cur_expected_val = initial_val;
@@ -212,13 +209,13 @@ void write_prog(Capability<volatile uint32_t> hyperram_area, uint32_t addr) {
   // auipcc ca0, 0
   // cret
 
-  hyperram_area[addr] = 0xdeadc2b7;
+  hyperram_area[addr]     = 0xdeadc2b7;
   hyperram_area[addr + 1] = 0xeef28293;
   hyperram_area[addr + 2] = 0x00552023;
   hyperram_area[addr + 3] = 0x00000517;
   hyperram_area[addr + 4] = 0x8082;
 
-  asm volatile ("fence.i" : : : "memory");
+  asm volatile("fence.i" : : : "memory");
 }
 
 /*
@@ -226,9 +223,7 @@ void write_prog(Capability<volatile uint32_t> hyperram_area, uint32_t addr) {
  * for successful execution (see 'write_prog' for details on the function
  * written).
  */
-int execute_test(Capability<volatile uint32_t> hyperram_area,
-    ds::xoroshiro::P64R32 &prng, int iterations) {
-
+int execute_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng, int iterations) {
   int failures = 0;
 
   for (int i = 0; i < iterations; ++i) {
@@ -240,7 +235,7 @@ int execute_test(Capability<volatile uint32_t> hyperram_area,
     void *test_ptr;
 
     test_fn_t test_fn = get_hyperram_fn_ptr(HYPERRAM_ADDRESS + (prog_addr * 4));
-    test_ptr = test_fn(&test_int);
+    test_ptr          = test_fn(&test_int);
 
     if (test_int != 0xdeadbeef) {
       failures++;
@@ -251,7 +246,7 @@ int execute_test(Capability<volatile uint32_t> hyperram_area,
     }
 
     uint32_t expected_ptr_addr = HYPERRAM_ADDRESS + 0xC + (prog_addr * 4);
-    uint32_t test_ptr_addr = __builtin_cheri_address_get(test_ptr);
+    uint32_t test_ptr_addr     = __builtin_cheri_address_get(test_ptr);
 
     if (test_ptr_addr != expected_ptr_addr) {
       failures++;
@@ -261,32 +256,28 @@ int execute_test(Capability<volatile uint32_t> hyperram_area,
   return failures;
 }
 
-void hyperram_tests(CapRoot root, UartPtr console)
-{
+void hyperram_tests(CapRoot root, UartPtr console) {
   auto hyperram_area = hyperram_ptr(root);
 
-  Capability<Capability<volatile uint32_t>> hyperram_cap_area =
-    root.cast<Capability<volatile uint32_t>>();
-	hyperram_cap_area.address() = HYPERRAM_ADDRESS;
-	hyperram_cap_area.bounds()  = HYPERRAM_BOUNDS;
+  Capability<Capability<volatile uint32_t>> hyperram_cap_area = root.cast<Capability<volatile uint32_t>>();
+  hyperram_cap_area.address()                                 = HYPERRAM_ADDRESS;
+  hyperram_cap_area.bounds()                                  = HYPERRAM_BOUNDS;
 
   ds::xoroshiro::P64R32 prng;
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
-
 
   for (size_t i = 0; i < TEST_ITERATIONS; i++) {
     write_str(console, "\r\nrunning hyperram_test: ");
     write_hex8b(console, i);
     write_str(console, "\\");
-    write_hex8b(console, TEST_ITERATIONS-1);
+    write_hex8b(console, TEST_ITERATIONS - 1);
     write_str(console, "\r\n  ");
     write_hex(console, HYPERRAN_TEST_SIZE);
     write_str(console, "\r\n  ");
 
     int failures = 0;
     write_str(console, "Running RND cap test...");
-    failures +=
-      rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAN_TEST_SIZE);
+    failures += rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAN_TEST_SIZE);
     write_test_result(console, failures);
 
     write_str(console, "Running RND data test...");

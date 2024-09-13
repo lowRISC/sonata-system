@@ -4,36 +4,29 @@
 
 #include <string.h>
 
-#include "sonata_system.h"
-
 #include "gpio.h"
 #include "pwm.h"
+#include "sonata_system.h"
 #include "timer.h"
 #include "uart.h"
 #include "usbdev.h"
 
 // Device Descriptor; see "Table 9-8. Standard Device Descriptor"
-static uint8_t dev_dscr[] = {
-  0x12u, 1, 0, 2, 0, 0, 0, USBDEV_MAX_PACKET_LEN,
-  0xd1, 0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
-  0, 1, 0, 0, 0, 1
-};
+static uint8_t dev_dscr[] = {0x12u, 1,    0,    2,    0, 0, 0, USBDEV_MAX_PACKET_LEN,
+                             0xd1,  0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
+                             0,     1,    0,    0,    0, 1};
 
 // Configuration Descriptor; see "Table 9-10. Standard Configuration Descriptor"
 static uint8_t cfg_dscr[] = {
-  // Present a single interface consisting of an IN EP and and OUT EP.
-  USB_CFG_DSCR_HEAD(
-      USB_CFG_DSCR_LEN + (USB_INTERFACE_DSCR_LEN + 2 * USB_EP_DSCR_LEN),
-      1),
-  VEND_INTERFACE_DSCR(0, 2, 0x50, 1),
-  USB_BULK_EP_DSCR(0, 1, USBDEV_MAX_PACKET_LEN, 0),
-  USB_BULK_EP_DSCR(1, 1, USBDEV_MAX_PACKET_LEN, 4),
+    // Present a single interface consisting of an IN EP and and OUT EP.
+    USB_CFG_DSCR_HEAD(USB_CFG_DSCR_LEN + (USB_INTERFACE_DSCR_LEN + 2 * USB_EP_DSCR_LEN), 1),
+    VEND_INTERFACE_DSCR(0, 2, 0x50, 1),
+    USB_BULK_EP_DSCR(0, 1, USBDEV_MAX_PACKET_LEN, 0),
+    USB_BULK_EP_DSCR(1, 1, USBDEV_MAX_PACKET_LEN, 4),
 };
 
 // Default test descriptor, required by USBDPI model.
-static uint8_t test_dscr[] = {
-  USB_TESTUTILS_TEST_DSCR(0, 0, 0, 0, 0)
-};
+static uint8_t test_dscr[] = {USB_TESTUTILS_TEST_DSCR(0, 0, 0, 0, 0)};
 
 // Single USB device present.
 static usbdev_state_t usbdev;
@@ -47,8 +40,8 @@ int main(void) {
   puts("hello_usbdev demo application");
 
   // Initialize the USB device.
-  usbdev_init(&usbdev, DEFAULT_USBDEV, dev_dscr, sizeof(dev_dscr),
-              cfg_dscr, sizeof(cfg_dscr), test_dscr, USB_TESTUTILS_TEST_DSCR_LEN);
+  usbdev_init(&usbdev, DEFAULT_USBDEV, dev_dscr, sizeof(dev_dscr), cfg_dscr, sizeof(cfg_dscr), test_dscr,
+              USB_TESTUTILS_TEST_DSCR_LEN);
 
   usbdev_ep_config(&usbdev, ep, true, true, false);
 
@@ -65,9 +58,9 @@ int main(void) {
       int buf = usbdev_buf_alloc(&usbdev);
       if (buf >= 0) {
         static char _Alignas(uint32_t) msg[USBDEV_MAX_PACKET_LEN];
-        uint32_t in_val = read_gpio(GPIO_IN_DBNC);
+        uint32_t in_val  = read_gpio(GPIO_IN_DBNC);
         const char *emsg = msg + sizeof(msg);
-        char *mp = msg;
+        char *mp         = msg;
         memcpy(mp, "Hello USB! ", 11);
         mp += 11;
         mp += snputhexn(mp, emsg - mp, last_elapsed_time, 8);
@@ -81,9 +74,8 @@ int main(void) {
         if (mp < emsg) {
           *mp++ = '\n';
         }
-        (void)usbdev_packet_send(&usbdev, ep, buf, (uint8_t*)msg, mp - msg);
+        (void)usbdev_packet_send(&usbdev, ep, buf, (uint8_t *)msg, mp - msg);
       }
     }
   }
 }
-

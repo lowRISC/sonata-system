@@ -4,8 +4,8 @@
 
 #include "uart.h"
 
-#include "sonata_system.h"
 #include "dev_access.h"
+#include "sonata_system.h"
 
 #define BAUD_RATE (921600)
 
@@ -34,8 +34,7 @@ int uart_in(uart_t uart) {
 }
 
 void uart_out(uart_t uart, char c) {
-  while (DEV_READ(uart + UART_STATUS_REG) & UART_STATUS_TX_FULL)
-    ;
+  while (DEV_READ(uart + UART_STATUS_REG) & UART_STATUS_TX_FULL);
 
   DEV_WRITE(uart + UART_TX_REG, c);
 }

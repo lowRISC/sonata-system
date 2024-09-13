@@ -2,10 +2,11 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "usbdev.h"
+
 #include <assert.h>
 
 #include "dev_access.h"
-#include "usbdev.h"
 
 /**
  * Register definitions for the relevant parts of the OpenTitan USBDEV block.
@@ -13,21 +14,21 @@
  */
 
 // Byte offsets of key registers.
-#define USBDEV_USBCTRL        0x10U
-#define USBDEV_EP_OUT_ENABLE  0x14U
-#define USBDEV_EP_IN_ENABLE   0x18U
-#define USBDEV_USBSTAT        0x1CU
-#define USBDEV_AVOUTBUFFER    0x20U
-#define USBDEV_AVSETUPBUFFER  0x24U
-#define USBDEV_RXFIFO         0x28U
+#define USBDEV_USBCTRL 0x10U
+#define USBDEV_EP_OUT_ENABLE 0x14U
+#define USBDEV_EP_IN_ENABLE 0x18U
+#define USBDEV_USBSTAT 0x1CU
+#define USBDEV_AVOUTBUFFER 0x20U
+#define USBDEV_AVSETUPBUFFER 0x24U
+#define USBDEV_RXFIFO 0x28U
 #define USBDEV_RXENABLE_SETUP 0x2CU
-#define USBDEV_RXENABLE_OUT   0x30U
-#define USBDEV_IN_SENT        0x38U
-#define USBDEV_OUT_STALL      0x3CU
-#define USBDEV_IN_STALL       0x40U
-#define USBDEV_CONFIGIN_0     0x44U
-#define USBDEV_PHY_CONFIG     0x8CU
-#define USBDEV_BUFFER        0x800U
+#define USBDEV_RXENABLE_OUT 0x30U
+#define USBDEV_IN_SENT 0x38U
+#define USBDEV_OUT_STALL 0x3CU
+#define USBDEV_IN_STALL 0x40U
+#define USBDEV_CONFIGIN_0 0x44U
+#define USBDEV_PHY_CONFIG 0x8CU
+#define USBDEV_BUFFER 0x800U
 
 // USBCTRL register fields
 #define USBDEV_CTRL_ENABLE 1U
@@ -35,53 +36,52 @@
 #define USBDEV_CTRL_DEVICE_ADDRESS_SHIFT 16
 
 // USBSTAT register fields
-#define USBDEV_STAT_AV_OUT_FULL   0x00800000U
-#define USBDEV_STAT_RX_DEPTH      0x0F000000U
+#define USBDEV_STAT_AV_OUT_FULL 0x00800000U
+#define USBDEV_STAT_RX_DEPTH 0x0F000000U
 #define USBDEV_STAT_AV_SETUP_FULL 0x40000000U
 
 // CONFIGIN_x register fields
-#define USBDEV_CONFIGIN_BUFFER  0x1FU
-#define USBDEV_CONFIGIN_RDY     0x80000000U
-#define USBDEV_CONFIGIN_PEND    0x40000000U
+#define USBDEV_CONFIGIN_BUFFER 0x1FU
+#define USBDEV_CONFIGIN_RDY 0x80000000U
+#define USBDEV_CONFIGIN_PEND 0x40000000U
 #define USBDEV_CONFIGIN_SENDING 0x20000000U
 
 #define USBDEV_CONFIGIN_BUFFER_SHIFT 0
-#define USBDEV_CONFIGIN_SIZE_SHIFT   8
+#define USBDEV_CONFIGIN_SIZE_SHIFT 8
 
 // RXFIFO register fields
 #define USBDEV_RXFIFO_BUFFER 0x0000001FU
-#define USBDEV_RXFIFO_SIZE   0x00007F00U
-#define USBDEV_RXFIFO_SETUP  0x00080000U
-#define USBDEV_RXFIFO_EP     0x00F00000U
+#define USBDEV_RXFIFO_SIZE 0x00007F00U
+#define USBDEV_RXFIFO_SETUP 0x00080000U
+#define USBDEV_RXFIFO_EP 0x00F00000U
 
 #define USBDEV_RXFIFO_SIZE_SHIFT 8
-#define USBDEV_RXFIFO_EP_SHIFT  20
+#define USBDEV_RXFIFO_EP_SHIFT 20
 
 // PHY_CONFIG register fields
 #define USBDEV_PHY_CONFIG_USE_DIFF_RCVR 1U
 
 // USBDEV register read/write (usbdev supplies the base address implicitly).
-#define USBDEV_READ(offset)        DEV_READ((usbdev->base)  + (offset))
+#define USBDEV_READ(offset) DEV_READ((usbdev->base) + (offset))
 #define USBDEV_WRITE(offset, data) DEV_WRITE((usbdev->base) + (offset), (data))
 
 // Pointer to start of USBDEV buffer within packet buffer memory
 // (usbdev supplies the base address implicitly).
-#define USBDEV_BUF_START(buf) (uint32_t*)(usbdev->base + USBDEV_BUFFER + \
-                                          ((buf) * USBDEV_MAX_PACKET_LEN))
+#define USBDEV_BUF_START(buf) (uint32_t *)(usbdev->base + USBDEV_BUFFER + ((buf) * USBDEV_MAX_PACKET_LEN))
 
 // SETUP requests
 typedef enum usb_setup_req {
-  kUsbSetupReqGetStatus = 0,
-  kUsbSetupReqClearFeature = 1,
-  kUsbSetupReqSetFeature = 3,
-  kUsbSetupReqSetAddress = 5,
-  kUsbSetupReqGetDescriptor = 6,
-  kUsbSetupReqSetDescriptor = 7,
+  kUsbSetupReqGetStatus        = 0,
+  kUsbSetupReqClearFeature     = 1,
+  kUsbSetupReqSetFeature       = 3,
+  kUsbSetupReqSetAddress       = 5,
+  kUsbSetupReqGetDescriptor    = 6,
+  kUsbSetupReqSetDescriptor    = 7,
   kUsbSetupReqGetConfiguration = 8,
   kUsbSetupReqSetConfiguration = 9,
-  kUsbSetupReqGetInterface = 10,
-  kUsbSetupReqSetInterface = 11,
-  kUsbSetupReqSynchFrame = 12
+  kUsbSetupReqGetInterface     = 10,
+  kUsbSetupReqSetInterface     = 11,
+  kUsbSetupReqSynchFrame       = 12
 } usb_setup_req_t;
 
 typedef enum usb_desc_type {  // Descriptor type (wValue hi)
@@ -96,10 +96,7 @@ typedef enum usb_desc_type {  // Descriptor type (wValue hi)
 } usb_desc_type_t;
 
 // Vendor-specific requests defined by our device/test framework
-typedef enum vendor_setup_req {
-  kVendorSetupReqTestConfig = 0x7C,
-  kVendorSetupReqTestStatus = 0x7E
-} vendor_setup_req_t;
+typedef enum vendor_setup_req { kVendorSetupReqTestConfig = 0x7C, kVendorSetupReqTestStatus = 0x7E } vendor_setup_req_t;
 
 static void usbdev_supply_buffers(usbdev_state_t *usbdev) {
   uint32_t usbstat = USBDEV_READ(USBDEV_USBSTAT);
@@ -124,13 +121,12 @@ static void usbdev_supply_buffers(usbdev_state_t *usbdev) {
 }
 
 // Initialize the USB device.
-int usbdev_init(usbdev_state_t *usbdev, uint32_t base,
-                const uint8_t *dev_dscr, uint8_t dev_len,      // Device Descriptor.
+int usbdev_init(usbdev_state_t *usbdev, uint32_t base, const uint8_t *dev_dscr, uint8_t dev_len,  // Device Descriptor.
                 const uint8_t *cfg_dscr, uint16_t cfg_len,     // Configuration Descriptor.
                 const uint8_t *test_dscr, uint8_t test_len) {  // Test Descriptor.
   // Initialize workspace.
-  usbdev->base = base;
-  usbdev->buf_free = (uint32_t)(((uint64_t)1u << USBDEV_NUM_BUFFERS) - 1u);
+  usbdev->base       = base;
+  usbdev->buf_free   = (uint32_t)(((uint64_t)1u << USBDEV_NUM_BUFFERS) - 1u);
   usbdev->dev_state  = Device_Reset;
   usbdev->ctrl_state = Ctrl_Setup;
 
@@ -169,16 +165,16 @@ int usbdev_ep_config(usbdev_state_t *usbdev, uint8_t ep, bool in, bool out, bool
     return -1;
   }
 
-  uint32_t ep_mask = 1u << ep;
-  uint32_t out_enable = USBDEV_READ(USBDEV_EP_OUT_ENABLE)  & ~ep_mask;
-  uint32_t in_enable  = USBDEV_READ(USBDEV_EP_IN_ENABLE)   & ~ep_mask;
+  uint32_t ep_mask    = 1u << ep;
+  uint32_t out_enable = USBDEV_READ(USBDEV_EP_OUT_ENABLE) & ~ep_mask;
+  uint32_t in_enable  = USBDEV_READ(USBDEV_EP_IN_ENABLE) & ~ep_mask;
   uint32_t rxsetup_en = USBDEV_READ(USBDEV_RXENABLE_SETUP) & ~ep_mask;
-  uint32_t rxout_en   = USBDEV_READ(USBDEV_RXENABLE_OUT)   & ~ep_mask;
+  uint32_t rxout_en   = USBDEV_READ(USBDEV_RXENABLE_OUT) & ~ep_mask;
 
-  USBDEV_WRITE(USBDEV_EP_OUT_ENABLE,  out_enable | (out   ? ep_mask : 0u));
-  USBDEV_WRITE(USBDEV_EP_IN_ENABLE,   in_enable  | (in    ? ep_mask : 0u));
+  USBDEV_WRITE(USBDEV_EP_OUT_ENABLE, out_enable | (out ? ep_mask : 0u));
+  USBDEV_WRITE(USBDEV_EP_IN_ENABLE, in_enable | (in ? ep_mask : 0u));
   USBDEV_WRITE(USBDEV_RXENABLE_SETUP, rxsetup_en | (setup ? ep_mask : 0U));
-  USBDEV_WRITE(USBDEV_RXENABLE_OUT,   rxout_en   | (out   ? ep_mask : 0u));
+  USBDEV_WRITE(USBDEV_RXENABLE_OUT, rxout_en | (out ? ep_mask : 0u));
 
   return 0;
 }
@@ -189,12 +185,12 @@ int usbdev_ep_stalling(usbdev_state_t *usbdev, uint8_t ep, bool stalling) {
     return -1;
   }
 
-  uint32_t ep_mask = 1u << ep;
-  uint32_t out_stall = USBDEV_READ(USBDEV_OUT_STALL)  & ~ep_mask;
-  uint32_t in_stall  = USBDEV_READ(USBDEV_IN_STALL)   & ~ep_mask;
+  uint32_t ep_mask   = 1u << ep;
+  uint32_t out_stall = USBDEV_READ(USBDEV_OUT_STALL) & ~ep_mask;
+  uint32_t in_stall  = USBDEV_READ(USBDEV_IN_STALL) & ~ep_mask;
 
   USBDEV_WRITE(USBDEV_OUT_STALL, out_stall | (stalling ? ep_mask : 0u));
-  USBDEV_WRITE(USBDEV_IN_STALL,  in_stall  | (stalling ? ep_mask : 0u));
+  USBDEV_WRITE(USBDEV_IN_STALL, in_stall | (stalling ? ep_mask : 0u));
   return 0;
 }
 
@@ -216,13 +212,13 @@ int usbdev_buf_release(usbdev_state_t *usbdev, uint8_t buf) {
   if (buf >= USBDEV_NUM_BUFFERS || (usbdev->buf_free & b_bit)) {
     return -1;
   }
-  usbdev->buf_free |= b_bit;   
+  usbdev->buf_free |= b_bit;
   return 0;
 }
 
 // Faster, unrolled, word-based data transfer to/from the packet buffer memory.
 static void usbdev_memcpy(uint32_t *dp, const uint32_t *sp, uint8_t len, bool to_dev) {
-  const uint32_t *esp = (uint32_t*)((uintptr_t)sp + (len & ~15u));
+  const uint32_t *esp = (uint32_t *)((uintptr_t)sp + (len & ~15u));
   // Unrolled to mitigate the loop overheads.
   while (sp < esp) {
     dp[0] = sp[0];
@@ -242,14 +238,14 @@ static void usbdev_memcpy(uint32_t *dp, const uint32_t *sp, uint8_t len, bool to
   if (len > 0u) {
     if (to_dev) {
       // Collect final bytes into a word.
-      const uint8_t *bsp = (uint8_t*)sp;
-      uint32_t d = bsp[0];
+      const uint8_t *bsp = (uint8_t *)sp;
+      uint32_t d         = bsp[0];
       if (len > 1u) d |= bsp[1] << 8;
       if (len > 2u) d |= bsp[2] << 16;
       // Write the final word to the device.
       *dp = d;
     } else {
-      uint8_t *bdp = (uint8_t*)dp;
+      uint8_t *bdp = (uint8_t *)dp;
       // Collect the final word from the device.
       uint32_t s = *sp;
       // Unpack it into final bytes.
@@ -261,26 +257,23 @@ static void usbdev_memcpy(uint32_t *dp, const uint32_t *sp, uint8_t len, bool to
 }
 
 // Read the specified number of bytes from the given buffer.
-void usbdev_buf_read(usbdev_state_t *usbdev, uint8_t *dp, uint8_t buf,
-                     uint8_t len) {
+void usbdev_buf_read(usbdev_state_t *usbdev, uint8_t *dp, uint8_t buf, uint8_t len) {
   assert(!((uintptr_t)dp & 3u));
   assert(buf < USBDEV_NUM_BUFFERS);
   assert(len <= USBDEV_MAX_PACKET_LEN);
-  usbdev_memcpy((uint32_t*)dp, USBDEV_BUF_START(buf), len, false);
+  usbdev_memcpy((uint32_t *)dp, USBDEV_BUF_START(buf), len, false);
 }
 
 // Write the specified data to the specified buffer.
-void usbdev_buf_write(usbdev_state_t *usbdev, uint8_t buf, const uint8_t *sp,
-                      uint8_t len) {
+void usbdev_buf_write(usbdev_state_t *usbdev, uint8_t buf, const uint8_t *sp, uint8_t len) {
   assert(!((uintptr_t)sp & 3u));
   assert(buf < USBDEV_NUM_BUFFERS);
   assert(len <= USBDEV_MAX_PACKET_LEN);
-  usbdev_memcpy(USBDEV_BUF_START(buf), (uint32_t*)sp, len, true);
+  usbdev_memcpy(USBDEV_BUF_START(buf), (uint32_t *)sp, len, true);
 }
 
 // Present a data packet for collection by the USB host.
-int usbdev_packet_send(usbdev_state_t *usbdev, uint8_t ep, uint8_t buf,
-                       const uint8_t *sp, uint8_t len) {
+int usbdev_packet_send(usbdev_state_t *usbdev, uint8_t ep, uint8_t buf, const uint8_t *sp, uint8_t len) {
   uint32_t configin_offset = USBDEV_CONFIGIN_0 + (ep << 2);
 
   // Retract an existing IN packet? A previous packet may be still uncollected.
@@ -324,14 +317,14 @@ static bool usbdev_ep0_recv(usbdev_state_t *usbdev, bool setup, uint8_t buf, uin
                 if (wLen > usbdev->dev_len) wLen = usbdev->dev_len;
                 usbdev_packet_send(usbdev, 0u, buf, usbdev->dev_dscr, wLen);
                 usbdev->ctrl_state = Ctrl_StatusGetDesc;
-                release = false;
+                release            = false;
                 break;
 
               case kUsbDescTypeConfiguration:
                 if (wLen > usbdev->cfg_len) wLen = usbdev->cfg_len;
                 usbdev_packet_send(usbdev, 0u, buf, usbdev->cfg_dscr, wLen);
                 usbdev->ctrl_state = Ctrl_StatusGetDesc;
-                release = false;
+                release            = false;
                 break;
 
               default:
@@ -343,16 +336,16 @@ static bool usbdev_ep0_recv(usbdev_state_t *usbdev, bool setup, uint8_t buf, uin
           // SET_ADDRESS request.
           case kUsbSetupReqSetAddress:
             usbdev->dev_addr = (uint8_t)wValue;
-            usbdev_packet_send(usbdev, 0u, buf, data, 0); // Zero Length Packet as ACK.
+            usbdev_packet_send(usbdev, 0u, buf, data, 0);  // Zero Length Packet as ACK.
             usbdev->ctrl_state = Ctrl_StatusSetAddr;
-            release = false;
+            release            = false;
             break;
 
           // SET_CONFIGURATION request.
           case kUsbSetupReqSetConfiguration:
-            usbdev_packet_send(usbdev, 0u, buf, data, 0); // ZLP ACK.
+            usbdev_packet_send(usbdev, 0u, buf, data, 0);  // ZLP ACK.
             usbdev->ctrl_state = Ctrl_StatusSetConfig;
-            release = false;
+            release            = false;
             break;
 
           // Bespoke, vendor-defined Setup request to allow the USBDPI model to access the test
@@ -361,7 +354,7 @@ static bool usbdev_ep0_recv(usbdev_state_t *usbdev, bool setup, uint8_t buf, uin
             if (wLen > usbdev->test_len) wLen = usbdev->test_len;
             usbdev_packet_send(usbdev, 0u, buf, usbdev->test_dscr, wLen);
             usbdev->ctrl_state = Ctrl_StatusGetDesc;
-            release = false;
+            release            = false;
             break;
 
           default:
@@ -388,7 +381,7 @@ static bool usbdev_ep0_sent(usbdev_state_t *usbdev, uint8_t buf) {
       break;
 
     case Ctrl_StatusSetConfig:
-      usbdev->dev_state = Device_Configured;
+      usbdev->dev_state  = Device_Configured;
       usbdev->ctrl_state = Ctrl_Setup;
       break;
 
@@ -410,8 +403,8 @@ static void usbdev_service_sending(usbdev_state_t *usbdev) {
     while (sent && ep < USBDEV_MAX_ENDPOINTS) {
       uint32_t ep_bit = 1u << ep;
       if (sent & ep_bit) {
-        uint32_t in = USBDEV_READ(USBDEV_CONFIGIN_0 + (ep << 2));
-        uint8_t buf = in & USBDEV_CONFIGIN_BUFFER;
+        uint32_t in  = USBDEV_READ(USBDEV_CONFIGIN_0 + (ep << 2));
+        uint8_t buf  = in & USBDEV_CONFIGIN_BUFFER;
         bool release = true;
         if (!ep) {
           // Service Endpoint Zero (Default Control Pipe)
@@ -432,11 +425,11 @@ static void usbdev_service_recving(usbdev_state_t *usbdev) {
   if (USBDEV_READ(USBDEV_USBSTAT) & USBDEV_STAT_RX_DEPTH) {
     // Collect packet properties from RX FIFO.
     uint32_t rxfifo = USBDEV_READ(USBDEV_RXFIFO);
-    bool setup = (rxfifo & USBDEV_RXFIFO_SETUP) != 0u;
-    uint8_t buf = rxfifo & USBDEV_RXFIFO_BUFFER;
-    uint8_t size = (rxfifo & USBDEV_RXFIFO_SIZE) >> USBDEV_RXFIFO_SIZE_SHIFT;
-    uint8_t ep = (rxfifo & USBDEV_RXFIFO_EP) >> USBDEV_RXFIFO_EP_SHIFT;
-    bool release = true;
+    bool setup      = (rxfifo & USBDEV_RXFIFO_SETUP) != 0u;
+    uint8_t buf     = rxfifo & USBDEV_RXFIFO_BUFFER;
+    uint8_t size    = (rxfifo & USBDEV_RXFIFO_SIZE) >> USBDEV_RXFIFO_SIZE_SHIFT;
+    uint8_t ep      = (rxfifo & USBDEV_RXFIFO_EP) >> USBDEV_RXFIFO_EP_SHIFT;
+    bool release    = true;
     if (!ep) {
       release = usbdev_ep0_recv(usbdev, setup, buf, size);
     }
@@ -459,7 +452,4 @@ int usbdev_service(usbdev_state_t *usbdev) {
 
 // Indicate whether the USB device is connected, configured and capable of
 // transferring data.
-bool usbdev_active(usbdev_state_t *usbdev) {
-  return (usbdev->dev_state == Device_Configured);
-}
-
+bool usbdev_active(usbdev_state_t *usbdev) { return (usbdev->dev_state == Device_Configured); }

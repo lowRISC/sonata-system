@@ -5,8 +5,8 @@
 #ifndef KSZ8851_H
 #define KSZ8851_H
 
-#include <stdbool.h>
 #include <lwip/netif.h>
+#include <stdbool.h>
 
 err_t ksz8851_init(struct netif *netif);
 err_t ksz8851_poll(struct netif *netif);

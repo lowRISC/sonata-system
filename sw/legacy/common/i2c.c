@@ -2,22 +2,22 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "sonata_system.h"
-#include "dev_access.h"
-
 #include "i2c.h"
+
+#include "dev_access.h"
+#include "sonata_system.h"
 
 /**
  * Specification times (Table 10) in nanoseconds for each bus mode.
  */
-static const uint16_t spc_thigh[]   = { 4000u,  600u, 260u };
-static const uint16_t spc_tlow[]    = { 4700u, 1300u, 150u };
-static const uint16_t spc_thd_sta[] = { 4000u,  600u, 260u };
-static const uint16_t spc_tsu_sta[] = { 4700u,  600u, 260u };
-static const uint16_t spc_thd_dat[] = { 5000u,    1u,   1u };
-static const uint16_t spc_tsu_dat[] = {  250u,  100u,  50u };
-static const uint16_t spc_t_buf[]   = { 4700u, 1300u, 500u };
-static const uint16_t spc_tsu_sto[] = { 4000u,  600u, 260u };
+static const uint16_t spc_thigh[]   = {4000u, 600u, 260u};
+static const uint16_t spc_tlow[]    = {4700u, 1300u, 150u};
+static const uint16_t spc_thd_sta[] = {4000u, 600u, 260u};
+static const uint16_t spc_tsu_sta[] = {4700u, 600u, 260u};
+static const uint16_t spc_thd_dat[] = {5000u, 1u, 1u};
+static const uint16_t spc_tsu_dat[] = {250u, 100u, 50u};
+static const uint16_t spc_t_buf[]   = {4700u, 1300u, 500u};
+static const uint16_t spc_tsu_sto[] = {4000u, 600u, 260u};
 
 /**
  * Performs a 32-bit integer unsigned division, rounding up. The bottom
@@ -56,9 +56,7 @@ static int wait_fmt_empty(i2c_t i2c) {
   return 0;
 }
 
-void i2c_set_host_mode(i2c_t i2c) {
-  DEV_WRITE(i2c + I2C_CTRL, I2C_CTRL_ENABLEHOST);
-}
+void i2c_set_host_mode(i2c_t i2c) { DEV_WRITE(i2c + I2C_CTRL, I2C_CTRL_ENABLEHOST); }
 
 /**
  * Set the I2C timing parameters appropriately for the given bit rate.
@@ -76,7 +74,7 @@ void i2c_set_speed(i2c_t i2c, unsigned speed_khz) {
 
   // Calculation of timing parameters
   uint16_t thigh = round_up_divide(spc_thigh[mode], clk_period);  // Spec. min.
-  uint16_t tlow  = round_up_divide(spc_tlow[mode],  clk_period);  // Spec. min.
+  uint16_t tlow  = round_up_divide(spc_tlow[mode], clk_period);   // Spec. min.
   uint16_t t_f   = round_up_divide(20 * 3 / 5, clk_period);       // Spec. min. 3.3V
   uint16_t t_r   = round_up_divide(120, clk_period);
   // Setup and Hold times for Start
@@ -85,11 +83,11 @@ void i2c_set_speed(i2c_t i2c, unsigned speed_khz) {
   // Setup and Hold times for Data
   uint16_t thd_dat = round_up_divide(spc_thd_dat[mode], clk_period);
   uint16_t tsu_dat = round_up_divide(spc_tsu_dat[mode], clk_period);
-  uint16_t t_buf   = round_up_divide(spc_t_buf[mode],   clk_period);
+  uint16_t t_buf   = round_up_divide(spc_t_buf[mode], clk_period);
   uint16_t tsu_sto = round_up_divide(spc_tsu_sto[mode], clk_period);
 
   // Prevent counters underflowing
-  if (tlow  < thd_dat + 1u) tlow  = thd_dat + 1u;
+  if (tlow < thd_dat + 1u) tlow = thd_dat + 1u;
   if (t_buf < tsu_sta + 1u) t_buf = tsu_sta + 1u;
 
   if (true) {
@@ -118,15 +116,14 @@ void i2c_set_speed(i2c_t i2c, unsigned speed_khz) {
     putchar('\n');
   }
 
-  DEV_WRITE(i2c + I2C_TIMING0, (tlow    << 16) | thigh);
-  DEV_WRITE(i2c + I2C_TIMING1, (t_f     << 16) | t_r);
+  DEV_WRITE(i2c + I2C_TIMING0, (tlow << 16) | thigh);
+  DEV_WRITE(i2c + I2C_TIMING1, (t_f << 16) | t_r);
   DEV_WRITE(i2c + I2C_TIMING2, (thd_sta << 16) | tsu_sta);
   DEV_WRITE(i2c + I2C_TIMING3, (thd_dat << 16) | tsu_dat);
-  DEV_WRITE(i2c + I2C_TIMING4, (t_buf   << 16) | tsu_sto);
+  DEV_WRITE(i2c + I2C_TIMING4, (t_buf << 16) | tsu_sto);
 }
 
-int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n,
-              bool skip_stop) {
+int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n, bool skip_stop) {
   // Set up a write to the given target address.
   int rc = write_raw_fmt(i2c, I2C_FDATA_START | (addr7 << 1) | 0u);
   if (rc) {
@@ -142,7 +139,7 @@ int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n,
 
 int i2c_read(i2c_t i2c, uint8_t addr7, uint8_t *buf, size_t n, uint32_t timeout_usecs) {
   uint32_t timeout_cycles = (uint32_t)((uint64_t)timeout_usecs * (SYSCLK_FREQ / 1000) / 1000);
-  uint32_t start_time = get_mcycle();
+  uint32_t start_time     = get_mcycle();
   // The I2C controller may read only a limited number of bytes at a time.
   int rc = 0u;
   while (n > 0u) {
@@ -184,4 +181,3 @@ int i2c_read(i2c_t i2c, uint8_t addr7, uint8_t *buf, size_t n, uint32_t timeout_
 
   return rc;
 }
-

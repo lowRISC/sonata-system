@@ -2,15 +2,16 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "ksz8851.h"
+
 #include <lwip/etharp.h>
 #include <lwip/netif.h>
 #include <string.h>
 
-#include "ksz8851.h"
+#include "rv_plic.h"
 #include "sonata_system.h"
 #include "spi.h"
 #include "timer.h"
-#include "rv_plic.h"
 
 enum {
   // IRQ
@@ -187,7 +188,7 @@ static void ksz8851_recv(struct netif *netif) {
 
   for (; frames; frames--) {
     uint16_t status = ksz8851_reg_read(spi, ETH_RXFHSR);
-    bool valid = (status & RxFrameValid) &&
+    bool valid      = (status & RxFrameValid) &&
                  !(status & (RxCrcError | RxRuntFrame | RxFrameTooLong | RxMiiError | RxUdpFrameChecksumStatus |
                              RxTcpFrameChecksumStatus | RxIpFrameChecksumStatus | RxIcmpFrameChecksumStatus));
     if (!valid) {
@@ -218,11 +219,11 @@ static void ksz8851_recv(struct netif *netif) {
     puts("");
 #endif
 
-    struct pbuf* buf = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+    struct pbuf *buf = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
 
     // Reset QMU RXQ frame pointer to zero.
     ksz8851_reg_write(spi, ETH_RXFDPR, 0x4000);
-    
+
     // Start QMU DMA transfer operation
     ksz8851_reg_set(spi, ETH_RXQCR, StartDmaAccess);
 
@@ -281,7 +282,7 @@ err_t ksz8851_poll(struct netif *netif) {
 }
 
 static void ksz8851_irq_handler(irq_t irq) {
-  spi_t *spi = eth_netif->state;
+  spi_t *spi   = eth_netif->state;
   uint32_t isr = ksz8851_reg_read(spi, ETH_ISR);
   if (!isr) {
     return;

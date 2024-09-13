@@ -12,8 +12,8 @@
 #define GPIO_IN_DBNC_REG 0x8
 #define GPIO_OUT_SHIFT_REG 0xC
 
-#define GPIO_OUT_MASK 0x7FFF // Support 15-bit output
-#define GPIO_LED_MASK 0x0FF0 // These 8 bits are the user LEDs
+#define GPIO_OUT_MASK 0x7FFF  // Support 15-bit output
+#define GPIO_LED_MASK 0x0FF0  // These 8 bits are the user LEDs
 
 typedef void* gpio_t;
 

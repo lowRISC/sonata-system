@@ -14,33 +14,33 @@
  */
 
 // Byte offsets of key registers
-#define I2C_INTR_STATE  0x00
+#define I2C_INTR_STATE 0x00
 #define I2C_INTR_ENABLE 0x04
-#define I2C_CTRL        0x10
-#define I2C_STATUS      0x14
-#define I2C_RDATA       0x18
-#define I2C_FDATA       0x1C
-#define I2C_TIMING0     0x3C
-#define I2C_TIMING1     0x40
-#define I2C_TIMING2     0x44
-#define I2C_TIMING3     0x48
-#define I2C_TIMING4     0x4C
+#define I2C_CTRL 0x10
+#define I2C_STATUS 0x14
+#define I2C_RDATA 0x18
+#define I2C_FDATA 0x1C
+#define I2C_TIMING0 0x3C
+#define I2C_TIMING1 0x40
+#define I2C_TIMING2 0x44
+#define I2C_TIMING3 0x48
+#define I2C_TIMING4 0x4C
 
 // I2C_INTR_STATE register
 #define I2C_INTR_STATE_NAK 0x10
 
 // I2C_CTRL register
-#define I2C_CTRL_ENABLEHOST   1
+#define I2C_CTRL_ENABLEHOST 1
 
 // I2C STATUS register
-#define I2C_STATUS_FMTFULL    1
-#define I2C_STATUS_FMTEMPTY   4
+#define I2C_STATUS_FMTFULL 1
+#define I2C_STATUS_FMTEMPTY 4
 #define I2C_STATUS_RXEMPTY 0x20
 
 // I2C FDATA register
-#define I2C_FDATA_READB   0x400
-#define I2C_FDATA_STOP    0x200
-#define I2C_FDATA_START   0x100
+#define I2C_FDATA_READB 0x400
+#define I2C_FDATA_STOP 0x200
+#define I2C_FDATA_START 0x100
 
 // Should be treated as opaque
 typedef uintptr_t i2c_t;
@@ -49,9 +49,7 @@ typedef uintptr_t i2c_t;
 
 void i2c_set_host_mode(i2c_t i2c);
 void i2c_set_speed(i2c_t i2c, unsigned speed_khz);
-int  i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n,
-               bool skip_stop);
-int  i2c_read(i2c_t i2c, uint8_t addr7, uint8_t *buf, size_t n, uint32_t timeout_usecs);
+int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n, bool skip_stop);
+int i2c_read(i2c_t i2c, uint8_t addr7, uint8_t *buf, size_t n, uint32_t timeout_usecs);
 
 #endif
-

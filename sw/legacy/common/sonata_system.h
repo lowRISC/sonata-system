@@ -8,12 +8,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "sonata_system_regs.h"
 #include "gpio.h"
+#include "sonata_system_regs.h"
 #include "uart.h"
 
 // System Clock Frequency (Hz)
-#define SYSCLK_FREQ (30*1000*1000)
+#define SYSCLK_FREQ (30 * 1000 * 1000)
 
 #define UART_IRQ_NUM 16
 #define UART_IRQ (1 << UART_IRQ_NUM)
@@ -153,9 +153,9 @@ void disable_interrupts(uint32_t disable_mask);
  *         enable state with `arch_local_irq_restore`.
  */
 static inline uint32_t arch_local_irq_save(void) {
-    uint32_t mstatus;
-    asm volatile("csrrc %0, mstatus, %1" : "=r"(mstatus) : "rK"(MSTATUS_MIE) );
-	return mstatus;
+  uint32_t mstatus;
+  asm volatile("csrrc %0, mstatus, %1" : "=r"(mstatus) : "rK"(MSTATUS_MIE));
+  return mstatus;
 }
 
 /**
@@ -164,24 +164,20 @@ static inline uint32_t arch_local_irq_save(void) {
  * @param mstatus The saved state from `arch_local_irq_save`.
  */
 static inline void arch_local_irq_restore(uint32_t mstatus) {
-    // Set the MIE bit using the mstatus.
-    // Does nothing if MIE is not set in mstatus (indicating reentering a local_irq_save region).
-    asm volatile("csrs mstatus, %0" : : "rK"(mstatus & MSTATUS_MIE));
+  // Set the MIE bit using the mstatus.
+  // Does nothing if MIE is not set in mstatus (indicating reentering a local_irq_save region).
+  asm volatile("csrs mstatus, %0" : : "rK"(mstatus & MSTATUS_MIE));
 }
 
 /**
  * Set the global interrupt enable (the `mie` field of `mstatus`).
  */
-static inline void arch_local_irq_enable(void) {
-    asm volatile("csrs mstatus, %0" : : "rK"(MSTATUS_MIE));
-}
+static inline void arch_local_irq_enable(void) { asm volatile("csrs mstatus, %0" : : "rK"(MSTATUS_MIE)); }
 
 /**
  * Clear the global interrupt enable (the `mie` field of `mstatus`).
  */
-static inline void arch_local_irq_disable(void) {
-    asm volatile("csrc mstatus, %0" : : "rK"(MSTATUS_MIE));
-}
+static inline void arch_local_irq_disable(void) { asm volatile("csrc mstatus, %0" : : "rK"(MSTATUS_MIE)); }
 
 unsigned int get_mepc();
 unsigned int get_mcause();
