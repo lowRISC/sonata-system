@@ -25,14 +25,15 @@ ios = [
 
 [[blocks]]
 name = "gpio"
-instances = 5 # 2 RPi, 2 Ard, 1 Pmod
-
-[[blocks.ios]]
-name = "ios"
-type = "inout"
-combine = "mux"
-length = 16
-
+instances = 3 # 1 RPi, 1 Ard, 1 Pmod
+ios = [
+  {
+    name = "ios",
+    type = "inout",
+    combine = "mux",
+    length = 32
+  },
+]
 
 # UARTS
 [[pins]]
@@ -207,144 +208,144 @@ block_ios = [
 
 [[pins]]
 name = "rph_g16_ce2"
-block_ios = [{block = "gpio", instance = 1, io = 0}]
+block_ios = [{block = "gpio", instance = 0, io = 16}]
 
 [[pins]]
 name = "rph_g17"
-block_ios = [{block = "gpio", instance = 1, io = 1}]
+block_ios = [{block = "gpio", instance = 0, io = 17}]
 
 [[pins]]
 name = "rph_g18"
-block_ios = [{block = "gpio", instance = 1, io = 2}]
+block_ios = [{block = "gpio", instance = 0, io = 18}]
 
 [[pins]]
 name = "rph_g19_cipo"
 block_ios = [
   {block = "spi", instance = 4, io = "rx"},
-  {block = "gpio", instance = 1, io = 3},
+  {block = "gpio", instance = 0, io = 19},
 ]
 
 [[pins]]
 name = "rph_g20_copi"
 block_ios = [
   {block = "spi", instance = 4, io = "tx"},
-  {block = "gpio", instance = 1, io = 4},
+  {block = "gpio", instance = 0, io = 20},
 ]
 
 [[pins]]
 name = "rph_g21_sclk"
 block_ios = [
   {block = "spi", instance = 4, io = "sck"},
-  {block = "gpio", instance = 1, io = 5},
+  {block = "gpio", instance = 0, io = 21},
 ]
 
 [[pins]]
 name = "rph_g22"
-block_ios = [{block = "gpio", instance = 1, io = 6}]
+block_ios = [{block = "gpio", instance = 0, io = 22}]
 
 [[pins]]
 name = "rph_g23"
-block_ios = [{block = "gpio", instance = 1, io = 7}]
+block_ios = [{block = "gpio", instance = 0, io = 23}]
 
 [[pins]]
 name = "rph_g24"
-block_ios = [{block = "gpio", instance = 1, io = 8}]
+block_ios = [{block = "gpio", instance = 0, io = 24}]
 
 [[pins]]
 name = "rph_g25"
-block_ios = [{block = "gpio", instance = 1, io = 9}]
+block_ios = [{block = "gpio", instance = 0, io = 25}]
 
 [[pins]]
 name = "rph_g26"
-block_ios = [{block = "gpio", instance = 1, io = 10}]
+block_ios = [{block = "gpio", instance = 0, io = 26}]
 
 [[pins]]
 name = "rph_g27"
-block_ios = [{block = "gpio", instance = 1, io = 11}]
+block_ios = [{block = "gpio", instance = 0, io = 27}]
 
 ## Arduino Shield
 [[pins]]
 name = "ah_tmpio0"
-block_ios = [{block = "gpio", instance = 2, io = 0}]
+block_ios = [{block = "gpio", instance = 1, io = 0}]
 
 [[pins]]
 name = "ah_tmpio1"
-block_ios = [{block = "gpio", instance = 2, io = 1}]
+block_ios = [{block = "gpio", instance = 1, io = 1}]
 
 [[pins]]
 name = "ah_tmpio2"
-block_ios = [{block = "gpio", instance = 2, io = 2}]
+block_ios = [{block = "gpio", instance = 1, io = 2}]
 
 [[pins]]
 name = "ah_tmpio3"
-block_ios = [{block = "gpio", instance = 2, io = 3}]
+block_ios = [{block = "gpio", instance = 1, io = 3}]
 
 [[pins]]
 name = "ah_tmpio4"
-block_ios = [{block = "gpio", instance = 2, io = 4}]
+block_ios = [{block = "gpio", instance = 1, io = 4}]
 
 [[pins]]
 name = "ah_tmpio5"
-block_ios = [{block = "gpio", instance = 2, io = 5}]
+block_ios = [{block = "gpio", instance = 1, io = 5}]
 
 [[pins]]
 name = "ah_tmpio6"
-block_ios = [{block = "gpio", instance = 2, io = 6}]
+block_ios = [{block = "gpio", instance = 1, io = 6}]
 
 [[pins]]
 name = "ah_tmpio7"
-block_ios = [{block = "gpio", instance = 2, io = 7}]
+block_ios = [{block = "gpio", instance = 1, io = 7}]
 
 [[pins]]
 name = "ah_tmpio8"
-block_ios = [{block = "gpio", instance = 2, io = 8}]
+block_ios = [{block = "gpio", instance = 1, io = 8}]
 
 [[pins]]
 name = "ah_tmpio9"
-block_ios = [{block = "gpio", instance = 2, io = 9}]
+block_ios = [{block = "gpio", instance = 1, io = 9}]
 
 [[pins]]
 # Arduino shield chip select
 name = "ah_tmpio10"
-block_ios = [{block = "gpio", instance = 2, io = 10}]
+block_ios = [{block = "gpio", instance = 1, io = 10}]
 
 [[pins]]
 name = "ah_tmpio11"
 block_ios = [
   {block = "spi", instance = 5, io = "tx"},
-  {block = "gpio", instance = 2, io = 11},
+  {block = "gpio", instance = 1, io = 11},
 ]
 
 [[pins]]
 name = "ah_tmpio12"
 block_ios = [
   {block = "spi", instance = 5, io = "rx"},
-  {block = "gpio", instance = 2, io = 12},
+  {block = "gpio", instance = 1, io = 12},
 ]
 
 [[pins]]
 name = "ah_tmpio13"
 block_ios = [
   {block = "spi", instance = 5, io = "sck"},
-  {block = "gpio", instance = 2, io = 13},
+  {block = "gpio", instance = 1, io = 13},
 ]
 
 [[pins]]
 name = "ah_tmpio14"
-block_ios = [{block = "gpio", instance = 2, io = 14}]
+block_ios = [{block = "gpio", instance = 1, io = 14}]
 
 [[pins]]
 name = "ah_tmpio15"
-block_ios = [{block = "gpio", instance = 2, io = 15}]
+block_ios = [{block = "gpio", instance = 1, io = 15}]
 
 [[pins]]
 # Arduino Shield reset
 name = "ah_tmpio16"
-block_ios = [{block = "gpio", instance = 3, io = 0}]
+block_ios = [{block = "gpio", instance = 1, io = 16}]
 
 [[pins]]
 name = "ah_tmpio17"
-block_ios = [{block = "gpio", instance = 3, io = 1}]
+block_ios = [{block = "gpio", instance = 1, io = 17}]
 # TODO connect up AH_AN0-5 to ADC
 
 # mikroBUS Click
@@ -384,9 +385,9 @@ block_ios = [{block = "uart", instance = 3, io = "rx"}]
 [[pins]]
 name = "pmod0"
 length = 8
-block_ios = [{block = "gpio", instance = 4, io = 0}]
+block_ios = [{block = "gpio", instance = 2, io = 0}]
 
 [[pins]]
 name = "pmod1"
 length = 8
-block_ios = [{block = "gpio", instance = 4, io = 8}]
+block_ios = [{block = "gpio", instance = 2, io = 8}]

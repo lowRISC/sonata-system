@@ -241,9 +241,9 @@ module top_sonata (
   logic spi_sck[SPI_NUM];
   logic spi_tx[SPI_NUM];
   logic spi_rx[SPI_NUM];
-  logic [15:0] gpio_h2d[GPIO_NUM];
-  logic [15:0] gpio_en_h2d[GPIO_NUM];
-  logic [15:0] gpio_d2h[GPIO_NUM];
+  logic [31:0] gpio_out[GPIO_NUM];
+  logic [31:0] gpio_out_en[GPIO_NUM];
+  logic [31:0] gpio_in[GPIO_NUM];
 
   pinmux u_pinmux (
     .uart_tx_i(uart_tx),
@@ -257,9 +257,9 @@ module top_sonata (
     .spi_sck_i(spi_sck),
     .spi_tx_i(spi_tx),
     .spi_rx_o(spi_rx),
-    .gpio_ios_i(gpio_h2d),
-    .gpio_ios_en_i(gpio_en_h2d),
-    .gpio_ios_o(gpio_d2h),
+    .gpio_ios_i(gpio_out),
+    .gpio_ios_en_i(gpio_out_en),
+    .gpio_ios_o(gpio_in),
     .ser0_tx,
     .ser0_rx,
     .ser1_tx,
@@ -338,22 +338,14 @@ module top_sonata (
     .tl_o(tl_pinmux_d2h)
   );
 
-  logic [31:0] gpio_h2d_combined[GPIO_NUM];
-
-  for (genvar i = 0; i < GPIO_NUM; i++) begin : gen_gpio_combined
-    assign gpio_h2d_combined[i][31:16] = gpio_en_h2d[i];
-    assign gpio_h2d_combined[i][15: 0] = gpio_h2d[i];
-  end : gen_gpio_combined
-
   // Enable CHERI by default.
   logic enable_cheri;
   assign enable_cheri = 1'b1;
 
   logic rgbled_dout;
+  logic [7:0] unused_gp_o;
 
   sonata_system #(
-    .GpiWidth        ( 17             ),
-    .GpoWidth        ( 23             ),
     .PwmWidth        (  1             ),
     .CheriErrWidth   (  9             ),
     .SRAMInitFile    ( SRAMInitFile   ),
@@ -376,12 +368,14 @@ module top_sonata (
 
     // GPIO
     .gp_i           ({
+                      15'b0,
                       sel_sw_n, // Software selection switches
                       mb9, // mikroBUS Click interrupt
                       user_sw_n, // user switches
                       nav_sw_n // joystick
                     }),
     .gp_o           ({
+                      unused_gp_o,
                       mb0, // mikroBUS Click reset
                       mb1, // mikroBUS Click chip select
                       ah_tmpio10, // Arduino shield chip select
@@ -402,8 +396,9 @@ module top_sonata (
     .pwm_o({mb10}),
 
     // GPIO headers
-    .gp_headers_i   (gpio_d2h),
-    .gp_headers_o   (gpio_h2d_combined),
+    .gp_headers_i   (gpio_in),
+    .gp_headers_o   (gpio_out),
+    .gp_headers_o_en(gpio_out_en),
 
     // UARTs
     .uart_rx_i     (uart_rx),

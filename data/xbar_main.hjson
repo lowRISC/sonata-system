@@ -175,18 +175,6 @@
         size_byte: "0x00001000",
       }],
     },
-    % for i in range(gpio_num):
-    { name:  "gpio${i}", // General purpose input and output ${i}
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x8050${i}000",
-        size_byte: "0x00001000",
-      }],
-    },
-    % endfor
     { name:  "rv_plic", // RISC-V platform interrupt controller
       type:  "device",
       clock: "clk_sys_i",
@@ -221,9 +209,6 @@
       "spi${i}",
       % endfor
       "usbdev",
-      % for i in range(gpio_num):
-      "gpio${i}",
-      % endfor
       "rv_plic",
     ],
     dbg_host: ["sram"],

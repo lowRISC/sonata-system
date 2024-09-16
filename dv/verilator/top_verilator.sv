@@ -196,9 +196,11 @@ module top_verilator (input logic clk_i, rst_ni);
                     usrLed, // User LEDs (8 bits)
                     lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
                   }),
+    .gp_o_en  ( ),
     .pwm_o        ( ),
     .gp_headers_i ('{default: '0}),
     .gp_headers_o ( ),
+    .gp_headers_o_en ( ),
 
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (0),
