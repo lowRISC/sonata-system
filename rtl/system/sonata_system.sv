@@ -1051,7 +1051,7 @@ module sonata_system #(
     .tbre_intr_o     (hardware_revoker_irq)
   );
 
-  gpio #(
+  gpio_array #(
     .GpiWidth ( GpiWidth ),
     .GpoWidth ( GpoWidth )
   ) u_gpio (
@@ -1067,8 +1067,8 @@ module sonata_system #(
     .device_rvalid_o (device_rvalid[Gpio]),
     .device_rdata_o  (device_rdata[Gpio]),
 
-    .gp_i,
-    .gp_o,
+    .gp_i('{gp_i}),
+    .gp_o('{gp_o}),
     .gp_o_en()
   );
 
@@ -1103,7 +1103,7 @@ module sonata_system #(
     assign device_err [NrNonGpioDevices+i] = 1'b0;
     assign device_addr[NrNonGpioDevices+i][BusAddrWidth-1:RegAddrWidth] = '0;
 
-    gpio #(
+    gpio_array #(
       .GpiWidth ( HalfWordWidth ),
       .GpoWidth ( WordWidth     )
     ) u_gpio (
@@ -1119,8 +1119,8 @@ module sonata_system #(
       .device_rvalid_o (device_rvalid[NrNonGpioDevices+i]),
       .device_rdata_o  (device_rdata [NrNonGpioDevices+i]),
 
-      .gp_i            (gp_headers_i[i]),
-      .gp_o            (gp_headers_o[i]),
+      .gp_i            ('{gp_headers_i[i]}),
+      .gp_o            ('{gp_headers_o[i]}),
       .gp_o_en         ()
     );
 
