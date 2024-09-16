@@ -1068,14 +1068,15 @@ module sonata_system #(
     .device_rdata_o  (device_rdata[Gpio]),
 
     .gp_i,
-    .gp_o
+    .gp_o,
+    .gp_o_en()
   );
 
   for (genvar i = 0; i < sonata_pkg::GPIO_NUM; i++) begin : gen_gpio_headers
     tlul_adapter_reg #(
       .EnableRspIntgGen ( 1 ),
       .AccessLatency    ( 1 )
-    ) rpi_gpio_device_adapter (
+    ) gpio_device_adapter (
       .clk_i        (clk_sys_i),
       .rst_ni       (rst_sys_ni),
 
@@ -1105,7 +1106,7 @@ module sonata_system #(
     gpio #(
       .GpiWidth ( HalfWordWidth ),
       .GpoWidth ( WordWidth     )
-    ) u_rpi_gpio (
+    ) u_gpio (
       .clk_i           (clk_sys_i),
       .rst_ni          (rst_sys_ni),
 
@@ -1119,7 +1120,8 @@ module sonata_system #(
       .device_rdata_o  (device_rdata [NrNonGpioDevices+i]),
 
       .gp_i            (gp_headers_i[i]),
-      .gp_o            (gp_headers_o[i])
+      .gp_o            (gp_headers_o[i]),
+      .gp_o_en         ()
     );
 
   end : gen_gpio_headers
