@@ -6,10 +6,7 @@
 // Lightweight bus and a number of common peripherals, usc as I2C, SPI, UART,
 // USB.
 module sonata_system #(
-  parameter int unsigned GpiWidth      = 13,
-  parameter int unsigned GpoWidth      = 24,
   parameter int unsigned ArdAniWidth   = 6,
-  parameter int unsigned HalfWordWidth = 16,
   parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
@@ -32,15 +29,17 @@ module sonata_system #(
   input logic                      clk_hr3x_i,
 
   // General purpose input and output
-  input  logic [GpiWidth-1:0]      gp_i,
-  output logic [GpoWidth-1:0]      gp_o,
+  input  logic [WordWidth-1:0]     gp_i,
+  output logic [WordWidth-1:0]     gp_o,
+  output logic [WordWidth-1:0]     gp_o_en,
   // 0: Raspberry Pi HAT g0-15
   // 1: Raspberry Pi HAT g16-27
   // 2: Arduino Shield 0-15
   // 3: Arduino Shield 16-17
   // 4: PMOD
-  input  logic [HalfWordWidth-1:0] gp_headers_i [sonata_pkg::GPIO_NUM],
+  input  logic [WordWidth-1:0]     gp_headers_i [sonata_pkg::GPIO_NUM],
   output logic [WordWidth-1:0]     gp_headers_o [sonata_pkg::GPIO_NUM],
+  output logic [WordWidth-1:0]     gp_headers_o_en [sonata_pkg::GPIO_NUM],
 
   output logic [PwmWidth-1:0]      pwm_o,
 
@@ -161,8 +160,7 @@ module sonata_system #(
     HwRev
   } bus_device_e;
 
-  localparam int NrNonGpioDevices = 5;
-  localparam int NrDevices = NrNonGpioDevices + GPIO_NUM;
+  localparam int NrDevices = 5;
   localparam int NrHosts = 2;
 
   // Signals for hardware revoker
@@ -437,8 +435,6 @@ module sonata_system #(
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_xadc_h2d;
   tlul_pkg::tl_d2h_t tl_xadc_d2h;
-  tlul_pkg::tl_h2d_t tl_gpio_headers_h2d[GPIO_NUM];
-  tlul_pkg::tl_d2h_t tl_gpio_headers_d2h[GPIO_NUM];
   tlul_pkg::tl_h2d_t tl_uart_h2d[UART_NUM];
   tlul_pkg::tl_d2h_t tl_uart_d2h[UART_NUM];
   tlul_pkg::tl_h2d_t tl_timer_h2d;
@@ -486,8 +482,6 @@ module sonata_system #(
     .tl_pwm_i         (tl_pwm_d2h),
     .tl_pinmux_o      (tl_pinmux_o),
     .tl_pinmux_i      (tl_pinmux_i),
-    .tl_gpio_headers_o(tl_gpio_headers_h2d),
-    .tl_gpio_headers_i(tl_gpio_headers_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
@@ -1051,9 +1045,21 @@ module sonata_system #(
     .tbre_intr_o     (hardware_revoker_irq)
   );
 
+  logic [WordWidth-1:0] gpio_array_inputs [GPIO_NUM + 1];
+  logic [WordWidth-1:0] gpio_array_outputs [GPIO_NUM + 1];
+  logic [WordWidth-1:0] gpio_array_output_enables [GPIO_NUM + 1];
+
+  assign gpio_array_inputs[0] = gp_i;
+  assign gp_o = gpio_array_outputs[0];
+  assign gp_o_en = gpio_array_output_enables[0];
+  assign gpio_array_inputs[1:GPIO_NUM] = gp_headers_i;
+  assign gp_headers_o = gpio_array_outputs[1:GPIO_NUM];
+  assign gp_headers_o_en = gpio_array_output_enables[1:GPIO_NUM];
+
   gpio_array #(
-    .GpiWidth ( GpiWidth ),
-    .GpoWidth ( GpoWidth )
+    .GpiWidth     ( WordWidth    ),
+    .GpoWidth     ( WordWidth    ),
+    .NumInstances ( GPIO_NUM + 1 )
   ) u_gpio (
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
@@ -1067,64 +1073,10 @@ module sonata_system #(
     .device_rvalid_o (device_rvalid[Gpio]),
     .device_rdata_o  (device_rdata[Gpio]),
 
-    .gp_i('{gp_i}),
-    .gp_o('{gp_o}),
-    .gp_o_en()
+    .gp_i(gpio_array_inputs),
+    .gp_o(gpio_array_outputs),
+    .gp_o_en(gpio_array_output_enables)
   );
-
-  for (genvar i = 0; i < sonata_pkg::GPIO_NUM; i++) begin : gen_gpio_headers
-    tlul_adapter_reg #(
-      .EnableRspIntgGen ( 1 ),
-      .AccessLatency    ( 1 )
-    ) gpio_device_adapter (
-      .clk_i        (clk_sys_i),
-      .rst_ni       (rst_sys_ni),
-
-      // TL-UL interface.
-      .tl_i         (tl_gpio_headers_h2d[i]),
-      .tl_o         (tl_gpio_headers_d2h[i]),
-
-      // Control interface.
-      .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-      .intg_error_o (),
-
-      // Register interface.
-      .re_o         (device_re   [NrNonGpioDevices+i]),
-      .we_o         (device_we   [NrNonGpioDevices+i]),
-      .addr_o       (device_addr [NrNonGpioDevices+i][RegAddrWidth-1:0]),
-      .wdata_o      (device_wdata[NrNonGpioDevices+i]),
-      .be_o         (device_be   [NrNonGpioDevices+i]),
-      .busy_i       ('0),
-      .rdata_i      (device_rdata[NrNonGpioDevices+i]),
-      .error_i      (device_err  [NrNonGpioDevices+i])
-    );
-
-    assign device_req [NrNonGpioDevices+i] = device_re[NrNonGpioDevices+i] | device_we[NrNonGpioDevices+i];
-    assign device_err [NrNonGpioDevices+i] = 1'b0;
-    assign device_addr[NrNonGpioDevices+i][BusAddrWidth-1:RegAddrWidth] = '0;
-
-    gpio_array #(
-      .GpiWidth ( HalfWordWidth ),
-      .GpoWidth ( WordWidth     )
-    ) u_gpio (
-      .clk_i           (clk_sys_i),
-      .rst_ni          (rst_sys_ni),
-
-      // Bus interface.
-      .device_req_i    (device_req   [NrNonGpioDevices+i]),
-      .device_addr_i   (device_addr  [NrNonGpioDevices+i]),
-      .device_we_i     (device_we    [NrNonGpioDevices+i]),
-      .device_be_i     (device_be    [NrNonGpioDevices+i]),
-      .device_wdata_i  (device_wdata [NrNonGpioDevices+i]),
-      .device_rvalid_o (device_rvalid[NrNonGpioDevices+i]),
-      .device_rdata_o  (device_rdata [NrNonGpioDevices+i]),
-
-      .gp_i            ('{gp_headers_i[i]}),
-      .gp_o            ('{gp_headers_o[i]}),
-      .gp_o_en         ()
-    );
-
-  end : gen_gpio_headers
 
   // Digital inputs from Arduino sheild analog(ue) pins currently unused
   logic unused_ard_an_di;

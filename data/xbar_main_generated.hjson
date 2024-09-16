@@ -279,56 +279,6 @@
         size_byte: "0x00001000",
       }],
     },
-    { name:  "gpio0", // General purpose input and output 0
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80500000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "gpio1", // General purpose input and output 1
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80501000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "gpio2", // General purpose input and output 2
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80502000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "gpio3", // General purpose input and output 3
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80503000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "gpio4", // General purpose input and output 4
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80504000",
-        size_byte: "0x00001000",
-      }],
-    },
     { name:  "rv_plic", // RISC-V platform interrupt controller
       type:  "device",
       clock: "clk_sys_i",
@@ -368,11 +318,6 @@
       "spi5",
       "spi6",
       "usbdev",
-      "gpio0",
-      "gpio1",
-      "gpio2",
-      "gpio3",
-      "gpio4",
       "rv_plic",
     ],
     dbg_host: ["sram"],
