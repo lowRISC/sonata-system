@@ -300,9 +300,47 @@ module sonata_system #(
 
   logic spi_eth_irq;
 
+  logic usbdev_pkt_received_irq;
+  logic usbdev_pkt_sent_irq;
+  logic usbdev_powered_irq;
+  logic usbdev_disconnected_irq;
+  logic usbdev_host_lost_irq;
+  logic usbdev_link_reset_irq;
+  logic usbdev_link_suspend_irq;
+  logic usbdev_link_resume_irq;
+  logic usbdev_av_out_empty_irq;
+  logic usbdev_rx_full_irq;
+  logic usbdev_av_overflow_irq;
+  logic usbdev_link_in_err_irq;
+  logic usbdev_link_out_err_irq;
+  logic usbdev_rx_crc_err_irq;
+  logic usbdev_rx_pid_err_irq;
+  logic usbdev_rx_bitstuff_err_irq;
+  logic usbdev_frame_irq;
+  logic usbdev_av_setup_empty_irq;
+
   logic [181:0] intr_vector;
   always_comb begin : interrupt_vector
-    intr_vector[73 +: 109] = 109'b0;
+    intr_vector[91 +: 91] = 91'b0;
+
+    intr_vector[90 +: 1] = usbdev_av_setup_empty_irq;
+    intr_vector[89 +: 1] = usbdev_frame_irq;
+    intr_vector[88 +: 1] = usbdev_rx_bitstuff_err_irq;
+    intr_vector[87 +: 1] = usbdev_rx_pid_err_irq;
+    intr_vector[86 +: 1] = usbdev_rx_crc_err_irq;
+    intr_vector[85 +: 1] = usbdev_link_out_err_irq;
+    intr_vector[84 +: 1] = usbdev_link_in_err_irq;
+    intr_vector[83 +: 1] = usbdev_av_overflow_irq;
+    intr_vector[82 +: 1] = usbdev_rx_full_irq;
+    intr_vector[81 +: 1] = usbdev_av_out_empty_irq;
+    intr_vector[80 +: 1] = usbdev_link_resume_irq;
+    intr_vector[79 +: 1] = usbdev_link_suspend_irq;
+    intr_vector[78 +: 1] = usbdev_link_reset_irq;
+    intr_vector[77 +: 1] = usbdev_host_lost_irq;
+    intr_vector[76 +: 1] = usbdev_disconnected_irq;
+    intr_vector[75 +: 1] = usbdev_powered_irq;
+    intr_vector[74 +: 1] = usbdev_pkt_sent_irq;
+    intr_vector[73 +: 1] = usbdev_pkt_received_irq;
 
     intr_vector[72 +: 1] = hardware_revoker_irq;
 
@@ -1611,24 +1649,24 @@ module sonata_system #(
     .ram_cfg_i                    (10'b0),
 
     // Interrupts not required
-    .intr_pkt_received_o          (),
-    .intr_pkt_sent_o              (),
-    .intr_powered_o               (),
-    .intr_disconnected_o          (),
-    .intr_host_lost_o             (),
-    .intr_link_reset_o            (),
-    .intr_link_suspend_o          (),
-    .intr_link_resume_o           (),
-    .intr_av_out_empty_o          (),
-    .intr_rx_full_o               (),
-    .intr_av_overflow_o           (),
-    .intr_link_in_err_o           (),
-    .intr_link_out_err_o          (),
-    .intr_rx_crc_err_o            (),
-    .intr_rx_pid_err_o            (),
-    .intr_rx_bitstuff_err_o       (),
-    .intr_frame_o                 (),
-    .intr_av_setup_empty_o        ()
+    .intr_pkt_received_o          (usbdev_pkt_received_irq),
+    .intr_pkt_sent_o              (usbdev_pkt_sent_irq),
+    .intr_powered_o               (usbdev_powered_irq),
+    .intr_disconnected_o          (usbdev_disconnected_irq),
+    .intr_host_lost_o             (usbdev_host_lost_irq),
+    .intr_link_reset_o            (usbdev_link_reset_irq),
+    .intr_link_suspend_o          (usbdev_link_suspend_irq),
+    .intr_link_resume_o           (usbdev_link_resume_irq),
+    .intr_av_out_empty_o          (usbdev_av_out_empty_irq),
+    .intr_rx_full_o               (usbdev_rx_full_irq),
+    .intr_av_overflow_o           (usbdev_av_overflow_irq),
+    .intr_link_in_err_o           (usbdev_link_in_err_irq),
+    .intr_link_out_err_o          (usbdev_link_out_err_irq),
+    .intr_rx_crc_err_o            (usbdev_rx_crc_err_irq),
+    .intr_rx_pid_err_o            (usbdev_rx_pid_err_irq),
+    .intr_rx_bitstuff_err_o       (usbdev_rx_bitstuff_err_irq),
+    .intr_frame_o                 (usbdev_frame_irq),
+    .intr_av_setup_empty_o        (usbdev_av_setup_empty_irq)
   );
 
   // SPI host for talking to Flash memory.
