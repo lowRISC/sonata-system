@@ -29,15 +29,19 @@ module top_verilator (input logic clk_i, rst_ni);
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
-  // Nothing else driving the buses at present.
-  wire scl0 = scl0_oe ? scl0_o : 1'b1;
-  wire scl1 = scl1_oe ? scl0_o : 1'b1;
-  wire sda0 = sda0_oe ? sda0_o : 1'b1;
-  wire sda1 = sda1_oe ? sda1_o : 1'b1;
+  // Output clocks and data to the I2C buses.
+  wire scl0_out = scl0_oe ? scl0_o : 1'b1;
+  wire scl1_out = scl1_oe ? scl1_o : 1'b1;
+  wire sda0_out = sda0_oe ? sda0_o : 1'b1;
+  wire sda1_out = sda1_oe ? sda1_o : 1'b1;
 
-  wire unused_ = ^{scl0_o, scl0_oe, sda0_o, sda0_oe,
-                   scl1_o, scl1_oe, sda1_o, sda1_oe,
-                   uart_aux_tx};
+  // Input clocks and data from the I2C buses.
+  wire scl0_in;
+  wire scl1_in;
+  wire sda0_in;
+  wire sda1_in;
+
+  wire unused_ = uart_aux_tx;
 
   // Simplified clocking scheme for simulations.
   wire clk_usb   = clk_i;
@@ -249,18 +253,18 @@ module top_verilator (input logic clk_i, rst_ni);
     .cheri_en_o     (cheri_en),
 
     // I2C bus 0
-    .i2c0_scl_i     (scl0),
+    .i2c0_scl_i     (scl0_in),
     .i2c0_scl_o     (scl0_o),
     .i2c0_scl_en_o  (scl0_oe),
-    .i2c0_sda_i     (sda0),
+    .i2c0_sda_i     (sda0_in),
     .i2c0_sda_o     (sda0_o),
     .i2c0_sda_en_o  (sda0_oe),
 
     // I2C bus 1
-    .i2c1_scl_i     (scl1),
+    .i2c1_scl_i     (scl1_in),
     .i2c1_scl_o     (scl1_o),
     .i2c1_scl_en_o  (scl1_oe),
-    .i2c1_sda_i     (sda1),
+    .i2c1_sda_i     (sda1_in),
     .i2c1_sda_o     (sda1_o),
     .i2c1_sda_en_o  (sda1_oe),
 
@@ -297,6 +301,36 @@ module top_verilator (input logic clk_i, rst_ni);
     .hyperram_ckn (),
     .hyperram_nrst(),
     .hyperram_cs  ()
+  );
+
+  // I2C 0 DPI
+  i2cdpi #(
+    .ID   ("i2c0")
+  ) u_i2c0dpi (
+    .rst_ni   (rst_ni),
+    // The connected signal names are from the perspective of the controller.
+    .scl_i    (scl0_out),
+    .sda_i    (sda0_out),
+    .scl_o    (scl0_in),
+    .sda_o    (sda0_in),
+    // Out-Of-Band data.
+    .oob_in   (1'b0),
+    .oob_out  ()  // not used
+  );
+
+  // I2C 1 DPI
+  i2cdpi #(
+    .ID   ("i2c1")
+  ) u_i2c1dpi (
+    .rst_ni   (rst_ni),
+    // The connected signal names are from the perspective of the controller.
+    .scl_i    (scl1_out),
+    .sda_i    (sda1_out),
+    .scl_o    (scl1_in),
+    .sda_o    (sda1_in),
+    // Out-Of-Band data.
+    .oob_in   (1'b0),
+    .oob_out  ()  // not used
   );
 
   // Virtual UART

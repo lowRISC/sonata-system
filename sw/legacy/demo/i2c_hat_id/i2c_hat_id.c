@@ -81,7 +81,7 @@ static int as6212_temperature_report(void) {
   }
   uint16_t temp = (buf[0] << 8) | buf[1];
 
-  putstr("AS612 Temperature Sensor - Config 0x");
+  putstr("AS6212 Temperature Sensor - Config 0x");
   puthexn(config, 4);
   putstr(" Temp 0x");
   puthexn(temp, 4);
@@ -180,10 +180,12 @@ int main(void) {
   setup_bus(i2c1);
 
   uint64_t last_elapsed_time = get_elapsed_time();
-  int iter                   = 0;
+  // Do not wait on the first iteration; faster results in simulation.
+  bool first = true;
+  int iter   = 0;
   while (1) {
     uint64_t cur_time = get_elapsed_time();
-    if (cur_time != last_elapsed_time) {
+    if (first || cur_time != last_elapsed_time) {
       last_elapsed_time = cur_time;
 
       int rc = 0;
@@ -208,6 +210,7 @@ int main(void) {
         return rc;
       }
 #endif
+      first = false;
       iter++;
     }
   }

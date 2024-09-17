@@ -29,6 +29,17 @@ filesets:
       - lowrisc:dv_dpi_c:usbdpi:0.1
       - lowrisc:dv_dpi_sv:usbdpi:0.1
     files:
+      - dv/dpi/i2cdpi/i2c_lsm9ds1.cc: { file_type: cppSource }
+      - dv/dpi/i2cdpi/i2c_lsm9ds1.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/i2cdpi/i2c_as621x.cc: { file_type: cppSource }
+      - dv/dpi/i2cdpi/i2c_as621x.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/i2cdpi/i2c_hat_id.cc: { file_type: cppSource }
+      - dv/dpi/i2cdpi/i2c_hat_id.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/i2cdpi/i2cdevice.cc: { file_type: cppSource }
+      - dv/dpi/i2cdpi/i2cdevice.hh: { file_type: cppSource, is_include_file: true }
+      - dv/dpi/i2cdpi/i2cdpi.sv: { file_type: systemVerilogSource }
+      - dv/dpi/i2cdpi/i2cdpi.cc: { file_type: cppSource }
+      - dv/dpi/i2cdpi/i2cdpi.hh: { file_type: cppSource, is_include_file: true }
       - dv/dpi/spidpi/spidpi.sv: { file_type: systemVerilogSource }
       - dv/dpi/spidpi/spidpi.cc: { file_type: cppSource }
       - dv/dpi/spidpi/spidpi.hh: { file_type: cppSource, is_include_file: true }
