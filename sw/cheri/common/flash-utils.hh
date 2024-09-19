@@ -19,8 +19,10 @@ static const uint8_t CmdReset               = 0x99;
 static const uint8_t CmdReadJEDECId         = 0x9f;
 static const uint8_t CmdWriteEnable         = 0x06;
 static const uint8_t CmdSectorErase         = 0x20;
+static const uint8_t CmdSectorErase4Addr    = 0x21;
 static const uint8_t CmdReadStatusRegister1 = 0x05;
 static const uint8_t CmdPageProgram         = 0x02;
+static const uint8_t CmdPageProgram4Addr    = 0x12;
 static const uint8_t CmdReadData            = 0x03;
 static const uint8_t CmdReadData4Addr       = 0x13;
 
@@ -56,15 +58,15 @@ class SpiFlash {
   }
 
   void erase_sector(uint32_t address) {
-    const uint8_t erase_cmd[4] = {CmdSectorErase, uint8_t((address >> 16) & 0xff), uint8_t((address >> 8) & 0xff),
-                                  uint8_t(address & 0xff)};
+    const uint8_t erase_cmd[5] = {CmdSectorErase4Addr, uint8_t((address >> 24) & 0xff), uint8_t((address >> 16) & 0xff),
+                                  uint8_t((address >> 8) & 0xff), uint8_t(address & 0xff)};
 
     set_cs(true);
     spi->blocking_write(&CmdWriteEnable, 1);
     set_cs(false);
 
     set_cs(true);
-    spi->blocking_write(erase_cmd, 4);
+    spi->blocking_write(erase_cmd, 5);
     set_cs(false);
 
     set_cs(true);
@@ -79,15 +81,15 @@ class SpiFlash {
   }
 
   void write_page(uint32_t address, uint8_t *data) {
-    const uint8_t write_cmd[4] = {CmdPageProgram, uint8_t((address >> 16) & 0xff), uint8_t((address >> 8) & 0xff),
-                                  uint8_t(address & 0xff)};
+    const uint8_t write_cmd[5] = {CmdPageProgram4Addr, uint8_t((address >> 24) & 0xff), uint8_t((address >> 16) & 0xff),
+                                  uint8_t((address >> 8) & 0xff), uint8_t(address & 0xff)};
 
     set_cs(true);
     spi->blocking_write(&CmdWriteEnable, 1);
     set_cs(false);
 
     set_cs(true);
-    spi->blocking_write(write_cmd, 4);
+    spi->blocking_write(write_cmd, 5);
     spi->blocking_write(data, 256);
     set_cs(false);
 
