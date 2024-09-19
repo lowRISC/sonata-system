@@ -3,34 +3,52 @@
 Pulse width modulation allows you to create a block wave with a certain duty cycle.
 It is useful for use cases like dimming LEDs.
 
-| Offset | Register |
-|--------|----------|
-| 0x00   | Enable   |
-| 0x10   | Config 0 |
-| 0x14   | Config 1 |
-| 0x18   | Config 2 |
-| 0x1C   | Config 3 |
-| 0x20   | Config 4 |
-| 0x24   | Config 5 |
-| 0x28   | Config 6 |
-| 0x2C   | Config 7 |
+```text
+             <--> pulse-width
+___          ____          ____
+   |        |    |        |    |           duty-cycle = pulse-width / period
+   |________|    |________|    |______
+             <--period--->
+```
 
-## Enable
+There are 12 PWM channels.
 
-This has a bit per PWM on whether to enable it or not.
+Each channel consists of a free-running 8-bit counter with two configurable comparators.
+The period comparator resets the counter value back to zero once it reaches a user-configured top value.
+This sets the period (number of cycles between rising-edges of pulses) of the output waveform.
+The pulse width comparator changes the channel output from high to low when the counter value surpasses a user-configured pulse width value.
+This sets the pulse width (number of cycles the output spends high) of the output waveform.
 
-| Bit offset | Description      |
-|------------|------------------|
-| 7          | Enable for PWM 7 |
-| ...        | ...              |
-| 1          | Enable for PWM 1 |
-| 0          | Enable for PWM 0 |
+Each channel has a 64-bit section in the address space for configuration.
+Not every channel output has yet been connected to an external pin.
+
+| Offset | PWM channel | External pin |
+|--------|-------------|--------------|
+| 0x00   | Channel 0   | mikroBUS PWM |
+| 0x08   | Channel 1   | N/C          |
+| 0x10   | Channel 2   | N/C          |
+| 0x18   | Channel 3   | N/C          |
+| 0x20   | Channel 4   | N/C          |
+| 0x28   | Channel 5   | N/C          |
+| 0x30   | Channel 6   | N/C          |
+| 0x38   | Channel 7   | N/C          |
+| 0x40   | Channel 8   | N/C          |
+| 0x48   | Channel 9   | N/C          |
+| 0x50   | Channel 10  | N/C          |
+| 0x58   | Channel 11  | N/C          |
 
 ## Config
 
-For each output, there is a register defining the pulse width and how long the complete wave is (indicated by the counter value).
+For each channel, there is a 32-bit register defining the pulse width and another 32-bit register above it defining how long the complete wave is (counter top).
+These registers are write-only, and will return a value of zero if read.
 
-| Bit offset | Description |
-|------------|-------------|
-| 31-16      | Counter     |
-| 15-0       | Pulse width |
+| Offset | Description | Read/Write |
+|--------|-------------|------------|
+| 0x0    | Pulse width | Write-only |
+| 0x4    | Counter top | Write-only |
+
+A channel is enabled by setting an non-zero counter top value.
+
+To generate an always-low signal, set a counter top value of zero.
+To generate an always-high signal, set a pulse-width value greater than the (non-zero) counter top value.
+
