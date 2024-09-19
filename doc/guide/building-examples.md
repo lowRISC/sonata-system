@@ -1,7 +1,8 @@
 # Building Examples
 
 The following contains some simple examples you can build for the Sonata board.
-Once you've got these builds working, you can easily add more features to the example code.
+These include CHERIoT-RTOS-based examples from the Sonata software repository, and baremetal examples for advanced-users from this repository.
+Once you've got one or both of these builds working, you can easily add more features to the example code.
 
 ## Using our template
 
@@ -87,7 +88,7 @@ The following assumes you have run the `source .venv/bin/activate` command in th
 To build, run the following from the root of the directory which will build the examples:
 
 ```
-cmake -B sw/cheri/build -S sw/cheri 
+cmake -B sw/cheri/build -S sw/cheri
 cmake --build sw/cheri/build
 ```
 The build output is put in the `sw/cheri/build` directory.

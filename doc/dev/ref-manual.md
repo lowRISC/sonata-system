@@ -1,7 +1,7 @@
-# Reference Manual for Sonata Core
+# Sonata Core Reference
 
-In a classical microcontroller, you would have a core along with the peripherals around the core. On the Sonata system this is all part
-of an open-source FPGA design, which allows you to modify the core to add new features (and for us to add updates to your core without
+In a classical microcontroller, you would have a core along with the peripherals around the core.
+On the Sonata system this is all part of an open-source FPGA design, which allows you to modify the core to add new features (and for us to add updates to your core without
 needing you to desolder your main IC!).
 
 This also means you can customize your design.
