@@ -3,7 +3,7 @@
 [Introduction](README.md)
 
 - [Guides](doc/guide/README.md)
-  - [Updating the Sonata System]()
+  - [Updating the Sonata System](doc/guide/updating-system.md)
     - [Reloading the RP2040](doc/guide/rp2040-update.md)
     - [Reloading the FPGA image](doc/guide/fpga-update.md)
     - [Building examples](doc/guide/building-examples.md)
@@ -15,8 +15,8 @@
     - [Simulation environment](doc/dev/simulation.md)
     - [Building documentation](doc/dev/building-doc.md)
 
-- [Sonata Manual]()
-  - [Sonata System Manual](doc/dev/ref-manual.md)
+- [Sonata Hardware Reference](doc/architecture/sonata-hardware.md)
+  - [Sonata Core Reference](doc/dev/ref-manual.md)
     - [Ibex](doc/ip/ibex.md)
     - [GPIO](doc/ip/gpio.md)
     - [PWM](doc/ip/pwm.md)
@@ -31,5 +31,5 @@
     - [USB device](doc/ip/usb.md)
     - [PLIC](doc/ip/plic.md)
     - [Debug module](doc/ip/dm.md)
-  - [Sonata Board Manual](doc/architecture/board.md)
+  - [Sonata Board Reference](doc/architecture/board.md)
 
