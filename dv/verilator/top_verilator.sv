@@ -10,8 +10,13 @@ module top_verilator (input logic clk_i, rst_ni);
   localparam int unsigned SysClkFreq = 30_000_000;
   // HyperRAM clock frequency.
   localparam int unsigned HRClkFreq  = 100_000_000;
-  localparam BaudRate       = 921_600;
-  localparam EnableCHERI    = 1'b1;
+  localparam int unsigned BaudRate   = 921_600;
+  localparam bit EnableCHERI         = 1'b1;
+  // Number of CHERI error LEDs.
+  localparam int unsigned CheriErrWidth = 9;
+  // The symbolic file descriptors are presently unknown to Verilator
+  // (described in IEEE 1800-2012).
+  localparam int unsigned STDERR = 32'h8000_0002;
 
   logic uart_sys_rx, uart_sys_tx;
 
@@ -98,12 +103,50 @@ module top_verilator (input logic clk_i, rst_ni);
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1, ethmac_rst, ethmac_cs,
                       usrLed};
 
+  // Reporting of CHERI enable/disable and any exceptions that occur.
+  wire  [CheriErrWidth-1:0] cheri_err;
+  logic [CheriErrWidth-1:0] cheri_errored;
+  wire cheri_en;
+  initial begin
+    if (cheri_en) $display("Running with CHERI enabled");
+    else $display("Running in legacy software mode");
+  end
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) cheri_errored <= '0;
+    else if (|(cheri_err & ~cheri_errored)) begin : cheri_err_reporting
+      // Report the first occurrence of each exception by name.
+      for (int unsigned e = 0; e < CheriErrWidth; e++) begin
+        if (cheri_err[e] & !cheri_errored[e]) begin
+          string name;
+          case (e)
+            0: name = "Bounds";
+            1: name = "Tag";
+            2: name = "Seal";
+            3: name = "Permit Execute";
+            4: name = "Permit Load";
+            5: name = "Permit Store";
+            6: name = "Permit Store Cap";
+            7: name = "Permit Store Local Cap";
+            8: name = "Permit Acc Sys Regs";
+            default: name = "Unknown";
+          endcase
+          // Ensure that the output is visible promptly.
+          $fdisplay(STDERR, "*** CHERI '%s' violation occurred *** at time %t", name, $time);
+          $fflush(STDERR);
+          // Remember that this error occurred; each error signal will be asserted many times
+          // because they are intended to drive LEDs on the FPGA board and are thus modulated.
+          cheri_errored <= cheri_errored | cheri_err;
+        end
+      end
+    end
+  end
+
   // Instantiating the Sonata System.
   sonata_system #(
     .GpiWidth        ( 14              ),
     .GpoWidth        ( 23              ),
     .PwmWidth        (  1              ),
-    .CheriErrWidth   (  9              ),
+    .CheriErrWidth   ( CheriErrWidth   ),
     .SysClkFreq      ( SysClkFreq      ),
     .HRClkFreq       ( HRClkFreq       ),
     .DisableHyperram ( DisableHyperram )
@@ -200,10 +243,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .spi_mkr_tx_o ( ),
     .spi_mkr_sck_o( ),
 
-    .cheri_en_i (EnableCHERI),
+    .cheri_en_i     (EnableCHERI),
     // CHERI output
-    .cheri_err_o(),
-    .cheri_en_o (),
+    .cheri_err_o    (cheri_err),
+    .cheri_en_o     (cheri_en),
 
     // I2C bus 0
     .i2c0_scl_i     (scl0),
