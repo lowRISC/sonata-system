@@ -20,6 +20,7 @@
 
 #include "../common/uart-utils.hh"
 #include "hyperram_tests.hh"
+#include "spi_tests.hh"
 #include "uart_tests.hh"
 
 extern "C" void entry_point(void *rwRoot) {
@@ -29,6 +30,7 @@ extern "C" void entry_point(void *rwRoot) {
 
   console->init(BAUD_RATE);
   uart_tests(root, console);
+  spi_tests(root, console);
   hyperram_tests(root, console);
   plic_tests(root, console);
   finish_running(console, "All tests finished");
