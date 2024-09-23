@@ -18,7 +18,7 @@ filesets:
       - lowrisc:ip:rgbled_ctrl
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
-      - lowrisc:opentitan:top_earlgrey_rv_plic
+      - lowrisc:opentitan:sonata_rv_plic
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg
     files:
