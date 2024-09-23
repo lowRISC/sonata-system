@@ -249,26 +249,6 @@
         size_byte: "0x00001000",
       }],
     },
-    { name:  "spi5", // Serial peripheral interface 5
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80305000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "spi6", // Serial peripheral interface 6
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80306000",
-        size_byte: "0x00001000",
-      }],
-    },
     { name:  "usbdev", // USB device
       type:  "device",
       clock: "clk_usb_i",
@@ -315,8 +295,6 @@
       "spi2",
       "spi3",
       "spi4",
-      "spi5",
-      "spi6",
       "usbdev",
       "rv_plic",
     ],

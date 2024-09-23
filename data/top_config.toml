@@ -16,7 +16,7 @@ ios = [
 
 [[blocks]]
 name = "spi"
-instances = 7
+instances = 5
 ios = [
   { name = "sck", type = "output" },
   { name = "tx", type = "output" },
@@ -312,21 +312,21 @@ block_ios = [{block = "gpio", instance = 1, io = 10}]
 [[pins]]
 name = "ah_tmpio11"
 block_ios = [
-  {block = "spi", instance = 5, io = "tx"},
+  {block = "spi", instance = 3, io = "tx"},
   {block = "gpio", instance = 1, io = 11},
 ]
 
 [[pins]]
 name = "ah_tmpio12"
 block_ios = [
-  {block = "spi", instance = 5, io = "rx"},
+  {block = "spi", instance = 3, io = "rx"},
   {block = "gpio", instance = 1, io = 12},
 ]
 
 [[pins]]
 name = "ah_tmpio13"
 block_ios = [
-  {block = "spi", instance = 5, io = "sck"},
+  {block = "spi", instance = 3, io = "sck"},
   {block = "gpio", instance = 1, io = 13},
 ]
 
@@ -353,15 +353,15 @@ block_ios = [{block = "gpio", instance = 1, io = 17}]
 # mb1 is chip select and already connected to a general purpose output.
 [[pins]]
 name = "mb2"
-block_ios = [{block = "spi", instance = 6, io = "sck"}]
+block_ios = [{block = "spi", instance = 4, io = "sck"}]
 
 [[pins]]
 name = "mb3"
-block_ios = [{block = "spi", instance = 6, io = "rx"}]
+block_ios = [{block = "spi", instance = 4, io = "rx"}]
 
 [[pins]]
 name = "mb4"
-block_ios = [{block = "spi", instance = 6, io = "tx"}]
+block_ios = [{block = "spi", instance = 4, io = "tx"}]
 
 [[pins]]
 name = "mb5"

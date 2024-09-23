@@ -28,8 +28,6 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_SPI2        = 32'h 80302000;
   localparam logic [31:0] ADDR_SPACE_SPI3        = 32'h 80303000;
   localparam logic [31:0] ADDR_SPACE_SPI4        = 32'h 80304000;
-  localparam logic [31:0] ADDR_SPACE_SPI5        = 32'h 80305000;
-  localparam logic [31:0] ADDR_SPACE_SPI6        = 32'h 80306000;
   localparam logic [31:0] ADDR_SPACE_USBDEV      = 32'h 80400000;
   localparam logic [31:0] ADDR_SPACE_RV_PLIC     = 32'h 88000000;
 
@@ -55,13 +53,11 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_SPI2        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI3        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI4        = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_SPI5        = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_SPI6        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_USBDEV      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 26;
+  localparam int N_DEVICE = 24;
 
   typedef enum int {
     TlSram = 0,
@@ -86,10 +82,8 @@ package tl_main_pkg;
     TlSpi2 = 19,
     TlSpi3 = 20,
     TlSpi4 = 21,
-    TlSpi5 = 22,
-    TlSpi6 = 23,
-    TlUsbdev = 24,
-    TlRvPlic = 25
+    TlUsbdev = 22,
+    TlRvPlic = 23
   } tl_device_e;
 
   typedef enum int {

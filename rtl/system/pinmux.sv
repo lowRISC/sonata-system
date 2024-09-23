@@ -19,9 +19,9 @@ module pinmux (
   input  logic i2c_sda_i[2],
   input  logic i2c_sda_en_i[2],
   output logic i2c_sda_o[2],
-  input  logic spi_sck_i[7],
-  input  logic spi_tx_i[7],
-  output logic spi_rx_o[7],
+  input  logic spi_sck_i[5],
+  input  logic spi_tx_i[5],
+  output logic spi_rx_o[5],
   input  logic [31:0] gpio_ios_i[3],
   input  logic [31:0] gpio_ios_en_i[3],
   output logic [31:0] gpio_ios_o[3],
@@ -2906,7 +2906,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      spi_tx_i[5],
+      spi_tx_i[3],
       gpio_ios_i[1][11]
     }),
     .sel_i(ah_tmpio11_sel),
@@ -3012,7 +3012,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      spi_sck_i[5],
+      spi_sck_i[3],
       gpio_ios_i[1][13]
     }),
     .sel_i(ah_tmpio13_sel),
@@ -3274,7 +3274,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      spi_sck_i[6]
+      spi_sck_i[4]
     }),
     .sel_i(mb2_sel),
     .out_o(mb2_o)
@@ -3326,7 +3326,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      spi_tx_i[6]
+      spi_tx_i[4]
     }),
     .sel_i(mb4_sel),
     .out_o(mb4_o)
@@ -4610,7 +4610,7 @@ module pinmux (
     .out_o(spi_rx_o[2])
   );
 
-  logic [1:0] spi_rx_3_sel;
+  logic [2:0] spi_rx_3_sel;
   logic spi_rx_3_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
@@ -4622,29 +4622,30 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      spi_rx_3_sel <= 2'b10;
+      spi_rx_3_sel <= 3'b10;
     end else begin
       if (reg_we & spi_rx_3_sel_addressed) begin
-        spi_rx_3_sel <= reg_wdata[0+:2];
+        spi_rx_3_sel <= reg_wdata[0+:3];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(2)
+    .Inputs(3)
   ) spi_rx_3_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g9_cipo
+      rph_g9_cipo,
+      ah_tmpio12
     }),
     .sel_i(spi_rx_3_sel),
     .out_o(spi_rx_o[3])
   );
 
-  logic [1:0] spi_rx_4_sel;
+  logic [2:0] spi_rx_4_sel;
   logic spi_rx_4_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
@@ -4656,94 +4657,27 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      spi_rx_4_sel <= 2'b10;
+      spi_rx_4_sel <= 3'b10;
     end else begin
       if (reg_we & spi_rx_4_sel_addressed) begin
-        spi_rx_4_sel <= reg_wdata[8+:2];
+        spi_rx_4_sel <= reg_wdata[8+:3];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(2)
+    .Inputs(3)
   ) spi_rx_4_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g19_cipo
+      rph_g19_cipo,
+      mb3
     }),
     .sel_i(spi_rx_4_sel),
     .out_o(spi_rx_o[4])
-  );
-
-  logic [1:0] spi_rx_5_sel;
-  logic spi_rx_5_sel_addressed;
-
-  // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
-  assign spi_rx_5_sel_addressed =
-    reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 8 &
-    reg_be[2] == 1'b1;
-
-  always @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      spi_rx_5_sel <= 2'b10;
-    end else begin
-      if (reg_we & spi_rx_5_sel_addressed) begin
-        spi_rx_5_sel <= reg_wdata[16+:2];
-      end
-    end
-  end
-
-  prim_onehot_mux #(
-    .Width(1),
-    .Inputs(2)
-  ) spi_rx_5_mux (
-    .clk_i,
-    .rst_ni,
-    .in_i({
-      1'b0,
-      ah_tmpio12
-    }),
-    .sel_i(spi_rx_5_sel),
-    .out_o(spi_rx_o[5])
-  );
-
-  logic [1:0] spi_rx_6_sel;
-  logic spi_rx_6_sel_addressed;
-
-  // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
-  assign spi_rx_6_sel_addressed =
-    reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 8 &
-    reg_be[3] == 1'b1;
-
-  always @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      spi_rx_6_sel <= 2'b10;
-    end else begin
-      if (reg_we & spi_rx_6_sel_addressed) begin
-        spi_rx_6_sel <= reg_wdata[24+:2];
-      end
-    end
-  end
-
-  prim_onehot_mux #(
-    .Width(1),
-    .Inputs(2)
-  ) spi_rx_6_mux (
-    .clk_i,
-    .rst_ni,
-    .in_i({
-      1'b0,
-      mb3
-    }),
-    .sel_i(spi_rx_6_sel),
-    .out_o(spi_rx_o[6])
   );
 
   logic [1:0] gpio_ios_0_0_sel;
@@ -4752,8 +4686,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_0_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 12 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 8 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4761,7 +4695,7 @@ module pinmux (
       gpio_ios_0_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_0_sel_addressed) begin
-        gpio_ios_0_0_sel <= reg_wdata[0+:2];
+        gpio_ios_0_0_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -4786,8 +4720,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_0_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 12 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 8 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4795,7 +4729,7 @@ module pinmux (
       gpio_ios_1_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_0_sel_addressed) begin
-        gpio_ios_1_0_sel <= reg_wdata[8+:2];
+        gpio_ios_1_0_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -4821,7 +4755,7 @@ module pinmux (
   assign gpio_ios_2_0_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 12 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4829,7 +4763,7 @@ module pinmux (
       gpio_ios_2_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_0_sel_addressed) begin
-        gpio_ios_2_0_sel <= reg_wdata[16+:2];
+        gpio_ios_2_0_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -4855,7 +4789,7 @@ module pinmux (
   assign gpio_ios_0_1_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 12 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4863,7 +4797,7 @@ module pinmux (
       gpio_ios_0_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_1_sel_addressed) begin
-        gpio_ios_0_1_sel <= reg_wdata[24+:2];
+        gpio_ios_0_1_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -4888,8 +4822,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_1_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 16 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 12 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4897,7 +4831,7 @@ module pinmux (
       gpio_ios_1_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_1_sel_addressed) begin
-        gpio_ios_1_1_sel <= reg_wdata[0+:2];
+        gpio_ios_1_1_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -4922,8 +4856,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_1_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 16 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 12 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4931,7 +4865,7 @@ module pinmux (
       gpio_ios_2_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_1_sel_addressed) begin
-        gpio_ios_2_1_sel <= reg_wdata[8+:2];
+        gpio_ios_2_1_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -4957,7 +4891,7 @@ module pinmux (
   assign gpio_ios_0_2_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 16 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4965,7 +4899,7 @@ module pinmux (
       gpio_ios_0_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_2_sel_addressed) begin
-        gpio_ios_0_2_sel <= reg_wdata[16+:2];
+        gpio_ios_0_2_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -4991,7 +4925,7 @@ module pinmux (
   assign gpio_ios_1_2_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 16 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -4999,7 +4933,7 @@ module pinmux (
       gpio_ios_1_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_2_sel_addressed) begin
-        gpio_ios_1_2_sel <= reg_wdata[24+:2];
+        gpio_ios_1_2_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5024,8 +4958,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_2_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 20 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 16 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5033,7 +4967,7 @@ module pinmux (
       gpio_ios_2_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_2_sel_addressed) begin
-        gpio_ios_2_2_sel <= reg_wdata[0+:2];
+        gpio_ios_2_2_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5058,8 +4992,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_3_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 20 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 16 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5067,7 +5001,7 @@ module pinmux (
       gpio_ios_0_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_3_sel_addressed) begin
-        gpio_ios_0_3_sel <= reg_wdata[8+:2];
+        gpio_ios_0_3_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5093,7 +5027,7 @@ module pinmux (
   assign gpio_ios_1_3_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 20 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5101,7 +5035,7 @@ module pinmux (
       gpio_ios_1_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_3_sel_addressed) begin
-        gpio_ios_1_3_sel <= reg_wdata[16+:2];
+        gpio_ios_1_3_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5127,7 +5061,7 @@ module pinmux (
   assign gpio_ios_2_3_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 20 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5135,7 +5069,7 @@ module pinmux (
       gpio_ios_2_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_3_sel_addressed) begin
-        gpio_ios_2_3_sel <= reg_wdata[24+:2];
+        gpio_ios_2_3_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5160,8 +5094,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_4_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 24 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 20 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5169,7 +5103,7 @@ module pinmux (
       gpio_ios_0_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_4_sel_addressed) begin
-        gpio_ios_0_4_sel <= reg_wdata[0+:2];
+        gpio_ios_0_4_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5194,8 +5128,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_4_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 24 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 20 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5203,7 +5137,7 @@ module pinmux (
       gpio_ios_1_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_4_sel_addressed) begin
-        gpio_ios_1_4_sel <= reg_wdata[8+:2];
+        gpio_ios_1_4_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5229,7 +5163,7 @@ module pinmux (
   assign gpio_ios_2_4_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 24 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5237,7 +5171,7 @@ module pinmux (
       gpio_ios_2_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_4_sel_addressed) begin
-        gpio_ios_2_4_sel <= reg_wdata[16+:2];
+        gpio_ios_2_4_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5263,7 +5197,7 @@ module pinmux (
   assign gpio_ios_0_5_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 24 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5271,7 +5205,7 @@ module pinmux (
       gpio_ios_0_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_5_sel_addressed) begin
-        gpio_ios_0_5_sel <= reg_wdata[24+:2];
+        gpio_ios_0_5_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5296,8 +5230,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_5_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 28 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 24 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5305,7 +5239,7 @@ module pinmux (
       gpio_ios_1_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_5_sel_addressed) begin
-        gpio_ios_1_5_sel <= reg_wdata[0+:2];
+        gpio_ios_1_5_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5330,8 +5264,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_5_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 28 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 24 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5339,7 +5273,7 @@ module pinmux (
       gpio_ios_2_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_5_sel_addressed) begin
-        gpio_ios_2_5_sel <= reg_wdata[8+:2];
+        gpio_ios_2_5_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5365,7 +5299,7 @@ module pinmux (
   assign gpio_ios_0_6_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 28 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5373,7 +5307,7 @@ module pinmux (
       gpio_ios_0_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_6_sel_addressed) begin
-        gpio_ios_0_6_sel <= reg_wdata[16+:2];
+        gpio_ios_0_6_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5399,7 +5333,7 @@ module pinmux (
   assign gpio_ios_1_6_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 28 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5407,7 +5341,7 @@ module pinmux (
       gpio_ios_1_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_6_sel_addressed) begin
-        gpio_ios_1_6_sel <= reg_wdata[24+:2];
+        gpio_ios_1_6_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5432,8 +5366,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_6_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 32 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 28 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5441,7 +5375,7 @@ module pinmux (
       gpio_ios_2_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_6_sel_addressed) begin
-        gpio_ios_2_6_sel <= reg_wdata[0+:2];
+        gpio_ios_2_6_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5466,8 +5400,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_7_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 32 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 28 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5475,7 +5409,7 @@ module pinmux (
       gpio_ios_0_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_7_sel_addressed) begin
-        gpio_ios_0_7_sel <= reg_wdata[8+:2];
+        gpio_ios_0_7_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5501,7 +5435,7 @@ module pinmux (
   assign gpio_ios_1_7_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 32 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5509,7 +5443,7 @@ module pinmux (
       gpio_ios_1_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_7_sel_addressed) begin
-        gpio_ios_1_7_sel <= reg_wdata[16+:2];
+        gpio_ios_1_7_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5535,7 +5469,7 @@ module pinmux (
   assign gpio_ios_2_7_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 32 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5543,7 +5477,7 @@ module pinmux (
       gpio_ios_2_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_7_sel_addressed) begin
-        gpio_ios_2_7_sel <= reg_wdata[24+:2];
+        gpio_ios_2_7_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5568,8 +5502,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_8_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 36 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 32 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5577,7 +5511,7 @@ module pinmux (
       gpio_ios_0_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_8_sel_addressed) begin
-        gpio_ios_0_8_sel <= reg_wdata[0+:2];
+        gpio_ios_0_8_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5602,8 +5536,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_8_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 36 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 32 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5611,7 +5545,7 @@ module pinmux (
       gpio_ios_1_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_8_sel_addressed) begin
-        gpio_ios_1_8_sel <= reg_wdata[8+:2];
+        gpio_ios_1_8_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5637,7 +5571,7 @@ module pinmux (
   assign gpio_ios_2_8_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 36 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5645,7 +5579,7 @@ module pinmux (
       gpio_ios_2_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_8_sel_addressed) begin
-        gpio_ios_2_8_sel <= reg_wdata[16+:2];
+        gpio_ios_2_8_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5671,7 +5605,7 @@ module pinmux (
   assign gpio_ios_0_9_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 36 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5679,7 +5613,7 @@ module pinmux (
       gpio_ios_0_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_9_sel_addressed) begin
-        gpio_ios_0_9_sel <= reg_wdata[24+:2];
+        gpio_ios_0_9_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5704,8 +5638,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_9_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 40 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 36 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5713,7 +5647,7 @@ module pinmux (
       gpio_ios_1_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_9_sel_addressed) begin
-        gpio_ios_1_9_sel <= reg_wdata[0+:2];
+        gpio_ios_1_9_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5738,8 +5672,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_9_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 40 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 36 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5747,7 +5681,7 @@ module pinmux (
       gpio_ios_2_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_9_sel_addressed) begin
-        gpio_ios_2_9_sel <= reg_wdata[8+:2];
+        gpio_ios_2_9_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5773,7 +5707,7 @@ module pinmux (
   assign gpio_ios_0_10_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 40 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5781,7 +5715,7 @@ module pinmux (
       gpio_ios_0_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_10_sel_addressed) begin
-        gpio_ios_0_10_sel <= reg_wdata[16+:2];
+        gpio_ios_0_10_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5807,7 +5741,7 @@ module pinmux (
   assign gpio_ios_1_10_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 40 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5815,7 +5749,7 @@ module pinmux (
       gpio_ios_1_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_10_sel_addressed) begin
-        gpio_ios_1_10_sel <= reg_wdata[24+:2];
+        gpio_ios_1_10_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5840,8 +5774,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_10_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 44 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 40 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5849,7 +5783,7 @@ module pinmux (
       gpio_ios_2_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_10_sel_addressed) begin
-        gpio_ios_2_10_sel <= reg_wdata[0+:2];
+        gpio_ios_2_10_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -5874,8 +5808,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_11_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 44 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 40 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5883,7 +5817,7 @@ module pinmux (
       gpio_ios_0_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_11_sel_addressed) begin
-        gpio_ios_0_11_sel <= reg_wdata[8+:2];
+        gpio_ios_0_11_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -5909,7 +5843,7 @@ module pinmux (
   assign gpio_ios_1_11_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 44 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5917,7 +5851,7 @@ module pinmux (
       gpio_ios_1_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_11_sel_addressed) begin
-        gpio_ios_1_11_sel <= reg_wdata[16+:2];
+        gpio_ios_1_11_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -5943,7 +5877,7 @@ module pinmux (
   assign gpio_ios_2_11_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 44 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5951,7 +5885,7 @@ module pinmux (
       gpio_ios_2_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_11_sel_addressed) begin
-        gpio_ios_2_11_sel <= reg_wdata[24+:2];
+        gpio_ios_2_11_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -5976,8 +5910,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_12_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 48 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 44 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -5985,7 +5919,7 @@ module pinmux (
       gpio_ios_0_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_12_sel_addressed) begin
-        gpio_ios_0_12_sel <= reg_wdata[0+:2];
+        gpio_ios_0_12_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6010,8 +5944,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_12_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 48 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 44 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6019,7 +5953,7 @@ module pinmux (
       gpio_ios_1_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_12_sel_addressed) begin
-        gpio_ios_1_12_sel <= reg_wdata[8+:2];
+        gpio_ios_1_12_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6045,7 +5979,7 @@ module pinmux (
   assign gpio_ios_2_12_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 48 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6053,7 +5987,7 @@ module pinmux (
       gpio_ios_2_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_12_sel_addressed) begin
-        gpio_ios_2_12_sel <= reg_wdata[16+:2];
+        gpio_ios_2_12_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6079,7 +6013,7 @@ module pinmux (
   assign gpio_ios_0_13_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 48 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6087,7 +6021,7 @@ module pinmux (
       gpio_ios_0_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_13_sel_addressed) begin
-        gpio_ios_0_13_sel <= reg_wdata[24+:2];
+        gpio_ios_0_13_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6112,8 +6046,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_13_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 52 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 48 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6121,7 +6055,7 @@ module pinmux (
       gpio_ios_1_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_13_sel_addressed) begin
-        gpio_ios_1_13_sel <= reg_wdata[0+:2];
+        gpio_ios_1_13_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6146,8 +6080,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_13_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 52 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 48 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6155,7 +6089,7 @@ module pinmux (
       gpio_ios_2_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_13_sel_addressed) begin
-        gpio_ios_2_13_sel <= reg_wdata[8+:2];
+        gpio_ios_2_13_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6181,7 +6115,7 @@ module pinmux (
   assign gpio_ios_0_14_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 52 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6189,7 +6123,7 @@ module pinmux (
       gpio_ios_0_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_14_sel_addressed) begin
-        gpio_ios_0_14_sel <= reg_wdata[16+:2];
+        gpio_ios_0_14_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6215,7 +6149,7 @@ module pinmux (
   assign gpio_ios_1_14_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 52 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6223,7 +6157,7 @@ module pinmux (
       gpio_ios_1_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_14_sel_addressed) begin
-        gpio_ios_1_14_sel <= reg_wdata[24+:2];
+        gpio_ios_1_14_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6248,8 +6182,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_14_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 56 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 52 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6257,7 +6191,7 @@ module pinmux (
       gpio_ios_2_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_14_sel_addressed) begin
-        gpio_ios_2_14_sel <= reg_wdata[0+:2];
+        gpio_ios_2_14_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6282,8 +6216,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_15_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 56 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 52 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6291,7 +6225,7 @@ module pinmux (
       gpio_ios_0_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_15_sel_addressed) begin
-        gpio_ios_0_15_sel <= reg_wdata[8+:2];
+        gpio_ios_0_15_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6317,7 +6251,7 @@ module pinmux (
   assign gpio_ios_1_15_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 56 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6325,7 +6259,7 @@ module pinmux (
       gpio_ios_1_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_15_sel_addressed) begin
-        gpio_ios_1_15_sel <= reg_wdata[16+:2];
+        gpio_ios_1_15_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6351,7 +6285,7 @@ module pinmux (
   assign gpio_ios_2_15_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 56 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6359,7 +6293,7 @@ module pinmux (
       gpio_ios_2_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_15_sel_addressed) begin
-        gpio_ios_2_15_sel <= reg_wdata[24+:2];
+        gpio_ios_2_15_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6384,8 +6318,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_16_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 60 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 56 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6393,7 +6327,7 @@ module pinmux (
       gpio_ios_0_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_16_sel_addressed) begin
-        gpio_ios_0_16_sel <= reg_wdata[0+:2];
+        gpio_ios_0_16_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6418,8 +6352,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_16_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 60 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 56 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6427,7 +6361,7 @@ module pinmux (
       gpio_ios_1_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_16_sel_addressed) begin
-        gpio_ios_1_16_sel <= reg_wdata[8+:2];
+        gpio_ios_1_16_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6453,7 +6387,7 @@ module pinmux (
   assign gpio_ios_2_16_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 60 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6461,7 +6395,7 @@ module pinmux (
       gpio_ios_2_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_16_sel_addressed) begin
-        gpio_ios_2_16_sel <= reg_wdata[16+:2];
+        gpio_ios_2_16_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6487,7 +6421,7 @@ module pinmux (
   assign gpio_ios_0_17_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 60 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6495,7 +6429,7 @@ module pinmux (
       gpio_ios_0_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_17_sel_addressed) begin
-        gpio_ios_0_17_sel <= reg_wdata[24+:2];
+        gpio_ios_0_17_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6520,8 +6454,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_17_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 64 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 60 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6529,7 +6463,7 @@ module pinmux (
       gpio_ios_1_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_17_sel_addressed) begin
-        gpio_ios_1_17_sel <= reg_wdata[0+:2];
+        gpio_ios_1_17_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6554,8 +6488,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_17_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 64 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 60 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6563,7 +6497,7 @@ module pinmux (
       gpio_ios_2_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_17_sel_addressed) begin
-        gpio_ios_2_17_sel <= reg_wdata[8+:2];
+        gpio_ios_2_17_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6589,7 +6523,7 @@ module pinmux (
   assign gpio_ios_0_18_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 64 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6597,7 +6531,7 @@ module pinmux (
       gpio_ios_0_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_18_sel_addressed) begin
-        gpio_ios_0_18_sel <= reg_wdata[16+:2];
+        gpio_ios_0_18_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6623,7 +6557,7 @@ module pinmux (
   assign gpio_ios_1_18_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 64 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6631,7 +6565,7 @@ module pinmux (
       gpio_ios_1_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_18_sel_addressed) begin
-        gpio_ios_1_18_sel <= reg_wdata[24+:2];
+        gpio_ios_1_18_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6656,8 +6590,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_18_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 68 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 64 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6665,7 +6599,7 @@ module pinmux (
       gpio_ios_2_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_18_sel_addressed) begin
-        gpio_ios_2_18_sel <= reg_wdata[0+:2];
+        gpio_ios_2_18_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6690,8 +6624,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_19_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 68 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 64 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6699,7 +6633,7 @@ module pinmux (
       gpio_ios_0_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_19_sel_addressed) begin
-        gpio_ios_0_19_sel <= reg_wdata[8+:2];
+        gpio_ios_0_19_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6725,7 +6659,7 @@ module pinmux (
   assign gpio_ios_1_19_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 68 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6733,7 +6667,7 @@ module pinmux (
       gpio_ios_1_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_19_sel_addressed) begin
-        gpio_ios_1_19_sel <= reg_wdata[16+:2];
+        gpio_ios_1_19_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6759,7 +6693,7 @@ module pinmux (
   assign gpio_ios_2_19_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 68 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6767,7 +6701,7 @@ module pinmux (
       gpio_ios_2_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_19_sel_addressed) begin
-        gpio_ios_2_19_sel <= reg_wdata[24+:2];
+        gpio_ios_2_19_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6792,8 +6726,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_20_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 72 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 68 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6801,7 +6735,7 @@ module pinmux (
       gpio_ios_0_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_20_sel_addressed) begin
-        gpio_ios_0_20_sel <= reg_wdata[0+:2];
+        gpio_ios_0_20_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6826,8 +6760,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_20_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 72 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 68 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6835,7 +6769,7 @@ module pinmux (
       gpio_ios_1_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_20_sel_addressed) begin
-        gpio_ios_1_20_sel <= reg_wdata[8+:2];
+        gpio_ios_1_20_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6861,7 +6795,7 @@ module pinmux (
   assign gpio_ios_2_20_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 72 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6869,7 +6803,7 @@ module pinmux (
       gpio_ios_2_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_20_sel_addressed) begin
-        gpio_ios_2_20_sel <= reg_wdata[16+:2];
+        gpio_ios_2_20_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -6895,7 +6829,7 @@ module pinmux (
   assign gpio_ios_0_21_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 72 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6903,7 +6837,7 @@ module pinmux (
       gpio_ios_0_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_21_sel_addressed) begin
-        gpio_ios_0_21_sel <= reg_wdata[24+:2];
+        gpio_ios_0_21_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -6928,8 +6862,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_21_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 76 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 72 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6937,7 +6871,7 @@ module pinmux (
       gpio_ios_1_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_21_sel_addressed) begin
-        gpio_ios_1_21_sel <= reg_wdata[0+:2];
+        gpio_ios_1_21_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -6962,8 +6896,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_21_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 76 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 72 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -6971,7 +6905,7 @@ module pinmux (
       gpio_ios_2_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_21_sel_addressed) begin
-        gpio_ios_2_21_sel <= reg_wdata[8+:2];
+        gpio_ios_2_21_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -6997,7 +6931,7 @@ module pinmux (
   assign gpio_ios_0_22_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 76 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7005,7 +6939,7 @@ module pinmux (
       gpio_ios_0_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_22_sel_addressed) begin
-        gpio_ios_0_22_sel <= reg_wdata[16+:2];
+        gpio_ios_0_22_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7031,7 +6965,7 @@ module pinmux (
   assign gpio_ios_1_22_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 76 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7039,7 +6973,7 @@ module pinmux (
       gpio_ios_1_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_22_sel_addressed) begin
-        gpio_ios_1_22_sel <= reg_wdata[24+:2];
+        gpio_ios_1_22_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7064,8 +6998,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_22_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 80 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 76 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7073,7 +7007,7 @@ module pinmux (
       gpio_ios_2_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_22_sel_addressed) begin
-        gpio_ios_2_22_sel <= reg_wdata[0+:2];
+        gpio_ios_2_22_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7098,8 +7032,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_23_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 80 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 76 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7107,7 +7041,7 @@ module pinmux (
       gpio_ios_0_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_23_sel_addressed) begin
-        gpio_ios_0_23_sel <= reg_wdata[8+:2];
+        gpio_ios_0_23_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7133,7 +7067,7 @@ module pinmux (
   assign gpio_ios_1_23_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 80 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7141,7 +7075,7 @@ module pinmux (
       gpio_ios_1_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_23_sel_addressed) begin
-        gpio_ios_1_23_sel <= reg_wdata[16+:2];
+        gpio_ios_1_23_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7167,7 +7101,7 @@ module pinmux (
   assign gpio_ios_2_23_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 80 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7175,7 +7109,7 @@ module pinmux (
       gpio_ios_2_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_23_sel_addressed) begin
-        gpio_ios_2_23_sel <= reg_wdata[24+:2];
+        gpio_ios_2_23_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7200,8 +7134,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_24_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 84 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 80 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7209,7 +7143,7 @@ module pinmux (
       gpio_ios_0_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_24_sel_addressed) begin
-        gpio_ios_0_24_sel <= reg_wdata[0+:2];
+        gpio_ios_0_24_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7234,8 +7168,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_24_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 84 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 80 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7243,7 +7177,7 @@ module pinmux (
       gpio_ios_1_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_24_sel_addressed) begin
-        gpio_ios_1_24_sel <= reg_wdata[8+:2];
+        gpio_ios_1_24_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7269,7 +7203,7 @@ module pinmux (
   assign gpio_ios_2_24_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 84 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7277,7 +7211,7 @@ module pinmux (
       gpio_ios_2_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_24_sel_addressed) begin
-        gpio_ios_2_24_sel <= reg_wdata[16+:2];
+        gpio_ios_2_24_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7303,7 +7237,7 @@ module pinmux (
   assign gpio_ios_0_25_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 84 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7311,7 +7245,7 @@ module pinmux (
       gpio_ios_0_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_25_sel_addressed) begin
-        gpio_ios_0_25_sel <= reg_wdata[24+:2];
+        gpio_ios_0_25_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7336,8 +7270,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_25_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 88 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 84 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7345,7 +7279,7 @@ module pinmux (
       gpio_ios_1_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_25_sel_addressed) begin
-        gpio_ios_1_25_sel <= reg_wdata[0+:2];
+        gpio_ios_1_25_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7370,8 +7304,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_25_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 88 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 84 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7379,7 +7313,7 @@ module pinmux (
       gpio_ios_2_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_25_sel_addressed) begin
-        gpio_ios_2_25_sel <= reg_wdata[8+:2];
+        gpio_ios_2_25_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7405,7 +7339,7 @@ module pinmux (
   assign gpio_ios_0_26_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 88 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7413,7 +7347,7 @@ module pinmux (
       gpio_ios_0_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_26_sel_addressed) begin
-        gpio_ios_0_26_sel <= reg_wdata[16+:2];
+        gpio_ios_0_26_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7439,7 +7373,7 @@ module pinmux (
   assign gpio_ios_1_26_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 88 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7447,7 +7381,7 @@ module pinmux (
       gpio_ios_1_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_26_sel_addressed) begin
-        gpio_ios_1_26_sel <= reg_wdata[24+:2];
+        gpio_ios_1_26_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7472,8 +7406,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_26_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 92 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 88 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7481,7 +7415,7 @@ module pinmux (
       gpio_ios_2_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_26_sel_addressed) begin
-        gpio_ios_2_26_sel <= reg_wdata[0+:2];
+        gpio_ios_2_26_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7506,8 +7440,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_27_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 92 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 88 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7515,7 +7449,7 @@ module pinmux (
       gpio_ios_0_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_27_sel_addressed) begin
-        gpio_ios_0_27_sel <= reg_wdata[8+:2];
+        gpio_ios_0_27_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7541,7 +7475,7 @@ module pinmux (
   assign gpio_ios_1_27_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 92 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7549,7 +7483,7 @@ module pinmux (
       gpio_ios_1_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_27_sel_addressed) begin
-        gpio_ios_1_27_sel <= reg_wdata[16+:2];
+        gpio_ios_1_27_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7575,7 +7509,7 @@ module pinmux (
   assign gpio_ios_2_27_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 92 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7583,7 +7517,7 @@ module pinmux (
       gpio_ios_2_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_27_sel_addressed) begin
-        gpio_ios_2_27_sel <= reg_wdata[24+:2];
+        gpio_ios_2_27_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7608,8 +7542,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_28_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 96 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 92 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7617,7 +7551,7 @@ module pinmux (
       gpio_ios_0_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_28_sel_addressed) begin
-        gpio_ios_0_28_sel <= reg_wdata[0+:2];
+        gpio_ios_0_28_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7642,8 +7576,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_28_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 96 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 92 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7651,7 +7585,7 @@ module pinmux (
       gpio_ios_1_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_28_sel_addressed) begin
-        gpio_ios_1_28_sel <= reg_wdata[8+:2];
+        gpio_ios_1_28_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7677,7 +7611,7 @@ module pinmux (
   assign gpio_ios_2_28_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 96 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7685,7 +7619,7 @@ module pinmux (
       gpio_ios_2_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_28_sel_addressed) begin
-        gpio_ios_2_28_sel <= reg_wdata[16+:2];
+        gpio_ios_2_28_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7711,7 +7645,7 @@ module pinmux (
   assign gpio_ios_0_29_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 96 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7719,7 +7653,7 @@ module pinmux (
       gpio_ios_0_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_29_sel_addressed) begin
-        gpio_ios_0_29_sel <= reg_wdata[24+:2];
+        gpio_ios_0_29_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7744,8 +7678,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_1_29_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 100 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 96 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7753,7 +7687,7 @@ module pinmux (
       gpio_ios_1_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_29_sel_addressed) begin
-        gpio_ios_1_29_sel <= reg_wdata[0+:2];
+        gpio_ios_1_29_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7778,8 +7712,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_29_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 100 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 96 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7787,7 +7721,7 @@ module pinmux (
       gpio_ios_2_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_29_sel_addressed) begin
-        gpio_ios_2_29_sel <= reg_wdata[8+:2];
+        gpio_ios_2_29_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7813,7 +7747,7 @@ module pinmux (
   assign gpio_ios_0_30_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 100 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7821,7 +7755,7 @@ module pinmux (
       gpio_ios_0_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_30_sel_addressed) begin
-        gpio_ios_0_30_sel <= reg_wdata[16+:2];
+        gpio_ios_0_30_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7847,7 +7781,7 @@ module pinmux (
   assign gpio_ios_1_30_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 100 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7855,7 +7789,7 @@ module pinmux (
       gpio_ios_1_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_30_sel_addressed) begin
-        gpio_ios_1_30_sel <= reg_wdata[24+:2];
+        gpio_ios_1_30_sel <= reg_wdata[8+:2];
       end
     end
   end
@@ -7880,8 +7814,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_2_30_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 104 &
-    reg_be[0] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 100 &
+    reg_be[2] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7889,7 +7823,7 @@ module pinmux (
       gpio_ios_2_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_30_sel_addressed) begin
-        gpio_ios_2_30_sel <= reg_wdata[0+:2];
+        gpio_ios_2_30_sel <= reg_wdata[16+:2];
       end
     end
   end
@@ -7914,8 +7848,8 @@ module pinmux (
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
   assign gpio_ios_0_31_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
-    reg_addr[RegAddrWidth-2:0] == 104 &
-    reg_be[1] == 1'b1;
+    reg_addr[RegAddrWidth-2:0] == 100 &
+    reg_be[3] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7923,7 +7857,7 @@ module pinmux (
       gpio_ios_0_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_31_sel_addressed) begin
-        gpio_ios_0_31_sel <= reg_wdata[8+:2];
+        gpio_ios_0_31_sel <= reg_wdata[24+:2];
       end
     end
   end
@@ -7949,7 +7883,7 @@ module pinmux (
   assign gpio_ios_1_31_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 104 &
-    reg_be[2] == 1'b1;
+    reg_be[0] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7957,7 +7891,7 @@ module pinmux (
       gpio_ios_1_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_31_sel_addressed) begin
-        gpio_ios_1_31_sel <= reg_wdata[16+:2];
+        gpio_ios_1_31_sel <= reg_wdata[0+:2];
       end
     end
   end
@@ -7983,7 +7917,7 @@ module pinmux (
   assign gpio_ios_2_31_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == 104 &
-    reg_be[3] == 1'b1;
+    reg_be[1] == 1'b1;
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
@@ -7991,7 +7925,7 @@ module pinmux (
       gpio_ios_2_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_31_sel_addressed) begin
-        gpio_ios_2_31_sel <= reg_wdata[24+:2];
+        gpio_ios_2_31_sel <= reg_wdata[8+:2];
       end
     end
   end
