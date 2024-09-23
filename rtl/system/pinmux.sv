@@ -181,7 +181,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       uart_tx_i[0]
     }),
     .sel_i(ser0_tx_sel),
@@ -233,7 +233,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       uart_tx_i[1]
     }),
     .sel_i(ser1_tx_sel),
@@ -285,7 +285,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       uart_tx_i[4]
     }),
     .sel_i(rs232_tx_sel),
@@ -337,7 +337,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_scl_i[0]
     }),
     .sel_i(scl0_sel),
@@ -389,7 +389,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_sda_i[0]
     }),
     .sel_i(sda0_sel),
@@ -441,7 +441,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_scl_i[1]
     }),
     .sel_i(scl1_sel),
@@ -493,7 +493,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_sda_i[1]
     }),
     .sel_i(sda1_sel),
@@ -545,7 +545,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[0]
     }),
     .sel_i(appspi_d0_sel),
@@ -597,7 +597,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[0]
     }),
     .sel_i(appspi_clk_sel),
@@ -649,7 +649,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[1]
     }),
     .sel_i(lcd_copi_sel),
@@ -701,7 +701,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[1]
     }),
     .sel_i(lcd_clk_sel),
@@ -753,7 +753,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[2]
     }),
     .sel_i(ethmac_copi_sel),
@@ -805,7 +805,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[2]
     }),
     .sel_i(ethmac_sclk_sel),
@@ -857,7 +857,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_sda_i[0],
       gpio_ios_i[0][0]
     }),
@@ -911,7 +911,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_scl_i[0],
       gpio_ios_i[0][1]
     }),
@@ -965,7 +965,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_sda_i[1],
       gpio_ios_i[0][2]
     }),
@@ -1019,7 +1019,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_scl_i[1],
       gpio_ios_i[0][3]
     }),
@@ -1073,7 +1073,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][4]
     }),
     .sel_i(rph_g4_sel),
@@ -1125,7 +1125,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][5]
     }),
     .sel_i(rph_g5_sel),
@@ -1177,7 +1177,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][6]
     }),
     .sel_i(rph_g6_sel),
@@ -1229,7 +1229,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][7]
     }),
     .sel_i(rph_g7_ce1_sel),
@@ -1281,7 +1281,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][8]
     }),
     .sel_i(rph_g8_ce0_sel),
@@ -1333,7 +1333,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][9]
     }),
     .sel_i(rph_g9_cipo_sel),
@@ -1385,7 +1385,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[3],
       gpio_ios_i[0][10]
     }),
@@ -1439,7 +1439,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[3],
       gpio_ios_i[0][11]
     }),
@@ -1493,7 +1493,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][12]
     }),
     .sel_i(rph_g12_sel),
@@ -1545,7 +1545,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][13]
     }),
     .sel_i(rph_g13_sel),
@@ -1597,7 +1597,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       uart_tx_i[2],
       gpio_ios_i[0][14]
     }),
@@ -1651,7 +1651,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][15]
     }),
     .sel_i(rph_rxd0_sel),
@@ -1703,7 +1703,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][16]
     }),
     .sel_i(rph_g16_ce2_sel),
@@ -1755,7 +1755,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][17]
     }),
     .sel_i(rph_g17_sel),
@@ -1807,7 +1807,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][18]
     }),
     .sel_i(rph_g18_sel),
@@ -1859,7 +1859,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][19]
     }),
     .sel_i(rph_g19_cipo_sel),
@@ -1911,7 +1911,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[4],
       gpio_ios_i[0][20]
     }),
@@ -1965,7 +1965,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[4],
       gpio_ios_i[0][21]
     }),
@@ -2019,7 +2019,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][22]
     }),
     .sel_i(rph_g22_sel),
@@ -2071,7 +2071,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][23]
     }),
     .sel_i(rph_g23_sel),
@@ -2123,7 +2123,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][24]
     }),
     .sel_i(rph_g24_sel),
@@ -2175,7 +2175,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][25]
     }),
     .sel_i(rph_g25_sel),
@@ -2227,7 +2227,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][26]
     }),
     .sel_i(rph_g26_sel),
@@ -2279,7 +2279,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[0][27]
     }),
     .sel_i(rph_g27_sel),
@@ -2331,7 +2331,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][0]
     }),
     .sel_i(ah_tmpio0_sel),
@@ -2383,7 +2383,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][1]
     }),
     .sel_i(ah_tmpio1_sel),
@@ -2435,7 +2435,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][2]
     }),
     .sel_i(ah_tmpio2_sel),
@@ -2487,7 +2487,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][3]
     }),
     .sel_i(ah_tmpio3_sel),
@@ -2539,7 +2539,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][4]
     }),
     .sel_i(ah_tmpio4_sel),
@@ -2591,7 +2591,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][5]
     }),
     .sel_i(ah_tmpio5_sel),
@@ -2643,7 +2643,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][6]
     }),
     .sel_i(ah_tmpio6_sel),
@@ -2695,7 +2695,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][7]
     }),
     .sel_i(ah_tmpio7_sel),
@@ -2747,7 +2747,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][8]
     }),
     .sel_i(ah_tmpio8_sel),
@@ -2799,7 +2799,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][9]
     }),
     .sel_i(ah_tmpio9_sel),
@@ -2851,7 +2851,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][10]
     }),
     .sel_i(ah_tmpio10_sel),
@@ -2903,7 +2903,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[5],
       gpio_ios_i[1][11]
     }),
@@ -2957,7 +2957,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][12]
     }),
     .sel_i(ah_tmpio12_sel),
@@ -3009,7 +3009,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[5],
       gpio_ios_i[1][13]
     }),
@@ -3063,7 +3063,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][14]
     }),
     .sel_i(ah_tmpio14_sel),
@@ -3115,7 +3115,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][15]
     }),
     .sel_i(ah_tmpio15_sel),
@@ -3167,7 +3167,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][16]
     }),
     .sel_i(ah_tmpio16_sel),
@@ -3219,7 +3219,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][17]
     }),
     .sel_i(ah_tmpio17_sel),
@@ -3271,7 +3271,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_sck_i[6]
     }),
     .sel_i(mb2_sel),
@@ -3323,7 +3323,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       spi_tx_i[6]
     }),
     .sel_i(mb4_sel),
@@ -3375,7 +3375,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_sda_i[1]
     }),
     .sel_i(mb5_sel),
@@ -3427,7 +3427,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       i2c_scl_i[1]
     }),
     .sel_i(mb6_sel),
@@ -3479,7 +3479,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       uart_tx_i[3]
     }),
     .sel_i(mb7_sel),
@@ -3531,7 +3531,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][0]
     }),
     .sel_i(pmod0_0_sel),
@@ -3583,7 +3583,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][1]
     }),
     .sel_i(pmod0_1_sel),
@@ -3635,7 +3635,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][2]
     }),
     .sel_i(pmod0_2_sel),
@@ -3687,7 +3687,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][3]
     }),
     .sel_i(pmod0_3_sel),
@@ -3739,7 +3739,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][4]
     }),
     .sel_i(pmod0_4_sel),
@@ -3791,7 +3791,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][5]
     }),
     .sel_i(pmod0_5_sel),
@@ -3843,7 +3843,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][6]
     }),
     .sel_i(pmod0_6_sel),
@@ -3895,7 +3895,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][7]
     }),
     .sel_i(pmod0_7_sel),
@@ -3947,7 +3947,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][8]
     }),
     .sel_i(pmod1_0_sel),
@@ -3999,7 +3999,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][9]
     }),
     .sel_i(pmod1_1_sel),
@@ -4051,7 +4051,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][10]
     }),
     .sel_i(pmod1_2_sel),
@@ -4103,7 +4103,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][11]
     }),
     .sel_i(pmod1_3_sel),
@@ -4155,7 +4155,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][12]
     }),
     .sel_i(pmod1_4_sel),
@@ -4207,7 +4207,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][13]
     }),
     .sel_i(pmod1_5_sel),
@@ -4259,7 +4259,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][14]
     }),
     .sel_i(pmod1_6_sel),
@@ -4311,7 +4311,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[2][15]
     }),
     .sel_i(pmod1_7_sel),
@@ -4771,7 +4771,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g0
     }),
     .sel_i(gpio_ios_0_0_sel),
@@ -4805,7 +4805,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio0
     }),
     .sel_i(gpio_ios_1_0_sel),
@@ -4839,7 +4839,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[0]
     }),
     .sel_i(gpio_ios_2_0_sel),
@@ -4873,7 +4873,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g1
     }),
     .sel_i(gpio_ios_0_1_sel),
@@ -4907,7 +4907,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio1
     }),
     .sel_i(gpio_ios_1_1_sel),
@@ -4941,7 +4941,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[1]
     }),
     .sel_i(gpio_ios_2_1_sel),
@@ -4975,7 +4975,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g2_sda
     }),
     .sel_i(gpio_ios_0_2_sel),
@@ -5009,7 +5009,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio2
     }),
     .sel_i(gpio_ios_1_2_sel),
@@ -5043,7 +5043,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[2]
     }),
     .sel_i(gpio_ios_2_2_sel),
@@ -5077,7 +5077,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g3_scl
     }),
     .sel_i(gpio_ios_0_3_sel),
@@ -5111,7 +5111,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio3
     }),
     .sel_i(gpio_ios_1_3_sel),
@@ -5145,7 +5145,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[3]
     }),
     .sel_i(gpio_ios_2_3_sel),
@@ -5179,7 +5179,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g4
     }),
     .sel_i(gpio_ios_0_4_sel),
@@ -5213,7 +5213,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio4
     }),
     .sel_i(gpio_ios_1_4_sel),
@@ -5247,7 +5247,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[4]
     }),
     .sel_i(gpio_ios_2_4_sel),
@@ -5281,7 +5281,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g5
     }),
     .sel_i(gpio_ios_0_5_sel),
@@ -5315,7 +5315,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio5
     }),
     .sel_i(gpio_ios_1_5_sel),
@@ -5349,7 +5349,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[5]
     }),
     .sel_i(gpio_ios_2_5_sel),
@@ -5383,7 +5383,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g6
     }),
     .sel_i(gpio_ios_0_6_sel),
@@ -5417,7 +5417,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio6
     }),
     .sel_i(gpio_ios_1_6_sel),
@@ -5451,7 +5451,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[6]
     }),
     .sel_i(gpio_ios_2_6_sel),
@@ -5485,7 +5485,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g7_ce1
     }),
     .sel_i(gpio_ios_0_7_sel),
@@ -5519,7 +5519,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio7
     }),
     .sel_i(gpio_ios_1_7_sel),
@@ -5553,7 +5553,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod0[7]
     }),
     .sel_i(gpio_ios_2_7_sel),
@@ -5587,7 +5587,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g8_ce0
     }),
     .sel_i(gpio_ios_0_8_sel),
@@ -5621,7 +5621,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio8
     }),
     .sel_i(gpio_ios_1_8_sel),
@@ -5655,7 +5655,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[0]
     }),
     .sel_i(gpio_ios_2_8_sel),
@@ -5689,7 +5689,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g9_cipo
     }),
     .sel_i(gpio_ios_0_9_sel),
@@ -5723,7 +5723,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio9
     }),
     .sel_i(gpio_ios_1_9_sel),
@@ -5757,7 +5757,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[1]
     }),
     .sel_i(gpio_ios_2_9_sel),
@@ -5791,7 +5791,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g10_copi
     }),
     .sel_i(gpio_ios_0_10_sel),
@@ -5825,7 +5825,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio10
     }),
     .sel_i(gpio_ios_1_10_sel),
@@ -5859,7 +5859,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[2]
     }),
     .sel_i(gpio_ios_2_10_sel),
@@ -5893,7 +5893,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g11_sclk
     }),
     .sel_i(gpio_ios_0_11_sel),
@@ -5927,7 +5927,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio11
     }),
     .sel_i(gpio_ios_1_11_sel),
@@ -5961,7 +5961,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[3]
     }),
     .sel_i(gpio_ios_2_11_sel),
@@ -5995,7 +5995,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g12
     }),
     .sel_i(gpio_ios_0_12_sel),
@@ -6029,7 +6029,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio12
     }),
     .sel_i(gpio_ios_1_12_sel),
@@ -6063,7 +6063,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[4]
     }),
     .sel_i(gpio_ios_2_12_sel),
@@ -6097,7 +6097,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g13
     }),
     .sel_i(gpio_ios_0_13_sel),
@@ -6131,7 +6131,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio13
     }),
     .sel_i(gpio_ios_1_13_sel),
@@ -6165,7 +6165,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[5]
     }),
     .sel_i(gpio_ios_2_13_sel),
@@ -6199,7 +6199,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_txd0
     }),
     .sel_i(gpio_ios_0_14_sel),
@@ -6233,7 +6233,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio14
     }),
     .sel_i(gpio_ios_1_14_sel),
@@ -6267,7 +6267,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[6]
     }),
     .sel_i(gpio_ios_2_14_sel),
@@ -6301,7 +6301,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_rxd0
     }),
     .sel_i(gpio_ios_0_15_sel),
@@ -6335,7 +6335,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio15
     }),
     .sel_i(gpio_ios_1_15_sel),
@@ -6369,7 +6369,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       pmod1[7]
     }),
     .sel_i(gpio_ios_2_15_sel),
@@ -6403,7 +6403,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g16_ce2
     }),
     .sel_i(gpio_ios_0_16_sel),
@@ -6437,7 +6437,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio16
     }),
     .sel_i(gpio_ios_1_16_sel),
@@ -6471,8 +6471,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_16_sel),
     .out_o(gpio_ios_o[2][16])
@@ -6505,7 +6505,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g17
     }),
     .sel_i(gpio_ios_0_17_sel),
@@ -6539,7 +6539,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       ah_tmpio17
     }),
     .sel_i(gpio_ios_1_17_sel),
@@ -6573,8 +6573,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_17_sel),
     .out_o(gpio_ios_o[2][17])
@@ -6607,7 +6607,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g18
     }),
     .sel_i(gpio_ios_0_18_sel),
@@ -6641,8 +6641,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_18_sel),
     .out_o(gpio_ios_o[1][18])
@@ -6675,8 +6675,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_18_sel),
     .out_o(gpio_ios_o[2][18])
@@ -6709,7 +6709,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g19_cipo
     }),
     .sel_i(gpio_ios_0_19_sel),
@@ -6743,8 +6743,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_19_sel),
     .out_o(gpio_ios_o[1][19])
@@ -6777,8 +6777,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_19_sel),
     .out_o(gpio_ios_o[2][19])
@@ -6811,7 +6811,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g20_copi
     }),
     .sel_i(gpio_ios_0_20_sel),
@@ -6845,8 +6845,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_20_sel),
     .out_o(gpio_ios_o[1][20])
@@ -6879,8 +6879,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_20_sel),
     .out_o(gpio_ios_o[2][20])
@@ -6913,7 +6913,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g21_sclk
     }),
     .sel_i(gpio_ios_0_21_sel),
@@ -6947,8 +6947,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_21_sel),
     .out_o(gpio_ios_o[1][21])
@@ -6981,8 +6981,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_21_sel),
     .out_o(gpio_ios_o[2][21])
@@ -7015,7 +7015,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g22
     }),
     .sel_i(gpio_ios_0_22_sel),
@@ -7049,8 +7049,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_22_sel),
     .out_o(gpio_ios_o[1][22])
@@ -7083,8 +7083,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_22_sel),
     .out_o(gpio_ios_o[2][22])
@@ -7117,7 +7117,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g23
     }),
     .sel_i(gpio_ios_0_23_sel),
@@ -7151,8 +7151,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_23_sel),
     .out_o(gpio_ios_o[1][23])
@@ -7185,8 +7185,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_23_sel),
     .out_o(gpio_ios_o[2][23])
@@ -7219,7 +7219,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g24
     }),
     .sel_i(gpio_ios_0_24_sel),
@@ -7253,8 +7253,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_24_sel),
     .out_o(gpio_ios_o[1][24])
@@ -7287,8 +7287,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_24_sel),
     .out_o(gpio_ios_o[2][24])
@@ -7321,7 +7321,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g25
     }),
     .sel_i(gpio_ios_0_25_sel),
@@ -7355,8 +7355,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_25_sel),
     .out_o(gpio_ios_o[1][25])
@@ -7389,8 +7389,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_25_sel),
     .out_o(gpio_ios_o[2][25])
@@ -7423,7 +7423,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g26
     }),
     .sel_i(gpio_ios_0_26_sel),
@@ -7457,8 +7457,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_26_sel),
     .out_o(gpio_ios_o[1][26])
@@ -7491,8 +7491,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_26_sel),
     .out_o(gpio_ios_o[2][26])
@@ -7525,7 +7525,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0,
       rph_g27
     }),
     .sel_i(gpio_ios_0_27_sel),
@@ -7559,8 +7559,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_27_sel),
     .out_o(gpio_ios_o[1][27])
@@ -7593,8 +7593,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_27_sel),
     .out_o(gpio_ios_o[2][27])
@@ -7627,8 +7627,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_0_28_sel),
     .out_o(gpio_ios_o[0][28])
@@ -7661,8 +7661,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_28_sel),
     .out_o(gpio_ios_o[1][28])
@@ -7695,8 +7695,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_28_sel),
     .out_o(gpio_ios_o[2][28])
@@ -7729,8 +7729,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_0_29_sel),
     .out_o(gpio_ios_o[0][29])
@@ -7763,8 +7763,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_29_sel),
     .out_o(gpio_ios_o[1][29])
@@ -7797,8 +7797,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_29_sel),
     .out_o(gpio_ios_o[2][29])
@@ -7831,8 +7831,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_0_30_sel),
     .out_o(gpio_ios_o[0][30])
@@ -7865,8 +7865,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_30_sel),
     .out_o(gpio_ios_o[1][30])
@@ -7899,8 +7899,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_30_sel),
     .out_o(gpio_ios_o[2][30])
@@ -7933,8 +7933,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_0_31_sel),
     .out_o(gpio_ios_o[0][31])
@@ -7967,8 +7967,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_1_31_sel),
     .out_o(gpio_ios_o[1][31])
@@ -8001,8 +8001,8 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
-      1'bz
+      1'b0,
+      1'b0
     }),
     .sel_i(gpio_ios_2_31_sel),
     .out_o(gpio_ios_o[2][31])
