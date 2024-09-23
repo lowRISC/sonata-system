@@ -101,7 +101,7 @@ module pinmux (
     .clk_i,
     .rst_ni,
     .in_i({
-      1'bz,
+      1'b0, // This is set to Z later when output enable is low.
       % for idx, (block, io, inst, bit_str, _) in enumerate(possible_blocks):
       ${block}_${io}_i[${inst}]${bit_str}${',' if idx < len(possible_blocks)-1 else ''}
       % endfor

@@ -143,7 +143,7 @@ if __name__ == "__main__":
                     for inst_idx, pins in enumerate(pin_list):
                         input_name = block.name + "_" + io.name
                         if io.type == BlockIoType.INOUT:
-                            def_val = "1'bz"
+                            def_val = "1'b0"
                         else:
                             def_val = "1'b" + str(io.default)
                         input_pins = [def_val]
