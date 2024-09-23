@@ -21,14 +21,16 @@ using namespace CHERI;
 extern "C" uint32_t entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
-  asm volatile(
-      // Store capability to stack
-      "csc              cra, -4(csp)\n"
-      // Load capability from stack
-      "clc              cra, -4(csp)\n"
-      // Clear capability from stack
-      "csc              cnull, -4(csp)\n" ::
-          : "memory");
+  // TODO fix illegal instruction exception here.
+  // asm volatile(
+  //     // Store capability to stack
+  //     "csc              cra, -4(csp)\n"
+  //     // Load capability from stack
+  //     "clc              cra, -4(csp)\n"
+  //     // Clear capability from stack
+  //     "csc              cnull, -4(csp)\n" ::
+  //         : "memory");
+
   // Capability to general purpose output
   Capability<volatile uint32_t> gpo = root.cast<volatile uint32_t>();
   gpo.address()                     = 0x80000000;
