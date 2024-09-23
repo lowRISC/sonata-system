@@ -159,12 +159,108 @@ module top_verilator (input logic clk_i, rst_ni);
   assign appspi_clk = spi_sck[0];
   assign lcd_clk = spi_sck[1];
 
+  // Stub of pinmux to make sure it keeps compiling.
+  pinmux u_pinmux (
+    .clk_i,
+    .rst_ni,
+
+    .uart_tx_i('{default: '0}),
+    .uart_rx_o(),
+    .i2c_scl_i('{default: '0}),
+    .i2c_scl_en_i('{default: '0}),
+    .i2c_scl_o(),
+    .i2c_sda_i('{default: '0}),
+    .i2c_sda_en_i('{default: '0}),
+    .i2c_sda_o(),
+    .spi_sck_i('{default: '0}),
+    .spi_tx_i('{default: '0}),
+    .spi_rx_o(),
+    .gpio_ios_i('{default: '0}),
+    .gpio_ios_en_i('{default: '0}),
+    .gpio_ios_o(),
+
+    .ser0_tx(),
+    .ser0_rx(),
+    .ser1_tx(),
+    .ser1_rx(),
+    .rs232_tx(),
+    .rs232_rx(),
+    .scl0(),
+    .sda0(),
+    .scl1(),
+    .sda1(),
+    .appspi_d0(),
+    .appspi_d1(),
+    .appspi_clk(),
+    .lcd_copi(),
+    .lcd_clk(),
+    .ethmac_copi(),
+    .ethmac_cipo(),
+    .ethmac_sclk(),
+    .rph_g0(),
+    .rph_g1(),
+    .rph_g2_sda(),
+    .rph_g3_scl(),
+    .rph_g4(),
+    .rph_g5(),
+    .rph_g6(),
+    .rph_g7_ce1(),
+    .rph_g8_ce0(),
+    .rph_g9_cipo(),
+    .rph_g10_copi(),
+    .rph_g11_sclk(),
+    .rph_g12(),
+    .rph_g13(),
+    .rph_txd0(),
+    .rph_rxd0(),
+    .rph_g16_ce2(),
+    .rph_g17(),
+    .rph_g18(),
+    .rph_g19_cipo(),
+    .rph_g20_copi(),
+    .rph_g21_sclk(),
+    .rph_g22(),
+    .rph_g23(),
+    .rph_g24(),
+    .rph_g25(),
+    .rph_g26(),
+    .rph_g27(),
+    .ah_tmpio0(),
+    .ah_tmpio1(),
+    .ah_tmpio2(),
+    .ah_tmpio3(),
+    .ah_tmpio4(),
+    .ah_tmpio5(),
+    .ah_tmpio6(),
+    .ah_tmpio7(),
+    .ah_tmpio8(),
+    .ah_tmpio9(),
+    .ah_tmpio10(),
+    .ah_tmpio11(),
+    .ah_tmpio12(),
+    .ah_tmpio13(),
+    .ah_tmpio14(),
+    .ah_tmpio15(),
+    .ah_tmpio16(),
+    .ah_tmpio17(),
+    .mb2(),
+    .mb3(),
+    .mb4(),
+    .mb5(),
+    .mb6(),
+    .mb7(),
+    .mb8(),
+    .pmod0(),
+    .pmod1(),
+
+    .tl_i(tlul_pkg::TL_H2D_DEFAULT),
+    .tl_o()
+  );
+
   // Instantiating the Sonata System.
   // TODO instantiate this with only two UARTs and no SPI when bus is
   // parameterized.
   sonata_system #(
-    .GpiWidth        ( 14              ),
-    .GpoWidth        ( 23              ),
     .PwmWidth        (  1              ),
     .CheriErrWidth   ( CheriErrWidth   ),
     .SysClkFreq      ( SysClkFreq      ),
@@ -186,6 +282,7 @@ module top_verilator (input logic clk_i, rst_ni);
 
     .gp_i         (0),
     .gp_o         ({
+                    9'b0,
                     mb0, // mikroBUS Click reset
                     mb1, // mikroBUS Click chip select
                     ah_tmpio10, // Arduino shield chip select
@@ -196,7 +293,7 @@ module top_verilator (input logic clk_i, rst_ni);
                     usrLed, // User LEDs (8 bits)
                     lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
                   }),
-    .gp_o_en  ( ),
+    .gp_o_en      ( ),
     .pwm_o        ( ),
     .gp_headers_i ('{default: '0}),
     .gp_headers_o ( ),

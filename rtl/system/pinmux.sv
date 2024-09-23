@@ -112,7 +112,9 @@ module pinmux (
   // Register control signals.
   logic reg_we;
   logic [RegAddrWidth-1:0] reg_addr;
+  /* verilator lint_off UNUSEDSIGNAL */
   logic [BusDataWidth-1:0] reg_wdata;
+  /* verilator lint_on UNUSEDSIGNAL */
   logic [(BusDataWidth/8)-1:0] reg_be;
   logic [BusDataWidth-1:0] reg_rdata;
 
