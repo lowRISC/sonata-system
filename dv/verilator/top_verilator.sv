@@ -13,7 +13,6 @@ module top_verilator (input logic clk_i, rst_ni);
   // HyperRAM clock frequency.
   localparam int unsigned HRClkFreq  = 100_000_000;
   localparam int unsigned BaudRate   = 921_600;
-  localparam bit EnableCHERI         = 1'b1;
   // Number of CHERI error LEDs.
   localparam int unsigned CheriErrWidth = 9;
   // The symbolic file descriptors are presently unknown to Verilator
@@ -114,11 +113,18 @@ module top_verilator (input logic clk_i, rst_ni);
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
   logic [CheriErrWidth-1:0] cheri_errored;
-  wire cheri_en;
-  initial begin
-    if (cheri_en) $display("Running with CHERI enabled");
-    else $display("Running in legacy software mode");
-  end
+  logic cheri_en;
+
+  initial begin : cheri_en_set_and_report
+    if ($test$plusargs("disable_cheri")) begin
+      cheri_en = 1'b0;
+      $display("Running in legacy software mode");
+    end else begin
+      cheri_en = 1'b1;
+      $display("Running with CHERI enabled");
+    end
+  end : cheri_en_set_and_report
+
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) cheri_errored <= '0;
     else if (|(cheri_err & ~cheri_errored)) begin : cheri_err_reporting
@@ -314,10 +320,10 @@ module top_verilator (input logic clk_i, rst_ni);
     .spi_sck_o(spi_sck),
     .spi_eth_irq_ni(1'b1),
 
-    .cheri_en_i (EnableCHERI),
-    // CHERI output
+    // CHERI signals
+    .cheri_en_i     (cheri_en ),
     .cheri_err_o    (cheri_err),
-    .cheri_en_o     (cheri_en),
+    .cheri_en_o     (         ),
 
     // I2C buses
     .i2c_scl_i     ('{scl0_in, scl1_in}),
