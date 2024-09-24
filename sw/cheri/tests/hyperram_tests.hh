@@ -303,5 +303,7 @@ void hyperram_tests(CapRoot root, UartPtr console) {
     write_str(console, "Running Execution test...");
     failures = execute_test(hyperram_area, prng, HYPERRAN_TEST_SIZE);
     write_test_result(console, failures);
+
+    check_result(console, failures == 0);
   }
 }
