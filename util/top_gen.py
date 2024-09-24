@@ -239,8 +239,9 @@ if __name__ == "__main__":
     )
     pkg_spec = ("rtl/templates/sonata_pkg.sv.tpl", "rtl/system/sonata_pkg.sv")
     pinmux_spec = ("rtl/templates/pinmux.sv.tpl", "rtl/system/pinmux.sv")
+    pinmux_doc_spec = ("doc/ip/pinmux.md.tpl", "doc/ip/pinmux.md")
 
-    specs = [xbar_spec, sonata_xbar_spec, pkg_spec, pinmux_spec]
+    specs = [xbar_spec, sonata_xbar_spec, pkg_spec, pinmux_spec, pinmux_doc_spec]
 
     for template_file, output_file in specs:
         print("Generating from template: " + template_file)
