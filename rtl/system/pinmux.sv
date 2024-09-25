@@ -7946,17 +7946,17 @@ module pinmux (
 
   // Combining inputs for combinable inouts
   assign i2c_scl_o[0] =
-    scl0 &&
-    rph_g1;
+    (scl0_sel == 2 ? scl0 : 1) &
+    (rph_g1_sel == 2 ? rph_g1 : 1);
   assign i2c_scl_o[1] =
-    scl1 &&
-    rph_g3_scl &&
-    mb6;
+    (scl1_sel == 2 ? scl1 : 1) &
+    (rph_g3_scl_sel == 2 ? rph_g3_scl : 1) &
+    (mb6_sel == 2 ? mb6 : 1);
   assign i2c_sda_o[0] =
-    sda0 &&
-    rph_g0;
+    (sda0_sel == 2 ? sda0 : 1) &
+    (rph_g0_sel == 2 ? rph_g0 : 1);
   assign i2c_sda_o[1] =
-    sda1 &&
-    rph_g2_sda &&
-    mb5;
+    (sda1_sel == 2 ? sda1 : 1) &
+    (rph_g2_sda_sel == 2 ? rph_g2_sda : 1) &
+    (mb5_sel == 2 ? mb5 : 1);
 endmodule

@@ -7,6 +7,8 @@ packaging
 anytree
 hjson
 mako
+mypy
+pydantic
 pyyaml
 wheel
 toml
