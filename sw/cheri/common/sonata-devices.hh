@@ -13,11 +13,13 @@
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-uart.hh>
+#include "../common/platform-usbdev.hh"
 #include <platform-i2c.hh>
 
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGPIO *GpioPtr;
 typedef volatile OpenTitanUart *UartPtr;
+typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile OpenTitanI2c *I2cPtr;
 typedef volatile uint32_t *HyperramPtr;
 typedef PLIC::SonataPlic *PlicPtr;
@@ -60,4 +62,11 @@ typedef PLIC::SonataPlic *PlicPtr;
   hyperram.address()                            = HYPERRAM_ADDRESS;
   hyperram.bounds()                             = HYPERRAM_BOUNDS;
   return hyperram;
+}
+
+[[maybe_unused]] static UsbdevPtr usbdev_ptr(CapRoot root) {
+  CHERI::Capability<volatile OpenTitanUsbdev> usbdev = root.cast<volatile OpenTitanUsbdev>();
+  usbdev.address()                                   = USBDEV_ADDRESS;
+  usbdev.bounds()                                    = USBDEV_BOUNDS;
+  return usbdev;
 }
