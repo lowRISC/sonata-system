@@ -171,10 +171,10 @@ module pinmux (
   % endfor
 
   // Combining inputs for combinable inouts
-  % for block_input, inst, combine_pins, combine_type in combine_list:
+  % for block_input, inst, combine_pins, combine_pin_selectors, combine_type in combine_list:
   assign ${block_input}_o[${inst}] =
     % for idx, pin in enumerate(combine_pins):
-    ${pin}${';' if idx == len(combine_pins)-1 else ' &&' if combine_type == 'and' else ' ||'}
+    (${pin}_sel == ${combine_pin_selectors[idx]} ? ${pin} : ${'1' if combine_type == 'and' else '0'})${';' if idx == len(combine_pins)-1 else ' &' if combine_type == 'and' else ' |'}
     % endfor
   % endfor
 endmodule

@@ -194,6 +194,8 @@ if __name__ == "__main__":
                                     io.type == BlockIoType.INOUT,
                                 )
                             )
+    for block in config.blocks:
+        for io in block.ios:
             if (
                 io.type == BlockIoType.INOUT
                 and io.combine != BlockIoCombine.MUX
@@ -207,8 +209,37 @@ if __name__ == "__main__":
                 for inst_idx, pins in enumerate(io.pins[0]):
                     input_name = block.name + "_" + io.name
                     combine_pins = pins
+                    combine_pin_selectors = []
+                    for pin_name in combine_pins:
+                        pin = get_pin(pin_name)
+                        for sel_idx, block_output in enumerate(
+                            pin.block_outputs
+                        ):
+                            if block_output[3] != "":
+                                print(
+                                    "Combining indexed pins is currently "
+                                    + "unsupported."
+                                )
+                                exit()
+                            if block_output[0] is block.name and (
+                                block_output[1] is io.name
+                                and block_output[2] is inst_idx
+                            ):
+                                combine_pin_selectors.append(
+                                    1 << (sel_idx + 1)
+                                )
+                                break
+                    if len(combine_pins) != len(combine_pin_selectors):
+                        print("Could not fill combine pin selectors properly.")
+                        exit()
                     combine_list.append(
-                        (input_name, inst_idx, combine_pins, io.combine)
+                        (
+                            input_name,
+                            inst_idx,
+                            combine_pins,
+                            combine_pin_selectors,
+                            io.combine,
+                        )
                     )
 
     output_list: list[
@@ -241,7 +272,13 @@ if __name__ == "__main__":
     pinmux_spec = ("rtl/templates/pinmux.sv.tpl", "rtl/system/pinmux.sv")
     pinmux_doc_spec = ("doc/ip/pinmux.md.tpl", "doc/ip/pinmux.md")
 
-    specs = [xbar_spec, sonata_xbar_spec, pkg_spec, pinmux_spec, pinmux_doc_spec]
+    specs = [
+        xbar_spec,
+        sonata_xbar_spec,
+        pkg_spec,
+        pinmux_spec,
+        pinmux_doc_spec,
+    ]
 
     for template_file, output_file in specs:
         print("Generating from template: " + template_file)
