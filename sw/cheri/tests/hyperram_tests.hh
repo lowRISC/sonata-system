@@ -43,7 +43,7 @@ _Static_assert(TEST_COVERAGE_AREA <= 100, "TEST_COVERAGE_AREA Should be less tha
  * Compute the number of addresses that will be tested.
  * We mask the LSB 8bits to makes sure it is aligned.
  */
-#define HYPERRAN_TEST_SIZE (uint32_t)((HYPERRAM_SIZE * TEST_COVERAGE_AREA / 100) & ~0xFF)
+#define HYPERRAM_TEST_SIZE (uint32_t)((HYPERRAM_SIZE * TEST_COVERAGE_AREA / 100) & ~0xFF)
 
 /*
  * Write random values to a block of memory (size given by 'TEST_BLOCK_SIZE'
@@ -78,7 +78,7 @@ static int rand_data_test_block(Capability<volatile uint32_t> hyperram_area, ds:
  */
 int rand_data_test_full(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng) {
   int failures = 0;
-  for (uint32_t addr = 0; addr < HYPERRAN_TEST_SIZE; addr += TEST_BLOCK_SIZE) {
+  for (uint32_t addr = 0; addr < HYPERRAM_TEST_SIZE; addr += TEST_BLOCK_SIZE) {
     failures += rand_data_test_block(hyperram_area, prng, addr);
   }
 
@@ -97,7 +97,7 @@ int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshi
     uint32_t rand_val;
     uint32_t read_val;
 
-    rand_addr = prng() % HYPERRAN_TEST_SIZE;
+    rand_addr = prng() % HYPERRAM_TEST_SIZE;
     rand_val  = prng();
 
     hyperram_area[rand_addr] = rand_val;
@@ -132,10 +132,10 @@ int rand_cap_test(Capability<volatile uint32_t> hyperram_area,
     Capability<volatile uint32_t> read_cap;
 
     do {
-      rand_index = prng() % HYPERRAN_TEST_SIZE;
+      rand_index = prng() % HYPERRAM_TEST_SIZE;
 
       // Capability is double word in size.
-      rand_cap_index = prng() % (HYPERRAN_TEST_SIZE / 2);
+      rand_cap_index = prng() % (HYPERRAM_TEST_SIZE / 2);
     } while (rand_index / 2 == rand_cap_index);
 
     rand_val = prng();
@@ -169,14 +169,14 @@ int stripe_test(Capability<volatile uint32_t> hyperram_area, uint32_t initial_va
   uint32_t failures      = 0;
   uint32_t cur_write_val = initial_val;
 
-  for (uint32_t addr = 0; addr < HYPERRAN_TEST_SIZE; addr++) {
+  for (uint32_t addr = 0; addr < HYPERRAM_TEST_SIZE; addr++) {
     hyperram_area[addr] = cur_write_val;
     cur_write_val       = ~cur_write_val;
   }
 
   uint32_t cur_expected_val = initial_val;
 
-  for (uint32_t addr = 0; addr < HYPERRAN_TEST_SIZE; addr++) {
+  for (uint32_t addr = 0; addr < HYPERRAM_TEST_SIZE; addr++) {
     uint32_t read_value = hyperram_area[addr];
     if (read_value != cur_expected_val) {
       failures++;
@@ -227,7 +227,7 @@ int execute_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64
   int failures = 0;
 
   for (int i = 0; i < iterations; ++i) {
-    uint32_t prog_addr = prng() % (HYPERRAN_TEST_SIZE - 5);
+    uint32_t prog_addr = prng() % (HYPERRAM_TEST_SIZE - 5);
 
     write_prog(hyperram_area, prog_addr);
 
@@ -272,38 +272,47 @@ void hyperram_tests(CapRoot root, UartPtr console) {
     write_str(console, "\\");
     write_hex8b(console, TEST_ITERATIONS - 1);
     write_str(console, "\r\n  ");
-    write_hex(console, HYPERRAN_TEST_SIZE);
+    write_hex(console, HYPERRAM_TEST_SIZE);
     write_str(console, "\r\n  ");
 
-    int failures = 0;
+    bool test_failed = false;
+    int failures     = 0;
+
     write_str(console, "Running RND cap test...");
-    failures += rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAN_TEST_SIZE);
+    failures = rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAM_TEST_SIZE);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running RND data test...");
     failures = rand_data_test_full(hyperram_area, prng);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running RND data & address test...");
-    failures = rand_data_addr_test(hyperram_area, prng, HYPERRAN_TEST_SIZE);
+    failures = rand_data_addr_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running 0101 stripe test...");
     failures = stripe_test(hyperram_area, 0x55555555);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running 1001 stripe test...");
     failures = stripe_test(hyperram_area, 0x99999999);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running 0000_1111 stripe test...");
     failures = stripe_test(hyperram_area, 0x0F0F0F0F);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "Running Execution test...");
-    failures = execute_test(hyperram_area, prng, HYPERRAN_TEST_SIZE);
+    failures = execute_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
+    test_failed |= (failures > 0);
     write_test_result(console, failures);
 
-    check_result(console, failures == 0);
+    check_result(console, !test_failed);
   }
 }
