@@ -477,4 +477,11 @@ module top_verilator (input logic clk_i, rst_ni);
     .oob_in   ({lcd_dc, lcd_rst, lcd_backlight}),
     .oob_out  ( )  // not used.
   );
+
+
+  export "DPI-C" function mhpmcounter_get;
+
+  function automatic longint unsigned mhpmcounter_get(int index);
+    return u_sonata_system.u_top_tracing.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
+  endfunction
 endmodule

@@ -1365,14 +1365,6 @@ module sonata_system #(
     .td_o
   );
 
-  `ifdef VERILATOR
-    export "DPI-C" function mhpmcounter_get;
-
-    function automatic longint unsigned mhpmcounter_get(int index);
-      return u_top_tracing.u_ibex_top.u_ibex_core.cs_registers_i.mhpmcounter[index];
-    endfunction
-  `endif
-
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device
     if (i != RevTags) begin
       logic _unused_rvalid;
