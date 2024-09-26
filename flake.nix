@@ -21,6 +21,7 @@
     nixpkgs,
     flake-utils,
     lowrisc-nix,
+    lowrisc-it,
     ...
   } @ inputs: let
     system_outputs = system: let
@@ -165,6 +166,16 @@
         };
       };
 
+      bitstream = import nix/bitstream.nix {
+        inherit
+          pkgs
+          lrPkgs
+          pythonEnv
+          FLAKE_GIT_COMMIT
+          FLAKE_GIT_DIRTY
+          ;
+      };
+
       tests = import nix/tests.nix {
         inherit
           pkgs
@@ -215,6 +226,8 @@
           cheriot-rtos-test-suite
           ;
         sonata-simulator-lint = lint.sonata-simulator;
+        bitstream-build = bitstream.build;
+        bitstream-load = bitstream.load;
       };
       checks = {test-simulator = tests.simulator;};
       apps = builtins.listToAttrs (map (program: {
