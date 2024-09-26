@@ -246,6 +246,8 @@ module top_sonata (
   logic [31:0] gpio_in[GPIO_NUM];
 
   pinmux u_pinmux (
+    .clk_i(clk_sys),
+    .rst_ni(rst_sys_n),
     .uart_tx_i(uart_tx),
     .uart_rx_o(uart_rx),
     .i2c_scl_i(i2c_scl_h2d),
