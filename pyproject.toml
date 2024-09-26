@@ -25,6 +25,7 @@ edalize = { git = "https://github.com/lowRISC/edalize.git", tag = "v0.4.0"}
 fusesoc = { git = "https://github.com/lowRISC/fusesoc.git", tag = "ot-0.4" }
 pydantic = "^2.8.2"
 toml = "0.10.2"
+setuptools = "75.1.0"
 
 [build-system]
 requires = ["poetry-core"]
