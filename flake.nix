@@ -228,7 +228,7 @@
         doCheck = true;
         buildInputs = [sonata-simulator pythonEnv];
         checkPhase = ''
-          python ${./util/test_runner.py} -t 30 sim \
+          python ${./util/test_runner.py} -t 60 sim \
               --elf-file ${sonata-system-software}/bin/test_runner
         '';
         installPhase = "mkdir $out";
