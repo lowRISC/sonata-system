@@ -90,8 +90,8 @@ class TopConfig(BaseModel, frozen=True):
             exit(3)
 
 
-def parse_top_config(filename: str) -> TopConfig:
+def parse_top_config(filename: Path) -> TopConfig:
     """Load the top configuration from the given TOML file."""
-    with Path(filename).open() as file:
+    with filename.open() as file:
         config_dict = toml.load(file)
     return TopConfig(**config_dict)
