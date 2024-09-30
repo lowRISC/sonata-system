@@ -91,6 +91,7 @@ def block_connections_map(config: TopConfig) -> BlockIoConnectionMap:
 
     for pin in config.pins:
         # Populate block parameters with which pins can connect to them.
+        pin_length = 1 if pin.length is None else pin.length
         for pin_block_io in pin.block_ios:
             (block_io_name, index) = (
                 ("ios", pin_block_io.io)
@@ -99,17 +100,14 @@ def block_connections_map(config: TopConfig) -> BlockIoConnectionMap:
             )
             block = config.get_block(pin_block_io.block)
             for block_io in block.ios:
-                if block_io_name == block_io.name:
-                    block_io_id: BlockIoId = (block.name, block_io_name)
-                    if pin.length is not None:
-                        for i in range(pin.length):
-                            block_connections[block_io_id][
-                                pin_block_io.instance
-                            ][index + i].append(pin.name)
-                    else:
-                        block_connections[block_io_id][pin_block_io.instance][
-                            index
-                        ].append(pin.name)
+                if block_io_name != block_io.name:
+                    continue
+                block_io_id: BlockIoId = (block.name, block_io_name)
+                inst_connections = block_connections[block_io_id][
+                    pin_block_io.instance
+                ]
+                for i in range(pin_length):
+                    inst_connections[index + i].append(pin.name)
 
     return block_connections
 
@@ -126,37 +124,36 @@ class BlockIoInfo(NamedTuple):
 
 PinToBlockOutputMap: TypeAlias = dict[str, list[BlockIoInfo]]
 """
-Maps a pin names to a the block outputs that connect to it.
+Maps a pin name to a the block outputs that connect to it.
 """
 
 
 def pin_to_block_output_map(
     config: TopConfig, block_connections: BlockIoConnectionMap
 ) -> PinToBlockOutputMap:
-    pin_to_block_output_map: PinToBlockOutputMap = {}
+    pin_to_block_output: PinToBlockOutputMap = {}
 
     for block in config.blocks:
         for io in block.ios:
-            if io.type in (BlockIoType.OUTPUT, BlockIoType.INOUT):
-                connections = block_connections[(block.name, io.name)]
-                for inst_idx, inst_pins in enumerate(connections):
-                    for bit_idx, pins in enumerate(inst_pins):
-                        bit_str = "" if len(inst_pins) == 1 else f"[{bit_idx}]"
-                        for pin_name in pins:
-                            pin = config.get_pin(pin_name)
-                            pin_to_block_output_map.setdefault(
-                                pin.name, []
-                            ).append(
-                                BlockIoInfo(
-                                    block.name,
-                                    io.name,
-                                    inst_idx,
-                                    bit_str,
-                                    io.type == BlockIoType.INOUT,
-                                )
-                            )
+            if io.type == BlockIoType.INPUT:
+                continue
 
-    return pin_to_block_output_map
+            connections = block_connections[(block.name, io.name)]
+            for inst_idx, inst_pins in enumerate(connections):
+                for bit_idx, pins in enumerate(inst_pins):
+                    bit_str = "" if len(inst_pins) == 1 else f"[{bit_idx}]"
+                    for pin_name in pins:
+                        pin_to_block_output.setdefault(pin_name, []).append(
+                            BlockIoInfo(
+                                block.name,
+                                io.name,
+                                inst_idx,
+                                bit_str,
+                                io.type == BlockIoType.INOUT,
+                            )
+                        )
+
+    return pin_to_block_output
 
 
 class InputPin(NamedTuple):
@@ -172,48 +169,47 @@ def input_pins_iter(
 ) -> Iterator[InputPin]:
     for block in config.blocks:
         for io in block.ios:
-            if io.type == BlockIoType.INPUT or (
-                io.type == BlockIoType.INOUT
-                and io.combine == BlockIoCombine.MUX
+            if io.type != BlockIoType.INPUT and (
+                io.type != BlockIoType.INOUT
+                or io.combine != BlockIoCombine.MUX
             ):
-                connections = block_connections[(block.name, io.name)]
-                assert (
-                    len(connections) > 0
-                ), f"A {block.name}.{io.name} isn't connected to anything"
-                for bit_idx in range(len(connections[0])):
-                    for inst_idx in range(len(connections)):
-                        inst_pins = connections[inst_idx]
-                        pins = connections[inst_idx][bit_idx]
+                continue
 
-                        bit_str = "" if len(inst_pins) == 1 else f"_{bit_idx}"
-                        default_value = f"1'b{io.default}"
-                        input_pins = [default_value]
-                        for pin_name in pins:
-                            pin_with_idx = pin_name
-                            pin = config.get_pin(pin_name)
-                            # the pin is an array
-                            if pin.length is not None:
-                                assert isinstance(pin.block_ios[0].io, int), (
-                                    f"Pin Array '{pin.name}' must be "
-                                    "connected to a block io of type int."
-                                )
-                                pin_with_idx = (
-                                    f"{pin_name}"
-                                    f"[{bit_idx - pin.block_ios[0].io}]"
-                                )
-                            input_pins.append(pin_with_idx)
-                        # Make sure there are always two values in the input
-                        # list because the second one is always selected by
-                        # default in the RTL.
-                        if len(input_pins) == 1:
-                            input_pins.append(default_value)
-                        yield InputPin(
-                            f"{block.name}_{io.name}",
-                            inst_idx,
-                            bit_idx,
-                            bit_str,
-                            input_pins,
-                        )
+            connections = block_connections[(block.name, io.name)]
+            assert (
+                len(connections) > 0
+            ), f"A {block.name}.{io.name} isn't connected to anything"
+            for bit_idx in range(len(connections[0])):
+                for inst_idx, inst_pins in enumerate(connections):
+                    pins = inst_pins[bit_idx]
+
+                    bit_str = "" if len(inst_pins) == 1 else f"_{bit_idx}"
+                    default_value = f"1'b{io.default}"
+                    input_pins = [default_value]
+                    for pin_name in pins:
+                        pin = config.get_pin(pin_name)
+                        if pin.length is None:
+                            input_pins.append(pin_name)
+                        else:
+                            assert isinstance(pin.block_ios[0].io, int), (
+                                f"Pin Array '{pin.name}' must be "
+                                "connected to a block io of type int."
+                            )
+                            input_pins.append(
+                                f"{pin_name}[{bit_idx - pin.block_ios[0].io}]"
+                            )
+                    # Make sure there are always two values in the input
+                    # list because the second one is always selected by
+                    # default in the RTL.
+                    if len(input_pins) == 1:
+                        input_pins.append(default_value)
+                    yield InputPin(
+                        f"{block.name}_{io.name}",
+                        inst_idx,
+                        bit_idx,
+                        bit_str,
+                        input_pins,
+                    )
 
 
 class InOutPin(NamedTuple):
@@ -231,47 +227,47 @@ def inout_pins_iter(
 ) -> Iterator[InOutPin]:
     for block in config.blocks:
         for io in block.ios:
-            if io.type == BlockIoType.INOUT and io.combine in (
+            if io.type != BlockIoType.INOUT or io.combine not in (
                 BlockIoCombine.AND,
                 BlockIoCombine.OR,
             ):
-                connections = block_connections[(block.name, io.name)]
-                for inst_idx, inst_pins in enumerate(connections):
-                    assert len(inst_pins) == 1, (
-                        "Currently we don't support indexing inout "
-                        "signals that are combined through muxing."
-                    )
-                    combine_pins = inst_pins[0]
-                    input_name = f"{block.name}_{io.name}"
-                    combine_pin_selectors = []
-                    for pin_name in combine_pins:
-                        pin = config.get_pin(pin_name)
-                        for sel_idx, block_output in enumerate(
-                            pin_to_block_outputs[pin.name]
-                        ):
-                            assert block_output.bit_index_str == "", (
-                                "Combining indexed pins is currently "
-                                "unsupported."
-                            )
-                            if (
-                                block_output.block,
-                                block_output.io,
-                                block_output.instance,
-                            ) == (block.name, io.name, inst_idx):
-                                combine_pin_selectors.append(
-                                    1 << (sel_idx + 1)
-                                )
-                                break
-                    assert len(combine_pins) == len(
-                        combine_pin_selectors
-                    ), "Could not fill combine pin selectors properly."
-                    yield InOutPin(
-                        input_name,
-                        inst_idx,
-                        combine_pins,
-                        combine_pin_selectors,
-                        io.combine,
-                    )
+                continue
+
+            connections = block_connections[(block.name, io.name)]
+            for inst_idx, inst_pins in enumerate(connections):
+                assert len(inst_pins) == 1, (
+                    "Currently we don't support indexing inout "
+                    "signals that are combined through muxing."
+                )
+                combine_pins = inst_pins[0]
+                input_name = f"{block.name}_{io.name}"
+                combine_pin_selectors = []
+                for pin_name in combine_pins:
+                    pin = config.get_pin(pin_name)
+                    for sel_idx, block_output in enumerate(
+                        pin_to_block_outputs[pin.name]
+                    ):
+                        assert block_output.bit_index_str == "", (
+                            "Combining indexed pins is currently "
+                            "unsupported."
+                        )
+                        if (
+                            block_output.block,
+                            block_output.io,
+                            block_output.instance,
+                        ) == (block.name, io.name, inst_idx):
+                            combine_pin_selectors.append(1 << (sel_idx + 1))
+                            break
+                assert len(combine_pins) == len(
+                    combine_pin_selectors
+                ), "Could not fill combine pin selectors properly."
+                yield InOutPin(
+                    input_name,
+                    inst_idx,
+                    combine_pins,
+                    combine_pin_selectors,
+                    io.combine,
+                )
 
 
 class OutputPin(NamedTuple):
@@ -288,14 +284,14 @@ def output_pins_iter(
 ) -> Iterator[OutputPin]:
     for pin in config.pins:
         if outputs := pin_to_block_outputs.get(pin.name):
-            if pin.length is not None:
+            if pin.length is None:
+                yield OutputPin(pin.name, "", "", outputs)
+            else:
                 assert pin.length == len(
                     outputs
                 ), f"Arrayed pin '{pin.name}' must have complete mapping"
                 for i in range(pin.length):
                     yield OutputPin(pin.name, f"_{i}", f"[{i}]", [outputs[i]])
-            else:
-                yield OutputPin(pin.name, "", "", outputs)
 
 
 def generate_top(config: TopConfig) -> None:
