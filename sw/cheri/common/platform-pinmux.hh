@@ -48,90 +48,92 @@ class SonataPinmux : private utils::NoCopyNoMove {
    * of different blocks (or disabled). The block outputs that can be
    * selected are limited, and vary on a per-pin basis.
    *
-   * Documentation source:
+   * Documentation sources:
    * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
+   * https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
+   * https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
    */
   enum class OutputPin : uint16_t {
-    Serial0Transmit        = 0x000,  // ser0_tx
-    Serial1Transmit        = 0x001,  // ser1_tx
+    Serial0Transmit        = 0x000,  // ser0_tx,      i.e. P12.4
+    Serial1Transmit        = 0x001,  // ser1_tx,      i.e. P12.8
     Rs232Transmit          = 0x002,  // rs232_tx
-    I2cSerialClock0        = 0x003,  // scl0
-    I2cSerialData0         = 0x004,  // sda0
-    I2cSerialClock1        = 0x005,  // scl1
-    I2cSerialData1         = 0x006,  // sda1
+    I2cSerialClock0        = 0x003,  // scl0,         i.e. J1.4
+    I2cSerialData0         = 0x004,  // sda0,         i.e. J1.3
+    I2cSerialClock1        = 0x005,  // scl1,         i.e. J7.4
+    I2cSerialData1         = 0x006,  // sda1,         i.e. J7.3
     SpiFlashData           = 0x007,  // appspi_d0
     SpiFlashClock          = 0x008,  // appspi_clk
-    SpiLcdCopi             = 0x009,  // lcd_copi (Controller Out Peripheral In)
-    SpiLcdClock            = 0x00a,  // lcd_clk
-    SpiEthernetCopi        = 0x00b,  // ethmac_copi (Controller Out Peripheral In)
-    SpiEthernetClock       = 0x00c,  // ethmac_sclk
-    RaspberryPiHatG0       = 0x00d,  // rph_g0
-    RaspberryPiHatG1       = 0x00e,  // rph_g1
-    RaspberryPiHatG2       = 0x00f,  // rph_g2_sda
-    RaspberryPiHatG3       = 0x010,  // rph_g3_scl
-    RaspberryPiHatG4       = 0x011,  // rph_g4
-    RaspberryPiHatG5       = 0x012,  // rph_g5
-    RaspberryPiHatG6       = 0x013,  // rph_g6
-    RaspberryPiHatG7       = 0x014,  // rph_g7_ce1
-    RaspberryPiHatG8       = 0x015,  // rph_g8_ce0
-    RaspberryPiHatG9       = 0x016,  // rph_g9_cipo
-    RaspberryPiHatG10      = 0x017,  // rph_g10_copi
-    RaspberryPiHatG11      = 0x018,  // rph_g11_sclk
-    RaspberryPiHatG12      = 0x019,  // rph_g12
-    RaspberryPiHatG13      = 0x01a,  // rph_g13
-    RaspberryPiHatG14      = 0x01b,  // rph_txd0
-    RaspberryPiHatG15      = 0x01c,  // rph_rxd0
-    RaspberryPiHatG16      = 0x01d,  // rph_g16_ce2
-    RaspberryPiHatG17      = 0x01e,  // rph_g17
-    RaspberryPiHatG18      = 0x01f,  // rph_g18
-    RaspberryPiHatG19      = 0x020,  // rph_g19_cipo
-    RaspberryPiHatG20      = 0x021,  // rph_g20_copi
-    RaspberryPiHatG21      = 0x022,  // rph_g21_sclk
-    RaspberryPiHatG22      = 0x023,  // rph_g22
-    RaspberryPiHatG23      = 0x024,  // rph_g23
-    RaspberryPiHatG24      = 0x025,  // rph_g24
-    RaspberryPiHatG25      = 0x026,  // rph_g25
-    RaspberryPiHatG26      = 0x027,  // rph_g26
-    RaspberryPiHatG27      = 0x028,  // rph_g27
-    ArduinoShieldIo0       = 0x029,  // ah_tmpio0
-    ArduinoShieldIo1       = 0x02a,  // ah_tmpio1
-    ArduinoShieldIo2       = 0x02b,  // ah_tmpio2
-    ArduinoShieldIo3       = 0x02c,  // ah_tmpio3
-    ArduinoShieldIo4       = 0x02d,  // ah_tmpio4
-    ArduinoShieldIo5       = 0x02e,  // ah_tmpio5
-    ArduinoShieldIo6       = 0x02f,  // ah_tmpio6
-    ArduinoShieldIo7       = 0x030,  // ah_tmpio7
-    ArduinoShieldIo8       = 0x031,  // ah_tmpio8
-    ArduinoShieldIo9       = 0x032,  // ah_tmpio9
-    ArduinoShieldIo10      = 0x033,  // ah_tmpio10
-    ArduinoShieldIo11      = 0x034,  // ah_tmpio11
-    ArduinoShieldIo12      = 0x035,  // ah_tmpio12
-    ArduinoShieldIo13      = 0x036,  // ah_tmpio13
-    ArduinoShieldIo14      = 0x037,  // ah_tmpio14
-    ArduinoShieldIo15      = 0x038,  // ah_tmpio15
-    ArduinoShieldIo16      = 0x039,  // ah_tmpio16
-    ArduinoShieldIo17      = 0x03a,  // ah_tmpio17
-    MikroBusSpiSck         = 0x03b,  // mb2
-    MikroBusSpiTx          = 0x03c,  // mb4
-    MikroBusI2cSerialData  = 0x03d,  // mb5
-    MikroBusI2cSerialClock = 0x03e,  // mb6
-    MikroBusUartTransmit   = 0x03f,  // mb7
-    Pmod0Io0               = 0x040,  // pmod0_0
-    Pmod0Io1               = 0x041,  // pmod0_1
-    Pmod0Io2               = 0x042,  // pmod0_2
-    Pmod0Io3               = 0x043,  // pmod0_3
-    Pmod0Io4               = 0x044,  // pmod0_4
-    Pmod0Io5               = 0x045,  // pmod0_5
-    Pmod0Io6               = 0x046,  // pmod0_6
-    Pmod0Io7               = 0x047,  // pmod0_7
-    Pmod1Io0               = 0x048,  // pmod1_0
-    Pmod1Io1               = 0x049,  // pmod1_1
-    Pmod1Io2               = 0x04a,  // pmod1_2
-    Pmod1Io3               = 0x04b,  // pmod1_3
-    Pmod1Io4               = 0x04c,  // pmod1_4
-    Pmod1Io5               = 0x04d,  // pmod1_5
-    Pmod1Io6               = 0x04e,  // pmod1_6
-    Pmod1Io7               = 0x04f,  // pmod1_7
+    SpiLcdCopi             = 0x009,  // lcd_copi,     i.e. LCD1.8
+    SpiLcdClock            = 0x00a,  // lcd_clk,      i.e. LCD1.9
+    SpiEthernetCopi        = 0x00b,  // ethmac_copi,  i.e. U6.31
+    SpiEthernetClock       = 0x00c,  // ethmac_sclk,  i.e. U6.28
+    RaspberryPiHat27       = 0x00d,  // rph_g0,       i.e. P3.27
+    RaspberryPiHat28       = 0x00e,  // rph_g1,       i.e. P3.28
+    RaspberryPiHat3        = 0x00f,  // rph_g2_sda,   i.e. P3.3
+    RaspberryPiHat5        = 0x010,  // rph_g3_scl,   i.e. P3.5
+    RaspberryPiHat7        = 0x011,  // rph_g4,       i.e. P3.7
+    RaspberryPiHat29       = 0x012,  // rph_g5,       i.e. P3.29
+    RaspberryPiHat31       = 0x013,  // rph_g6,       i.e. P3.31
+    RaspberryPiHat26       = 0x014,  // rph_g7_ce1,   i.e. P3.26
+    RaspberryPiHat24       = 0x015,  // rph_g8_ce0,   i.e. P3.24
+    RaspberryPiHat21       = 0x016,  // rph_g9_cipo,  i.e. P3.21
+    RaspberryPiHat19       = 0x017,  // rph_g10_copi, i.e. P3.19
+    RaspberryPiHat23       = 0x018,  // rph_g11_sclk, i.e. P3.23
+    RaspberryPiHat32       = 0x019,  // rph_g12,      i.e. P3.32
+    RaspberryPiHat33       = 0x01a,  // rph_g13,      i.e. P3.33
+    RaspberryPiHat8        = 0x01b,  // rph_txd0,     i.e. P3.8
+    RaspberryPiHat10       = 0x01c,  // rph_rxd0,     i.e. P3.10
+    RaspberryPiHat36       = 0x01d,  // rph_g16_ce2,  i.e. P3.36
+    RaspberryPiHat11       = 0x01e,  // rph_g17,      i.e. P3.11
+    RaspberryPiHat12       = 0x01f,  // rph_g18,      i.e. P3.12
+    RaspberryPiHat35       = 0x020,  // rph_g19_cipo, i.e. P3.35
+    RaspberryPiHat38       = 0x021,  // rph_g20_copi, i.e. P3.38
+    RaspberryPiHat40       = 0x022,  // rph_g21_sclk, i.e. P3.40
+    RaspberryPiHat15       = 0x023,  // rph_g22,      i.e. P3.15
+    RaspberryPiHat16       = 0x024,  // rph_g23,      i.e. P3.16
+    RaspberryPiHat18       = 0x025,  // rph_g24,      i.e. P3.18
+    RaspberryPiHat22       = 0x026,  // rph_g25,      i.e. P3.22
+    RaspberryPiHat37       = 0x027,  // rph_g26,      i.e. P3.37
+    RaspberryPiHat13       = 0x028,  // rph_g27,      i.e. P3.13
+    ArduinoShieldD0        = 0x029,  // ah_tmpio0,    i.e. P1.1
+    ArduinoShieldD1        = 0x02a,  // ah_tmpio1,    i.e. P1.2
+    ArduinoShieldD2        = 0x02b,  // ah_tmpio2,    i.e. P1.3
+    ArduinoShieldD3        = 0x02c,  // ah_tmpio3,    i.e. P1.4
+    ArduinoShieldD4        = 0x02d,  // ah_tmpio4,    i.e. P1.5
+    ArduinoShieldD5        = 0x02e,  // ah_tmpio5,    i.e. P1.6
+    ArduinoShieldD6        = 0x02f,  // ah_tmpio6,    i.e. P1.7
+    ArduinoShieldD7        = 0x030,  // ah_tmpio7,    i.e. P1.8
+    ArduinoShieldD8        = 0x031,  // ah_tmpio8,    i.e. P4.1
+    ArduinoShieldD9        = 0x032,  // ah_tmpio9,    i.e. P4.2
+    ArduinoShieldD10       = 0x033,  // ah_tmpio10,   i.e. P4.3
+    ArduinoShieldD11       = 0x034,  // ah_tmpio11,   i.e. P4.4
+    ArduinoShieldD12       = 0x035,  // ah_tmpio12,   i.e. P4.5
+    ArduinoShieldD13       = 0x036,  // ah_tmpio13,   i.e. P4.6
+    ArduinoShieldCipo      = 0x037,  // ah_tmpio14,   i.e. P11.1
+    ArduinoShieldSck       = 0x038,  // ah_tmpio15,   i.e. P11.3
+    ArduinoShieldIo        = 0x039,  // ah_tmpio16,   i.e. P11.5
+    ArduinoShieldCopi      = 0x03a,  // ah_tmpio17,   i.e. P11.4
+    MikroBusSpiClock       = 0x03b,  // mb2,          i.e. P6.4
+    MikroBusSpiCopi        = 0x03c,  // mb4,          i.e. P6.6
+    MikroBusI2cSerialData  = 0x03d,  // mb5,          i.e. P7.6
+    MikroBusI2cSerialClock = 0x03e,  // mb6,          i.e. P7.5
+    MikroBusUartTransmit   = 0x03f,  // mb7,          i.e. P8.4
+    Pmod0Io1               = 0x040,  // pmod0_0,      i.e. PMOD0.1
+    Pmod0Io2               = 0x041,  // pmod0_1,      i.e. PMOD0.2
+    Pmod0Io3               = 0x042,  // pmod0_2,      i.e. PMOD0.3
+    Pmod0Io4               = 0x043,  // pmod0_3,      i.e. PMOD0.4
+    Pmod0Io7               = 0x044,  // pmod0_4,      i.e. PMOD0.7
+    Pmod0Io8               = 0x045,  // pmod0_5,      i.e. PMOD0.8
+    Pmod0Io9               = 0x046,  // pmod0_6,      i.e. PMOD0.9
+    Pmod0Io10              = 0x047,  // pmod0_7,      i.e. PMOD0.10
+    Pmod1Io1               = 0x048,  // pmod1_0,      i.e. PMOD1.1
+    Pmod1Io2               = 0x049,  // pmod1_1,      i.e. PMOD1.2
+    Pmod1Io3               = 0x04a,  // pmod1_2,      i.e. PMOD1.3
+    Pmod1Io4               = 0x04b,  // pmod1_3,      i.e. PMOD1.4
+    Pmod1Io7               = 0x04c,  // pmod1_4,      i.e. PMOD1.7
+    Pmod1Io8               = 0x04d,  // pmod1_5,      i.e. PMOD1.8
+    Pmod1Io9               = 0x04e,  // pmod1_6,      i.e. PMOD1.9
+    Pmod1Io19              = 0x04f,  // pmod1_7,      i.e. PMOD1.10
   };
 
   /**
@@ -266,17 +268,17 @@ class SonataPinmux : private utils::NoCopyNoMove {
    */
   static constexpr uint8_t output_pin_options(OutputPin output_pin) {
     switch (output_pin) {
-      case OutputPin::RaspberryPiHatG0:
-      case OutputPin::RaspberryPiHatG1:
-      case OutputPin::RaspberryPiHatG2:
-      case OutputPin::RaspberryPiHatG3:
-      case OutputPin::RaspberryPiHatG10:
-      case OutputPin::RaspberryPiHatG11:
-      case OutputPin::RaspberryPiHatG14:
-      case OutputPin::RaspberryPiHatG20:
-      case OutputPin::RaspberryPiHatG21:
-      case OutputPin::ArduinoShieldIo11:
-      case OutputPin::ArduinoShieldIo13:
+      case OutputPin::RaspberryPiHat27:
+      case OutputPin::RaspberryPiHat28:
+      case OutputPin::RaspberryPiHat3:
+      case OutputPin::RaspberryPiHat5:
+      case OutputPin::RaspberryPiHat19:
+      case OutputPin::RaspberryPiHat23:
+      case OutputPin::RaspberryPiHat8:
+      case OutputPin::RaspberryPiHat38:
+      case OutputPin::RaspberryPiHat40:
+      case OutputPin::ArduinoShieldD11:
+      case OutputPin::ArduinoShieldD13:
         return 3;
       default:
         return 2;
