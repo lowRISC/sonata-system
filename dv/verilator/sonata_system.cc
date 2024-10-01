@@ -69,7 +69,7 @@ bool SonataSystem::Finish() {
   // Set the scope to the root scope, the ibex_pcount_string function otherwise
   // doesn't know the scope itself. Could be moved to ibex_pcount_string, but
   // would require a way to set the scope name from here, similar to MemUtil.
-  svSetScope(svGetScopeFromName("TOP.top_verilator.u_sonata_system"));
+  svSetScope(svGetScopeFromName("TOP.top_verilator"));
 
   std::cout << "\nPerformance Counters" << std::endl
             << "====================" << std::endl;
