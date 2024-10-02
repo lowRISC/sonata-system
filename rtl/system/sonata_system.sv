@@ -171,159 +171,60 @@ module sonata_system
   logic         hardware_revoker_irq;
 
   // Interrupts.
+  localparam int unsigned I2cIrqs    = 15;
+  localparam int unsigned SpiIrqs    = 5;
+  localparam int unsigned UartIrqs   = 8;
+  localparam int unsigned UsbdevIrqs = 18;
+
   logic timer_irq;
   logic external_irq;
 
-  logic uart_tx_watermark_irq [UART_NUM];
-  logic uart_rx_watermark_irq [UART_NUM];
-  logic uart_tx_empty_irq     [UART_NUM];
-  logic uart_rx_overflow_irq  [UART_NUM];
-  logic uart_rx_frame_err_irq [UART_NUM];
-  logic uart_rx_break_err_irq [UART_NUM];
-  logic uart_rx_timeout_irq   [UART_NUM];
-  logic uart_rx_parity_err_irq[UART_NUM];
+  logic [I2cIrqs-1:0]    i2c_interrupts [I2C_NUM];
+  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM];
+  logic [UartIrqs-1:0]   uart_interrupts[UART_NUM];
+  logic [UsbdevIrqs-1:0] usbdev_interrupts;
 
-  logic i2c_fmt_threshold_irq   [I2C_NUM];
-  logic i2c_rx_threshold_irq    [I2C_NUM];
-  logic i2c_acq_threshold_irq   [I2C_NUM];
-  logic i2c_rx_overflow_irq     [I2C_NUM];
-  logic i2c_nak_irq             [I2C_NUM];
-  logic i2c_scl_interference_irq[I2C_NUM];
-  logic i2c_sda_interference_irq[I2C_NUM];
-  logic i2c_stretch_timeout_irq [I2C_NUM];
-  logic i2c_sda_unstable_irq    [I2C_NUM];
-  logic i2c_cmd_complete_irq    [I2C_NUM];
-  logic i2c_tx_stretch_irq      [I2C_NUM];
-  logic i2c_tx_threshold_irq    [I2C_NUM];
-  logic i2c_acq_full_irq        [I2C_NUM];
-  logic i2c_unexp_stop_irq      [I2C_NUM];
-  logic i2c_host_timeout_irq    [I2C_NUM];
+  logic ethmac_irq;
 
-  logic spi_eth_irq;
+  // Each IP block has a single interrupt line to the PLIC and software shall consult the intr_state
+  // register within the block itself to identify the interrupt source(s).
+  logic [I2C_NUM-1:0]  i2c_irq;
+  logic [SPI_NUM-1:0]  spi_irq;
+  logic [UART_NUM-1:0] uart_irq;
+  logic                usbdev_irq;
 
-  logic usbdev_pkt_received_irq;
-  logic usbdev_pkt_sent_irq;
-  logic usbdev_powered_irq;
-  logic usbdev_disconnected_irq;
-  logic usbdev_host_lost_irq;
-  logic usbdev_link_reset_irq;
-  logic usbdev_link_suspend_irq;
-  logic usbdev_link_resume_irq;
-  logic usbdev_av_out_empty_irq;
-  logic usbdev_rx_full_irq;
-  logic usbdev_av_overflow_irq;
-  logic usbdev_link_in_err_irq;
-  logic usbdev_link_out_err_irq;
-  logic usbdev_rx_crc_err_irq;
-  logic usbdev_rx_pid_err_irq;
-  logic usbdev_rx_bitstuff_err_irq;
-  logic usbdev_frame_irq;
-  logic usbdev_av_setup_empty_irq;
+  always_comb begin
+    // Single interrupt line per UART.
+    for (int i = 0; i < UART_NUM; i++) begin
+      uart_irq[i] = |uart_interrupts[i];
+    end
+    // Single interrupt line per I2C device.
+    for (int i = 0; i < I2C_NUM; i++) begin
+      i2c_irq[i] = |i2c_interrupts[i];
+    end
+    // Single interrupt line per SPI controller.
+    for (int i = 0; i < SPI_NUM; i++) begin
+      spi_irq[i] = |spi_interrupts[i];
+    end
+    // Single interrupt line for USBDEV.
+    usbdev_irq = |usbdev_interrupts;
+  end
 
+  // TODO: Reduce the number of interrupt sources within the PLIC.
   logic [181:0] intr_vector;
+  assign intr_vector[181:32] = 'b0;
 
-  localparam int unsigned UartIrqs = 8;
-  localparam int unsigned I2cIrqs  = 15;
-  localparam int unsigned ExtraUarts = UART_NUM > 5 ? UART_NUM - 5 : 0;
-  localparam int unsigned ExtraI2cs  =  I2C_NUM > 2 ?  I2C_NUM - 2 : 0;
-  assign intr_vector[181 : (100 + UartIrqs*ExtraUarts + I2cIrqs*ExtraI2cs)] = '0;
-
-  for (genvar i = 0; i < ExtraI2cs; i++) begin : gen_i2c_intr_1
-    assign intr_vector[(114 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_host_timeout_irq    [i];
-    assign intr_vector[(113 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_unexp_stop_irq      [i];
-    assign intr_vector[(112 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_acq_full_irq        [i];
-    assign intr_vector[(111 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_tx_threshold_irq    [i];
-    assign intr_vector[(110 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_tx_stretch_irq      [i];
-    assign intr_vector[(109 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_cmd_complete_irq    [i];
-    assign intr_vector[(108 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_sda_unstable_irq    [i];
-    assign intr_vector[(107 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_stretch_timeout_irq [i];
-    assign intr_vector[(106 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_sda_interference_irq[i];
-    assign intr_vector[(105 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_scl_interference_irq[i];
-    assign intr_vector[(104 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_nak_irq             [i];
-    assign intr_vector[(103 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_rx_overflow_irq     [i];
-    assign intr_vector[(102 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_acq_threshold_irq   [i];
-    assign intr_vector[(101 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_rx_threshold_irq    [i];
-    assign intr_vector[(100 + i*I2cIrqs + ExtraUarts*UartIrqs) +: 1] = i2c_fmt_threshold_irq   [i];
-  end : gen_i2c_intr_1
-
-  for (genvar i = 0; i < ExtraUarts; i++) begin : gen_uart_intr_2
-    assign intr_vector[(107 + i*UartIrqs) +: 1] = uart_rx_parity_err_irq[i];
-    assign intr_vector[(106 + i*UartIrqs) +: 1] = uart_rx_timeout_irq   [i];
-    assign intr_vector[(105 + i*UartIrqs) +: 1] = uart_rx_break_err_irq [i];
-    assign intr_vector[(104 + i*UartIrqs) +: 1] = uart_rx_frame_err_irq [i];
-    assign intr_vector[(103 + i*UartIrqs) +: 1] = uart_rx_overflow_irq  [i];
-    assign intr_vector[(102 + i*UartIrqs) +: 1] = uart_tx_empty_irq     [i];
-    assign intr_vector[(101 + i*UartIrqs) +: 1] = uart_rx_watermark_irq [i];
-    assign intr_vector[(100 + i*UartIrqs) +: 1] = uart_tx_watermark_irq [i];
-  end : gen_uart_intr_2
-
-  assign intr_vector[99 +: 1] = usbdev_av_setup_empty_irq;
-  assign intr_vector[98 +: 1] = usbdev_frame_irq;
-  assign intr_vector[97 +: 1] = usbdev_rx_bitstuff_err_irq;
-  assign intr_vector[96 +: 1] = usbdev_rx_pid_err_irq;
-  assign intr_vector[95 +: 1] = usbdev_rx_crc_err_irq;
-  assign intr_vector[94 +: 1] = usbdev_link_out_err_irq;
-  assign intr_vector[93 +: 1] = usbdev_link_in_err_irq;
-  assign intr_vector[92 +: 1] = usbdev_av_overflow_irq;
-  assign intr_vector[91 +: 1] = usbdev_rx_full_irq;
-  assign intr_vector[90 +: 1] = usbdev_av_out_empty_irq;
-  assign intr_vector[89 +: 1] = usbdev_link_resume_irq;
-  assign intr_vector[88 +: 1] = usbdev_link_suspend_irq;
-  assign intr_vector[87 +: 1] = usbdev_link_reset_irq;
-  assign intr_vector[86 +: 1] = usbdev_host_lost_irq;
-  assign intr_vector[85 +: 1] = usbdev_disconnected_irq;
-  assign intr_vector[84 +: 1] = usbdev_powered_irq;
-  assign intr_vector[83 +: 1] = usbdev_pkt_sent_irq;
-  assign intr_vector[82 +: 1] = usbdev_pkt_received_irq;
-
-  // Reserved for future use.
-  assign intr_vector[73 +: 9] = 9'b0;
-
-  assign intr_vector[72 +: 1] = hardware_revoker_irq;
-
-  for (genvar i = 2; i < 5; i++) begin : gen_uart_intr_1
-    assign intr_vector[(55 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_parity_err_irq[i] : 1'b0;
-    assign intr_vector[(54 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_timeout_irq   [i] : 1'b0;
-    assign intr_vector[(53 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_break_err_irq [i] : 1'b0;
-    assign intr_vector[(52 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_frame_err_irq [i] : 1'b0;
-    assign intr_vector[(51 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_overflow_irq  [i] : 1'b0;
-    assign intr_vector[(50 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_empty_irq     [i] : 1'b0;
-    assign intr_vector[(49 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_watermark_irq [i] : 1'b0;
-    assign intr_vector[(48 + (i-2)*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_watermark_irq [i] : 1'b0;
-  end : gen_uart_intr_1
-
-  assign intr_vector[47 +: 1] = spi_eth_irq;
-
-  for (genvar i = 0; i < 2; i++) begin : gen_i2c_intr_0
-    assign intr_vector[(31 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_host_timeout_irq    [i] : 1'b0;
-    assign intr_vector[(30 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_unexp_stop_irq      [i] : 1'b0;
-    assign intr_vector[(29 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_acq_full_irq        [i] : 1'b0;
-    assign intr_vector[(28 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_tx_threshold_irq    [i] : 1'b0;
-    assign intr_vector[(27 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_tx_stretch_irq      [i] : 1'b0;
-    assign intr_vector[(26 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_cmd_complete_irq    [i] : 1'b0;
-    assign intr_vector[(25 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_sda_unstable_irq    [i] : 1'b0;
-    assign intr_vector[(24 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_stretch_timeout_irq [i] : 1'b0;
-    assign intr_vector[(23 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_sda_interference_irq[i] : 1'b0;
-    assign intr_vector[(22 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_scl_interference_irq[i] : 1'b0;
-    assign intr_vector[(21 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_nak_irq             [i] : 1'b0;
-    assign intr_vector[(20 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_rx_overflow_irq     [i] : 1'b0;
-    assign intr_vector[(19 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_acq_threshold_irq   [i] : 1'b0;
-    assign intr_vector[(18 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_rx_threshold_irq    [i] : 1'b0;
-    assign intr_vector[(17 + i*I2cIrqs) +: 1] = i < I2C_NUM ? i2c_fmt_threshold_irq   [i] : 1'b0;
-  end : gen_i2c_intr_0
-
-  for (genvar i = 0; i < 2; i++) begin : gen_uart_intr_0
-    assign intr_vector[( 8 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_parity_err_irq[i] : 1'b0;
-    assign intr_vector[( 7 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_timeout_irq   [i] : 1'b0;
-    assign intr_vector[( 6 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_break_err_irq [i] : 1'b0;
-    assign intr_vector[( 5 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_frame_err_irq [i] : 1'b0;
-    assign intr_vector[( 4 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_overflow_irq  [i] : 1'b0;
-    assign intr_vector[( 3 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_empty_irq     [i] : 1'b0;
-    assign intr_vector[( 2 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_rx_watermark_irq [i] : 1'b0;
-    assign intr_vector[( 1 + i*UartIrqs) +: 1] = i < UART_NUM ? uart_tx_watermark_irq [i] : 1'b0;
-  end : gen_uart_intr_0
-
-  assign intr_vector[ 0 +: 1] = 1'b0; // This is a special case and tied to zero.
+  assign intr_vector[31 : SPI_NUM + 24] = 'b0;      // Support up to 8 SPI controllers.
+  assign intr_vector[SPI_NUM + 23 : 24] = spi_irq;
+  assign intr_vector[23 : I2C_NUM + 16] = 'b0;      // Support up to 8 I2C blocks.
+  assign intr_vector[I2C_NUM + 15 : 16] = i2c_irq;
+  assign intr_vector[15 : UART_NUM + 8] = 'b0;
+  assign intr_vector[UART_NUM + 7  : 8] = uart_irq; // Support up to 8 UARTs.
+  assign intr_vector[7:4]               = 4'h0;     // Reserved for future use.
+  assign intr_vector[3]                 = usbdev_irq;
+  assign intr_vector[2]                 = ethmac_irq;
+  assign intr_vector[1]                 = hardware_revoker_irq;
+  assign intr_vector[0]                 = 1'b0;     // This is a special case and tied to zero.
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
@@ -1048,6 +949,7 @@ module sonata_system
     .analog_n_i(ard_an_n_i)
   );
 
+  // I2C controllers/targets.
   for (genvar i = 0; i < I2C_NUM; i++) begin : gen_i2c_hosts
     i2c u_i2c (
       .clk_i                   (clk_sys_i),
@@ -1067,21 +969,21 @@ module sonata_system
       .cio_sda_en_o            (i2c_sda_en_o[i]),
 
       // Interrupts.
-      .intr_fmt_threshold_o    (i2c_fmt_threshold_irq   [i]),
-      .intr_rx_threshold_o     (i2c_rx_threshold_irq    [i]),
-      .intr_acq_threshold_o    (i2c_acq_threshold_irq   [i]),
-      .intr_rx_overflow_o      (i2c_rx_overflow_irq     [i]),
-      .intr_nak_o              (i2c_nak_irq             [i]),
-      .intr_scl_interference_o (i2c_scl_interference_irq[i]),
-      .intr_sda_interference_o (i2c_sda_interference_irq[i]),
-      .intr_stretch_timeout_o  (i2c_stretch_timeout_irq [i]),
-      .intr_sda_unstable_o     (i2c_sda_unstable_irq    [i]),
-      .intr_cmd_complete_o     (i2c_cmd_complete_irq    [i]),
-      .intr_tx_stretch_o       (i2c_tx_stretch_irq      [i]),
-      .intr_tx_threshold_o     (i2c_tx_threshold_irq    [i]),
-      .intr_acq_full_o         (i2c_acq_full_irq        [i]),
-      .intr_unexp_stop_o       (i2c_unexp_stop_irq      [i]),
-      .intr_host_timeout_o     (i2c_host_timeout_irq    [i])
+      .intr_fmt_threshold_o    (i2c_interrupts[i][0]),
+      .intr_rx_threshold_o     (i2c_interrupts[i][1]),
+      .intr_acq_threshold_o    (i2c_interrupts[i][2]),
+      .intr_rx_overflow_o      (i2c_interrupts[i][3]),
+      .intr_nak_o              (i2c_interrupts[i][4]),
+      .intr_scl_interference_o (i2c_interrupts[i][5]),
+      .intr_sda_interference_o (i2c_interrupts[i][6]),
+      .intr_stretch_timeout_o  (i2c_interrupts[i][7]),
+      .intr_sda_unstable_o     (i2c_interrupts[i][8]),
+      .intr_cmd_complete_o     (i2c_interrupts[i][9]),
+      .intr_tx_stretch_o       (i2c_interrupts[i][10]),
+      .intr_tx_threshold_o     (i2c_interrupts[i][11]),
+      .intr_acq_full_o         (i2c_interrupts[i][12]),
+      .intr_unexp_stop_o       (i2c_interrupts[i][13]),
+      .intr_host_timeout_o     (i2c_interrupts[i][14])
     );
   end : gen_i2c_hosts
 
@@ -1104,7 +1006,7 @@ module sonata_system
     .pwm_o
   );
 
-  // UART for serial communication.
+  // UARTs for serial communication.
   for (genvar i = 0; i < UART_NUM; i++) begin : gen_uart_blocks
     uart u_uart (
       .clk_i                (clk_sys_i),
@@ -1119,14 +1021,14 @@ module sonata_system
       .tl_o                 (tl_uart_d2h[i]),
 
       // Interrupts.
-      .intr_tx_watermark_o  (uart_tx_watermark_irq [i]),
-      .intr_rx_watermark_o  (uart_rx_watermark_irq [i]),
-      .intr_tx_empty_o      (uart_tx_empty_irq     [i]),
-      .intr_rx_overflow_o   (uart_rx_overflow_irq  [i]),
-      .intr_rx_frame_err_o  (uart_rx_frame_err_irq [i]),
-      .intr_rx_break_err_o  (uart_rx_break_err_irq [i]),
-      .intr_rx_timeout_o    (uart_rx_timeout_irq   [i]),
-      .intr_rx_parity_err_o (uart_rx_parity_err_irq[i])
+      .intr_tx_watermark_o  (uart_interrupts[i][0]),
+      .intr_rx_watermark_o  (uart_interrupts[i][1]),
+      .intr_tx_empty_o      (uart_interrupts[i][2]),
+      .intr_rx_overflow_o   (uart_interrupts[i][3]),
+      .intr_rx_frame_err_o  (uart_interrupts[i][4]),
+      .intr_rx_break_err_o  (uart_interrupts[i][5]),
+      .intr_rx_timeout_o    (uart_interrupts[i][6]),
+      .intr_rx_parity_err_o (uart_interrupts[i][7])
     );
   end : gen_uart_blocks
 
@@ -1179,27 +1081,27 @@ module sonata_system
     .ram_cfg_i                    (10'b0),
 
     // Interrupts not required
-    .intr_pkt_received_o          (usbdev_pkt_received_irq),
-    .intr_pkt_sent_o              (usbdev_pkt_sent_irq),
-    .intr_powered_o               (usbdev_powered_irq),
-    .intr_disconnected_o          (usbdev_disconnected_irq),
-    .intr_host_lost_o             (usbdev_host_lost_irq),
-    .intr_link_reset_o            (usbdev_link_reset_irq),
-    .intr_link_suspend_o          (usbdev_link_suspend_irq),
-    .intr_link_resume_o           (usbdev_link_resume_irq),
-    .intr_av_out_empty_o          (usbdev_av_out_empty_irq),
-    .intr_rx_full_o               (usbdev_rx_full_irq),
-    .intr_av_overflow_o           (usbdev_av_overflow_irq),
-    .intr_link_in_err_o           (usbdev_link_in_err_irq),
-    .intr_link_out_err_o          (usbdev_link_out_err_irq),
-    .intr_rx_crc_err_o            (usbdev_rx_crc_err_irq),
-    .intr_rx_pid_err_o            (usbdev_rx_pid_err_irq),
-    .intr_rx_bitstuff_err_o       (usbdev_rx_bitstuff_err_irq),
-    .intr_frame_o                 (usbdev_frame_irq),
-    .intr_av_setup_empty_o        (usbdev_av_setup_empty_irq)
+    .intr_pkt_received_o          (usbdev_interrupts[0]),
+    .intr_pkt_sent_o              (usbdev_interrupts[1]),
+    .intr_powered_o               (usbdev_interrupts[2]),
+    .intr_disconnected_o          (usbdev_interrupts[3]),
+    .intr_host_lost_o             (usbdev_interrupts[4]),
+    .intr_link_reset_o            (usbdev_interrupts[5]),
+    .intr_link_suspend_o          (usbdev_interrupts[6]),
+    .intr_link_resume_o           (usbdev_interrupts[7]),
+    .intr_av_out_empty_o          (usbdev_interrupts[8]),
+    .intr_rx_full_o               (usbdev_interrupts[9]),
+    .intr_av_overflow_o           (usbdev_interrupts[10]),
+    .intr_link_in_err_o           (usbdev_interrupts[11]),
+    .intr_link_out_err_o          (usbdev_interrupts[12]),
+    .intr_rx_crc_err_o            (usbdev_interrupts[13]),
+    .intr_rx_pid_err_o            (usbdev_interrupts[14]),
+    .intr_rx_bitstuff_err_o       (usbdev_interrupts[15]),
+    .intr_frame_o                 (usbdev_interrupts[16]),
+    .intr_av_setup_empty_o        (usbdev_interrupts[17])
   );
 
-  // SPI hosts.
+  // SPI controllers.
   for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
     spi u_spi (
       .clk_i               (clk_sys_i),
@@ -1210,11 +1112,11 @@ module sonata_system
       .tl_o                (tl_spi_d2h[i]),
 
       // Interrupts currently disconnected.
-      .intr_rx_full_o      (),
-      .intr_rx_watermark_o (),
-      .intr_tx_empty_o     (),
-      .intr_tx_watermark_o (),
-      .intr_complete_o     (),
+      .intr_rx_full_o      (spi_interrupts[i][0]),
+      .intr_rx_watermark_o (spi_interrupts[i][1]),
+      .intr_tx_empty_o     (spi_interrupts[i][2]),
+      .intr_tx_watermark_o (spi_interrupts[i][3]),
+      .intr_complete_o     (spi_interrupts[i][4]),
 
       // SPI signals.
       .spi_copi_o          (spi_tx_o [i]),
@@ -1227,9 +1129,9 @@ module sonata_system
   // Sample the ethernet interrupt pin.
   always_ff @(posedge clk_sys_i or negedge rst_sys_ni) begin
     if (!rst_sys_ni) begin
-      spi_eth_irq <= 1'b0;
+      ethmac_irq <= 1'b0;
     end else begin
-      spi_eth_irq <= !spi_eth_irq_ni;
+      ethmac_irq <= !spi_eth_irq_ni;
     end
   end
 
