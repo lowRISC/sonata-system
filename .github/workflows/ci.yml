@@ -13,6 +13,11 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   CMAKE_BUILD_TYPE: Release
 
+# Cancel jobs in progress when the pull-request is forced pushed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   software:
     runs-on: ubuntu-latest
@@ -75,3 +80,62 @@ jobs:
 
     - name: Nix Checks
       run: nix flake check -L
+
+  fpga:
+    runs-on: [ubuntu-22.04-fpga, sonata]
+    env:
+      BITSTREAM_PATH: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
+      GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream/
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # We only write to the cache when merging into main, so we don't need th autenticate on pull-request.
+    - uses: google-github-actions/auth@v2
+      if: github.event_name != 'pull_request'
+      with:
+        project_id: lowrisc-cloud-compute
+        workload_identity_provider: projects/281751345158/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v27
+      with:
+        extra_nix_config: |
+          substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
+          trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+    # Check if there's a bitstream in the cache that maches the RTL hash computed by Nix.
+    - name: Check bitstream cache
+      run: |
+        BITSTREAM_HASH=$(nix eval .#sonata-simulator --apply 'd: d.outPath' --raw | cut -d '/' -f4 | cut -d '-' -f1)
+        if gcloud storage stat "${GS_PATH}/$BITSTREAM_HASH.bit" >/dev/null 2>&1; then
+          gcloud storage cp -v "${GS_PATH}/$BITSTREAM_HASH.bit" "${BITSTREAM_PATH}" 2>/dev/null
+        else
+          echo "Bitstream not cached"
+        fi
+
+    # Only runs if the bitstream does not exist (not found in cache).
+    - name: Build bitstream
+      id: build_bitstream
+      if: ${{hashFiles('${BITSTREAM_PATH}') == ''}} 
+      run: |
+        module load xilinx/vivado
+        nix run .#bitstream-build
+
+    # Only upload the bistream if the build bistream step completed successfuly and this is not a pull-request. 
+    - name: Upload bitstream to the cache
+      if: github.event_name != 'pull_request' 
+      run: |
+        BITSTREAM_HASH=$(nix eval .#sonata-simulator --apply 'd: d.outPath' --raw | cut -d '/' -f4 | cut -d '-' -f1)
+        gcloud storage cp "${BITSTREAM_PATH}" "${GS_PATH}/$BITSTREAM_HASH.bit"
+
+    - name: Flash bitstream
+      run: |
+        nix run .#bitstream-load
+
+    - name: Run software tests
+      run: |
+        nix run .#fpga-test /dev/ttySONATA_UART_0
+
+
