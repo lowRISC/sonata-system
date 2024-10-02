@@ -109,7 +109,7 @@ targets:
     toplevel: top_sonata
     tools:
       vivado:
-        part: "xc7a50tcsg324-1" # Artix-7 50T
+        part: "xc7a50tcsg324-2" # Artix-7 50T
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx

@@ -19,7 +19,7 @@ jtag newtap $_CHIPNAME cpu -irlen 5 -expected-id $_EXPECTED_ID -ignore-version
 set _TARGETNAME $_CHIPNAME.cpu
 target create $_TARGETNAME riscv -chain-position $_TARGETNAME
 
-adapter speed 10000
+adapter speed 15000
 
 riscv set_mem_access sysbus
 reset_config none
