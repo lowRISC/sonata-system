@@ -4,6 +4,7 @@
 set(CHECKS
   cheri_sanity.cc
   gpio_check.cc
+  lcd_check.cc
   uart_check.cc
   spi_test.cc
   system_info_check.cc
