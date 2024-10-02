@@ -44,7 +44,9 @@ To build the toolchain, you'll need:
 
 On Ubuntu (including WSL), you can install them with:
 
-``sudo apt get install clang ninja-build lld cmake``
+```sh
+sudo apt install clang ninja-build lld cmake
+```
 
 > HINT: You can see all the commands used to setup the test running in the
 > [CI YAML file](https://github.com/CHERIoT-Platform/llvm-project/blob/cheriot/.cirrus.yml). This provides a set of commands that
