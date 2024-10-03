@@ -18,8 +18,10 @@ enum {
   EthIntrIrq = 47,
 
   // GPIO Output
-  EthCsPin  = 13,
   EthRstPin = 14,
+
+  // CS line 0 on SPI controller.
+  EthCsLine = 0,
 };
 
 static struct netif *eth_netif;
@@ -40,11 +42,11 @@ static uint16_t ksz8851_reg_read(spi_t *spi, uint8_t reg) {
   bytes[0] = (0b00 << 6) | (be << 2) | (reg >> 6);
   bytes[1] = (reg << 2) & 0b11110000;
 
-  set_output_bit(GPIO_OUT, EthCsPin, 0);
+  spi_set_cs(spi, EthCsLine, 0);
   spi_tx(spi, bytes, 2);
   uint16_t val;
   spi_rx(spi, (uint8_t *)&val, 2);
-  set_output_bit(GPIO_OUT, EthCsPin, 1);
+  spi_set_cs(spi, EthCsLine, 1);
   return val;
 }
 
@@ -54,11 +56,11 @@ static void ksz8851_reg_write(spi_t *spi, uint8_t reg, uint16_t val) {
   bytes[0] = (0b01 << 6) | (be << 2) | (reg >> 6);
   bytes[1] = (reg << 2) & 0b11110000;
 
-  set_output_bit(GPIO_OUT, EthCsPin, 0);
+  spi_set_cs(spi, EthCsLine, 0);
   spi_tx(spi, bytes, 2);
   spi_tx(spi, (uint8_t *)&val, 2);
   spi_wait_idle(spi);
-  set_output_bit(GPIO_OUT, EthCsPin, 1);
+  spi_set_cs(spi, EthCsLine, 1);
 }
 
 static void ksz8851_reg_set(spi_t *spi, uint8_t reg, uint16_t mask) {
@@ -140,7 +142,7 @@ static err_t ksz8851_output(struct netif *netif, struct pbuf *buf) {
 
   // Start transmission.
   uint8_t cmd = 0b11 << 6;
-  set_output_bit(GPIO_OUT, EthCsPin, 0);
+  spi_set_cs(spi, EthCsLine, 0);
   spi_tx(spi, &cmd, 1);
 
   uint32_t header = 0x8000 | (buf->tot_len << 16);
@@ -161,7 +163,7 @@ static err_t ksz8851_output(struct netif *netif, struct pbuf *buf) {
   }
 
   spi_wait_idle(spi);
-  set_output_bit(GPIO_OUT, EthCsPin, 1);
+  spi_set_cs(spi, EthCsLine, 1);
 
   // Stop QMU DMA transfer operation
   ksz8851_reg_clear(spi, ETH_RXQCR, StartDmaAccess);
@@ -229,7 +231,7 @@ static void ksz8851_recv(struct netif *netif) {
 
     // Start receiving.
     uint8_t cmd = 0b10 << 6;
-    set_output_bit(GPIO_OUT, EthCsPin, 0);
+    spi_set_cs(spi, EthCsLine, 0);
     spi_tx(spi, &cmd, 1);
 
     uint8_t dummy[8];
@@ -249,7 +251,7 @@ static void ksz8851_recv(struct netif *netif) {
       spi_rx(spi, dummy, pad);
     }
 
-    set_output_bit(GPIO_OUT, EthCsPin, 1);
+    spi_set_cs(spi, EthCsLine, 1);
 
     // Stop QMU DMA transfer operation
     ksz8851_reg_clear(spi, ETH_RXQCR, StartDmaAccess);

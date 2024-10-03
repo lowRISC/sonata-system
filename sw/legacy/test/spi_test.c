@@ -11,9 +11,8 @@
 #include "dev_access.h"
 #include "sonata_system.h"
 
-#define GPIO_BASE 0x80000000
-
-void spi_csn(uint32_t csn) { DEV_WRITE(GPIO_BASE, (csn & 1) << 12); }
+// App flash SPI is connected to CS line 0.
+const uint8_t SpiCsLine = 0;
 
 uint8_t CmdReadJEDECId         = 0x9f;
 uint8_t CmdWriteEnable         = 0x06;
@@ -28,15 +27,15 @@ void flash_erase_sector(uint32_t sector_idx) {
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, &CmdWriteEnable, 1);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, erase_cmd, 4);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, &CmdReadStatusRegister1, 1);
 
   uint8_t status;
@@ -44,7 +43,7 @@ void flash_erase_sector(uint32_t sector_idx) {
     spi_rx(&spi, &status, 1);
   } while ((status & 0x1) == 1);
 
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 }
 
 void flash_write_page(uint32_t page_idx, uint8_t* data) {
@@ -53,16 +52,16 @@ void flash_write_page(uint32_t page_idx, uint8_t* data) {
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, &CmdWriteEnable, 1);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, write_cmd, 4);
   spi_tx(&spi, data, 256);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, &CmdReadStatusRegister1, 1);
 
   uint8_t status;
@@ -70,7 +69,7 @@ void flash_write_page(uint32_t page_idx, uint8_t* data) {
     spi_rx(&spi, &status, 1);
   } while ((status & 0x1) == 1);
 
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 }
 
 void flash_read(uint32_t address, uint8_t* data_out, uint32_t len) {
@@ -79,10 +78,10 @@ void flash_read(uint32_t address, uint8_t* data_out, uint32_t len) {
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, read_cmd, 4);
   spi_rx(&spi, data_out, len);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 }
 
 void spi_test() {
@@ -91,10 +90,10 @@ void spi_test() {
   spi_t spi;
   spi_init(&spi, FLASH_SPI, 0 /* speed, currently unused */);
 
-  spi_csn(0);
+  spi_set_cs(&spi, SpiCsLine, 0);
   spi_tx(&spi, &CmdReadJEDECId, 1);
   spi_rx(&spi, jedec_data, 3);
-  spi_csn(1);
+  spi_set_cs(&spi, SpiCsLine, 1);
 
   putstr("Got JEDEC data ");
   puthex(jedec_data[0]);
@@ -113,7 +112,6 @@ int main(void) {
     write_data[i] = i;
   }
 
-  spi_csn(1);
   uart_init(DEFAULT_UART);
   putstr("Hello world\r\n");
   spi_test();

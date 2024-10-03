@@ -15,6 +15,12 @@ void spi_init(spi_t *spi, spi_reg_t spi_reg, uint32_t speed) {
 
 void spi_wait_idle(spi_t *spi) { while ((DEV_READ(spi->reg + SPI_STATUS) & 0x40000) == 0); }
 
+void spi_set_cs(spi_t *spi, uint8_t cs_line, bool cs_level) {
+  uint32_t cs = DEV_READ(spi->reg + SPI_CS);
+  cs          = cs_level ? (cs | (1u << cs_line)) : (cs & ~(1u << cs_line));
+  DEV_WRITE(spi->reg + SPI_CS, cs);
+}
+
 void spi_tx(spi_t *spi, const uint8_t *data, uint32_t len) {
   spi_wait_idle(spi);
 
