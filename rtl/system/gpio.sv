@@ -37,10 +37,10 @@ module gpio #(
   logic [GpoWidth-1:0] gp_o_d;
   logic [GpoWidth-1:0] gp_o_en_d;
 
-  logic gp_o_wr_en;
-  logic gp_i_rd_en_d, gp_i_rd_en_q;
-  logic gp_i_dbnc_rd_en_d, gp_i_dbnc_rd_en_q;
-  logic gp_o_en_wr_en;
+  logic gp_o_sel, gp_o_rd_en;
+  logic gp_i_sel, gp_i_rd_en;
+  logic gp_i_dbnc_sel, gp_i_dbnc_rd_en;
+  logic gp_o_en_sel, gp_o_en_rd_en;
 
   // Instantiate debouncers for all GP inputs.
   for (genvar i = 0; i < GpiWidth; i++) begin
@@ -56,23 +56,27 @@ module gpio #(
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      gp_i_q            <= '0;
-      gp_o              <= '0;
-      gp_o_en           <= '0;
-      device_rvalid_o   <= '0;
-      gp_i_rd_en_q      <= '0;
-      gp_i_dbnc_rd_en_q <= '0;
+      gp_i_q          <= '0;
+      gp_o            <= '0;
+      gp_o_en         <= '0;
+      device_rvalid_o <= '0;
+      gp_o_rd_en      <= '0;
+      gp_i_rd_en      <= '0;
+      gp_i_dbnc_rd_en <= '0;
+      gp_o_en_rd_en   <= '0;
     end else begin
       gp_i_q <= {gp_i_q[1:0], gp_i};
-      if (gp_o_wr_en) begin
+      if (gp_o_sel & device_we_i) begin
         gp_o <= gp_o_d;
       end
-      if (gp_o_en_wr_en) begin
+      if (gp_o_en_sel & device_we_i) begin
         gp_o_en <= gp_o_en_d;
       end
-      device_rvalid_o   <= device_req_i;
-      gp_i_rd_en_q      <= gp_i_rd_en_d;
-      gp_i_dbnc_rd_en_q <= gp_i_dbnc_rd_en_d;
+      device_rvalid_o <= device_req_i  & ~device_we_i;
+      gp_o_rd_en      <= gp_o_sel      & ~device_we_i;
+      gp_i_rd_en      <= gp_i_sel      & ~device_we_i;
+      gp_i_dbnc_rd_en <= gp_i_dbnc_sel & ~device_we_i;
+      gp_o_en_rd_en   <= gp_o_en_sel   & ~device_we_i;
     end
   end
 
@@ -95,20 +99,24 @@ module gpio #(
   end
 
   // Decode write and read requests.
-  assign reg_addr          = device_addr_i[RegAddr-1:0];
-  assign gp_o_wr_en        = device_req_i &  device_we_i & (reg_addr == GPIO_OUT_REG[RegAddr-1:0]);
-  assign gp_i_rd_en_d      = device_req_i & ~device_we_i & (reg_addr == GPIO_IN_REG[RegAddr-1:0]);
-  assign gp_i_dbnc_rd_en_d = device_req_i & ~device_we_i & (reg_addr == GPIO_IN_DBNC_REG[RegAddr-1:0]);
-  assign gp_o_en_wr_en     = device_req_i &  device_we_i & (reg_addr == GPIO_OUT_EN_REG[RegAddr-1:0]);
+  assign reg_addr      = device_addr_i[RegAddr-1:0];
+  assign gp_o_sel      = device_req_i & (reg_addr == GPIO_OUT_REG[RegAddr-1:0]);
+  assign gp_i_sel      = device_req_i & (reg_addr == GPIO_IN_REG[RegAddr-1:0]);
+  assign gp_i_dbnc_sel = device_req_i & (reg_addr == GPIO_IN_DBNC_REG[RegAddr-1:0]);
+  assign gp_o_en_sel   = device_req_i & (reg_addr == GPIO_OUT_EN_REG[RegAddr-1:0]);
 
   // Assign device_rdata_o according to request type.
   always_comb begin
-    if (gp_i_dbnc_rd_en_q)
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
-    else if (gp_i_rd_en_q)
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_q[2]};
-    else
+    if (gp_o_rd_en)
       device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o};
+    else if (gp_i_rd_en)
+      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_q[2]};
+    else if (gp_i_dbnc_rd_en)
+      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
+    else if (gp_o_en_rd_en)
+      device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o_en};
+    else
+      device_rdata_o = {(DataWidth){1'b0}};
   end
 
   // Unused signals.
