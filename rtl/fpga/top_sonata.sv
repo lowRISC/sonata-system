@@ -239,6 +239,7 @@ module top_sonata (
   logic i2c_sda_en_h2d[I2C_NUM];
   logic i2c_sda_d2h[I2C_NUM];
   logic spi_sck[SPI_NUM];
+  logic [SPI_CS_NUM-1:0] spi_cs[SPI_NUM];
   logic spi_tx[SPI_NUM];
   logic spi_rx[SPI_NUM];
   logic [31:0] gpio_out[GPIO_NUM];
@@ -340,12 +341,42 @@ module top_sonata (
     .tl_o(tl_pinmux_d2h)
   );
 
+  // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
+  // by the `gp_o` port presently.
+  logic gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs;
+  logic gp_rph_g8_ce0, gp_rph_g7_ce1;
+  logic gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2;
+  logic gp_ah_tmpio10, gp_mb1;
+
+  // CS outputs to SPI peripherals from controllers.
+  assign appspi_cs   = spi_cs[0][0];
+  assign lcd_cs      = spi_cs[1][0];
+  assign ethmac_cs   = spi_cs[2][0];
+  assign rph_g8_ce0  = spi_cs[3][0];
+  assign rph_g7_ce1  = spi_cs[3][1];
+  assign ah_tmpio10  = spi_cs[3][2];
+  assign rph_g18     = spi_cs[4][0];
+  assign rph_g17     = spi_cs[4][1];
+  assign rph_g16_ce2 = spi_cs[4][2];
+  assign mb1         = spi_cs[4][3];
+
+  wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
+                             gp_rph_g8_ce0, gp_rph_g7_ce1,
+                             gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2,
+                             gp_ah_tmpio10, gp_mb1};
+
+  // Collect the unused CS lines.
+  wire unused_spi_cs_ = ^{spi_cs[0][SPI_CS_NUM-1:1],
+                          spi_cs[1][SPI_CS_NUM-1:1],
+                          spi_cs[2][SPI_CS_NUM-1:1],
+                          spi_cs[3][SPI_CS_NUM-1]};
+
   // Enable CHERI by default.
   logic enable_cheri;
   assign enable_cheri = 1'b1;
 
   logic rgbled_dout;
-  logic [7:0] unused_gp_o;
+  logic [8:0] unused_gp_o;
 
   sonata_system #(
     .PwmWidth        (  1             ),
@@ -379,14 +410,14 @@ module top_sonata (
     .gp_o           ({
                       unused_gp_o,
                       mb0, // mikroBUS Click reset
-                      mb1, // mikroBUS Click chip select
-                      ah_tmpio10, // Arduino shield chip select
-                      rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
-                      rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
-                      ethmac_rst, ethmac_cs, // Ethernet
-                      appspi_cs, // Flash
+                      gp_mb1, // mikroBUS Click chip select
+                      gp_ah_tmpio10, // Arduino shield chip select
+                      gp_rph_g16_ce2, gp_rph_g17, gp_rph_g18, // R-Pi SPI1 chip selects [2:0]
+                      gp_rph_g7_ce1, gp_rph_g8_ce0, // R-Pi SPI0 chip selects [1:0]
+                      ethmac_rst, gp_ethmac_cs, // Ethernet
+                      gp_appspi_cs, // Flash
                       usrLed, // User LEDs (8 bits)
-                      lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
+                      lcd_backlight, lcd_dc, lcd_rst, gp_lcd_cs // LCD screen
                     }),
 
     // Arduino Shield Analog(ue)
@@ -403,16 +434,16 @@ module top_sonata (
     .gp_headers_o_en(gpio_out_en),
 
     // UARTs
-    .uart_rx_i     (uart_rx),
-    .uart_tx_o     (uart_tx),
+    .uart_rx_i      (uart_rx),
+    .uart_tx_o      (uart_tx),
 
     // I2C hosts
-    .i2c_scl_i     (i2c_scl_d2h),
-    .i2c_scl_o     (i2c_scl_h2d),
-    .i2c_scl_en_o  (i2c_scl_en_h2d),
-    .i2c_sda_i     (i2c_sda_d2h),
-    .i2c_sda_o     (i2c_sda_h2d),
-    .i2c_sda_en_o  (i2c_sda_en_h2d),
+    .i2c_scl_i      (i2c_scl_d2h),
+    .i2c_scl_o      (i2c_scl_h2d),
+    .i2c_scl_en_o   (i2c_scl_en_h2d),
+    .i2c_sda_i      (i2c_sda_d2h),
+    .i2c_sda_o      (i2c_sda_h2d),
+    .i2c_sda_en_o   (i2c_sda_en_h2d),
 
     // SPI connections for
     // - LCD screen
@@ -421,9 +452,10 @@ module top_sonata (
     // - 2x Raspberry Pi HAT
     // - Arduino Shield
     // - mikroBUS Click
-    .spi_rx_i  (spi_rx),
-    .spi_tx_o  (spi_tx),
-    .spi_sck_o (spi_sck),
+    .spi_rx_i       (spi_rx),
+    .spi_tx_o       (spi_tx),
+    .spi_cs_o       (spi_cs),
+    .spi_sck_o      (spi_sck),
     // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
 

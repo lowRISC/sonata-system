@@ -155,9 +155,10 @@ module top_verilator (input logic clk_i, rst_ni);
     end
   end
 
-  logic spi_rx[SPI_NUM];
-  logic spi_tx[SPI_NUM];
-  logic spi_sck[SPI_NUM];
+  logic                  spi_rx [SPI_NUM];
+  logic                  spi_tx [SPI_NUM];
+  logic [SPI_CS_NUM-1:0] spi_cs [SPI_NUM];
+  logic                  spi_sck[SPI_NUM];
 
   assign spi_rx[0] = appspi_d1;
   assign appspi_d0 = spi_tx[0];
@@ -263,6 +264,31 @@ module top_verilator (input logic clk_i, rst_ni);
     .tl_o()
   );
 
+  // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
+  // by the `gp_o` port presently.
+  logic gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs;
+  logic gp_rph_g8_ce0, gp_rph_g7_ce1;
+  logic gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2;
+  logic gp_ah_tmpio10, gp_mb1;
+
+  // CS outputs to SPI peripherals from controllers.
+  assign appspi_cs   = spi_cs[0][0];
+  assign lcd_cs      = spi_cs[1][0];
+  assign ethmac_cs   = spi_cs[2][0];
+  assign rph_g8_ce0  = spi_cs[3][0];
+  assign rph_g7_ce1  = spi_cs[3][1];
+  assign ah_tmpio10  = spi_cs[3][2];
+  assign rph_g18     = spi_cs[4][0];
+  assign rph_g17     = spi_cs[4][1];
+  assign rph_g16_ce2 = spi_cs[4][2];
+  assign mb1         = spi_cs[4][3];
+
+  wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
+                             gp_rph_g8_ce0, gp_rph_g7_ce1, gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2,
+                             gp_ah_tmpio10, gp_mb1};
+
+  logic [8:0] unused_gp_o;
+
   // Instantiating the Sonata System.
   // TODO instantiate this with only two UARTs and no SPI when bus is
   // parameterized.
@@ -282,23 +308,24 @@ module top_verilator (input logic clk_i, rst_ni);
     .rst_usb_ni     (rst_usb_n),
 
     // SRAM model used for hyperram so no hyperram clock is provided
-    .clk_hr_i   (1'b0),
-    .clk_hr90p_i(1'b0),
-    .clk_hr3x_i (1'b0),
+    .clk_hr_i       (1'b0),
+    .clk_hr90p_i    (1'b0),
+    .clk_hr3x_i     (1'b0),
 
-    .gp_i         (0),
-    .gp_o         ({
-                    9'b0,
-                    mb0, // mikroBUS Click reset
-                    mb1, // mikroBUS Click chip select
-                    ah_tmpio10, // Arduino shield chip select
-                    rph_g18, rph_g17, rph_g16_ce2, // R-Pi SPI1 chip select
-                    rph_g8_ce0, rph_g7_ce1, // R-Pi SPI0 chip select
-                    ethmac_rst, ethmac_cs, // Ethernet
-                    appspi_cs, // Flash
-                    usrLed, // User LEDs (8 bits)
-                    lcd_backlight, lcd_dc, lcd_rst, lcd_cs // LCD screen
-                  }),
+    .gp_i           (0),
+    .gp_o           ({
+                      unused_gp_o,
+                      mb0, // mikroBUS Click reset
+                      gp_mb1, // mikroBUS Click chip select
+                      gp_ah_tmpio10, // Arduino shield chip select
+                      gp_rph_g16_ce2, gp_rph_g17, gp_rph_g18, // R-Pi SPI1 chip selects [2:0]
+                      gp_rph_g7_ce1, gp_rph_g8_ce0, // R-Pi SPI0 chip selects [1:0]
+                      ethmac_rst, gp_ethmac_cs, // Ethernet
+                      gp_appspi_cs, // Flash
+                      usrLed, // User LEDs (8 bits)
+                      lcd_backlight, lcd_dc, lcd_rst, gp_lcd_cs // LCD screen
+                     }),
+
     .gp_o_en      ( ),
     .pwm_o        ( ),
     .gp_headers_i ('{default: '0}),
@@ -311,14 +338,16 @@ module top_verilator (input logic clk_i, rst_ni);
     .ard_an_n_i     (0),
 
     // UARTs
-    .uart_rx_i     ('{uart_sys_rx, uart_aux_rx, 0, 0, 0}),
-    .uart_tx_o     ('{uart_sys_tx, uart_aux_tx, unused_uart[0], unused_uart[1], unused_uart[2]}),
+    .uart_rx_i      ('{uart_sys_rx, uart_aux_rx, 0, 0, 0}),
+    .uart_tx_o      ('{uart_sys_tx, uart_aux_tx, unused_uart[0], unused_uart[1], unused_uart[2]}),
 
     // SPI hosts
-    .spi_rx_i (spi_rx),
-    .spi_tx_o (spi_tx),
-    .spi_sck_o(spi_sck),
-    .spi_eth_irq_ni(1'b1),
+    .spi_rx_i       (spi_rx),
+    .spi_tx_o       (spi_tx),
+    .spi_cs_o       (spi_cs),
+    .spi_sck_o      (spi_sck),
+
+    .spi_eth_irq_ni (1'b1),
 
     // CHERI signals
     .cheri_en_i     (cheri_en ),

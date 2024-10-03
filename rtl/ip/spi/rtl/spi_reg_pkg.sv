@@ -6,6 +6,9 @@
 
 package spi_reg_pkg;
 
+  // Param list
+  parameter int MaxPeripherals = 4;
+
   // Address widths within the block
   parameter int BlockAw = 6;
 
@@ -130,6 +133,10 @@ package spi_reg_pkg;
   } spi_reg2hw_tx_fifo_reg_t;
 
   typedef struct packed {
+    logic        q;
+  } spi_reg2hw_cs_mreg_t;
+
+  typedef struct packed {
     struct packed {
       logic        d;
       logic        de;
@@ -174,23 +181,34 @@ package spi_reg_pkg;
     logic [7:0]  d;
   } spi_hw2reg_rx_fifo_reg_t;
 
+  typedef struct packed {
+    struct packed {
+      logic [7:0]  d;
+    } tx_fifo_depth;
+    struct packed {
+      logic [7:0]  d;
+    } rx_fifo_depth;
+  } spi_hw2reg_info_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    spi_reg2hw_intr_state_reg_t intr_state; // [86:82]
-    spi_reg2hw_intr_enable_reg_t intr_enable; // [81:77]
-    spi_reg2hw_intr_test_reg_t intr_test; // [76:67]
-    spi_reg2hw_cfg_reg_t cfg; // [66:48]
-    spi_reg2hw_control_reg_t control; // [47:30]
-    spi_reg2hw_start_reg_t start; // [29:18]
-    spi_reg2hw_rx_fifo_reg_t rx_fifo; // [17:9]
-    spi_reg2hw_tx_fifo_reg_t tx_fifo; // [8:0]
+    spi_reg2hw_intr_state_reg_t intr_state; // [90:86]
+    spi_reg2hw_intr_enable_reg_t intr_enable; // [85:81]
+    spi_reg2hw_intr_test_reg_t intr_test; // [80:71]
+    spi_reg2hw_cfg_reg_t cfg; // [70:52]
+    spi_reg2hw_control_reg_t control; // [51:34]
+    spi_reg2hw_start_reg_t start; // [33:22]
+    spi_reg2hw_rx_fifo_reg_t rx_fifo; // [21:13]
+    spi_reg2hw_tx_fifo_reg_t tx_fifo; // [12:4]
+    spi_reg2hw_cs_mreg_t [3:0] cs; // [3:0]
   } spi_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    spi_hw2reg_intr_state_reg_t intr_state; // [36:27]
-    spi_hw2reg_status_reg_t status; // [26:8]
-    spi_hw2reg_rx_fifo_reg_t rx_fifo; // [7:0]
+    spi_hw2reg_intr_state_reg_t intr_state; // [52:43]
+    spi_hw2reg_status_reg_t status; // [42:24]
+    spi_hw2reg_rx_fifo_reg_t rx_fifo; // [23:16]
+    spi_hw2reg_info_reg_t info; // [15:0]
   } spi_hw2reg_t;
 
   // Register offsets
@@ -203,6 +221,8 @@ package spi_reg_pkg;
   parameter logic [BlockAw-1:0] SPI_START_OFFSET = 6'h 18;
   parameter logic [BlockAw-1:0] SPI_RX_FIFO_OFFSET = 6'h 1c;
   parameter logic [BlockAw-1:0] SPI_TX_FIFO_OFFSET = 6'h 20;
+  parameter logic [BlockAw-1:0] SPI_INFO_OFFSET = 6'h 24;
+  parameter logic [BlockAw-1:0] SPI_CS_OFFSET = 6'h 28;
 
   // Reset values for hwext registers and their fields
   parameter logic [4:0] SPI_INTR_TEST_RESVAL = 5'h 0;
@@ -213,6 +233,7 @@ package spi_reg_pkg;
   parameter logic [0:0] SPI_INTR_TEST_COMPLETE_RESVAL = 1'h 0;
   parameter logic [18:0] SPI_STATUS_RESVAL = 19'h 0;
   parameter logic [7:0] SPI_RX_FIFO_RESVAL = 8'h 0;
+  parameter logic [15:0] SPI_INFO_RESVAL = 16'h 0;
 
   // Register index
   typedef enum int {
@@ -224,20 +245,24 @@ package spi_reg_pkg;
     SPI_STATUS,
     SPI_START,
     SPI_RX_FIFO,
-    SPI_TX_FIFO
+    SPI_TX_FIFO,
+    SPI_INFO,
+    SPI_CS
   } spi_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SPI_PERMIT [9] = '{
-    4'b 0001, // index[0] SPI_INTR_STATE
-    4'b 0001, // index[1] SPI_INTR_ENABLE
-    4'b 0001, // index[2] SPI_INTR_TEST
-    4'b 1111, // index[3] SPI_CFG
-    4'b 0011, // index[4] SPI_CONTROL
-    4'b 0111, // index[5] SPI_STATUS
-    4'b 0011, // index[6] SPI_START
-    4'b 0001, // index[7] SPI_RX_FIFO
-    4'b 0001  // index[8] SPI_TX_FIFO
+  parameter logic [3:0] SPI_PERMIT [11] = '{
+    4'b 0001, // index[ 0] SPI_INTR_STATE
+    4'b 0001, // index[ 1] SPI_INTR_ENABLE
+    4'b 0001, // index[ 2] SPI_INTR_TEST
+    4'b 1111, // index[ 3] SPI_CFG
+    4'b 0011, // index[ 4] SPI_CONTROL
+    4'b 0111, // index[ 5] SPI_STATUS
+    4'b 0011, // index[ 6] SPI_START
+    4'b 0001, // index[ 7] SPI_RX_FIFO
+    4'b 0001, // index[ 8] SPI_TX_FIFO
+    4'b 0011, // index[ 9] SPI_INFO
+    4'b 0001  // index[10] SPI_CS
   };
 
 endpackage

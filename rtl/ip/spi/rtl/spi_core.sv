@@ -81,10 +81,10 @@ module spi_core #(
 
   state_e state_q, state_d;
 
-  // The clock is separted into two phases the sample phase and the output phase. Data is sampled at
-  // the clock edge at the beginning of the sample phase and data is output at the clock edge at the
-  // beginning of the output phase. The `output_edge` and `sample_edge` signals below are asserted
-  // just before the relevant edge.
+  // The clock is separated into two phases the sample phase and the output phase. Data is sampled
+  // at the clock edge at the beginning of the sample phase and data is output at the clock edge at
+  // the beginning of the output phase. The `output_edge` and `sample_edge` signals below are
+  // asserted just before the relevant edge.
   //
   // In the diagram below 'spi_dat' represents a single bit on the SPI bus (in both directions). It
   // uses the phase cpha_i == 1 with clock polarity cpol_i == 0. This means data is output on the

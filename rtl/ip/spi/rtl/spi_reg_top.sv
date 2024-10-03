@@ -53,9 +53,9 @@ module spi_reg_top (
 
   // also check for spurious write enables
   logic reg_we_err;
-  logic [8:0] reg_we_check;
+  logic [10:0] reg_we_check;
   prim_reg_we_check #(
-    .OneHotWidth(9)
+    .OneHotWidth(11)
   ) u_prim_reg_we_check (
     .clk_i(clk_i),
     .rst_ni(rst_ni),
@@ -178,6 +178,18 @@ module spi_reg_top (
   logic [7:0] rx_fifo_qs;
   logic tx_fifo_we;
   logic [7:0] tx_fifo_wd;
+  logic info_re;
+  logic [7:0] info_tx_fifo_depth_qs;
+  logic [7:0] info_rx_fifo_depth_qs;
+  logic cs_we;
+  logic cs_cs_0_qs;
+  logic cs_cs_0_wd;
+  logic cs_cs_1_qs;
+  logic cs_cs_1_wd;
+  logic cs_cs_2_qs;
+  logic cs_cs_2_wd;
+  logic cs_cs_3_qs;
+  logic cs_cs_3_wd;
 
   // Register instances
   // R[intr_state]: V(False)
@@ -1003,19 +1015,164 @@ module spi_reg_top (
   assign reg2hw.tx_fifo.qe = tx_fifo_qe;
 
 
+  // R[info]: V(True)
+  //   F[tx_fifo_depth]: 7:0
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_info_tx_fifo_depth (
+    .re     (info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.info.tx_fifo_depth.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (info_tx_fifo_depth_qs)
+  );
 
-  logic [8:0] addr_hit;
+  //   F[rx_fifo_depth]: 15:8
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_info_rx_fifo_depth (
+    .re     (info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.info.rx_fifo_depth.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (info_rx_fifo_depth_qs)
+  );
+
+
+  // Subregister 0 of Multireg cs
+  // R[cs]: V(False)
+  //   F[cs_0]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h1),
+    .Mubi    (1'b0)
+  ) u_cs_cs_0 (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (cs_we),
+    .wd     (cs_cs_0_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.cs[0].q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (cs_cs_0_qs)
+  );
+
+  //   F[cs_1]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h1),
+    .Mubi    (1'b0)
+  ) u_cs_cs_1 (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (cs_we),
+    .wd     (cs_cs_1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.cs[1].q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (cs_cs_1_qs)
+  );
+
+  //   F[cs_2]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h1),
+    .Mubi    (1'b0)
+  ) u_cs_cs_2 (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (cs_we),
+    .wd     (cs_cs_2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.cs[2].q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (cs_cs_2_qs)
+  );
+
+  //   F[cs_3]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h1),
+    .Mubi    (1'b0)
+  ) u_cs_cs_3 (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (cs_we),
+    .wd     (cs_cs_3_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.cs[3].q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (cs_cs_3_qs)
+  );
+
+
+
+  logic [10:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SPI_INTR_STATE_OFFSET);
-    addr_hit[1] = (reg_addr == SPI_INTR_ENABLE_OFFSET);
-    addr_hit[2] = (reg_addr == SPI_INTR_TEST_OFFSET);
-    addr_hit[3] = (reg_addr == SPI_CFG_OFFSET);
-    addr_hit[4] = (reg_addr == SPI_CONTROL_OFFSET);
-    addr_hit[5] = (reg_addr == SPI_STATUS_OFFSET);
-    addr_hit[6] = (reg_addr == SPI_START_OFFSET);
-    addr_hit[7] = (reg_addr == SPI_RX_FIFO_OFFSET);
-    addr_hit[8] = (reg_addr == SPI_TX_FIFO_OFFSET);
+    addr_hit[ 0] = (reg_addr == SPI_INTR_STATE_OFFSET);
+    addr_hit[ 1] = (reg_addr == SPI_INTR_ENABLE_OFFSET);
+    addr_hit[ 2] = (reg_addr == SPI_INTR_TEST_OFFSET);
+    addr_hit[ 3] = (reg_addr == SPI_CFG_OFFSET);
+    addr_hit[ 4] = (reg_addr == SPI_CONTROL_OFFSET);
+    addr_hit[ 5] = (reg_addr == SPI_STATUS_OFFSET);
+    addr_hit[ 6] = (reg_addr == SPI_START_OFFSET);
+    addr_hit[ 7] = (reg_addr == SPI_RX_FIFO_OFFSET);
+    addr_hit[ 8] = (reg_addr == SPI_TX_FIFO_OFFSET);
+    addr_hit[ 9] = (reg_addr == SPI_INFO_OFFSET);
+    addr_hit[10] = (reg_addr == SPI_CS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -1023,15 +1180,17 @@ module spi_reg_top (
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[0] & (|(SPI_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(SPI_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(SPI_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(SPI_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(SPI_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(SPI_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(SPI_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(SPI_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(SPI_PERMIT[8] & ~reg_be)))));
+              ((addr_hit[ 0] & (|(SPI_PERMIT[ 0] & ~reg_be))) |
+               (addr_hit[ 1] & (|(SPI_PERMIT[ 1] & ~reg_be))) |
+               (addr_hit[ 2] & (|(SPI_PERMIT[ 2] & ~reg_be))) |
+               (addr_hit[ 3] & (|(SPI_PERMIT[ 3] & ~reg_be))) |
+               (addr_hit[ 4] & (|(SPI_PERMIT[ 4] & ~reg_be))) |
+               (addr_hit[ 5] & (|(SPI_PERMIT[ 5] & ~reg_be))) |
+               (addr_hit[ 6] & (|(SPI_PERMIT[ 6] & ~reg_be))) |
+               (addr_hit[ 7] & (|(SPI_PERMIT[ 7] & ~reg_be))) |
+               (addr_hit[ 8] & (|(SPI_PERMIT[ 8] & ~reg_be))) |
+               (addr_hit[ 9] & (|(SPI_PERMIT[ 9] & ~reg_be))) |
+               (addr_hit[10] & (|(SPI_PERMIT[10] & ~reg_be)))));
   end
 
   // Generate write-enables
@@ -1090,6 +1249,16 @@ module spi_reg_top (
   assign tx_fifo_we = addr_hit[8] & reg_we & !reg_error;
 
   assign tx_fifo_wd = reg_wdata[7:0];
+  assign info_re = addr_hit[9] & reg_re & !reg_error;
+  assign cs_we = addr_hit[10] & reg_we & !reg_error;
+
+  assign cs_cs_0_wd = reg_wdata[0];
+
+  assign cs_cs_1_wd = reg_wdata[1];
+
+  assign cs_cs_2_wd = reg_wdata[2];
+
+  assign cs_cs_3_wd = reg_wdata[3];
 
   // Assign write-enables to checker logic vector.
   always_comb begin
@@ -1103,6 +1272,8 @@ module spi_reg_top (
     reg_we_check[6] = start_we;
     reg_we_check[7] = 1'b0;
     reg_we_check[8] = tx_fifo_we;
+    reg_we_check[9] = 1'b0;
+    reg_we_check[10] = cs_we;
   end
 
   // Read data return
@@ -1167,6 +1338,18 @@ module spi_reg_top (
 
       addr_hit[8]: begin
         reg_rdata_next[7:0] = '0;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[7:0] = info_tx_fifo_depth_qs;
+        reg_rdata_next[15:8] = info_rx_fifo_depth_qs;
+      end
+
+      addr_hit[10]: begin
+        reg_rdata_next[0] = cs_cs_0_qs;
+        reg_rdata_next[1] = cs_cs_1_qs;
+        reg_rdata_next[2] = cs_cs_2_qs;
+        reg_rdata_next[3] = cs_cs_3_qs;
       end
 
       default: begin
