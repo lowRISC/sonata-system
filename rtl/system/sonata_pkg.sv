@@ -11,4 +11,6 @@ package sonata_pkg;
   localparam int unsigned I2C_NUM  = 2;
   localparam int unsigned SPI_NUM  = 5;
 
+  localparam int unsigned SPI_CS_NUM = 4;
+
 endpackage : sonata_pkg

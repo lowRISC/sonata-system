@@ -5,7 +5,9 @@
 // The Sonata system, which instantiates a CHERIoT Ibex, TileLink Uncached
 // Lightweight bus and a number of common peripherals, usc as I2C, SPI, UART,
 // USB.
-module sonata_system #(
+module sonata_system
+  import sonata_pkg::*;
+#(
   parameter int unsigned ArdAniWidth   = 6,
   parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
@@ -37,9 +39,9 @@ module sonata_system #(
   // 2: Arduino Shield 0-15
   // 3: Arduino Shield 16-17
   // 4: PMOD
-  input  logic [WordWidth-1:0]     gp_headers_i [sonata_pkg::GPIO_NUM],
-  output logic [WordWidth-1:0]     gp_headers_o [sonata_pkg::GPIO_NUM],
-  output logic [WordWidth-1:0]     gp_headers_o_en [sonata_pkg::GPIO_NUM],
+  input  logic [WordWidth-1:0]     gp_headers_i [GPIO_NUM],
+  output logic [WordWidth-1:0]     gp_headers_o [GPIO_NUM],
+  output logic [WordWidth-1:0]     gp_headers_o_en [GPIO_NUM],
 
   output logic [PwmWidth-1:0]      pwm_o,
 
@@ -54,16 +56,16 @@ module sonata_system #(
   //   2: Raspberry Pi HAT
   //   3: mikroBUS Click
   //   4: RS-232
-  input  logic                     uart_rx_i [sonata_pkg::UART_NUM],
-  output logic                     uart_tx_o [sonata_pkg::UART_NUM],
+  input  logic                     uart_rx_i [UART_NUM],
+  output logic                     uart_tx_o [UART_NUM],
 
   // I2C buses
-  input  logic                     i2c_scl_i    [sonata_pkg::I2C_NUM],
-  output logic                     i2c_scl_o    [sonata_pkg::I2C_NUM],
-  output logic                     i2c_scl_en_o [sonata_pkg::I2C_NUM],
-  input  logic                     i2c_sda_i    [sonata_pkg::I2C_NUM],
-  output logic                     i2c_sda_o    [sonata_pkg::I2C_NUM],
-  output logic                     i2c_sda_en_o [sonata_pkg::I2C_NUM],
+  input  logic                     i2c_scl_i    [I2C_NUM],
+  output logic                     i2c_scl_o    [I2C_NUM],
+  output logic                     i2c_scl_en_o [I2C_NUM],
+  input  logic                     i2c_sda_i    [I2C_NUM],
+  output logic                     i2c_sda_o    [I2C_NUM],
+  output logic                     i2c_sda_en_o [I2C_NUM],
 
   // SPI hosts
   //   0: flash
@@ -73,9 +75,10 @@ module sonata_system #(
   //   4: Raspberry Pi HAT SPI1
   //   5: Arduino Shield
   //   6: mikroBUS Click
-  input  logic                     spi_rx_i  [sonata_pkg::SPI_NUM],
-  output logic                     spi_tx_o  [sonata_pkg::SPI_NUM],
-  output logic                     spi_sck_o [sonata_pkg::SPI_NUM],
+  input  logic                     spi_rx_i  [SPI_NUM],
+  output logic                     spi_tx_o  [SPI_NUM],
+  output logic [SPI_CS_NUM-1:0]    spi_cs_o  [SPI_NUM],
+  output logic                     spi_sck_o [SPI_NUM],
 
   input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
@@ -120,8 +123,6 @@ module sonata_system #(
   output tlul_pkg::tl_h2d_t        tl_pinmux_o,
   input  tlul_pkg::tl_d2h_t        tl_pinmux_i
 );
-
-  import sonata_pkg::*;
 
   ///////////////////////////////////////////////
   // Signals, types and parameters for system. //
@@ -1265,6 +1266,7 @@ module sonata_system #(
       // SPI signals.
       .spi_copi_o          (spi_tx_o [i]),
       .spi_cipo_i          (spi_rx_i [i]),
+      .spi_cs_o            (spi_cs_o [i]),
       .spi_clk_o           (spi_sck_o[i])
     );
   end : gen_spi_hosts

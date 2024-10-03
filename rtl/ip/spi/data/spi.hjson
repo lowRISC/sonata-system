@@ -32,6 +32,15 @@
     { name: "spi_clk",     desc: "SPI Clock" },
     { name: "spi_copi",    desc: "SPI Controller out/Peripheral in" },
   ],
+  param_list: [
+    { name:    "MaxPeripherals",
+      type:    "int",
+      default: "4",
+      desc:    "Maximum number of peripherals supported by this controller",
+      local:   "true",
+      expose:  "false"
+    }
+  ],
   interrupt_list: [
     { name: "rx_full"
       desc: '''Receive FIFO is full'''
@@ -140,7 +149,7 @@
         { bits:  "2",
           name:  "TX_ENABLE",
           desc:  '''When set bytes from the transmit FIFO are sent. When clear
-                    the state of the outgoing spi_cipo is undefined whilst the
+                    the state of the outgoing spi_copi is undefined whilst the
                     SPI clock is running.''',
           resval: "0x0"
         },
@@ -229,5 +238,43 @@
         }
       ]
     },
+    { name: "INFO",
+      desc: "Returns information on the SPI controller."
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "15:8",
+          name: "RX_FIFO_DEPTH",
+          desc: '''Maximum number of items in the receive FIFO.'''
+        },
+        { bits: "7:0"
+          name: "TX_FIFO_DEPTH",
+          desc: '''Maximum number of items in the transmit FIFO.'''
+        }
+      ]
+    },
+    { multireg: {
+        name: "CS",
+        count: "MaxPeripherals",
+        cname: "Peripheral",
+        desc: '''Specifies which peripherals are selected for transmit/receive operations.
+                 An operation may select multiple peripherals simultaneously but this functionality
+                 shall be used only for transmit operations.
+                 This register shall be changed only when the SPI controller is idle, not whilst
+                 a transmit/receive operation may be in progress.
+              '''
+        swaccess: "rw",
+        hwaccess: "hro",
+        fields: [
+          {
+            bits: "0",
+            resval: "1",
+            name: "cs",
+            desc: "If this bit is clear the peripheral is selected for transmit/receive operations."
+          }
+        ]
+      }
+    }
   ]
 }
