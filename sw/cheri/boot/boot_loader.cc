@@ -165,7 +165,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
   spi->init(false, false, true, 0);
   uart->init(BAUD_RATE);
 
-  SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
+  SpiFlash spi_flash(spi);
   spi_flash.reset();
 
   uint8_t software_slot = read_selected_software_slot(gpio);
