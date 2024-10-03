@@ -14,15 +14,6 @@
 #include "spi.h"
 #include "timer.h"
 
-enum {
-  // GPIO Input
-  EthIntrPin = 13,
-
-  // GPIO Output
-  EthCsPin  = 13,
-  EthRstPin = 14,
-};
-
 void eth_callback(struct netif* netif, netif_nsc_reason_t reason, const netif_ext_callback_args_t* args) {
   if (reason & LWIP_NSC_IPV4_ADDR_VALID) {
     putstr("IPv4 address available: ");

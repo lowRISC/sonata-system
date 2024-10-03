@@ -14,6 +14,8 @@
 #include "st7735/lcd_st7735.h"
 #include "timer.h"
 
+#define SIMULATION 0
+
 // Constants.
 enum {
   // Pin out mapping.
@@ -25,6 +27,8 @@ enum {
   LcdSclkPin,
   // Spi clock rate.
   SpiSpeedHz = 5 * 100 * 1000,
+  // Use the first CS line.
+  SpiCsLine = 0,
 };
 
 // Buttons
@@ -252,11 +256,12 @@ static uint32_t spi_write(void *handle, uint8_t *data, size_t len) {
 
 static uint32_t gpio_write(void *handle, bool cs, bool dc) {
   set_output_bit(GPIO_OUT, LcdDcPin, dc);
-  set_output_bit(GPIO_OUT, LcdCsPin, cs);
+  spi_set_cs(handle, SpiCsLine, cs);
   return 0;
 }
 
 static void timer_delay(uint32_t ms) {
+#if !SIMULATION
   // Configure timer to trigger every 1 ms
   timer_enable(SYSCLK_FREQ / 1000);
   uint32_t timeout = get_elapsed_time() + ms;
@@ -264,4 +269,5 @@ static void timer_delay(uint32_t ms) {
     asm volatile("wfi");
   }
   timer_disable();
+#endif
 }
