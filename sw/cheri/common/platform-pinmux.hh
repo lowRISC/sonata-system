@@ -279,6 +279,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::RaspberryPiHat40:
       case OutputPin::ArduinoShieldD11:
       case OutputPin::ArduinoShieldD13:
+      case OutputPin::ArduinoShieldD1:
         return 3;
       default:
         return 2;
@@ -299,6 +300,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
    */
   static constexpr uint8_t block_input_options(BlockInput block_input) {
     switch (block_input) {
+      case BlockInput::UartReceive3:
       case BlockInput::SpiReceive3:
       case BlockInput::SpiReceive4:
         return 3;
