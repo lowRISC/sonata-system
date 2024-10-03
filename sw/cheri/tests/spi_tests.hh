@@ -259,16 +259,12 @@ int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro:
  * Run the whole suite of SPI tests.
  */
 void spi_tests(CapRoot root, UartPtr console) {
-  // Create bounded capabilities for SPI and GPIO.
+  // Create bounded capabilities for SPI.
   Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   spi.address()                      = SPI_ADDRESS;
   spi.bounds()                       = SPI_BOUNDS;
 
-  Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
-  gpio.address()                       = GPIO_ADDRESS;
-  gpio.bounds()                        = GPIO_BOUNDS;
-
-  SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
+  SpiFlash spi_flash(spi);
 
   // Initialise 8-bit PRNG for use in random test data
   ds::xoroshiro::P32R8 prng;

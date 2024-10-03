@@ -6,12 +6,10 @@
 
 #pragma once
 #include <cheri.hh>
-#include <platform-gpio.hh>
 #include <platform-spi.hh>
 
 #include "timer-utils.hh"
 
-typedef CHERI::Capability<volatile SonataGPIO> &GpioRef;
 typedef CHERI::Capability<volatile SonataSpi> &SpiRef;
 
 static const uint8_t CmdEnableReset         = 0x66;
@@ -29,13 +27,11 @@ static const uint8_t CmdReadData4Addr       = 0x13;
 class SpiFlash {
  private:
   SpiRef spi;
-  GpioRef gpio;
-  uint32_t csn_bit;
 
-  void set_cs(bool enable) { gpio->output = enable ? (gpio->output & ~csn_bit) : (gpio->output | csn_bit); }
+  void set_cs(bool enable) { spi->cs = enable ? (spi->cs & ~1u) : (spi->cs | 1u); }
 
  public:
-  SpiFlash(SpiRef spi_, GpioRef gpio_, size_t csn_index) : spi(spi_), gpio(gpio_), csn_bit(1 << csn_index) {}
+  SpiFlash(SpiRef spi_) : spi(spi_) {}
 
   void reset() {
     set_cs(true);

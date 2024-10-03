@@ -13,7 +13,6 @@
 #include "../../common/defs.h"
 // clang-format on
 #include <cheri.hh>
-#include <platform-gpio.hh>
 #include <platform-spi.hh>
 #include <platform-uart.hh>
 
@@ -41,11 +40,7 @@ using namespace CHERI;
   spi.address()                      = SPI_ADDRESS;
   spi.bounds()                       = SPI_BOUNDS;
 
-  Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
-  gpio.address()                       = GPIO_ADDRESS;
-  gpio.bounds()                        = GPIO_BOUNDS;
-
-  SpiFlash spi_flash(spi, gpio, FLASH_CSN_GPIO_BIT);
+  SpiFlash spi_flash(spi);
 
   spi->init(false, false, true, 0);
   uart->init(BAUD_RATE);
