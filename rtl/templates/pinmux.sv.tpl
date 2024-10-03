@@ -5,7 +5,9 @@
 // rtl/system/pinmux.sv is automatically generated using util/top_gen.py from rtl/templates/pinmux.sv.tpl
 // Please make any edits to the template file.
 
-module pinmux (
+module pinmux
+  import sonata_pkg::*;
+(
   // Clock and reset.
   input logic clk_i,
   input logic rst_ni,
@@ -15,10 +17,14 @@ module pinmux (
   ${label} logic ${width}${name}[${instances}],
   % endfor
 
-  // List of pins.
-  % for width, name in pin_ios:
-  inout logic ${width}${name},
-  % endfor
+  // Pin Signals
+  input  sonata_in_pins_t  in_from_pins_i,
+  output sonata_out_pins_t out_to_pins_o,
+  output sonata_out_pins_t out_to_pins_en_o,
+
+  input  sonata_inout_pins_t inout_from_pins_i,
+  output sonata_inout_pins_t inout_to_pins_o,
+  output sonata_inout_pins_t inout_to_pins_en_o,
 
   // TileLink interfaces.
   input  tlul_pkg::tl_h2d_t tl_i,
@@ -71,15 +77,13 @@ module pinmux (
 
   // Outputs - Blocks IO is muxed to choose which drives the output and output
   // enable of a physical pin
-  % for output_idx, (pin_output, idx_str, idx_alt, possible_blocks) in enumerate(output_list):
+  % for output_idx, (pin, possible_block_outputs, num_options) in enumerate(output_pins):
 
-  logic [${len(possible_blocks)}:0] ${pin_output}${idx_str}_sel;
-  logic ${pin_output}${idx_str}_o;
-  logic ${pin_output}${idx_str}_en_o;
-  logic ${pin_output}${idx_str}_sel_addressed;
+  logic [${num_options - 1}:0] ${pin.name}_sel;
+  logic ${pin.name}_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
-  assign ${pin_output}${idx_str}_sel_addressed =
+  assign ${pin.name}_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b0 &
     reg_addr[RegAddrWidth-2:0] == ${output_idx - output_idx%4} &
     reg_be[${output_idx%4}] == 1'b1;
@@ -87,57 +91,55 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      ${pin_output}${idx_str}_sel <= ${len(possible_blocks)+1}'b10;
+      ${pin.name}_sel <= ${num_options}'b10;
     end else begin
-      if (reg_we & ${pin_output}${idx_str}_sel_addressed) begin
-        ${pin_output}${idx_str}_sel <= reg_wdata[${(output_idx%4)*8}+:${len(possible_blocks)+1}];
+      if (reg_we & ${pin.name}_sel_addressed) begin
+        ${pin.name}_sel <= reg_wdata[${(output_idx%4)*8}+:${num_options}];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(${len(possible_blocks)+1})
-  ) ${pin_output}${idx_str}_mux (
+    .Inputs(${num_options})
+  ) ${pin.name}_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      % for idx, (block, io, inst, bit_str, _) in enumerate(possible_blocks):
-      ${block}_${io}_i[${inst}]${bit_str}${',' if idx < len(possible_blocks)-1 else ''}
+      % for idx, bio in enumerate(possible_block_outputs):
+      ${bio.uid.block}_${bio.uid.io}_i[${bio.uid.instance}]${bio.io_idx_str}${',' if idx < (num_options - 2) else ''}
       % endfor
     }),
-    .sel_i(${pin_output}${idx_str}_sel),
-    .out_o(${pin_output}${idx_str}_o)
+    .sel_i(${pin.name}_sel),
+    .out_o(${pin.direction_prefix}to_pins_o[${pin.idx_param}])
   );
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(${len(possible_blocks)+1})
-  ) ${pin_output}${idx_str}_enable_mux (
+    .Inputs(${num_options})
+  ) ${pin.name}_enable_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0,
-      % for idx, (block, io, inst, bit_str, is_inout) in enumerate(possible_blocks):
-      ${block + '_' + io + '_en_i[' + str(inst) + ']' + bit_str if is_inout else "'1"}${',' if idx < len(possible_blocks)-1 else ''}
+      % for idx, bio in enumerate(possible_block_outputs):
+      ${f"{bio.uid.block}_{bio.uid.io}_en_i[{bio.uid.instance}]{bio.io_idx_str}" if bio.is_inout else "1'b1"}${',' if idx < (num_options - 2) else ''}
       % endfor
     }),
-    .sel_i(${pin_output}${idx_str}_sel),
-    .out_o(${pin_output}${idx_str}_en_o)
+    .sel_i(${pin.name}_sel),
+    .out_o(${pin.direction_prefix}to_pins_en_o[${pin.idx_param}])
   );
-
-  assign ${pin_output}${idx_alt} = ${pin_output}${idx_str}_en_o ? ${pin_output}${idx_str}_o : 1'bz;
   % endfor
 
   // Inputs - Physical pin inputs are muxed to particular block IO
-  % for input_idx, (block_input, inst, bit_idx, bit_str, possible_pins) in enumerate(input_list):
+  % for input_idx, (block_io, possible_pins, num_options) in enumerate(output_block_ios):
 
-  logic [${len(possible_pins)-1}:0] ${block_input}_${inst}${bit_str}_sel;
-  logic ${block_input}_${inst}${bit_str}_sel_addressed;
+  logic [${num_options-1}:0] ${block_io.name}_sel;
+  logic ${block_io.name}_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
-  assign ${block_input}_${inst}${bit_str}_sel_addressed =
+  assign ${block_io.name}_sel_addressed =
     reg_addr[RegAddrWidth-1] == 1'b1 &
     reg_addr[RegAddrWidth-2:0] == ${input_idx - input_idx%4} &
     reg_be[${input_idx%4}] == 1'b1;
@@ -145,35 +147,39 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      ${block_input}_${inst}${bit_str}_sel <= ${len(possible_pins)}'b10;
+      ${block_io.name}_sel <= ${num_options}'b10;
     end else begin
-      if (reg_we & ${block_input}_${inst}${bit_str}_sel_addressed) begin
-        ${block_input}_${inst}${bit_str}_sel <= reg_wdata[${(input_idx%4)*8}+:${len(possible_pins)}];
+      if (reg_we & ${block_io.name}_sel_addressed) begin
+        ${block_io.name}_sel <= reg_wdata[${(input_idx%4)*8}+:${num_options}];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(${len(possible_pins)})
-  ) ${block_input}_${inst}${bit_str}_mux (
+    .Inputs(${num_options})
+  ) ${block_io.name}_mux (
     .clk_i,
     .rst_ni,
     .in_i({
+      1'b${block_io.default_value},
       % for idx, pin in enumerate(possible_pins):
-      ${pin}${',' if idx < len(possible_pins)-1 else ''}
+      ${pin.direction_prefix}from_pins_i[${pin.idx_param}]${',' if idx < len(possible_pins)-1 else ''}
       % endfor
+      % if len(possible_pins) == 0:
+      1'b${block_io.default_value}
+      % endif
     }),
-    .sel_i(${block_input}_${inst}${bit_str}_sel),
-    .out_o(${block_input}_o[${inst}]${'' if bit_str == '' else '['+str(bit_idx)+']'})
+    .sel_i(${block_io.name}_sel),
+    .out_o(${block_io.uid.block}_${block_io.uid.io}_o[${block_io.uid.instance}]${block_io.io_idx_str})
   );
   % endfor
 
   // Combining inputs for combinable inouts
-  % for block_input, inst, combine_pins, combine_pin_selectors, combine_type in combine_list:
-  assign ${block_input}_o[${inst}] =
-    % for idx, pin in enumerate(combine_pins):
-    (${pin}_sel == ${combine_pin_selectors[idx]} ? ${pin} : ${'1' if combine_type == 'and' else '0'})${';' if idx == len(combine_pins)-1 else ' &' if combine_type == 'and' else ' |'}
+  % for block_io, default_value, operator, pins_and_select_values in combined_input_block_ios:
+  assign ${block_io.uid.block}_${block_io.uid.io}_o[${block_io.uid.instance}] =
+    % for idx, (pin, select_value) in enumerate(pins_and_select_values):
+    (${pin.name}_sel == ${select_value} ? ${pin.direction_prefix}from_pins_i[${pin.idx_param}] : ${default_value})${operator if idx < len(pins_and_select_values) - 1 else ';'}
     % endfor
   % endfor
 endmodule
