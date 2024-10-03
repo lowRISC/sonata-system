@@ -65,13 +65,27 @@ class Block(BaseModel, frozen=True):
 class BlockIoUid:
     block: str
     instance: int
-    io: str | int
+    io: str
+    io_index: int | None = None
+    """Used to index into an arrayed block IO."""
 
 
 class Pin(BaseModel, frozen=True):
     name: str
     length: int | None = None
+    """If not None, this is grouping of multiple pins with the given length."""
     block_ios: list[BlockIoUid]
+
+    @model_validator(mode="after")
+    def verify_pin(self) -> Self:
+        if self.length is not None and not all(
+            isinstance(block.io_index, int) for block in self.block_ios
+        ):
+            raise ValueError(
+                "A pin grouping can only link to a block io array, i.e. "
+                "when a length is specified all block_ios.io must be integers."
+            )
+        return self
 
 
 class TopConfig(BaseModel, frozen=True):

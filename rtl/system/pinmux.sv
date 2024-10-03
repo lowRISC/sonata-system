@@ -5,7 +5,9 @@
 // rtl/system/pinmux.sv is automatically generated using util/top_gen.py from rtl/templates/pinmux.sv.tpl
 // Please make any edits to the template file.
 
-module pinmux (
+module pinmux
+  import sonata_pkg::*;
+(
   // Clock and reset.
   input logic clk_i,
   input logic rst_ni,
@@ -26,80 +28,14 @@ module pinmux (
   input  logic [31:0] gpio_ios_en_i[3],
   output logic [31:0] gpio_ios_o[3],
 
-  // List of pins.
-  inout logic ser0_tx,
-  inout logic ser0_rx,
-  inout logic ser1_tx,
-  inout logic ser1_rx,
-  inout logic rs232_tx,
-  inout logic rs232_rx,
-  inout logic scl0,
-  inout logic sda0,
-  inout logic scl1,
-  inout logic sda1,
-  inout logic appspi_d0,
-  inout logic appspi_d1,
-  inout logic appspi_clk,
-  inout logic lcd_copi,
-  inout logic lcd_clk,
-  inout logic ethmac_copi,
-  inout logic ethmac_cipo,
-  inout logic ethmac_sclk,
-  inout logic rph_g0,
-  inout logic rph_g1,
-  inout logic rph_g2_sda,
-  inout logic rph_g3_scl,
-  inout logic rph_g4,
-  inout logic rph_g5,
-  inout logic rph_g6,
-  inout logic rph_g7_ce1,
-  inout logic rph_g8_ce0,
-  inout logic rph_g9_cipo,
-  inout logic rph_g10_copi,
-  inout logic rph_g11_sclk,
-  inout logic rph_g12,
-  inout logic rph_g13,
-  inout logic rph_txd0,
-  inout logic rph_rxd0,
-  inout logic rph_g16_ce2,
-  inout logic rph_g17,
-  inout logic rph_g18,
-  inout logic rph_g19_cipo,
-  inout logic rph_g20_copi,
-  inout logic rph_g21_sclk,
-  inout logic rph_g22,
-  inout logic rph_g23,
-  inout logic rph_g24,
-  inout logic rph_g25,
-  inout logic rph_g26,
-  inout logic rph_g27,
-  inout logic ah_tmpio0,
-  inout logic ah_tmpio1,
-  inout logic ah_tmpio2,
-  inout logic ah_tmpio3,
-  inout logic ah_tmpio4,
-  inout logic ah_tmpio5,
-  inout logic ah_tmpio6,
-  inout logic ah_tmpio7,
-  inout logic ah_tmpio8,
-  inout logic ah_tmpio9,
-  inout logic ah_tmpio10,
-  inout logic ah_tmpio11,
-  inout logic ah_tmpio12,
-  inout logic ah_tmpio13,
-  inout logic ah_tmpio14,
-  inout logic ah_tmpio15,
-  inout logic ah_tmpio16,
-  inout logic ah_tmpio17,
-  inout logic mb2,
-  inout logic mb3,
-  inout logic mb4,
-  inout logic mb5,
-  inout logic mb6,
-  inout logic mb7,
-  inout logic mb8,
-  inout logic [7:0] pmod0,
-  inout logic [7:0] pmod1,
+  // Pin Signals
+  input  sonata_in_pins_t  in_from_pins_i,
+  output sonata_out_pins_t out_to_pins_o,
+  output sonata_out_pins_t out_to_pins_en_o,
+
+  input  sonata_inout_pins_t inout_from_pins_i,
+  output sonata_inout_pins_t inout_to_pins_o,
+  output sonata_inout_pins_t inout_to_pins_en_o,
 
   // TileLink interfaces.
   input  tlul_pkg::tl_h2d_t tl_i,
@@ -155,8 +91,6 @@ module pinmux (
   // enable of a physical pin
 
   logic [1:0] ser0_tx_sel;
-  logic ser0_tx_o;
-  logic ser0_tx_en_o;
   logic ser0_tx_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -187,7 +121,7 @@ module pinmux (
       uart_tx_i[0]
     }),
     .sel_i(ser0_tx_sel),
-    .out_o(ser0_tx_o)
+    .out_o(out_to_pins_o[OUT_PIN_SER0_TX])
   );
 
   prim_onehot_mux #(
@@ -198,17 +132,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(ser0_tx_sel),
-    .out_o(ser0_tx_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_SER0_TX])
   );
 
-  assign ser0_tx = ser0_tx_en_o ? ser0_tx_o : 1'bz;
-
   logic [1:0] ser1_tx_sel;
-  logic ser1_tx_o;
-  logic ser1_tx_en_o;
   logic ser1_tx_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -239,7 +169,7 @@ module pinmux (
       uart_tx_i[1]
     }),
     .sel_i(ser1_tx_sel),
-    .out_o(ser1_tx_o)
+    .out_o(out_to_pins_o[OUT_PIN_SER1_TX])
   );
 
   prim_onehot_mux #(
@@ -250,17 +180,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(ser1_tx_sel),
-    .out_o(ser1_tx_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_SER1_TX])
   );
 
-  assign ser1_tx = ser1_tx_en_o ? ser1_tx_o : 1'bz;
-
   logic [1:0] rs232_tx_sel;
-  logic rs232_tx_o;
-  logic rs232_tx_en_o;
   logic rs232_tx_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -291,7 +217,7 @@ module pinmux (
       uart_tx_i[4]
     }),
     .sel_i(rs232_tx_sel),
-    .out_o(rs232_tx_o)
+    .out_o(out_to_pins_o[OUT_PIN_RS232_TX])
   );
 
   prim_onehot_mux #(
@@ -302,17 +228,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(rs232_tx_sel),
-    .out_o(rs232_tx_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_RS232_TX])
   );
 
-  assign rs232_tx = rs232_tx_en_o ? rs232_tx_o : 1'bz;
-
   logic [1:0] scl0_sel;
-  logic scl0_o;
-  logic scl0_en_o;
   logic scl0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -343,7 +265,7 @@ module pinmux (
       i2c_scl_i[0]
     }),
     .sel_i(scl0_sel),
-    .out_o(scl0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_SCL0])
   );
 
   prim_onehot_mux #(
@@ -357,14 +279,10 @@ module pinmux (
       i2c_scl_en_i[0]
     }),
     .sel_i(scl0_sel),
-    .out_o(scl0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_SCL0])
   );
 
-  assign scl0 = scl0_en_o ? scl0_o : 1'bz;
-
   logic [1:0] sda0_sel;
-  logic sda0_o;
-  logic sda0_en_o;
   logic sda0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -395,7 +313,7 @@ module pinmux (
       i2c_sda_i[0]
     }),
     .sel_i(sda0_sel),
-    .out_o(sda0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_SDA0])
   );
 
   prim_onehot_mux #(
@@ -409,14 +327,10 @@ module pinmux (
       i2c_sda_en_i[0]
     }),
     .sel_i(sda0_sel),
-    .out_o(sda0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_SDA0])
   );
 
-  assign sda0 = sda0_en_o ? sda0_o : 1'bz;
-
   logic [1:0] scl1_sel;
-  logic scl1_o;
-  logic scl1_en_o;
   logic scl1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -447,7 +361,7 @@ module pinmux (
       i2c_scl_i[1]
     }),
     .sel_i(scl1_sel),
-    .out_o(scl1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_SCL1])
   );
 
   prim_onehot_mux #(
@@ -461,14 +375,10 @@ module pinmux (
       i2c_scl_en_i[1]
     }),
     .sel_i(scl1_sel),
-    .out_o(scl1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_SCL1])
   );
 
-  assign scl1 = scl1_en_o ? scl1_o : 1'bz;
-
   logic [1:0] sda1_sel;
-  logic sda1_o;
-  logic sda1_en_o;
   logic sda1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -499,7 +409,7 @@ module pinmux (
       i2c_sda_i[1]
     }),
     .sel_i(sda1_sel),
-    .out_o(sda1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_SDA1])
   );
 
   prim_onehot_mux #(
@@ -513,14 +423,10 @@ module pinmux (
       i2c_sda_en_i[1]
     }),
     .sel_i(sda1_sel),
-    .out_o(sda1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_SDA1])
   );
 
-  assign sda1 = sda1_en_o ? sda1_o : 1'bz;
-
   logic [1:0] appspi_d0_sel;
-  logic appspi_d0_o;
-  logic appspi_d0_en_o;
   logic appspi_d0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -551,7 +457,7 @@ module pinmux (
       spi_tx_i[0]
     }),
     .sel_i(appspi_d0_sel),
-    .out_o(appspi_d0_o)
+    .out_o(out_to_pins_o[OUT_PIN_APPSPI_D0])
   );
 
   prim_onehot_mux #(
@@ -562,17 +468,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(appspi_d0_sel),
-    .out_o(appspi_d0_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_APPSPI_D0])
   );
 
-  assign appspi_d0 = appspi_d0_en_o ? appspi_d0_o : 1'bz;
-
   logic [1:0] appspi_clk_sel;
-  logic appspi_clk_o;
-  logic appspi_clk_en_o;
   logic appspi_clk_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -603,7 +505,7 @@ module pinmux (
       spi_sck_i[0]
     }),
     .sel_i(appspi_clk_sel),
-    .out_o(appspi_clk_o)
+    .out_o(out_to_pins_o[OUT_PIN_APPSPI_CLK])
   );
 
   prim_onehot_mux #(
@@ -614,17 +516,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(appspi_clk_sel),
-    .out_o(appspi_clk_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_APPSPI_CLK])
   );
 
-  assign appspi_clk = appspi_clk_en_o ? appspi_clk_o : 1'bz;
-
   logic [1:0] lcd_copi_sel;
-  logic lcd_copi_o;
-  logic lcd_copi_en_o;
   logic lcd_copi_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -655,7 +553,7 @@ module pinmux (
       spi_tx_i[1]
     }),
     .sel_i(lcd_copi_sel),
-    .out_o(lcd_copi_o)
+    .out_o(out_to_pins_o[OUT_PIN_LCD_COPI])
   );
 
   prim_onehot_mux #(
@@ -666,17 +564,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(lcd_copi_sel),
-    .out_o(lcd_copi_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_LCD_COPI])
   );
 
-  assign lcd_copi = lcd_copi_en_o ? lcd_copi_o : 1'bz;
-
   logic [1:0] lcd_clk_sel;
-  logic lcd_clk_o;
-  logic lcd_clk_en_o;
   logic lcd_clk_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -707,7 +601,7 @@ module pinmux (
       spi_sck_i[1]
     }),
     .sel_i(lcd_clk_sel),
-    .out_o(lcd_clk_o)
+    .out_o(out_to_pins_o[OUT_PIN_LCD_CLK])
   );
 
   prim_onehot_mux #(
@@ -718,17 +612,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(lcd_clk_sel),
-    .out_o(lcd_clk_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_LCD_CLK])
   );
 
-  assign lcd_clk = lcd_clk_en_o ? lcd_clk_o : 1'bz;
-
   logic [1:0] ethmac_copi_sel;
-  logic ethmac_copi_o;
-  logic ethmac_copi_en_o;
   logic ethmac_copi_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -759,7 +649,7 @@ module pinmux (
       spi_tx_i[2]
     }),
     .sel_i(ethmac_copi_sel),
-    .out_o(ethmac_copi_o)
+    .out_o(out_to_pins_o[OUT_PIN_ETHMAC_COPI])
   );
 
   prim_onehot_mux #(
@@ -770,17 +660,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(ethmac_copi_sel),
-    .out_o(ethmac_copi_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_ETHMAC_COPI])
   );
 
-  assign ethmac_copi = ethmac_copi_en_o ? ethmac_copi_o : 1'bz;
-
   logic [1:0] ethmac_sclk_sel;
-  logic ethmac_sclk_o;
-  logic ethmac_sclk_en_o;
   logic ethmac_sclk_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -811,7 +697,7 @@ module pinmux (
       spi_sck_i[2]
     }),
     .sel_i(ethmac_sclk_sel),
-    .out_o(ethmac_sclk_o)
+    .out_o(out_to_pins_o[OUT_PIN_ETHMAC_SCLK])
   );
 
   prim_onehot_mux #(
@@ -822,17 +708,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(ethmac_sclk_sel),
-    .out_o(ethmac_sclk_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_ETHMAC_SCLK])
   );
 
-  assign ethmac_sclk = ethmac_sclk_en_o ? ethmac_sclk_o : 1'bz;
-
   logic [2:0] rph_g0_sel;
-  logic rph_g0_o;
-  logic rph_g0_en_o;
   logic rph_g0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -864,7 +746,7 @@ module pinmux (
       gpio_ios_i[0][0]
     }),
     .sel_i(rph_g0_sel),
-    .out_o(rph_g0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G0])
   );
 
   prim_onehot_mux #(
@@ -879,14 +761,10 @@ module pinmux (
       gpio_ios_en_i[0][0]
     }),
     .sel_i(rph_g0_sel),
-    .out_o(rph_g0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G0])
   );
 
-  assign rph_g0 = rph_g0_en_o ? rph_g0_o : 1'bz;
-
   logic [2:0] rph_g1_sel;
-  logic rph_g1_o;
-  logic rph_g1_en_o;
   logic rph_g1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -918,7 +796,7 @@ module pinmux (
       gpio_ios_i[0][1]
     }),
     .sel_i(rph_g1_sel),
-    .out_o(rph_g1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G1])
   );
 
   prim_onehot_mux #(
@@ -933,14 +811,10 @@ module pinmux (
       gpio_ios_en_i[0][1]
     }),
     .sel_i(rph_g1_sel),
-    .out_o(rph_g1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G1])
   );
 
-  assign rph_g1 = rph_g1_en_o ? rph_g1_o : 1'bz;
-
   logic [2:0] rph_g2_sda_sel;
-  logic rph_g2_sda_o;
-  logic rph_g2_sda_en_o;
   logic rph_g2_sda_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -972,7 +846,7 @@ module pinmux (
       gpio_ios_i[0][2]
     }),
     .sel_i(rph_g2_sda_sel),
-    .out_o(rph_g2_sda_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G2_SDA])
   );
 
   prim_onehot_mux #(
@@ -987,14 +861,10 @@ module pinmux (
       gpio_ios_en_i[0][2]
     }),
     .sel_i(rph_g2_sda_sel),
-    .out_o(rph_g2_sda_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G2_SDA])
   );
 
-  assign rph_g2_sda = rph_g2_sda_en_o ? rph_g2_sda_o : 1'bz;
-
   logic [2:0] rph_g3_scl_sel;
-  logic rph_g3_scl_o;
-  logic rph_g3_scl_en_o;
   logic rph_g3_scl_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1026,7 +896,7 @@ module pinmux (
       gpio_ios_i[0][3]
     }),
     .sel_i(rph_g3_scl_sel),
-    .out_o(rph_g3_scl_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G3_SCL])
   );
 
   prim_onehot_mux #(
@@ -1041,14 +911,10 @@ module pinmux (
       gpio_ios_en_i[0][3]
     }),
     .sel_i(rph_g3_scl_sel),
-    .out_o(rph_g3_scl_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G3_SCL])
   );
 
-  assign rph_g3_scl = rph_g3_scl_en_o ? rph_g3_scl_o : 1'bz;
-
   logic [1:0] rph_g4_sel;
-  logic rph_g4_o;
-  logic rph_g4_en_o;
   logic rph_g4_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1079,7 +945,7 @@ module pinmux (
       gpio_ios_i[0][4]
     }),
     .sel_i(rph_g4_sel),
-    .out_o(rph_g4_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G4])
   );
 
   prim_onehot_mux #(
@@ -1093,14 +959,10 @@ module pinmux (
       gpio_ios_en_i[0][4]
     }),
     .sel_i(rph_g4_sel),
-    .out_o(rph_g4_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G4])
   );
 
-  assign rph_g4 = rph_g4_en_o ? rph_g4_o : 1'bz;
-
   logic [1:0] rph_g5_sel;
-  logic rph_g5_o;
-  logic rph_g5_en_o;
   logic rph_g5_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1131,7 +993,7 @@ module pinmux (
       gpio_ios_i[0][5]
     }),
     .sel_i(rph_g5_sel),
-    .out_o(rph_g5_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G5])
   );
 
   prim_onehot_mux #(
@@ -1145,14 +1007,10 @@ module pinmux (
       gpio_ios_en_i[0][5]
     }),
     .sel_i(rph_g5_sel),
-    .out_o(rph_g5_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G5])
   );
 
-  assign rph_g5 = rph_g5_en_o ? rph_g5_o : 1'bz;
-
   logic [1:0] rph_g6_sel;
-  logic rph_g6_o;
-  logic rph_g6_en_o;
   logic rph_g6_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1183,7 +1041,7 @@ module pinmux (
       gpio_ios_i[0][6]
     }),
     .sel_i(rph_g6_sel),
-    .out_o(rph_g6_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G6])
   );
 
   prim_onehot_mux #(
@@ -1197,14 +1055,10 @@ module pinmux (
       gpio_ios_en_i[0][6]
     }),
     .sel_i(rph_g6_sel),
-    .out_o(rph_g6_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G6])
   );
 
-  assign rph_g6 = rph_g6_en_o ? rph_g6_o : 1'bz;
-
   logic [1:0] rph_g7_ce1_sel;
-  logic rph_g7_ce1_o;
-  logic rph_g7_ce1_en_o;
   logic rph_g7_ce1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1235,7 +1089,7 @@ module pinmux (
       gpio_ios_i[0][7]
     }),
     .sel_i(rph_g7_ce1_sel),
-    .out_o(rph_g7_ce1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G7_CE1])
   );
 
   prim_onehot_mux #(
@@ -1249,14 +1103,10 @@ module pinmux (
       gpio_ios_en_i[0][7]
     }),
     .sel_i(rph_g7_ce1_sel),
-    .out_o(rph_g7_ce1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G7_CE1])
   );
 
-  assign rph_g7_ce1 = rph_g7_ce1_en_o ? rph_g7_ce1_o : 1'bz;
-
   logic [1:0] rph_g8_ce0_sel;
-  logic rph_g8_ce0_o;
-  logic rph_g8_ce0_en_o;
   logic rph_g8_ce0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1287,7 +1137,7 @@ module pinmux (
       gpio_ios_i[0][8]
     }),
     .sel_i(rph_g8_ce0_sel),
-    .out_o(rph_g8_ce0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G8_CE0])
   );
 
   prim_onehot_mux #(
@@ -1301,14 +1151,10 @@ module pinmux (
       gpio_ios_en_i[0][8]
     }),
     .sel_i(rph_g8_ce0_sel),
-    .out_o(rph_g8_ce0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G8_CE0])
   );
 
-  assign rph_g8_ce0 = rph_g8_ce0_en_o ? rph_g8_ce0_o : 1'bz;
-
   logic [1:0] rph_g9_cipo_sel;
-  logic rph_g9_cipo_o;
-  logic rph_g9_cipo_en_o;
   logic rph_g9_cipo_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1339,7 +1185,7 @@ module pinmux (
       gpio_ios_i[0][9]
     }),
     .sel_i(rph_g9_cipo_sel),
-    .out_o(rph_g9_cipo_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G9_CIPO])
   );
 
   prim_onehot_mux #(
@@ -1353,14 +1199,10 @@ module pinmux (
       gpio_ios_en_i[0][9]
     }),
     .sel_i(rph_g9_cipo_sel),
-    .out_o(rph_g9_cipo_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G9_CIPO])
   );
 
-  assign rph_g9_cipo = rph_g9_cipo_en_o ? rph_g9_cipo_o : 1'bz;
-
   logic [2:0] rph_g10_copi_sel;
-  logic rph_g10_copi_o;
-  logic rph_g10_copi_en_o;
   logic rph_g10_copi_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1392,7 +1234,7 @@ module pinmux (
       gpio_ios_i[0][10]
     }),
     .sel_i(rph_g10_copi_sel),
-    .out_o(rph_g10_copi_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G10_COPI])
   );
 
   prim_onehot_mux #(
@@ -1403,18 +1245,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[0][10]
     }),
     .sel_i(rph_g10_copi_sel),
-    .out_o(rph_g10_copi_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G10_COPI])
   );
 
-  assign rph_g10_copi = rph_g10_copi_en_o ? rph_g10_copi_o : 1'bz;
-
   logic [2:0] rph_g11_sclk_sel;
-  logic rph_g11_sclk_o;
-  logic rph_g11_sclk_en_o;
   logic rph_g11_sclk_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1446,7 +1284,7 @@ module pinmux (
       gpio_ios_i[0][11]
     }),
     .sel_i(rph_g11_sclk_sel),
-    .out_o(rph_g11_sclk_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G11_SCLK])
   );
 
   prim_onehot_mux #(
@@ -1457,18 +1295,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[0][11]
     }),
     .sel_i(rph_g11_sclk_sel),
-    .out_o(rph_g11_sclk_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G11_SCLK])
   );
 
-  assign rph_g11_sclk = rph_g11_sclk_en_o ? rph_g11_sclk_o : 1'bz;
-
   logic [1:0] rph_g12_sel;
-  logic rph_g12_o;
-  logic rph_g12_en_o;
   logic rph_g12_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1499,7 +1333,7 @@ module pinmux (
       gpio_ios_i[0][12]
     }),
     .sel_i(rph_g12_sel),
-    .out_o(rph_g12_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G12])
   );
 
   prim_onehot_mux #(
@@ -1513,14 +1347,10 @@ module pinmux (
       gpio_ios_en_i[0][12]
     }),
     .sel_i(rph_g12_sel),
-    .out_o(rph_g12_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G12])
   );
 
-  assign rph_g12 = rph_g12_en_o ? rph_g12_o : 1'bz;
-
   logic [1:0] rph_g13_sel;
-  logic rph_g13_o;
-  logic rph_g13_en_o;
   logic rph_g13_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1551,7 +1381,7 @@ module pinmux (
       gpio_ios_i[0][13]
     }),
     .sel_i(rph_g13_sel),
-    .out_o(rph_g13_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G13])
   );
 
   prim_onehot_mux #(
@@ -1565,14 +1395,10 @@ module pinmux (
       gpio_ios_en_i[0][13]
     }),
     .sel_i(rph_g13_sel),
-    .out_o(rph_g13_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G13])
   );
 
-  assign rph_g13 = rph_g13_en_o ? rph_g13_o : 1'bz;
-
   logic [2:0] rph_txd0_sel;
-  logic rph_txd0_o;
-  logic rph_txd0_en_o;
   logic rph_txd0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1604,7 +1430,7 @@ module pinmux (
       gpio_ios_i[0][14]
     }),
     .sel_i(rph_txd0_sel),
-    .out_o(rph_txd0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_TXD0])
   );
 
   prim_onehot_mux #(
@@ -1615,18 +1441,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[0][14]
     }),
     .sel_i(rph_txd0_sel),
-    .out_o(rph_txd0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_TXD0])
   );
 
-  assign rph_txd0 = rph_txd0_en_o ? rph_txd0_o : 1'bz;
-
   logic [1:0] rph_rxd0_sel;
-  logic rph_rxd0_o;
-  logic rph_rxd0_en_o;
   logic rph_rxd0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1657,7 +1479,7 @@ module pinmux (
       gpio_ios_i[0][15]
     }),
     .sel_i(rph_rxd0_sel),
-    .out_o(rph_rxd0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_RXD0])
   );
 
   prim_onehot_mux #(
@@ -1671,14 +1493,10 @@ module pinmux (
       gpio_ios_en_i[0][15]
     }),
     .sel_i(rph_rxd0_sel),
-    .out_o(rph_rxd0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_RXD0])
   );
 
-  assign rph_rxd0 = rph_rxd0_en_o ? rph_rxd0_o : 1'bz;
-
   logic [1:0] rph_g16_ce2_sel;
-  logic rph_g16_ce2_o;
-  logic rph_g16_ce2_en_o;
   logic rph_g16_ce2_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1709,7 +1527,7 @@ module pinmux (
       gpio_ios_i[0][16]
     }),
     .sel_i(rph_g16_ce2_sel),
-    .out_o(rph_g16_ce2_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G16_CE2])
   );
 
   prim_onehot_mux #(
@@ -1723,14 +1541,10 @@ module pinmux (
       gpio_ios_en_i[0][16]
     }),
     .sel_i(rph_g16_ce2_sel),
-    .out_o(rph_g16_ce2_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G16_CE2])
   );
 
-  assign rph_g16_ce2 = rph_g16_ce2_en_o ? rph_g16_ce2_o : 1'bz;
-
   logic [1:0] rph_g17_sel;
-  logic rph_g17_o;
-  logic rph_g17_en_o;
   logic rph_g17_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1761,7 +1575,7 @@ module pinmux (
       gpio_ios_i[0][17]
     }),
     .sel_i(rph_g17_sel),
-    .out_o(rph_g17_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G17])
   );
 
   prim_onehot_mux #(
@@ -1775,14 +1589,10 @@ module pinmux (
       gpio_ios_en_i[0][17]
     }),
     .sel_i(rph_g17_sel),
-    .out_o(rph_g17_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G17])
   );
 
-  assign rph_g17 = rph_g17_en_o ? rph_g17_o : 1'bz;
-
   logic [1:0] rph_g18_sel;
-  logic rph_g18_o;
-  logic rph_g18_en_o;
   logic rph_g18_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1813,7 +1623,7 @@ module pinmux (
       gpio_ios_i[0][18]
     }),
     .sel_i(rph_g18_sel),
-    .out_o(rph_g18_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G18])
   );
 
   prim_onehot_mux #(
@@ -1827,14 +1637,10 @@ module pinmux (
       gpio_ios_en_i[0][18]
     }),
     .sel_i(rph_g18_sel),
-    .out_o(rph_g18_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G18])
   );
 
-  assign rph_g18 = rph_g18_en_o ? rph_g18_o : 1'bz;
-
   logic [1:0] rph_g19_cipo_sel;
-  logic rph_g19_cipo_o;
-  logic rph_g19_cipo_en_o;
   logic rph_g19_cipo_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1865,7 +1671,7 @@ module pinmux (
       gpio_ios_i[0][19]
     }),
     .sel_i(rph_g19_cipo_sel),
-    .out_o(rph_g19_cipo_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G19_CIPO])
   );
 
   prim_onehot_mux #(
@@ -1879,14 +1685,10 @@ module pinmux (
       gpio_ios_en_i[0][19]
     }),
     .sel_i(rph_g19_cipo_sel),
-    .out_o(rph_g19_cipo_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G19_CIPO])
   );
 
-  assign rph_g19_cipo = rph_g19_cipo_en_o ? rph_g19_cipo_o : 1'bz;
-
   logic [2:0] rph_g20_copi_sel;
-  logic rph_g20_copi_o;
-  logic rph_g20_copi_en_o;
   logic rph_g20_copi_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1918,7 +1720,7 @@ module pinmux (
       gpio_ios_i[0][20]
     }),
     .sel_i(rph_g20_copi_sel),
-    .out_o(rph_g20_copi_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G20_COPI])
   );
 
   prim_onehot_mux #(
@@ -1929,18 +1731,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[0][20]
     }),
     .sel_i(rph_g20_copi_sel),
-    .out_o(rph_g20_copi_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G20_COPI])
   );
 
-  assign rph_g20_copi = rph_g20_copi_en_o ? rph_g20_copi_o : 1'bz;
-
   logic [2:0] rph_g21_sclk_sel;
-  logic rph_g21_sclk_o;
-  logic rph_g21_sclk_en_o;
   logic rph_g21_sclk_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -1972,7 +1770,7 @@ module pinmux (
       gpio_ios_i[0][21]
     }),
     .sel_i(rph_g21_sclk_sel),
-    .out_o(rph_g21_sclk_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G21_SCLK])
   );
 
   prim_onehot_mux #(
@@ -1983,18 +1781,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[0][21]
     }),
     .sel_i(rph_g21_sclk_sel),
-    .out_o(rph_g21_sclk_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G21_SCLK])
   );
 
-  assign rph_g21_sclk = rph_g21_sclk_en_o ? rph_g21_sclk_o : 1'bz;
-
   logic [1:0] rph_g22_sel;
-  logic rph_g22_o;
-  logic rph_g22_en_o;
   logic rph_g22_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2025,7 +1819,7 @@ module pinmux (
       gpio_ios_i[0][22]
     }),
     .sel_i(rph_g22_sel),
-    .out_o(rph_g22_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G22])
   );
 
   prim_onehot_mux #(
@@ -2039,14 +1833,10 @@ module pinmux (
       gpio_ios_en_i[0][22]
     }),
     .sel_i(rph_g22_sel),
-    .out_o(rph_g22_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G22])
   );
 
-  assign rph_g22 = rph_g22_en_o ? rph_g22_o : 1'bz;
-
   logic [1:0] rph_g23_sel;
-  logic rph_g23_o;
-  logic rph_g23_en_o;
   logic rph_g23_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2077,7 +1867,7 @@ module pinmux (
       gpio_ios_i[0][23]
     }),
     .sel_i(rph_g23_sel),
-    .out_o(rph_g23_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G23])
   );
 
   prim_onehot_mux #(
@@ -2091,14 +1881,10 @@ module pinmux (
       gpio_ios_en_i[0][23]
     }),
     .sel_i(rph_g23_sel),
-    .out_o(rph_g23_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G23])
   );
 
-  assign rph_g23 = rph_g23_en_o ? rph_g23_o : 1'bz;
-
   logic [1:0] rph_g24_sel;
-  logic rph_g24_o;
-  logic rph_g24_en_o;
   logic rph_g24_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2129,7 +1915,7 @@ module pinmux (
       gpio_ios_i[0][24]
     }),
     .sel_i(rph_g24_sel),
-    .out_o(rph_g24_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G24])
   );
 
   prim_onehot_mux #(
@@ -2143,14 +1929,10 @@ module pinmux (
       gpio_ios_en_i[0][24]
     }),
     .sel_i(rph_g24_sel),
-    .out_o(rph_g24_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G24])
   );
 
-  assign rph_g24 = rph_g24_en_o ? rph_g24_o : 1'bz;
-
   logic [1:0] rph_g25_sel;
-  logic rph_g25_o;
-  logic rph_g25_en_o;
   logic rph_g25_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2181,7 +1963,7 @@ module pinmux (
       gpio_ios_i[0][25]
     }),
     .sel_i(rph_g25_sel),
-    .out_o(rph_g25_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G25])
   );
 
   prim_onehot_mux #(
@@ -2195,14 +1977,10 @@ module pinmux (
       gpio_ios_en_i[0][25]
     }),
     .sel_i(rph_g25_sel),
-    .out_o(rph_g25_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G25])
   );
 
-  assign rph_g25 = rph_g25_en_o ? rph_g25_o : 1'bz;
-
   logic [1:0] rph_g26_sel;
-  logic rph_g26_o;
-  logic rph_g26_en_o;
   logic rph_g26_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2233,7 +2011,7 @@ module pinmux (
       gpio_ios_i[0][26]
     }),
     .sel_i(rph_g26_sel),
-    .out_o(rph_g26_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G26])
   );
 
   prim_onehot_mux #(
@@ -2247,14 +2025,10 @@ module pinmux (
       gpio_ios_en_i[0][26]
     }),
     .sel_i(rph_g26_sel),
-    .out_o(rph_g26_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G26])
   );
 
-  assign rph_g26 = rph_g26_en_o ? rph_g26_o : 1'bz;
-
   logic [1:0] rph_g27_sel;
-  logic rph_g27_o;
-  logic rph_g27_en_o;
   logic rph_g27_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2285,7 +2059,7 @@ module pinmux (
       gpio_ios_i[0][27]
     }),
     .sel_i(rph_g27_sel),
-    .out_o(rph_g27_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_RPH_G27])
   );
 
   prim_onehot_mux #(
@@ -2299,14 +2073,10 @@ module pinmux (
       gpio_ios_en_i[0][27]
     }),
     .sel_i(rph_g27_sel),
-    .out_o(rph_g27_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_RPH_G27])
   );
 
-  assign rph_g27 = rph_g27_en_o ? rph_g27_o : 1'bz;
-
   logic [1:0] ah_tmpio0_sel;
-  logic ah_tmpio0_o;
-  logic ah_tmpio0_en_o;
   logic ah_tmpio0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2337,7 +2107,7 @@ module pinmux (
       gpio_ios_i[1][0]
     }),
     .sel_i(ah_tmpio0_sel),
-    .out_o(ah_tmpio0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO0])
   );
 
   prim_onehot_mux #(
@@ -2351,14 +2121,10 @@ module pinmux (
       gpio_ios_en_i[1][0]
     }),
     .sel_i(ah_tmpio0_sel),
-    .out_o(ah_tmpio0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO0])
   );
 
-  assign ah_tmpio0 = ah_tmpio0_en_o ? ah_tmpio0_o : 1'bz;
-
   logic [1:0] ah_tmpio1_sel;
-  logic ah_tmpio1_o;
-  logic ah_tmpio1_en_o;
   logic ah_tmpio1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2389,7 +2155,7 @@ module pinmux (
       gpio_ios_i[1][1]
     }),
     .sel_i(ah_tmpio1_sel),
-    .out_o(ah_tmpio1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO1])
   );
 
   prim_onehot_mux #(
@@ -2403,14 +2169,10 @@ module pinmux (
       gpio_ios_en_i[1][1]
     }),
     .sel_i(ah_tmpio1_sel),
-    .out_o(ah_tmpio1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO1])
   );
 
-  assign ah_tmpio1 = ah_tmpio1_en_o ? ah_tmpio1_o : 1'bz;
-
   logic [1:0] ah_tmpio2_sel;
-  logic ah_tmpio2_o;
-  logic ah_tmpio2_en_o;
   logic ah_tmpio2_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2441,7 +2203,7 @@ module pinmux (
       gpio_ios_i[1][2]
     }),
     .sel_i(ah_tmpio2_sel),
-    .out_o(ah_tmpio2_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO2])
   );
 
   prim_onehot_mux #(
@@ -2455,14 +2217,10 @@ module pinmux (
       gpio_ios_en_i[1][2]
     }),
     .sel_i(ah_tmpio2_sel),
-    .out_o(ah_tmpio2_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO2])
   );
 
-  assign ah_tmpio2 = ah_tmpio2_en_o ? ah_tmpio2_o : 1'bz;
-
   logic [1:0] ah_tmpio3_sel;
-  logic ah_tmpio3_o;
-  logic ah_tmpio3_en_o;
   logic ah_tmpio3_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2493,7 +2251,7 @@ module pinmux (
       gpio_ios_i[1][3]
     }),
     .sel_i(ah_tmpio3_sel),
-    .out_o(ah_tmpio3_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO3])
   );
 
   prim_onehot_mux #(
@@ -2507,14 +2265,10 @@ module pinmux (
       gpio_ios_en_i[1][3]
     }),
     .sel_i(ah_tmpio3_sel),
-    .out_o(ah_tmpio3_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO3])
   );
 
-  assign ah_tmpio3 = ah_tmpio3_en_o ? ah_tmpio3_o : 1'bz;
-
   logic [1:0] ah_tmpio4_sel;
-  logic ah_tmpio4_o;
-  logic ah_tmpio4_en_o;
   logic ah_tmpio4_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2545,7 +2299,7 @@ module pinmux (
       gpio_ios_i[1][4]
     }),
     .sel_i(ah_tmpio4_sel),
-    .out_o(ah_tmpio4_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO4])
   );
 
   prim_onehot_mux #(
@@ -2559,14 +2313,10 @@ module pinmux (
       gpio_ios_en_i[1][4]
     }),
     .sel_i(ah_tmpio4_sel),
-    .out_o(ah_tmpio4_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO4])
   );
 
-  assign ah_tmpio4 = ah_tmpio4_en_o ? ah_tmpio4_o : 1'bz;
-
   logic [1:0] ah_tmpio5_sel;
-  logic ah_tmpio5_o;
-  logic ah_tmpio5_en_o;
   logic ah_tmpio5_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2597,7 +2347,7 @@ module pinmux (
       gpio_ios_i[1][5]
     }),
     .sel_i(ah_tmpio5_sel),
-    .out_o(ah_tmpio5_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO5])
   );
 
   prim_onehot_mux #(
@@ -2611,14 +2361,10 @@ module pinmux (
       gpio_ios_en_i[1][5]
     }),
     .sel_i(ah_tmpio5_sel),
-    .out_o(ah_tmpio5_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO5])
   );
 
-  assign ah_tmpio5 = ah_tmpio5_en_o ? ah_tmpio5_o : 1'bz;
-
   logic [1:0] ah_tmpio6_sel;
-  logic ah_tmpio6_o;
-  logic ah_tmpio6_en_o;
   logic ah_tmpio6_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2649,7 +2395,7 @@ module pinmux (
       gpio_ios_i[1][6]
     }),
     .sel_i(ah_tmpio6_sel),
-    .out_o(ah_tmpio6_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO6])
   );
 
   prim_onehot_mux #(
@@ -2663,14 +2409,10 @@ module pinmux (
       gpio_ios_en_i[1][6]
     }),
     .sel_i(ah_tmpio6_sel),
-    .out_o(ah_tmpio6_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO6])
   );
 
-  assign ah_tmpio6 = ah_tmpio6_en_o ? ah_tmpio6_o : 1'bz;
-
   logic [1:0] ah_tmpio7_sel;
-  logic ah_tmpio7_o;
-  logic ah_tmpio7_en_o;
   logic ah_tmpio7_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2701,7 +2443,7 @@ module pinmux (
       gpio_ios_i[1][7]
     }),
     .sel_i(ah_tmpio7_sel),
-    .out_o(ah_tmpio7_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO7])
   );
 
   prim_onehot_mux #(
@@ -2715,14 +2457,10 @@ module pinmux (
       gpio_ios_en_i[1][7]
     }),
     .sel_i(ah_tmpio7_sel),
-    .out_o(ah_tmpio7_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO7])
   );
 
-  assign ah_tmpio7 = ah_tmpio7_en_o ? ah_tmpio7_o : 1'bz;
-
   logic [1:0] ah_tmpio8_sel;
-  logic ah_tmpio8_o;
-  logic ah_tmpio8_en_o;
   logic ah_tmpio8_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2753,7 +2491,7 @@ module pinmux (
       gpio_ios_i[1][8]
     }),
     .sel_i(ah_tmpio8_sel),
-    .out_o(ah_tmpio8_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO8])
   );
 
   prim_onehot_mux #(
@@ -2767,14 +2505,10 @@ module pinmux (
       gpio_ios_en_i[1][8]
     }),
     .sel_i(ah_tmpio8_sel),
-    .out_o(ah_tmpio8_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO8])
   );
 
-  assign ah_tmpio8 = ah_tmpio8_en_o ? ah_tmpio8_o : 1'bz;
-
   logic [1:0] ah_tmpio9_sel;
-  logic ah_tmpio9_o;
-  logic ah_tmpio9_en_o;
   logic ah_tmpio9_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2805,7 +2539,7 @@ module pinmux (
       gpio_ios_i[1][9]
     }),
     .sel_i(ah_tmpio9_sel),
-    .out_o(ah_tmpio9_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO9])
   );
 
   prim_onehot_mux #(
@@ -2819,14 +2553,10 @@ module pinmux (
       gpio_ios_en_i[1][9]
     }),
     .sel_i(ah_tmpio9_sel),
-    .out_o(ah_tmpio9_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO9])
   );
 
-  assign ah_tmpio9 = ah_tmpio9_en_o ? ah_tmpio9_o : 1'bz;
-
   logic [1:0] ah_tmpio10_sel;
-  logic ah_tmpio10_o;
-  logic ah_tmpio10_en_o;
   logic ah_tmpio10_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2857,7 +2587,7 @@ module pinmux (
       gpio_ios_i[1][10]
     }),
     .sel_i(ah_tmpio10_sel),
-    .out_o(ah_tmpio10_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO10])
   );
 
   prim_onehot_mux #(
@@ -2871,14 +2601,10 @@ module pinmux (
       gpio_ios_en_i[1][10]
     }),
     .sel_i(ah_tmpio10_sel),
-    .out_o(ah_tmpio10_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO10])
   );
 
-  assign ah_tmpio10 = ah_tmpio10_en_o ? ah_tmpio10_o : 1'bz;
-
   logic [2:0] ah_tmpio11_sel;
-  logic ah_tmpio11_o;
-  logic ah_tmpio11_en_o;
   logic ah_tmpio11_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2910,7 +2636,7 @@ module pinmux (
       gpio_ios_i[1][11]
     }),
     .sel_i(ah_tmpio11_sel),
-    .out_o(ah_tmpio11_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO11])
   );
 
   prim_onehot_mux #(
@@ -2921,18 +2647,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[1][11]
     }),
     .sel_i(ah_tmpio11_sel),
-    .out_o(ah_tmpio11_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO11])
   );
 
-  assign ah_tmpio11 = ah_tmpio11_en_o ? ah_tmpio11_o : 1'bz;
-
   logic [1:0] ah_tmpio12_sel;
-  logic ah_tmpio12_o;
-  logic ah_tmpio12_en_o;
   logic ah_tmpio12_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -2963,7 +2685,7 @@ module pinmux (
       gpio_ios_i[1][12]
     }),
     .sel_i(ah_tmpio12_sel),
-    .out_o(ah_tmpio12_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO12])
   );
 
   prim_onehot_mux #(
@@ -2977,14 +2699,10 @@ module pinmux (
       gpio_ios_en_i[1][12]
     }),
     .sel_i(ah_tmpio12_sel),
-    .out_o(ah_tmpio12_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO12])
   );
 
-  assign ah_tmpio12 = ah_tmpio12_en_o ? ah_tmpio12_o : 1'bz;
-
   logic [2:0] ah_tmpio13_sel;
-  logic ah_tmpio13_o;
-  logic ah_tmpio13_en_o;
   logic ah_tmpio13_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3016,7 +2734,7 @@ module pinmux (
       gpio_ios_i[1][13]
     }),
     .sel_i(ah_tmpio13_sel),
-    .out_o(ah_tmpio13_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO13])
   );
 
   prim_onehot_mux #(
@@ -3027,18 +2745,14 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1,
+      1'b1,
       gpio_ios_en_i[1][13]
     }),
     .sel_i(ah_tmpio13_sel),
-    .out_o(ah_tmpio13_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO13])
   );
 
-  assign ah_tmpio13 = ah_tmpio13_en_o ? ah_tmpio13_o : 1'bz;
-
   logic [1:0] ah_tmpio14_sel;
-  logic ah_tmpio14_o;
-  logic ah_tmpio14_en_o;
   logic ah_tmpio14_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3069,7 +2783,7 @@ module pinmux (
       gpio_ios_i[1][14]
     }),
     .sel_i(ah_tmpio14_sel),
-    .out_o(ah_tmpio14_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO14])
   );
 
   prim_onehot_mux #(
@@ -3083,14 +2797,10 @@ module pinmux (
       gpio_ios_en_i[1][14]
     }),
     .sel_i(ah_tmpio14_sel),
-    .out_o(ah_tmpio14_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO14])
   );
 
-  assign ah_tmpio14 = ah_tmpio14_en_o ? ah_tmpio14_o : 1'bz;
-
   logic [1:0] ah_tmpio15_sel;
-  logic ah_tmpio15_o;
-  logic ah_tmpio15_en_o;
   logic ah_tmpio15_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3121,7 +2831,7 @@ module pinmux (
       gpio_ios_i[1][15]
     }),
     .sel_i(ah_tmpio15_sel),
-    .out_o(ah_tmpio15_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO15])
   );
 
   prim_onehot_mux #(
@@ -3135,14 +2845,10 @@ module pinmux (
       gpio_ios_en_i[1][15]
     }),
     .sel_i(ah_tmpio15_sel),
-    .out_o(ah_tmpio15_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO15])
   );
 
-  assign ah_tmpio15 = ah_tmpio15_en_o ? ah_tmpio15_o : 1'bz;
-
   logic [1:0] ah_tmpio16_sel;
-  logic ah_tmpio16_o;
-  logic ah_tmpio16_en_o;
   logic ah_tmpio16_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3173,7 +2879,7 @@ module pinmux (
       gpio_ios_i[1][16]
     }),
     .sel_i(ah_tmpio16_sel),
-    .out_o(ah_tmpio16_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO16])
   );
 
   prim_onehot_mux #(
@@ -3187,14 +2893,10 @@ module pinmux (
       gpio_ios_en_i[1][16]
     }),
     .sel_i(ah_tmpio16_sel),
-    .out_o(ah_tmpio16_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO16])
   );
 
-  assign ah_tmpio16 = ah_tmpio16_en_o ? ah_tmpio16_o : 1'bz;
-
   logic [1:0] ah_tmpio17_sel;
-  logic ah_tmpio17_o;
-  logic ah_tmpio17_en_o;
   logic ah_tmpio17_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3225,7 +2927,7 @@ module pinmux (
       gpio_ios_i[1][17]
     }),
     .sel_i(ah_tmpio17_sel),
-    .out_o(ah_tmpio17_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO17])
   );
 
   prim_onehot_mux #(
@@ -3239,14 +2941,10 @@ module pinmux (
       gpio_ios_en_i[1][17]
     }),
     .sel_i(ah_tmpio17_sel),
-    .out_o(ah_tmpio17_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO17])
   );
 
-  assign ah_tmpio17 = ah_tmpio17_en_o ? ah_tmpio17_o : 1'bz;
-
   logic [1:0] mb2_sel;
-  logic mb2_o;
-  logic mb2_en_o;
   logic mb2_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3277,7 +2975,7 @@ module pinmux (
       spi_sck_i[4]
     }),
     .sel_i(mb2_sel),
-    .out_o(mb2_o)
+    .out_o(out_to_pins_o[OUT_PIN_MB2])
   );
 
   prim_onehot_mux #(
@@ -3288,17 +2986,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(mb2_sel),
-    .out_o(mb2_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_MB2])
   );
 
-  assign mb2 = mb2_en_o ? mb2_o : 1'bz;
-
   logic [1:0] mb4_sel;
-  logic mb4_o;
-  logic mb4_en_o;
   logic mb4_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3329,7 +3023,7 @@ module pinmux (
       spi_tx_i[4]
     }),
     .sel_i(mb4_sel),
-    .out_o(mb4_o)
+    .out_o(out_to_pins_o[OUT_PIN_MB4])
   );
 
   prim_onehot_mux #(
@@ -3340,17 +3034,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(mb4_sel),
-    .out_o(mb4_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_MB4])
   );
 
-  assign mb4 = mb4_en_o ? mb4_o : 1'bz;
-
   logic [1:0] mb5_sel;
-  logic mb5_o;
-  logic mb5_en_o;
   logic mb5_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3381,7 +3071,7 @@ module pinmux (
       i2c_sda_i[1]
     }),
     .sel_i(mb5_sel),
-    .out_o(mb5_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_MB5])
   );
 
   prim_onehot_mux #(
@@ -3395,14 +3085,10 @@ module pinmux (
       i2c_sda_en_i[1]
     }),
     .sel_i(mb5_sel),
-    .out_o(mb5_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_MB5])
   );
 
-  assign mb5 = mb5_en_o ? mb5_o : 1'bz;
-
   logic [1:0] mb6_sel;
-  logic mb6_o;
-  logic mb6_en_o;
   logic mb6_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3433,7 +3119,7 @@ module pinmux (
       i2c_scl_i[1]
     }),
     .sel_i(mb6_sel),
-    .out_o(mb6_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_MB6])
   );
 
   prim_onehot_mux #(
@@ -3447,14 +3133,10 @@ module pinmux (
       i2c_scl_en_i[1]
     }),
     .sel_i(mb6_sel),
-    .out_o(mb6_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_MB6])
   );
 
-  assign mb6 = mb6_en_o ? mb6_o : 1'bz;
-
   logic [1:0] mb7_sel;
-  logic mb7_o;
-  logic mb7_en_o;
   logic mb7_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3485,7 +3167,7 @@ module pinmux (
       uart_tx_i[3]
     }),
     .sel_i(mb7_sel),
-    .out_o(mb7_o)
+    .out_o(out_to_pins_o[OUT_PIN_MB7])
   );
 
   prim_onehot_mux #(
@@ -3496,17 +3178,13 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      '1
+      1'b1
     }),
     .sel_i(mb7_sel),
-    .out_o(mb7_en_o)
+    .out_o(out_to_pins_en_o[OUT_PIN_MB7])
   );
 
-  assign mb7 = mb7_en_o ? mb7_o : 1'bz;
-
   logic [1:0] pmod0_0_sel;
-  logic pmod0_0_o;
-  logic pmod0_0_en_o;
   logic pmod0_0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3537,7 +3215,7 @@ module pinmux (
       gpio_ios_i[2][0]
     }),
     .sel_i(pmod0_0_sel),
-    .out_o(pmod0_0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_0])
   );
 
   prim_onehot_mux #(
@@ -3551,14 +3229,10 @@ module pinmux (
       gpio_ios_en_i[2][0]
     }),
     .sel_i(pmod0_0_sel),
-    .out_o(pmod0_0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_0])
   );
 
-  assign pmod0[0] = pmod0_0_en_o ? pmod0_0_o : 1'bz;
-
   logic [1:0] pmod0_1_sel;
-  logic pmod0_1_o;
-  logic pmod0_1_en_o;
   logic pmod0_1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3589,7 +3263,7 @@ module pinmux (
       gpio_ios_i[2][1]
     }),
     .sel_i(pmod0_1_sel),
-    .out_o(pmod0_1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_1])
   );
 
   prim_onehot_mux #(
@@ -3603,14 +3277,10 @@ module pinmux (
       gpio_ios_en_i[2][1]
     }),
     .sel_i(pmod0_1_sel),
-    .out_o(pmod0_1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_1])
   );
 
-  assign pmod0[1] = pmod0_1_en_o ? pmod0_1_o : 1'bz;
-
   logic [1:0] pmod0_2_sel;
-  logic pmod0_2_o;
-  logic pmod0_2_en_o;
   logic pmod0_2_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3641,7 +3311,7 @@ module pinmux (
       gpio_ios_i[2][2]
     }),
     .sel_i(pmod0_2_sel),
-    .out_o(pmod0_2_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_2])
   );
 
   prim_onehot_mux #(
@@ -3655,14 +3325,10 @@ module pinmux (
       gpio_ios_en_i[2][2]
     }),
     .sel_i(pmod0_2_sel),
-    .out_o(pmod0_2_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_2])
   );
 
-  assign pmod0[2] = pmod0_2_en_o ? pmod0_2_o : 1'bz;
-
   logic [1:0] pmod0_3_sel;
-  logic pmod0_3_o;
-  logic pmod0_3_en_o;
   logic pmod0_3_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3693,7 +3359,7 @@ module pinmux (
       gpio_ios_i[2][3]
     }),
     .sel_i(pmod0_3_sel),
-    .out_o(pmod0_3_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_3])
   );
 
   prim_onehot_mux #(
@@ -3707,14 +3373,10 @@ module pinmux (
       gpio_ios_en_i[2][3]
     }),
     .sel_i(pmod0_3_sel),
-    .out_o(pmod0_3_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_3])
   );
 
-  assign pmod0[3] = pmod0_3_en_o ? pmod0_3_o : 1'bz;
-
   logic [1:0] pmod0_4_sel;
-  logic pmod0_4_o;
-  logic pmod0_4_en_o;
   logic pmod0_4_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3745,7 +3407,7 @@ module pinmux (
       gpio_ios_i[2][4]
     }),
     .sel_i(pmod0_4_sel),
-    .out_o(pmod0_4_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_4])
   );
 
   prim_onehot_mux #(
@@ -3759,14 +3421,10 @@ module pinmux (
       gpio_ios_en_i[2][4]
     }),
     .sel_i(pmod0_4_sel),
-    .out_o(pmod0_4_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_4])
   );
 
-  assign pmod0[4] = pmod0_4_en_o ? pmod0_4_o : 1'bz;
-
   logic [1:0] pmod0_5_sel;
-  logic pmod0_5_o;
-  logic pmod0_5_en_o;
   logic pmod0_5_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3797,7 +3455,7 @@ module pinmux (
       gpio_ios_i[2][5]
     }),
     .sel_i(pmod0_5_sel),
-    .out_o(pmod0_5_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_5])
   );
 
   prim_onehot_mux #(
@@ -3811,14 +3469,10 @@ module pinmux (
       gpio_ios_en_i[2][5]
     }),
     .sel_i(pmod0_5_sel),
-    .out_o(pmod0_5_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_5])
   );
 
-  assign pmod0[5] = pmod0_5_en_o ? pmod0_5_o : 1'bz;
-
   logic [1:0] pmod0_6_sel;
-  logic pmod0_6_o;
-  logic pmod0_6_en_o;
   logic pmod0_6_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3849,7 +3503,7 @@ module pinmux (
       gpio_ios_i[2][6]
     }),
     .sel_i(pmod0_6_sel),
-    .out_o(pmod0_6_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_6])
   );
 
   prim_onehot_mux #(
@@ -3863,14 +3517,10 @@ module pinmux (
       gpio_ios_en_i[2][6]
     }),
     .sel_i(pmod0_6_sel),
-    .out_o(pmod0_6_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_6])
   );
 
-  assign pmod0[6] = pmod0_6_en_o ? pmod0_6_o : 1'bz;
-
   logic [1:0] pmod0_7_sel;
-  logic pmod0_7_o;
-  logic pmod0_7_en_o;
   logic pmod0_7_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3901,7 +3551,7 @@ module pinmux (
       gpio_ios_i[2][7]
     }),
     .sel_i(pmod0_7_sel),
-    .out_o(pmod0_7_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD0_7])
   );
 
   prim_onehot_mux #(
@@ -3915,14 +3565,10 @@ module pinmux (
       gpio_ios_en_i[2][7]
     }),
     .sel_i(pmod0_7_sel),
-    .out_o(pmod0_7_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD0_7])
   );
 
-  assign pmod0[7] = pmod0_7_en_o ? pmod0_7_o : 1'bz;
-
   logic [1:0] pmod1_0_sel;
-  logic pmod1_0_o;
-  logic pmod1_0_en_o;
   logic pmod1_0_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -3953,7 +3599,7 @@ module pinmux (
       gpio_ios_i[2][8]
     }),
     .sel_i(pmod1_0_sel),
-    .out_o(pmod1_0_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_0])
   );
 
   prim_onehot_mux #(
@@ -3967,14 +3613,10 @@ module pinmux (
       gpio_ios_en_i[2][8]
     }),
     .sel_i(pmod1_0_sel),
-    .out_o(pmod1_0_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_0])
   );
 
-  assign pmod1[0] = pmod1_0_en_o ? pmod1_0_o : 1'bz;
-
   logic [1:0] pmod1_1_sel;
-  logic pmod1_1_o;
-  logic pmod1_1_en_o;
   logic pmod1_1_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4005,7 +3647,7 @@ module pinmux (
       gpio_ios_i[2][9]
     }),
     .sel_i(pmod1_1_sel),
-    .out_o(pmod1_1_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_1])
   );
 
   prim_onehot_mux #(
@@ -4019,14 +3661,10 @@ module pinmux (
       gpio_ios_en_i[2][9]
     }),
     .sel_i(pmod1_1_sel),
-    .out_o(pmod1_1_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_1])
   );
 
-  assign pmod1[1] = pmod1_1_en_o ? pmod1_1_o : 1'bz;
-
   logic [1:0] pmod1_2_sel;
-  logic pmod1_2_o;
-  logic pmod1_2_en_o;
   logic pmod1_2_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4057,7 +3695,7 @@ module pinmux (
       gpio_ios_i[2][10]
     }),
     .sel_i(pmod1_2_sel),
-    .out_o(pmod1_2_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_2])
   );
 
   prim_onehot_mux #(
@@ -4071,14 +3709,10 @@ module pinmux (
       gpio_ios_en_i[2][10]
     }),
     .sel_i(pmod1_2_sel),
-    .out_o(pmod1_2_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_2])
   );
 
-  assign pmod1[2] = pmod1_2_en_o ? pmod1_2_o : 1'bz;
-
   logic [1:0] pmod1_3_sel;
-  logic pmod1_3_o;
-  logic pmod1_3_en_o;
   logic pmod1_3_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4109,7 +3743,7 @@ module pinmux (
       gpio_ios_i[2][11]
     }),
     .sel_i(pmod1_3_sel),
-    .out_o(pmod1_3_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_3])
   );
 
   prim_onehot_mux #(
@@ -4123,14 +3757,10 @@ module pinmux (
       gpio_ios_en_i[2][11]
     }),
     .sel_i(pmod1_3_sel),
-    .out_o(pmod1_3_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_3])
   );
 
-  assign pmod1[3] = pmod1_3_en_o ? pmod1_3_o : 1'bz;
-
   logic [1:0] pmod1_4_sel;
-  logic pmod1_4_o;
-  logic pmod1_4_en_o;
   logic pmod1_4_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4161,7 +3791,7 @@ module pinmux (
       gpio_ios_i[2][12]
     }),
     .sel_i(pmod1_4_sel),
-    .out_o(pmod1_4_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_4])
   );
 
   prim_onehot_mux #(
@@ -4175,14 +3805,10 @@ module pinmux (
       gpio_ios_en_i[2][12]
     }),
     .sel_i(pmod1_4_sel),
-    .out_o(pmod1_4_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_4])
   );
 
-  assign pmod1[4] = pmod1_4_en_o ? pmod1_4_o : 1'bz;
-
   logic [1:0] pmod1_5_sel;
-  logic pmod1_5_o;
-  logic pmod1_5_en_o;
   logic pmod1_5_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4213,7 +3839,7 @@ module pinmux (
       gpio_ios_i[2][13]
     }),
     .sel_i(pmod1_5_sel),
-    .out_o(pmod1_5_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_5])
   );
 
   prim_onehot_mux #(
@@ -4227,14 +3853,10 @@ module pinmux (
       gpio_ios_en_i[2][13]
     }),
     .sel_i(pmod1_5_sel),
-    .out_o(pmod1_5_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_5])
   );
 
-  assign pmod1[5] = pmod1_5_en_o ? pmod1_5_o : 1'bz;
-
   logic [1:0] pmod1_6_sel;
-  logic pmod1_6_o;
-  logic pmod1_6_en_o;
   logic pmod1_6_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4265,7 +3887,7 @@ module pinmux (
       gpio_ios_i[2][14]
     }),
     .sel_i(pmod1_6_sel),
-    .out_o(pmod1_6_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_6])
   );
 
   prim_onehot_mux #(
@@ -4279,14 +3901,10 @@ module pinmux (
       gpio_ios_en_i[2][14]
     }),
     .sel_i(pmod1_6_sel),
-    .out_o(pmod1_6_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_6])
   );
 
-  assign pmod1[6] = pmod1_6_en_o ? pmod1_6_o : 1'bz;
-
   logic [1:0] pmod1_7_sel;
-  logic pmod1_7_o;
-  logic pmod1_7_en_o;
   logic pmod1_7_sel_addressed;
 
   // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
@@ -4317,7 +3935,7 @@ module pinmux (
       gpio_ios_i[2][15]
     }),
     .sel_i(pmod1_7_sel),
-    .out_o(pmod1_7_o)
+    .out_o(inout_to_pins_o[INOUT_PIN_PMOD1_7])
   );
 
   prim_onehot_mux #(
@@ -4331,10 +3949,8 @@ module pinmux (
       gpio_ios_en_i[2][15]
     }),
     .sel_i(pmod1_7_sel),
-    .out_o(pmod1_7_en_o)
+    .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_7])
   );
-
-  assign pmod1[7] = pmod1_7_en_o ? pmod1_7_o : 1'bz;
 
   // Inputs - Physical pin inputs are muxed to particular block IO
 
@@ -4366,7 +3982,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b1,
-      ser0_rx
+      in_from_pins_i[IN_PIN_SER0_RX]
     }),
     .sel_i(uart_rx_0_sel),
     .out_o(uart_rx_o[0])
@@ -4400,7 +4016,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b1,
-      ser1_rx
+      in_from_pins_i[IN_PIN_SER1_RX]
     }),
     .sel_i(uart_rx_1_sel),
     .out_o(uart_rx_o[1])
@@ -4434,7 +4050,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b1,
-      rph_rxd0
+      inout_from_pins_i[INOUT_PIN_RPH_RXD0]
     }),
     .sel_i(uart_rx_2_sel),
     .out_o(uart_rx_o[2])
@@ -4468,7 +4084,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b1,
-      mb8
+      in_from_pins_i[IN_PIN_MB8]
     }),
     .sel_i(uart_rx_3_sel),
     .out_o(uart_rx_o[3])
@@ -4502,7 +4118,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b1,
-      rs232_rx
+      in_from_pins_i[IN_PIN_RS232_RX]
     }),
     .sel_i(uart_rx_4_sel),
     .out_o(uart_rx_o[4])
@@ -4536,7 +4152,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      appspi_d1
+      in_from_pins_i[IN_PIN_APPSPI_D1]
     }),
     .sel_i(spi_rx_0_sel),
     .out_o(spi_rx_o[0])
@@ -4604,7 +4220,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ethmac_cipo
+      in_from_pins_i[IN_PIN_ETHMAC_CIPO]
     }),
     .sel_i(spi_rx_2_sel),
     .out_o(spi_rx_o[2])
@@ -4638,8 +4254,8 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g9_cipo,
-      ah_tmpio12
+      inout_from_pins_i[INOUT_PIN_RPH_G9_CIPO],
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO12]
     }),
     .sel_i(spi_rx_3_sel),
     .out_o(spi_rx_o[3])
@@ -4673,8 +4289,8 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g19_cipo,
-      mb3
+      inout_from_pins_i[INOUT_PIN_RPH_G19_CIPO],
+      in_from_pins_i[IN_PIN_MB3]
     }),
     .sel_i(spi_rx_4_sel),
     .out_o(spi_rx_o[4])
@@ -4708,7 +4324,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g0
+      inout_from_pins_i[INOUT_PIN_RPH_G0]
     }),
     .sel_i(gpio_ios_0_0_sel),
     .out_o(gpio_ios_o[0][0])
@@ -4742,7 +4358,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio0
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO0]
     }),
     .sel_i(gpio_ios_1_0_sel),
     .out_o(gpio_ios_o[1][0])
@@ -4776,7 +4392,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[0]
+      inout_from_pins_i[INOUT_PIN_PMOD0_0]
     }),
     .sel_i(gpio_ios_2_0_sel),
     .out_o(gpio_ios_o[2][0])
@@ -4810,7 +4426,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g1
+      inout_from_pins_i[INOUT_PIN_RPH_G1]
     }),
     .sel_i(gpio_ios_0_1_sel),
     .out_o(gpio_ios_o[0][1])
@@ -4844,7 +4460,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio1
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO1]
     }),
     .sel_i(gpio_ios_1_1_sel),
     .out_o(gpio_ios_o[1][1])
@@ -4878,7 +4494,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[1]
+      inout_from_pins_i[INOUT_PIN_PMOD0_1]
     }),
     .sel_i(gpio_ios_2_1_sel),
     .out_o(gpio_ios_o[2][1])
@@ -4912,7 +4528,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g2_sda
+      inout_from_pins_i[INOUT_PIN_RPH_G2_SDA]
     }),
     .sel_i(gpio_ios_0_2_sel),
     .out_o(gpio_ios_o[0][2])
@@ -4946,7 +4562,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio2
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO2]
     }),
     .sel_i(gpio_ios_1_2_sel),
     .out_o(gpio_ios_o[1][2])
@@ -4980,7 +4596,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[2]
+      inout_from_pins_i[INOUT_PIN_PMOD0_2]
     }),
     .sel_i(gpio_ios_2_2_sel),
     .out_o(gpio_ios_o[2][2])
@@ -5014,7 +4630,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g3_scl
+      inout_from_pins_i[INOUT_PIN_RPH_G3_SCL]
     }),
     .sel_i(gpio_ios_0_3_sel),
     .out_o(gpio_ios_o[0][3])
@@ -5048,7 +4664,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio3
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO3]
     }),
     .sel_i(gpio_ios_1_3_sel),
     .out_o(gpio_ios_o[1][3])
@@ -5082,7 +4698,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[3]
+      inout_from_pins_i[INOUT_PIN_PMOD0_3]
     }),
     .sel_i(gpio_ios_2_3_sel),
     .out_o(gpio_ios_o[2][3])
@@ -5116,7 +4732,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g4
+      inout_from_pins_i[INOUT_PIN_RPH_G4]
     }),
     .sel_i(gpio_ios_0_4_sel),
     .out_o(gpio_ios_o[0][4])
@@ -5150,7 +4766,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio4
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO4]
     }),
     .sel_i(gpio_ios_1_4_sel),
     .out_o(gpio_ios_o[1][4])
@@ -5184,7 +4800,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[4]
+      inout_from_pins_i[INOUT_PIN_PMOD0_4]
     }),
     .sel_i(gpio_ios_2_4_sel),
     .out_o(gpio_ios_o[2][4])
@@ -5218,7 +4834,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g5
+      inout_from_pins_i[INOUT_PIN_RPH_G5]
     }),
     .sel_i(gpio_ios_0_5_sel),
     .out_o(gpio_ios_o[0][5])
@@ -5252,7 +4868,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio5
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO5]
     }),
     .sel_i(gpio_ios_1_5_sel),
     .out_o(gpio_ios_o[1][5])
@@ -5286,7 +4902,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[5]
+      inout_from_pins_i[INOUT_PIN_PMOD0_5]
     }),
     .sel_i(gpio_ios_2_5_sel),
     .out_o(gpio_ios_o[2][5])
@@ -5320,7 +4936,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g6
+      inout_from_pins_i[INOUT_PIN_RPH_G6]
     }),
     .sel_i(gpio_ios_0_6_sel),
     .out_o(gpio_ios_o[0][6])
@@ -5354,7 +4970,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio6
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO6]
     }),
     .sel_i(gpio_ios_1_6_sel),
     .out_o(gpio_ios_o[1][6])
@@ -5388,7 +5004,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[6]
+      inout_from_pins_i[INOUT_PIN_PMOD0_6]
     }),
     .sel_i(gpio_ios_2_6_sel),
     .out_o(gpio_ios_o[2][6])
@@ -5422,7 +5038,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g7_ce1
+      inout_from_pins_i[INOUT_PIN_RPH_G7_CE1]
     }),
     .sel_i(gpio_ios_0_7_sel),
     .out_o(gpio_ios_o[0][7])
@@ -5456,7 +5072,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio7
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO7]
     }),
     .sel_i(gpio_ios_1_7_sel),
     .out_o(gpio_ios_o[1][7])
@@ -5490,7 +5106,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod0[7]
+      inout_from_pins_i[INOUT_PIN_PMOD0_7]
     }),
     .sel_i(gpio_ios_2_7_sel),
     .out_o(gpio_ios_o[2][7])
@@ -5524,7 +5140,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g8_ce0
+      inout_from_pins_i[INOUT_PIN_RPH_G8_CE0]
     }),
     .sel_i(gpio_ios_0_8_sel),
     .out_o(gpio_ios_o[0][8])
@@ -5558,7 +5174,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio8
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO8]
     }),
     .sel_i(gpio_ios_1_8_sel),
     .out_o(gpio_ios_o[1][8])
@@ -5592,7 +5208,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[0]
+      inout_from_pins_i[INOUT_PIN_PMOD1_0]
     }),
     .sel_i(gpio_ios_2_8_sel),
     .out_o(gpio_ios_o[2][8])
@@ -5626,7 +5242,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g9_cipo
+      inout_from_pins_i[INOUT_PIN_RPH_G9_CIPO]
     }),
     .sel_i(gpio_ios_0_9_sel),
     .out_o(gpio_ios_o[0][9])
@@ -5660,7 +5276,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio9
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO9]
     }),
     .sel_i(gpio_ios_1_9_sel),
     .out_o(gpio_ios_o[1][9])
@@ -5694,7 +5310,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[1]
+      inout_from_pins_i[INOUT_PIN_PMOD1_1]
     }),
     .sel_i(gpio_ios_2_9_sel),
     .out_o(gpio_ios_o[2][9])
@@ -5728,7 +5344,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g10_copi
+      inout_from_pins_i[INOUT_PIN_RPH_G10_COPI]
     }),
     .sel_i(gpio_ios_0_10_sel),
     .out_o(gpio_ios_o[0][10])
@@ -5762,7 +5378,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio10
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO10]
     }),
     .sel_i(gpio_ios_1_10_sel),
     .out_o(gpio_ios_o[1][10])
@@ -5796,7 +5412,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[2]
+      inout_from_pins_i[INOUT_PIN_PMOD1_2]
     }),
     .sel_i(gpio_ios_2_10_sel),
     .out_o(gpio_ios_o[2][10])
@@ -5830,7 +5446,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g11_sclk
+      inout_from_pins_i[INOUT_PIN_RPH_G11_SCLK]
     }),
     .sel_i(gpio_ios_0_11_sel),
     .out_o(gpio_ios_o[0][11])
@@ -5864,7 +5480,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio11
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO11]
     }),
     .sel_i(gpio_ios_1_11_sel),
     .out_o(gpio_ios_o[1][11])
@@ -5898,7 +5514,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[3]
+      inout_from_pins_i[INOUT_PIN_PMOD1_3]
     }),
     .sel_i(gpio_ios_2_11_sel),
     .out_o(gpio_ios_o[2][11])
@@ -5932,7 +5548,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g12
+      inout_from_pins_i[INOUT_PIN_RPH_G12]
     }),
     .sel_i(gpio_ios_0_12_sel),
     .out_o(gpio_ios_o[0][12])
@@ -5966,7 +5582,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio12
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO12]
     }),
     .sel_i(gpio_ios_1_12_sel),
     .out_o(gpio_ios_o[1][12])
@@ -6000,7 +5616,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[4]
+      inout_from_pins_i[INOUT_PIN_PMOD1_4]
     }),
     .sel_i(gpio_ios_2_12_sel),
     .out_o(gpio_ios_o[2][12])
@@ -6034,7 +5650,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g13
+      inout_from_pins_i[INOUT_PIN_RPH_G13]
     }),
     .sel_i(gpio_ios_0_13_sel),
     .out_o(gpio_ios_o[0][13])
@@ -6068,7 +5684,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio13
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO13]
     }),
     .sel_i(gpio_ios_1_13_sel),
     .out_o(gpio_ios_o[1][13])
@@ -6102,7 +5718,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[5]
+      inout_from_pins_i[INOUT_PIN_PMOD1_5]
     }),
     .sel_i(gpio_ios_2_13_sel),
     .out_o(gpio_ios_o[2][13])
@@ -6136,7 +5752,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_txd0
+      inout_from_pins_i[INOUT_PIN_RPH_TXD0]
     }),
     .sel_i(gpio_ios_0_14_sel),
     .out_o(gpio_ios_o[0][14])
@@ -6170,7 +5786,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio14
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO14]
     }),
     .sel_i(gpio_ios_1_14_sel),
     .out_o(gpio_ios_o[1][14])
@@ -6204,7 +5820,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[6]
+      inout_from_pins_i[INOUT_PIN_PMOD1_6]
     }),
     .sel_i(gpio_ios_2_14_sel),
     .out_o(gpio_ios_o[2][14])
@@ -6238,7 +5854,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_rxd0
+      inout_from_pins_i[INOUT_PIN_RPH_RXD0]
     }),
     .sel_i(gpio_ios_0_15_sel),
     .out_o(gpio_ios_o[0][15])
@@ -6272,7 +5888,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio15
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO15]
     }),
     .sel_i(gpio_ios_1_15_sel),
     .out_o(gpio_ios_o[1][15])
@@ -6306,7 +5922,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      pmod1[7]
+      inout_from_pins_i[INOUT_PIN_PMOD1_7]
     }),
     .sel_i(gpio_ios_2_15_sel),
     .out_o(gpio_ios_o[2][15])
@@ -6340,7 +5956,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g16_ce2
+      inout_from_pins_i[INOUT_PIN_RPH_G16_CE2]
     }),
     .sel_i(gpio_ios_0_16_sel),
     .out_o(gpio_ios_o[0][16])
@@ -6374,7 +5990,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio16
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO16]
     }),
     .sel_i(gpio_ios_1_16_sel),
     .out_o(gpio_ios_o[1][16])
@@ -6442,7 +6058,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g17
+      inout_from_pins_i[INOUT_PIN_RPH_G17]
     }),
     .sel_i(gpio_ios_0_17_sel),
     .out_o(gpio_ios_o[0][17])
@@ -6476,7 +6092,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      ah_tmpio17
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO17]
     }),
     .sel_i(gpio_ios_1_17_sel),
     .out_o(gpio_ios_o[1][17])
@@ -6544,7 +6160,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g18
+      inout_from_pins_i[INOUT_PIN_RPH_G18]
     }),
     .sel_i(gpio_ios_0_18_sel),
     .out_o(gpio_ios_o[0][18])
@@ -6646,7 +6262,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g19_cipo
+      inout_from_pins_i[INOUT_PIN_RPH_G19_CIPO]
     }),
     .sel_i(gpio_ios_0_19_sel),
     .out_o(gpio_ios_o[0][19])
@@ -6748,7 +6364,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g20_copi
+      inout_from_pins_i[INOUT_PIN_RPH_G20_COPI]
     }),
     .sel_i(gpio_ios_0_20_sel),
     .out_o(gpio_ios_o[0][20])
@@ -6850,7 +6466,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g21_sclk
+      inout_from_pins_i[INOUT_PIN_RPH_G21_SCLK]
     }),
     .sel_i(gpio_ios_0_21_sel),
     .out_o(gpio_ios_o[0][21])
@@ -6952,7 +6568,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g22
+      inout_from_pins_i[INOUT_PIN_RPH_G22]
     }),
     .sel_i(gpio_ios_0_22_sel),
     .out_o(gpio_ios_o[0][22])
@@ -7054,7 +6670,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g23
+      inout_from_pins_i[INOUT_PIN_RPH_G23]
     }),
     .sel_i(gpio_ios_0_23_sel),
     .out_o(gpio_ios_o[0][23])
@@ -7156,7 +6772,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g24
+      inout_from_pins_i[INOUT_PIN_RPH_G24]
     }),
     .sel_i(gpio_ios_0_24_sel),
     .out_o(gpio_ios_o[0][24])
@@ -7258,7 +6874,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g25
+      inout_from_pins_i[INOUT_PIN_RPH_G25]
     }),
     .sel_i(gpio_ios_0_25_sel),
     .out_o(gpio_ios_o[0][25])
@@ -7360,7 +6976,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g26
+      inout_from_pins_i[INOUT_PIN_RPH_G26]
     }),
     .sel_i(gpio_ios_0_26_sel),
     .out_o(gpio_ios_o[0][26])
@@ -7462,7 +7078,7 @@ module pinmux (
     .rst_ni,
     .in_i({
       1'b0,
-      rph_g27
+      inout_from_pins_i[INOUT_PIN_RPH_G27]
     }),
     .sel_i(gpio_ios_0_27_sel),
     .out_o(gpio_ios_o[0][27])
@@ -7946,17 +7562,17 @@ module pinmux (
 
   // Combining inputs for combinable inouts
   assign i2c_scl_o[0] =
-    (scl0_sel == 2 ? scl0 : 1) &
-    (rph_g1_sel == 2 ? rph_g1 : 1);
-  assign i2c_scl_o[1] =
-    (scl1_sel == 2 ? scl1 : 1) &
-    (rph_g3_scl_sel == 2 ? rph_g3_scl : 1) &
-    (mb6_sel == 2 ? mb6 : 1);
+    (scl0_sel == 2 ? inout_from_pins_i[INOUT_PIN_SCL0] : 1'b1) &
+    (rph_g1_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G1] : 1'b1);
   assign i2c_sda_o[0] =
-    (sda0_sel == 2 ? sda0 : 1) &
-    (rph_g0_sel == 2 ? rph_g0 : 1);
+    (sda0_sel == 2 ? inout_from_pins_i[INOUT_PIN_SDA0] : 1'b1) &
+    (rph_g0_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G0] : 1'b1);
+  assign i2c_scl_o[1] =
+    (scl1_sel == 2 ? inout_from_pins_i[INOUT_PIN_SCL1] : 1'b1) &
+    (rph_g3_scl_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G3_SCL] : 1'b1) &
+    (mb6_sel == 2 ? inout_from_pins_i[INOUT_PIN_MB6] : 1'b1);
   assign i2c_sda_o[1] =
-    (sda1_sel == 2 ? sda1 : 1) &
-    (rph_g2_sda_sel == 2 ? rph_g2_sda : 1) &
-    (mb5_sel == 2 ? mb5 : 1);
+    (sda1_sel == 2 ? inout_from_pins_i[INOUT_PIN_SDA1] : 1'b1) &
+    (rph_g2_sda_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G2_SDA] : 1'b1) &
+    (mb5_sel == 2 ? inout_from_pins_i[INOUT_PIN_MB5] : 1'b1);
 endmodule
