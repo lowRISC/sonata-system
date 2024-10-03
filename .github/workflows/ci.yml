@@ -74,7 +74,8 @@ jobs:
         nix build .#sonata-simulator -L
 
     - name: Nix Checks
-      run: nix flake check -L
+      run: |
+        nix flake check -L
 
   fpga:
     runs-on: [ubuntu-22.04-fpga, sonata]
