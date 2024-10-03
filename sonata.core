@@ -13,6 +13,7 @@ filesets:
     depend:
       - lowrisc:ibex:fpga_xilinx_shared
     files:
+      - rtl/fpga/padring.sv
       - rtl/fpga/top_sonata.sv
       - rtl/fpga/clkgen_sonata.sv
       - rtl/fpga/rst_ctrl.sv

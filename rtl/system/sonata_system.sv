@@ -35,14 +35,6 @@ module sonata_system
   input  logic [WordWidth-1:0]     gp_i,
   output logic [WordWidth-1:0]     gp_o,
   output logic [WordWidth-1:0]     gp_o_en,
-  // 0: Raspberry Pi HAT g0-15
-  // 1: Raspberry Pi HAT g16-27
-  // 2: Arduino Shield 0-15
-  // 3: Arduino Shield 16-17
-  // 4: PMOD
-  input  logic [WordWidth-1:0]     gp_headers_i [GPIO_NUM],
-  output logic [WordWidth-1:0]     gp_headers_o [GPIO_NUM],
-  output logic [WordWidth-1:0]     gp_headers_o_en [GPIO_NUM],
 
   output logic [PwmWidth-1:0]      pwm_o,
 
@@ -52,35 +44,7 @@ module sonata_system
   input  wire  [ArdAniWidth-1:0]   ard_an_p_i,
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
-  // UARTs
-  //   0 and 1: FTDI chip
-  //   2: Raspberry Pi HAT
-  //   3: mikroBUS Click
-  //   4: RS-232
-  input  logic                     uart_rx_i [UART_NUM],
-  output logic                     uart_tx_o [UART_NUM],
-
-  // I2C buses
-  input  logic                     i2c_scl_i    [I2C_NUM],
-  output logic                     i2c_scl_o    [I2C_NUM],
-  output logic                     i2c_scl_en_o [I2C_NUM],
-  input  logic                     i2c_sda_i    [I2C_NUM],
-  output logic                     i2c_sda_o    [I2C_NUM],
-  output logic                     i2c_sda_en_o [I2C_NUM],
-
-  // SPI hosts
-  //   0: flash
-  //   1: LCD
-  //   2: ethernet
-  //   3: Raspberry Pi HAT SPI0
-  //   4: Raspberry Pi HAT SPI1
-  //   5: Arduino Shield
-  //   6: mikroBUS Click
-  input  logic                     spi_rx_i  [SPI_NUM],
-  output logic                     spi_tx_o  [SPI_NUM],
-  output logic [SPI_CS_NUM-1:0]    spi_cs_o  [SPI_NUM],
-  output logic                     spi_sck_o [SPI_NUM],
-
+  output logic [SPI_CS_NUM-1:0]    spi_cs_o[SPI_NUM],
   input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
   // User JTAG
@@ -121,8 +85,13 @@ module sonata_system
   output wire                      hyperram_nrst,
   output wire                      hyperram_cs,
 
-  output tlul_pkg::tl_h2d_t        tl_pinmux_o,
-  input  tlul_pkg::tl_d2h_t        tl_pinmux_i
+  // Pin Signals
+  input  sonata_in_pins_t    in_from_pins_i,
+  output sonata_out_pins_t   out_to_pins_o,
+  output sonata_out_pins_t   out_to_pins_en_o,
+  input  sonata_inout_pins_t inout_from_pins_i,
+  output sonata_inout_pins_t inout_to_pins_o,
+  output sonata_inout_pins_t inout_to_pins_en_o
 );
   ///////////////////////////////////////////////
   // Signals, types and parameters for system. //
@@ -352,6 +321,9 @@ module sonata_system
   tlul_pkg::tl_h2d_t tl_hw_rev_h2d;
   tlul_pkg::tl_d2h_t tl_hw_rev_d2h;
 
+  tlul_pkg::tl_h2d_t tl_pinmux_h2d;
+  tlul_pkg::tl_d2h_t tl_pinmux_d2h;
+
   sonata_xbar_main xbar (
     // Clock and reset.
     .clk_sys_i        (clk_sys_i),
@@ -376,10 +348,10 @@ module sonata_system
     .tl_gpio_i        (tl_gpio_d2h),
     .tl_pwm_o         (tl_pwm_h2d),
     .tl_pwm_i         (tl_pwm_d2h),
-    .tl_pinmux_o      (tl_pinmux_o),
-    .tl_pinmux_i      (tl_pinmux_i),
     .tl_system_info_o (tl_system_info_h2d),
     .tl_system_info_i (tl_system_info_d2h),
+    .tl_pinmux_o      (tl_pinmux_h2d),
+    .tl_pinmux_i      (tl_pinmux_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
@@ -883,16 +855,18 @@ module sonata_system
     .tbre_intr_o     (hardware_revoker_irq)
   );
 
-  logic [WordWidth-1:0] gpio_array_inputs [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_array_outputs [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_array_output_enables [GPIO_NUM + 1];
+  // GPIOs
+  // 0: General Purpose
+  // 1: Raspberry Pi HAT
+  // 2: Arduino Shield
+  // 3: Pmod
+  logic [WordWidth-1:0] gpio_from_pins     [GPIO_NUM + 1];
+  logic [WordWidth-1:0] gpio_to_pins       [GPIO_NUM + 1];
+  logic [WordWidth-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
 
-  assign gpio_array_inputs[0] = gp_i;
-  assign gp_o = gpio_array_outputs[0];
-  assign gp_o_en = gpio_array_output_enables[0];
-  assign gpio_array_inputs[1:GPIO_NUM] = gp_headers_i;
-  assign gp_headers_o = gpio_array_outputs[1:GPIO_NUM];
-  assign gp_headers_o_en = gpio_array_output_enables[1:GPIO_NUM];
+  assign gpio_from_pins[0] = gp_i;
+  assign gp_o              = gpio_to_pins       [0];
+  assign gp_o_en           = gpio_to_pins_enable[0];
 
   gpio_array #(
     .GpiWidth     ( WordWidth    ),
@@ -911,9 +885,9 @@ module sonata_system
     .device_rvalid_o (device_rvalid[Gpio]),
     .device_rdata_o  (device_rdata[Gpio]),
 
-    .gp_i(gpio_array_inputs),
-    .gp_o(gpio_array_outputs),
-    .gp_o_en(gpio_array_output_enables)
+    .gp_i(gpio_from_pins),
+    .gp_o(gpio_to_pins),
+    .gp_o_en(gpio_to_pins_enable)
   );
 
   // Digital inputs from Arduino shield analog(ue) pins currently unused
@@ -933,6 +907,12 @@ module sonata_system
   );
 
   // I2C controllers/targets.
+  logic i2c_scl_h2d   [I2C_NUM];
+  logic i2c_scl_en_h2d[I2C_NUM];
+  logic i2c_scl_d2h   [I2C_NUM];
+  logic i2c_sda_h2d   [I2C_NUM];
+  logic i2c_sda_en_h2d[I2C_NUM];
+  logic i2c_sda_d2h   [I2C_NUM];
   for (genvar i = 0; i < I2C_NUM; i++) begin : gen_i2c_hosts
     i2c u_i2c (
       .clk_i                   (clk_sys_i),
@@ -944,12 +924,12 @@ module sonata_system
       .tl_o                    (tl_i2c_d2h[i]),
 
       // Generic IO.
-      .cio_scl_i               (i2c_scl_i   [i]),
-      .cio_scl_o               (i2c_scl_o   [i]),
-      .cio_scl_en_o            (i2c_scl_en_o[i]),
-      .cio_sda_i               (i2c_sda_i   [i]),
-      .cio_sda_o               (i2c_sda_o   [i]),
-      .cio_sda_en_o            (i2c_sda_en_o[i]),
+      .cio_scl_i               (i2c_scl_d2h   [i]),
+      .cio_scl_o               (i2c_scl_h2d   [i]),
+      .cio_scl_en_o            (i2c_scl_en_h2d[i]),
+      .cio_sda_i               (i2c_sda_d2h   [i]),
+      .cio_sda_o               (i2c_sda_h2d   [i]),
+      .cio_sda_en_o            (i2c_sda_en_h2d[i]),
 
       // Interrupts.
       .intr_fmt_threshold_o    (i2c_interrupts[i][0]),
@@ -989,14 +969,20 @@ module sonata_system
     .pwm_o
   );
 
-  // UARTs for serial communication.
+  // UARTs
+  //   0 and 1: FTDI chip
+  //   2: Raspberry Pi HAT
+  //   3: mikroBUS Click
+  //   4: RS-232
+  logic uart_tx[UART_NUM];
+  logic uart_rx[UART_NUM];
   for (genvar i = 0; i < UART_NUM; i++) begin : gen_uart_blocks
     uart u_uart (
       .clk_i                (clk_sys_i),
       .rst_ni               (rst_sys_ni),
 
-      .cio_rx_i             (uart_rx_i[i]),
-      .cio_tx_o             (uart_tx_o[i]),
+      .cio_rx_i             (uart_rx[i]),
+      .cio_tx_o             (uart_tx[i]),
       .cio_tx_en_o          (),
 
       // Inter-module signals.
@@ -1088,6 +1074,15 @@ module sonata_system
   );
 
   // SPI controllers.
+  // - LCD screen
+  // - Flash memory
+  // - Ethernet
+  // - 2x Raspberry Pi HAT
+  // - Arduino Shield
+  // - mikroBUS Click
+  logic spi_sck[SPI_NUM];
+  logic spi_tx[SPI_NUM];
+  logic spi_rx[SPI_NUM];
   for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
     spi u_spi (
       .clk_i               (clk_sys_i),
@@ -1105,10 +1100,10 @@ module sonata_system
       .intr_complete_o     (spi_interrupts[i][4]),
 
       // SPI signals.
-      .spi_copi_o          (spi_tx_o [i]),
-      .spi_cipo_i          (spi_rx_i [i]),
+      .spi_copi_o          (spi_tx [i]),
+      .spi_cipo_i          (spi_rx [i]),
       .spi_cs_o            (spi_cs_o [i]),
-      .spi_clk_o           (spi_sck_o[i])
+      .spi_clk_o           (spi_sck[i])
     );
   end : gen_spi_hosts
 
@@ -1221,6 +1216,36 @@ module sonata_system
     .rst_ni (rst_sys_ni),
     .tl_i   (tl_system_info_h2d),
     .tl_o   (tl_system_info_d2h)
+  );
+
+  pinmux u_pinmux (
+    .clk_i(clk_sys_i),
+    .rst_ni(rst_sys_ni),
+
+    .uart_tx_i(uart_tx),
+    .uart_rx_o(uart_rx),
+    .i2c_scl_i(i2c_scl_h2d),
+    .i2c_scl_en_i(i2c_scl_en_h2d),
+    .i2c_scl_o(i2c_scl_d2h),
+    .i2c_sda_i(i2c_sda_h2d),
+    .i2c_sda_en_i(i2c_sda_en_h2d),
+    .i2c_sda_o(i2c_sda_d2h),
+    .spi_sck_i(spi_sck),
+    .spi_tx_i(spi_tx),
+    .spi_rx_o(spi_rx),
+    .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
+    .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
+    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
+
+    .in_from_pins_i,
+    .out_to_pins_o,
+    .out_to_pins_en_o,
+    .inout_from_pins_i,
+    .inout_to_pins_o,
+    .inout_to_pins_en_o,
+
+    .tl_i(tl_pinmux_h2d),
+    .tl_o(tl_pinmux_d2h)
   );
 
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device

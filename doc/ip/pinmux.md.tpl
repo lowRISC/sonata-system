@@ -12,16 +12,16 @@ The default value for all of these selectors is `'b10`.
 
 | Address | Pin output | Possible block outputs |
 |---------|------------|------------------------|
-% for output_idx, (pin_output, idx_str, idx_alt, possible_blocks) in enumerate(output_list):
-| ${f"{output_idx:#0{5}x}"} | ${pin_output}${idx_alt} | 0${"".join([", " + block + "_" + io + "_i(" +str(inst) + ")" + bit_str.replace("[", "(").replace("]", ")") for block, io, inst, bit_str, _ in possible_blocks])} |
+% for output_idx, (pin, possible_block_outputs, num_options) in enumerate(output_pins):
+| ${f"{output_idx:#0{5}x}"} | `${pin.doc_name}` | 0, ${", ".join((f"`{block_io.doc_name}`" for block_io in possible_block_outputs))} |
 % endfor
 
 Besides the output pin selectors, there are also selectors for which pin should drive block inputs:
 
 | Address | Block input | Possible pin inputs |
 |---------|-------------|---------------------|
-% for input_idx, (block_input, inst, bit_idx, bit_str, possible_pins) in enumerate(input_list):
-| ${f"{(0x800+input_idx):#0{5}x}"} | ${block_input}_o(${inst})${'' if bit_str == '' else '('+str(bit_idx)+')'} | ${"".join([pin + ", " for pin in possible_pins])}|
+% for input_idx, (block_io, possible_pins, num_options) in enumerate(output_block_ios):
+| ${f"{(0x800+input_idx):#0{5}x}"} | `${block_io.doc_name}` | ${block_io.default_value}${"".join((f", `{pin.doc_name}`" for pin in possible_pins)) if len(possible_pins) > 0  else f", {block_io.default_value}"} |
 % endfor
 
 ${"##"} Regeneration

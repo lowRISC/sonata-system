@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Sonata system top level for the Sonata PCB
-module top_sonata (
+module top_sonata
+  import sonata_pkg::*;
+(
   input  logic mainClk,
   input  logic nrst,
 
@@ -230,121 +232,15 @@ module top_sonata (
   assign usrusb_oe  = !dp_en_d2p;  // Active low Output Enable.
   assign usrusb_sus = !rx_enable_d2p;
 
+  sonata_in_pins_t in_from_pins;
+  sonata_out_pins_t out_to_pins, out_to_pins_en;
+  sonata_inout_pins_t inout_from_pins, inout_to_pins, inout_to_pins_en;
+
+  wire sonata_out_pins_t   output_pins;
+
   logic cheri_en;
 
-  tlul_pkg::tl_h2d_t tl_pinmux_h2d;
-  tlul_pkg::tl_d2h_t tl_pinmux_d2h;
-
-  logic uart_tx[UART_NUM];
-  logic uart_rx[UART_NUM];
-  logic i2c_scl_h2d[I2C_NUM];
-  logic i2c_scl_en_h2d[I2C_NUM];
-  logic i2c_scl_d2h[I2C_NUM];
-  logic i2c_sda_h2d[I2C_NUM];
-  logic i2c_sda_en_h2d[I2C_NUM];
-  logic i2c_sda_d2h[I2C_NUM];
-  logic spi_sck[SPI_NUM];
   logic [SPI_CS_NUM-1:0] spi_cs[SPI_NUM];
-  logic spi_tx[SPI_NUM];
-  logic spi_rx[SPI_NUM];
-  logic [31:0] gpio_out[GPIO_NUM];
-  logic [31:0] gpio_out_en[GPIO_NUM];
-  logic [31:0] gpio_in[GPIO_NUM];
-
-  pinmux u_pinmux (
-    .clk_i(clk_sys),
-    .rst_ni(rst_sys_n),
-    .uart_tx_i(uart_tx),
-    .uart_rx_o(uart_rx),
-    .i2c_scl_i(i2c_scl_h2d),
-    .i2c_scl_en_i(i2c_scl_en_h2d),
-    .i2c_scl_o(i2c_scl_d2h),
-    .i2c_sda_i(i2c_sda_h2d),
-    .i2c_sda_en_i(i2c_sda_en_h2d),
-    .i2c_sda_o(i2c_sda_d2h),
-    .spi_sck_i(spi_sck),
-    .spi_tx_i(spi_tx),
-    .spi_rx_o(spi_rx),
-    .gpio_ios_i(gpio_out),
-    .gpio_ios_en_i(gpio_out_en),
-    .gpio_ios_o(gpio_in),
-    .ser0_tx,
-    .ser0_rx,
-    .ser1_tx,
-    .ser1_rx,
-    .rs232_tx,
-    .rs232_rx,
-    .scl0,
-    .sda0,
-    .scl1,
-    .sda1,
-    .lcd_copi,
-    .lcd_clk,
-    .appspi_d0,
-    .appspi_d1,
-    .appspi_clk,
-    .ethmac_copi,
-    .ethmac_cipo,
-    .ethmac_sclk,
-    .rph_g0,
-    .rph_g1,
-    .rph_g2_sda,
-    .rph_g3_scl,
-    .rph_g4,
-    .rph_g5,
-    .rph_g6,
-    .rph_g7_ce1(), // Already connected in manual GPIO.
-    .rph_g8_ce0(), // Already connected in manual GPIO.
-    .rph_g9_cipo,
-    .rph_g10_copi,
-    .rph_g11_sclk,
-    .rph_g12,
-    .rph_g13,
-    .rph_txd0,
-    .rph_rxd0,
-    .rph_g16_ce2(), // Already connected in manual GPIO.
-    .rph_g17(), // Already connected in manual GPIO.
-    .rph_g18(), // Already connected in manual GPIO.
-    .rph_g19_cipo,
-    .rph_g20_copi,
-    .rph_g21_sclk,
-    .rph_g22,
-    .rph_g23,
-    .rph_g24,
-    .rph_g25,
-    .rph_g26,
-    .rph_g27,
-    .ah_tmpio0,
-    .ah_tmpio1,
-    .ah_tmpio2,
-    .ah_tmpio3,
-    .ah_tmpio4,
-    .ah_tmpio5,
-    .ah_tmpio6,
-    .ah_tmpio7,
-    .ah_tmpio8,
-    .ah_tmpio9,
-    .ah_tmpio10(), // Already connected in manual GPIO.
-    .ah_tmpio11,
-    .ah_tmpio12,
-    .ah_tmpio13,
-    // TODO connect 14, 15 and 17 through XDC
-    .ah_tmpio14(),
-    .ah_tmpio15(),
-    .ah_tmpio16,
-    .ah_tmpio17(),
-    .mb2,
-    .mb3,
-    .mb4,
-    .mb5,
-    .mb6,
-    .mb7,
-    .mb8,
-    .pmod0,
-    .pmod1,
-    .tl_i(tl_pinmux_h2d),
-    .tl_o(tl_pinmux_d2h)
-  );
 
   // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
   // by the `gp_o` port presently.
@@ -425,6 +321,7 @@ module top_sonata (
                       usrLed, // User LEDs (8 bits)
                       lcd_backlight, lcd_dc, lcd_rst, gp_lcd_cs // LCD screen
                     }),
+    .gp_o_en        (),
 
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (ard_an_di),
@@ -434,34 +331,9 @@ module top_sonata (
     // PWM
     .pwm_o({mb10}),
 
-    // GPIO headers
-    .gp_headers_i   (gpio_in),
-    .gp_headers_o   (gpio_out),
-    .gp_headers_o_en(gpio_out_en),
-
-    // UARTs
-    .uart_rx_i      (uart_rx),
-    .uart_tx_o      (uart_tx),
-
-    // I2C hosts
-    .i2c_scl_i      (i2c_scl_d2h),
-    .i2c_scl_o      (i2c_scl_h2d),
-    .i2c_scl_en_o   (i2c_scl_en_h2d),
-    .i2c_sda_i      (i2c_sda_d2h),
-    .i2c_sda_o      (i2c_sda_h2d),
-    .i2c_sda_en_o   (i2c_sda_en_h2d),
-
-    // SPI connections for
-    // - LCD screen
-    // - Flash memory
-    // - Ethernet
-    // - 2x Raspberry Pi HAT
-    // - Arduino Shield
-    // - mikroBUS Click
-    .spi_rx_i       (spi_rx),
-    .spi_tx_o       (spi_tx),
+    // SPI Chip Selects
     .spi_cs_o       (spi_cs),
-    .spi_sck_o      (spi_sck),
+
     // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
 
@@ -469,7 +341,6 @@ module top_sonata (
     .cheri_en_i     (enable_cheri),
     .cheri_err_o    (cheriErr),
     .cheri_en_o     (cheri_en),
-
 
     // Reception from USB host via transceiver
     .usb_dp_i         (usrusb_v_p),
@@ -504,8 +375,12 @@ module top_sonata (
     .hyperram_nrst,
     .hyperram_cs,
 
-    .tl_pinmux_o(tl_pinmux_h2d),
-    .tl_pinmux_i(tl_pinmux_d2h)
+    .in_from_pins_i     (in_from_pins    ),
+    .out_to_pins_o      (out_to_pins     ),
+    .out_to_pins_en_o   (out_to_pins_en  ),
+    .inout_from_pins_i  (inout_from_pins ),
+    .inout_to_pins_o    (inout_to_pins   ),
+    .inout_to_pins_en_o (inout_to_pins_en)
   );
 
   assign rgbled0 = ~rgbled_dout;
@@ -553,4 +428,125 @@ module top_sonata (
     .rst_usb_no (rst_usb_n),
     .rst_hr_no  (rst_hr_n)
   );
-endmodule
+
+  // Input Pins
+  assign in_from_pins[IN_PIN_MB8        ] = mb8;
+  assign in_from_pins[IN_PIN_MB3        ] = mb3;
+  assign in_from_pins[IN_PIN_ETHMAC_CIPO] = ethmac_cipo;
+  assign in_from_pins[IN_PIN_APPSPI_D1  ] = appspi_d1;
+  assign in_from_pins[IN_PIN_RS232_RX   ] = rs232_rx;
+  assign in_from_pins[IN_PIN_SER1_RX    ] = ser1_rx;
+  assign in_from_pins[IN_PIN_SER0_RX    ] = ser0_rx;
+
+  // Output Pins
+  // pull output pins low when their output isn't enabled.
+  assign output_pins = out_to_pins_en & out_to_pins;
+
+  assign mb7         = output_pins[OUT_PIN_MB7        ];
+  assign mb4         = output_pins[OUT_PIN_MB4        ];
+  assign mb2         = output_pins[OUT_PIN_MB2        ];
+  assign ethmac_sclk = output_pins[OUT_PIN_ETHMAC_SCLK];
+  assign ethmac_copi = output_pins[OUT_PIN_ETHMAC_COPI];
+  assign lcd_clk     = output_pins[OUT_PIN_LCD_CLK    ];
+  assign lcd_copi    = output_pins[OUT_PIN_LCD_COPI   ];
+  assign appspi_clk  = output_pins[OUT_PIN_APPSPI_CLK ];
+  assign appspi_d0   = output_pins[OUT_PIN_APPSPI_D0  ];
+  assign rs232_tx    = output_pins[OUT_PIN_RS232_TX   ];
+  assign ser1_tx     = output_pins[OUT_PIN_SER1_TX    ];
+  assign ser0_tx     = output_pins[OUT_PIN_SER0_TX    ];
+
+  // Inout Pins
+  localparam int unsigned USED_INOUT_PIN_NUM = INOUT_PIN_NUM-9;
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins = {
+    inout_to_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_to_pins[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_to_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_to_pins[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_to_pins[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_to_pins[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  };
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins_en = {
+    inout_to_pins_en[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_to_pins_en[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_to_pins_en[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  };
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_from_pins;
+  assign {
+    inout_from_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_from_pins[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_from_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_from_pins[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_from_pins[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_from_pins[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  } = used_inout_from_pins;
+
+  padring #(
+    .InoutNumber(USED_INOUT_PIN_NUM)
+  ) u_padring (
+    .inout_to_pins_i   (used_inout_to_pins   ),
+    .inout_to_pins_en_i(used_inout_to_pins_en),
+    .inout_from_pins_o (used_inout_from_pins ),
+    .inout_pins_io({
+      pmod1,
+      pmod0,
+      mb6,
+      mb5,
+      ah_tmpio16,
+      ah_tmpio13,
+      ah_tmpio12,
+      ah_tmpio11,
+      ah_tmpio9,
+      ah_tmpio8,
+      ah_tmpio7,
+      ah_tmpio6,
+      ah_tmpio5,
+      ah_tmpio4,
+      ah_tmpio3,
+      ah_tmpio2,
+      ah_tmpio1,
+      ah_tmpio0,
+      rph_g27,
+      rph_g26,
+      rph_g25,
+      rph_g24,
+      rph_g23,
+      rph_g22,
+      rph_g21_sclk,
+      rph_g20_copi,
+      rph_g19_cipo,
+      rph_rxd0,
+      rph_txd0,
+      rph_g13,
+      rph_g12,
+      rph_g11_sclk,
+      rph_g10_copi,
+      rph_g9_cipo,
+      rph_g6,
+      rph_g5,
+      rph_g4,
+      rph_g3_scl,
+      rph_g2_sda,
+      rph_g1,
+      rph_g0,
+      sda1,
+      scl1,
+      sda0,
+      scl0
+    })
+  );
+endmodule : top_sonata

@@ -19,10 +19,7 @@ module top_verilator (input logic clk_i, rst_ni);
   // (described in IEEE 1800-2012).
   localparam int unsigned STDERR = 32'h8000_0002;
 
-  logic unused_uart[3];
-
   logic uart_sys_rx, uart_sys_tx;
-
   logic uart_aux_rx, uart_aux_tx;
   assign uart_aux_rx = 1'b1;
 
@@ -162,114 +159,32 @@ module top_verilator (input logic clk_i, rst_ni);
     end
   end
 
-  logic                  spi_rx [SPI_NUM];
-  logic                  spi_tx [SPI_NUM];
-  logic [SPI_CS_NUM-1:0] spi_cs [SPI_NUM];
-  logic                  spi_sck[SPI_NUM];
+  logic [SPI_CS_NUM-1:0] spi_cs[SPI_NUM];
 
-  assign spi_rx[0] = appspi_d1;
-  assign appspi_d0 = spi_tx[0];
-  assign lcd_copi = spi_tx[1];
-  assign appspi_clk = spi_sck[0];
-  assign lcd_clk = spi_sck[1];
+  sonata_in_pins_t in_from_pins;
+  sonata_out_pins_t out_to_pins;
+  sonata_inout_pins_t inout_from_pins, inout_to_pins, inout_to_pins_en;
 
-  // Stub of pinmux to make sure it keeps compiling.
-  pinmux u_pinmux (
-    .clk_i,
-    .rst_ni,
+  assign uart_sys_tx = out_to_pins[OUT_PIN_SER0_TX];
+  assign uart_aux_tx = out_to_pins[OUT_PIN_SER1_TX];
+  assign appspi_d0   = out_to_pins[OUT_PIN_APPSPI_D0];
+  assign lcd_copi    = out_to_pins[OUT_PIN_LCD_COPI];
+  assign appspi_clk  = out_to_pins[OUT_PIN_APPSPI_CLK];
+  assign lcd_clk     = out_to_pins[OUT_PIN_LCD_CLK];
 
-    .uart_tx_i('{default: '0}),
-    .uart_rx_o(),
-    .i2c_scl_i('{default: '0}),
-    .i2c_scl_en_i('{default: '0}),
-    .i2c_scl_o(),
-    .i2c_sda_i('{default: '0}),
-    .i2c_sda_en_i('{default: '0}),
-    .i2c_sda_o(),
-    .spi_sck_i('{default: '0}),
-    .spi_tx_i('{default: '0}),
-    .spi_rx_o(),
-    .gpio_ios_i('{default: '0}),
-    .gpio_ios_en_i('{default: '0}),
-    .gpio_ios_o(),
+  assign {scl0_o,  scl0_oe} = {inout_to_pins[INOUT_PIN_SCL0], inout_to_pins_en[INOUT_PIN_SCL0]};
+  assign {scl1_o,  scl1_oe} = {inout_to_pins[INOUT_PIN_SCL1], inout_to_pins_en[INOUT_PIN_SCL1]};
+  assign {sda0_o,  sda0_oe} = {inout_to_pins[INOUT_PIN_SDA0], inout_to_pins_en[INOUT_PIN_SDA0]};
+  assign {sda1_o,  sda1_oe} = {inout_to_pins[INOUT_PIN_SDA1], inout_to_pins_en[INOUT_PIN_SDA1]};
 
-    .ser0_tx(),
-    .ser0_rx(),
-    .ser1_tx(),
-    .ser1_rx(),
-    .rs232_tx(),
-    .rs232_rx(),
-    .scl0(),
-    .sda0(),
-    .scl1(),
-    .sda1(),
-    .appspi_d0(),
-    .appspi_d1(),
-    .appspi_clk(),
-    .lcd_copi(),
-    .lcd_clk(),
-    .ethmac_copi(),
-    .ethmac_cipo(),
-    .ethmac_sclk(),
-    .rph_g0(),
-    .rph_g1(),
-    .rph_g2_sda(),
-    .rph_g3_scl(),
-    .rph_g4(),
-    .rph_g5(),
-    .rph_g6(),
-    .rph_g7_ce1(),
-    .rph_g8_ce0(),
-    .rph_g9_cipo(),
-    .rph_g10_copi(),
-    .rph_g11_sclk(),
-    .rph_g12(),
-    .rph_g13(),
-    .rph_txd0(),
-    .rph_rxd0(),
-    .rph_g16_ce2(),
-    .rph_g17(),
-    .rph_g18(),
-    .rph_g19_cipo(),
-    .rph_g20_copi(),
-    .rph_g21_sclk(),
-    .rph_g22(),
-    .rph_g23(),
-    .rph_g24(),
-    .rph_g25(),
-    .rph_g26(),
-    .rph_g27(),
-    .ah_tmpio0(),
-    .ah_tmpio1(),
-    .ah_tmpio2(),
-    .ah_tmpio3(),
-    .ah_tmpio4(),
-    .ah_tmpio5(),
-    .ah_tmpio6(),
-    .ah_tmpio7(),
-    .ah_tmpio8(),
-    .ah_tmpio9(),
-    .ah_tmpio10(),
-    .ah_tmpio11(),
-    .ah_tmpio12(),
-    .ah_tmpio13(),
-    .ah_tmpio14(),
-    .ah_tmpio15(),
-    .ah_tmpio16(),
-    .ah_tmpio17(),
-    .mb2(),
-    .mb3(),
-    .mb4(),
-    .mb5(),
-    .mb6(),
-    .mb7(),
-    .mb8(),
-    .pmod0(),
-    .pmod1(),
+  assign in_from_pins[IN_PIN_APPSPI_D1] = appspi_d1;
+  assign in_from_pins[IN_PIN_SER0_RX]   = uart_sys_rx;
+  assign in_from_pins[IN_PIN_SER1_RX]   = uart_aux_rx;
 
-    .tl_i(tlul_pkg::TL_H2D_DEFAULT),
-    .tl_o()
-  );
+  assign inout_from_pins[INOUT_PIN_SCL0] = scl0_in;
+  assign inout_from_pins[INOUT_PIN_SDA0] = sda0_in;
+  assign inout_from_pins[INOUT_PIN_SCL1] = scl1_in;
+  assign inout_from_pins[INOUT_PIN_SDA1] = sda1_in;
 
   // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
   // by the `gp_o` port presently.
@@ -336,39 +251,20 @@ module top_verilator (input logic clk_i, rst_ni);
 
     .gp_o_en      ( ),
     .pwm_o        ( ),
-    .gp_headers_i ('{default: '0}),
-    .gp_headers_o ( ),
-    .gp_headers_o_en ( ),
 
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (0),
     .ard_an_p_i     (0),
     .ard_an_n_i     (0),
 
-    // UARTs
-    .uart_rx_i      ('{uart_sys_rx, uart_aux_rx, 0, 0, 0}),
-    .uart_tx_o      ('{uart_sys_tx, uart_aux_tx, unused_uart[0], unused_uart[1], unused_uart[2]}),
-
     // SPI hosts
-    .spi_rx_i       (spi_rx),
-    .spi_tx_o       (spi_tx),
     .spi_cs_o       (spi_cs),
-    .spi_sck_o      (spi_sck),
-
-    .spi_eth_irq_ni (1'b1),
+    .spi_eth_irq_ni(1'b1),
 
     // CHERI signals
     .cheri_en_i     (cheri_en ),
     .cheri_err_o    (cheri_err),
     .cheri_en_o     (         ),
-
-    // I2C buses
-    .i2c_scl_i     ('{scl0_in, scl1_in}),
-    .i2c_scl_o     ('{scl0_o,  scl1_o}),
-    .i2c_scl_en_o  ('{scl0_oe, scl1_oe}),
-    .i2c_sda_i     ('{sda0_in, sda1_in}),
-    .i2c_sda_o     ('{sda0_o,  sda1_o}),
-    .i2c_sda_en_o  ('{sda0_oe, sda1_oe}),
 
     // Reception from USB host via transceiver
     .usb_dp_i         (usb_dp_p2d),
@@ -404,8 +300,12 @@ module top_verilator (input logic clk_i, rst_ni);
     .hyperram_nrst(),
     .hyperram_cs  (),
 
-    .tl_pinmux_o (),
-    .tl_pinmux_i (tlul_pkg::TL_D2H_DEFAULT)
+    .in_from_pins_i     (in_from_pins    ),
+    .out_to_pins_o      (out_to_pins     ),
+    .out_to_pins_en_o   (                ),
+    .inout_from_pins_i  (inout_from_pins ),
+    .inout_to_pins_o    (inout_to_pins   ),
+    .inout_to_pins_en_o (inout_to_pins_en)
   );
 
   // I2C 0 DPI
