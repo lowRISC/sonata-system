@@ -238,7 +238,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
     if (tl_i.a_valid && tl_req_fifo_wready && tag_cmd_wready && cmd_wready &&
       (tl_i.a_opcode == Get || ~dfifo_wr_full)) begin
       // We can accept an incoming tilelink transaction when we've got space in the hyperram, tag
-      // and tilelink request FIFOs. If we're taking in a write transation we also need space in the
+      // and tilelink request FIFOs. If we're taking in a write transaction we also need space in the
       // downstream FIFO(dfifo) for the write data
 
       // Write to the relevant FIFOs and indicate ready on tilelink A channel

@@ -44,7 +44,7 @@ This indicates the FPGA configuration succeeded. This LED should stay on. You sh
 
 ### Programming on Power Cycle
 
-Once the copy completes (it can take from 15-120 seconds), you should see the device reboot and the Ibex boot LED come on as mentioned. If you unplug & replug the USB cable,
+Once the copy completes (it can take from 15-120 seconds), you should see the device reboot and the Ibex boot LED come on as mentioned. If you unplug & re-plug the USB cable,
 it will also reprogram the FPGA. The bitstream is stored on FLASH memory on the Sonata board.
 
 ## Troubleshooting

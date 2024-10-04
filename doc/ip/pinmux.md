@@ -10,8 +10,8 @@ There are output pin selectors, which select which block output is connected to 
 The selector is one-hot, so you need to write `8'b100` if you want to select input 3 for example.
 The default value for all of these selectors is `'b10`.
 
-| Address | Pin output | Possible block inputs |
-|---------|------------|-----------------------|
+| Address | Pin output | Possible block outputs |
+|---------|------------|------------------------|
 | 0x000 | ser0_tx | 0, uart_tx_i(0) |
 | 0x001 | ser1_tx | 0, uart_tx_i(1) |
 | 0x002 | rs232_tx | 0, uart_tx_i(4) |

@@ -11,7 +11,7 @@ it's suggested to use the JTAG programmer, as it will be much faster and avoids 
 
 ## JTAG Programming Using On-Board FTDI Chip
 
-The Sonata board includes a FTDI chip that can program the FPGA. This also allows usage inside of Vivado to access features such as Integrated Logic Anlayzer (ILA) blocks.
+The Sonata board includes a FTDI chip that can program the FPGA. This also allows usage inside of Vivado to access features such as Integrated Logic Analyzer (ILA) blocks.
 
 On the backside of the board, confirm switches SW1 are all set to **ON** as shown in this photo (this was the state the board is shipped in,
 so if you haven't touched the switches it should still be in that state):

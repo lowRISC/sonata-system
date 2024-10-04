@@ -9,7 +9,7 @@ This project is designed to look like a normal microcontroller in terms of usabi
 
 Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
 
-![The sonata developement system](doc/img/sonata-development-system.svg)
+![The sonata development system](doc/img/sonata-development-system.svg)
 
 ## Current status
 

@@ -69,13 +69,13 @@ module rgbled_ctrl import rgbled_ctrl_reg_pkg::*; #(
   // We always have valid data ready for the ws281x driver.
   assign grb_data_valid = 1'b1;
   // When issuing an off command force 0 for data in as the off command will start the driver the
-  // cycle before the grb flops are upated. Otherwise choose grb 0 or 1 depending on which needs to
-  // be presented to the driver next.
+  // cycle before the grb flops are updated. Otherwise choose grb 0 or 1 depending on which needs
+  // to be presented to the driver next.
   assign grb_data       = off            ? '0     :
                           grb_data_sel_q ? grb0_q :
                                            grb1_q;
 
-  // Indicate last data when we're pasasing grb1
+  // Indicate last data when we're passing grb1
   assign grb_data_last  = grb_data_sel_q;
 
   // Flip the GRB flop select when data has been acknowledged by the driver
@@ -148,7 +148,7 @@ module rgbled_ctrl import rgbled_ctrl_reg_pkg::*; #(
         if (drv_idle) begin
           // When idle begin writing 0s to the driver.
           startup_go      = 1'b1;
-          // Stop softare writes from doing anything this cycle.
+          // Stop software writes from doing anything this cycle.
           startup_lockout = 1'b1;
 
           if (startup_counter_q < StartupRepeatsW'(StartupRepeats)) begin
@@ -170,7 +170,7 @@ module rgbled_ctrl import rgbled_ctrl_reg_pkg::*; #(
       default: ;
     endcase
 
-    // Any write from software aborts the startup proceedure unless we're stopping software
+    // Any write from software aborts the startup procedure unless we're stopping software
     // commands.
     if (!startup_lockout && (reg2hw.ctrl.off.qe | reg2hw.ctrl.setrgb.qe |
         reg2hw.rgbled1.b.qe | reg2hw.rgbled0.b.qe)) begin

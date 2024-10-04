@@ -84,7 +84,7 @@ You can find a [direct link to the schematics](https://github.com/newaetech/sona
 
 ## Default DIP switch settings
 
-We recommend the following default state for the dipswitches:
+We recommend the following default state for the DIP switches:
 - On the front:
     - SW3 "Bitstream": 2
     - SW7 "SW App": 1
