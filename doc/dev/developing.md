@@ -28,7 +28,7 @@ We envision users of this board to want to show off and experiment with the new 
 If they are using the board as a demonstrator they will want to show off the prowess of CHERI, and if they are experimenting with the board they will want *CHERI to be visible*.
 
 Like most physical boards, it is nice for it to be as interactive as possible.
-This means being able to accept user input and respond to them visibly and in an *interactable* way.
+This means being able to accept user input and respond to them visibly and in an *interactive* way.
 
 Beyond the physical Sonata board, we expect the soft design that is used to configure the FPGA to also be *integrable* into a bigger design.
 For example, we envision it being connected to OpenTitan Earl Grey through a bridge interface.

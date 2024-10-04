@@ -18,7 +18,7 @@
 //
 // When 'rst_btn_i' is asserted (set to 1) the controller is held at the beginning of phase 1 (reset
 // is asserted, and a negative edge seen on `rst_no` when the debounced `rst_btn_i` is first
-// asserted). It proceds to phase 2 as normal when the debounced `rst_btn_i` is deasserted.
+// asserted). It proceeds to phase 2 as normal when the debounced `rst_btn_i` is deasserted.
 //
 // Debouncing of `rst_btn_i` occurs internally to the module. The `rst_btn_i` input must be in
 // a single state for more than `DebounceCount` cycles for that state to take effect.

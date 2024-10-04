@@ -1078,7 +1078,7 @@ module sonata_system #(
     .gp_o_en(gpio_array_output_enables)
   );
 
-  // Digital inputs from Arduino sheild analog(ue) pins currently unused
+  // Digital inputs from Arduino shield analog(ue) pins currently unused
   logic unused_ard_an_di;
   assign unused_ard_an_di = ^ard_an_di_i;
 

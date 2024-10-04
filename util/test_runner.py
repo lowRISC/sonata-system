@@ -139,7 +139,7 @@ class Config(argparse.Namespace):
             help="The uart log location",
         )
 
-        # Set the attributs of this object from the program arguments
+        # Set the attributes of this object from the program arguments
         parser.parse_args(namespace=self)
 
         def check_path(path: Path | str) -> None:
@@ -278,7 +278,7 @@ def main(config: Config) -> None:
     if config.fpga:
         load_fpga(config)
     else:
-        # Start the simulator in a seperate thread.
+        # Start the simulator in a separate thread.
         simulator_thread = threading.Thread(
             target=run_simulator, args=(config,)
         )

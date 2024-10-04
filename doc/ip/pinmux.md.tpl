@@ -10,8 +10,8 @@ There are output pin selectors, which select which block output is connected to 
 The selector is one-hot, so you need to write `8'b100` if you want to select input 3 for example.
 The default value for all of these selectors is `'b10`.
 
-| Address | Pin output | Possible block inputs |
-|---------|------------|-----------------------|
+| Address | Pin output | Possible block outputs |
+|---------|------------|------------------------|
 % for output_idx, (pin_output, idx_str, idx_alt, possible_blocks) in enumerate(output_list):
 | ${f"{output_idx:#0{5}x}"} | ${pin_output}${idx_alt} | 0${"".join([", " + block + "_" + io + "_i(" +str(inst) + ")" + bit_str.replace("[", "(").replace("]", ")") for block, io, inst, bit_str, _ in possible_blocks])} |
 % endfor

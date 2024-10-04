@@ -12,7 +12,7 @@ These are the register offsets:
 |--------|----------|
 | 0x0000 | Start address to begin sweeping.
 | 0x0004 | End address to stop sweeping.
-| 0x0008 | Most significatn byte is set to constant `0x55`. least significant bit is asserted for one cycle when sweeping starts.
+| 0x0008 | Most significant byte is set to constant `0x55`. least significant bit is asserted for one cycle when sweeping starts.
 | 0x000C | Epoch, where the last bit means a sweep is currently happening.
 | 0x0010 | Read interrupt status, but is only high for one cycle.
 | 0x0014 | Enable bit for raising an interrupt when sweeping is done.
