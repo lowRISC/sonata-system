@@ -10,3 +10,4 @@ rtl/bus/xbar_main.sv linguist-generated=true
 rtl/bus/xbar_ifetch.sv linguist-generated=true
 rtl/system/pinmux.sv linguist-generated=true
 rtl/system/sonata_pkg.sv linguist-generated=true
+rtl/system/system_info.sv linguist-generated=true
