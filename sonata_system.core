@@ -4,6 +4,7 @@ CAPI=2:
 # SPDX-License-Identifier: Apache-2.0
 name: "lowrisc:sonata:design"
 description: "Sonata System: putting CHERIoT into the hands of engineers."
+
 filesets:
   files_rtl_sonata_system:
     depend:
@@ -18,6 +19,7 @@ filesets:
       - lowrisc:ip:rgbled_ctrl
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
+      - lowrisc:ip:system_info
       - lowrisc:opentitan:top_earlgrey_rv_plic
       - lowrisc:prim:onehot
       - lowrisc:tlul:adapter_host

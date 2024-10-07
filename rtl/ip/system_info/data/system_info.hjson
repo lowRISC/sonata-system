@@ -1,0 +1,61 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+  name:               "system_info",
+  human_name:         "System Information",
+  one_line_desc:      "This module contains information about the system, for example the git hash.",
+  one_paragraph_desc: "",
+  cip_id:             "1",
+
+  revisions: [
+  {
+    version:            "1.0.0",
+    life_stage:         "L2",
+    design_stage:       "D1",
+    verification_stage: "V1",
+    notes:              ""
+  }
+  ]
+
+  clocking: [
+    {clock: "clk_i", reset: "rst_ni", primary: true},
+  ]
+  bus_interfaces: [
+    { protocol: "tlul", direction: "device" }
+  ],
+  available_input_list: [],
+  available_output_list: [],
+  interrupt_list: [],
+  regwidth: "32",
+  registers: [
+    { name: "RTL_COMMIT_HASH",
+      desc: '''This contains the git hash of the Sonata System repository when this bitstream was generated.
+               This is useful to determine the configuration of the RTL.''',
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "31:0",
+          name: "HASH",
+          desc: '''First 32-bits of the SHA hash.'''
+        }
+      ]
+    },
+    { name: "RTL_COMMIT_DIRTY",
+      desc: '''Bytes written here are pushed to the transmit FIFO. If the FIFO
+               is full writes are ignored.''',
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "0",
+          name: "DIRTY",
+          desc: '''One if the git repository was dirty when generating the bitstream.
+                   Zero if the git repository was clean.
+                   This should be used in combination with the RTL_COMMIT_HASH register.'''
+        }
+      ]
+    },
+  ]
+}
