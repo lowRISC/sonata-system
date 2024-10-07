@@ -29,6 +29,7 @@ filesets:
       - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
+      - rtl/system/debounce_step.sv
       - rtl/system/gpio.sv
       - rtl/system/gpio_array.sv
       - rtl/system/pinmux.sv

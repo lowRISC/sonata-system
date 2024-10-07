@@ -7,7 +7,8 @@ module gpio #(
   parameter int unsigned GpoWidth  = 16,
   parameter int unsigned AddrWidth = 32,
   parameter int unsigned DataWidth = 32,
-  parameter int unsigned RegAddr   = 12
+  parameter int unsigned RegAddr   = 12,
+  parameter int unsigned DbncWidth = 10
 ) (
   input  logic clk_i,
   input  logic rst_ni,
@@ -42,13 +43,28 @@ module gpio #(
   logic gp_i_dbnc_sel, gp_i_dbnc_rd_en;
   logic gp_o_en_sel, gp_o_en_rd_en;
 
-  // Instantiate debouncers for all GP inputs.
+  logic [DbncWidth-1:0] dbnc_cnt;
+  logic dbnc_step;
+
+  // Shared counter to generate the step-pulses for input debouncers.
+  // Prefer to use an extra flop rather than have to AND all the bits
+  // together as the wider Sonata system is very logic-heavy.
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      dbnc_cnt <= '0;
+    end else begin
+      dbnc_cnt <= dbnc_cnt[DbncWidth-1] ? '0 : dbnc_cnt + 1;
+    end
+  end
+
+  assign dbnc_step = dbnc_cnt[DbncWidth-1];
+
+  // Instantiate step-based debouncers for all GP inputs.
   for (genvar i = 0; i < GpiWidth; i++) begin
-    debounce #(
-      .ClkCount(500)
-    ) dbnc (
+    debounce_step dbnc (
       .clk_i,
       .rst_ni,
+      .step_i(dbnc_step),
       .btn_i(gp_i_q[2][i]),
       .btn_o(gp_i_dbnc[i])
     );
