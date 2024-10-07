@@ -5,18 +5,17 @@
  */
 #pragma once
 #include "../common/sonata-devices.hh"
-#include "../common/uart-utils.hh"
+#include "../common/console.hh"
 
-[[noreturn]] static void finish_running(UartPtr uart, const char *message) {
-  write_str(uart, message);
-  write_str(uart, "\r\n");
+[[noreturn]] static void finish_running(Log& log, const char* message) {
+  log.println(message);
 
   while (true) asm volatile("wfi");
 }
 
-[[maybe_unused]] static void check_result(UartPtr console, bool result) {
+[[maybe_unused]] static void check_result(Log& log, bool result) {
   if (result) {
     return;
   }
-  finish_running(console, "Test(s) Failed");
+  finish_running(log, "Test(s) Failed");
 }
