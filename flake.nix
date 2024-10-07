@@ -25,6 +25,14 @@
   } @ inputs: let
     system_outputs = system: let
       version = "0.0.1";
+      FLAKE_GIT_COMMIT =
+        if (self ? rev)
+        then self.rev
+        else self.dirtyRev;
+      FLAKE_GIT_DIRTY =
+        if (self ? rev)
+        then false
+        else true;
 
       pkgs = import nixpkgs {
         inherit system;
@@ -114,10 +122,12 @@
         ];
       };
       sonata-simulator-lint = pkgs.stdenvNoCC.mkDerivation {
-        name = "sonta-simulator-lint";
+        name = "sonata-simulator-lint";
         src = sonataSimulatorFileset;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
+        inherit FLAKE_GIT_COMMIT;
+        inherit FLAKE_GIT_DIRTY;
         dontBuild = true;
         doCheck = true;
         checkPhase = ''
@@ -133,6 +143,8 @@
         src = sonataSimulatorFileset;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
+        inherit FLAKE_GIT_COMMIT;
+        inherit FLAKE_GIT_DIRTY;
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --setup --build lowrisc:sonata:system \

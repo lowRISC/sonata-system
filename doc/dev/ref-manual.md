@@ -46,9 +46,13 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8000_3000  |   4 KiB | [HyperRAM][]         |
 | 0x8000_4000  |   4 KiB | Reserved             |
 | 0x8000_5000  |   4 KiB | [Pinmux][]           |
+| 0x8000_6000  |   4 KiB | Reserved             |
+| 0x8000_7000  |   4 KiB | Reserved             |
+| 0x8000_8000  |   4 KiB | Reserved             |
 | 0x8000_9000  |   4 KiB | RGB LED controller   |
 | 0x8000_A000  |   4 KiB | [Hardware revoker][] |
 | 0x8000_B000  |   4 KiB | [ADC][]              |
+| 0x8000_C000  |   4 KiB | [System info][]      |
 | 0x8004_0000  |  64 KiB | [Timer][]            |
 | 0x8010_0000  |   1 MiB | [UART][]             |
 | 0x8020_0000  |   1 MiB | [I2C host][]         |
@@ -62,6 +66,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [HyperRAM]: ../ip/ram.md
 [ADC]: ../ip/adc.md
 [Pinmux]: ../ip/pinmux.md
+[System info]: ../ip/system_info.md
 [Hardware revoker]: ../ip/revoker.md
 [Timer]: ../ip/timer.md
 [UART]: ../ip/uart.md
