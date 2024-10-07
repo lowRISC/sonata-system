@@ -23,6 +23,7 @@
 #include "hyperram_tests.hh"
 #include "i2c_tests.hh"
 #include "spi_tests.hh"
+#include "pinmux_tests.hh"
 #include "uart_tests.hh"
 #include "usbdev_tests.hh"
 
@@ -39,6 +40,7 @@ extern "C" void entry_point(void *rwRoot) {
   spi_tests(root, log);
   hyperram_tests(root, log);
   usbdev_tests(root, log);
+  pinmux_tests(root, log);
   plic_tests(root, log);
   finish_running(log, "All tests finished");
 }
