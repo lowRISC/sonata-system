@@ -16,7 +16,6 @@ packaging = "23.1"
 anytree = "2.8.0"
 hjson = "3.1.0"
 mako = "1.1.6"
-pyyaml = "6.0"
 wheel = "0.41.2"
 pyserial = "3.5"
 mypy = "1.11.1"
@@ -26,6 +25,7 @@ fusesoc = { git = "https://github.com/lowRISC/fusesoc.git", tag = "ot-0.4" }
 pydantic = "^2.8.2"
 toml = "0.10.2"
 setuptools = "75.1.0"
+gitpython = "^3.1.43"
 
 [build-system]
 requires = ["poetry-core"]

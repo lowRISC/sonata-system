@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Individual Python packages
-packaging
 anytree
+gitpython
 hjson
 mako
 mypy
+packaging
+poetry
 pydantic
-pyyaml
 wheel
 toml
 setuptools
