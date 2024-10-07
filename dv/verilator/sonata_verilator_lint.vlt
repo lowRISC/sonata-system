@@ -33,6 +33,22 @@ lint_off -rule UNOPTFLAT -file "*tlul_socket_m1.sv" -match "*Signal unoptimizabl
 // False warning we're using 32-bit initial values for DisableHyperram parameter
 lint_off -rule WIDTHTRUNC -file "*" -match "Operator VAR 'DisableHyperram' expects 1 bits on the Initial value*"
 
+// CHERIoT core; reports of circular logic in interactions with the TL-UL components when there are no intervening register stages;
+// these are not combinational loops. UNOPTFLAT warns of slower simulation through incurring multiple simulation delta cycles.
+lint_off -rule UNOPTFLAT -file "*ibex_load_store_unit.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.tbre_req_good'"
+lint_off -rule UNOPTFLAT -file "*ibex_load_store_unit.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.resp_wait'"
+lint_off -rule UNOPTFLAT -file "*ibex_load_store_unit.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.lsu_req_done'"
+lint_off -rule UNOPTFLAT -file "*ibex_id_stage.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.lsu_req'"
+lint_off -rule UNOPTFLAT -file "*ibex_controller.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.load_err_d'"
+lint_off -rule UNOPTFLAT -file "*ibex_controller.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.store_err_d'"
+lint_off -rule UNOPTFLAT -file "*ibex_core.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.rv32_lsu_req'"
+lint_off -rule UNOPTFLAT -file "*ibex_core.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.lsu_is_cap'"
+lint_off -rule UNOPTFLAT -file "*ibex_core.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.lsu_req'"
+lint_off -rule UNOPTFLAT -file "*ibex_core.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.lsu_we'"
+lint_off -rule UNOPTFLAT -file "*cheri_tbre_wrapper.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.mstr_arbit_comb'"
+lint_off -rule UNOPTFLAT -file "*tlul_socket_m1.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.dreq_fifo_i"
+lint_off -rule UNOPTFLAT -file "*tlul_socket_m1.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.drsp_fifo_o"
+
 // Lint error for PULP debug module.
 lint_off -rule UNUSED -file "*pulp_riscv_dbg*" -match "*not used*"
 lint_off -rule IMPERFECTSCH -file "*pulp_riscv_dbg*"
