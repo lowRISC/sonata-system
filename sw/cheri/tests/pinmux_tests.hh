@@ -29,18 +29,79 @@ using namespace CHERI;
  * Configures whether cable connections required for the pinmux testing
  * are available. This includes cables between:
  *  - mikroBus       (P7) RX & TX
+ *  - Arduino Shield (P4) D0 & D1
+ *  - Arduino Shield (P4) D8 & D9
  * This can be overriden via a compilation flag.
  */
 #ifndef PINMUX_CABLE_CONNECTIONS_AVAILABLE
 #define PINMUX_CABLE_CONNECTIONS_AVAILABLE true
 #endif
 
+#define GPIO_FULL_BOUNDS (0x0000'0040)
+
 // Testing parameters
 static constexpr uint32_t UartTimeoutMsec = 10;
 static constexpr uint32_t UartTestBytes   = 100;
+static constexpr uint32_t GpioWaitMsec    = 1;
+static constexpr uint32_t GpioTestLength  = 10;
 
 static constexpr uint8_t PmxToDisabled         = 0;
 static constexpr uint32_t CyclesPerMillisecond = CPU_TIMER_HZ / 1'000;
+
+// Short definitions for the full range of Sonata's GPIO
+struct SonataGpioInstance {
+  uint32_t output;
+  uint32_t input;
+  uint32_t debounced_input;
+  uint32_t output_enable;
+};
+
+struct SonataGpioFull {
+  SonataGpioInstance instances[4];  // (general, rpi, ardunio, pmod)
+};
+
+// A struct for specifying a specific Gpio Pin using its instance & bit
+struct GpioPin {
+  uint8_t instance;  // 0-3 (general, rpi, arduino, pmod)
+  uint8_t bit;       // 0-31
+};
+
+/**
+ * Sets the value of some GPIO output pin. This change will only be visible
+ * if the pin has its corresponding `output_enable` bit set to 1, so that the
+ * pin is in output mode.
+ */
+static inline void set_gpio_output(Capability<volatile SonataGpioFull> gpio, GpioPin pin, bool value) {
+  const uint32_t bit_mask    = (1 << pin.bit);
+  const uint32_t write_value = ((value ? 1 : 0) << pin.bit);
+  uint32_t output            = gpio->instances[pin.instance].output;
+  output &= ~bit_mask;
+  output |= write_value;
+  gpio->instances[pin.instance].output = output;
+}
+
+/**
+ * Sets the output enable value of some GPIO pin. Setting this to 1 places the
+ * pin in output mode, and to 0 places it in input mode.
+ */
+static inline void set_gpio_output_enable(Capability<volatile SonataGpioFull> gpio, GpioPin pin, bool value) {
+  const uint32_t bit_mask    = (1 << pin.bit);
+  const uint32_t write_value = ((value ? 1 : 0) << pin.bit);
+  uint32_t output_enable     = gpio->instances[pin.instance].output_enable;
+  output_enable &= ~bit_mask;
+  output_enable |= write_value;
+  gpio->instances[pin.instance].output_enable = output_enable;
+}
+
+/**
+ * Get the value of some GPIO input pin. This will only be visible if the pin
+ * has its corresponding `output_enable` bit set to 0, so that the pin is in
+ * input mode.
+ */
+static inline bool get_gpio_input(Capability<volatile SonataGpioFull> gpio, GpioPin pin) {
+  const uint32_t bit_mask = (1 << pin.bit);
+  return (gpio->instances[pin.instance].input & bit_mask) > 0;
+}
 
 /**
  * Tests that the given UART appears to be working as expected, by sending and
@@ -90,6 +151,45 @@ static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uin
     }
   }
 
+  return true;
+}
+
+/**
+ * Tests that the given GPIO pins appear to be working as expected, by sending
+ * and receiving some data using the specified output and input GPIO pins. To
+ * pass, this test expects that the specified input and output GPIO pins are
+ * manually connected on the board, so that GPIO output can be written and
+ * read back by the board.
+ *
+ * @param wait_msec The time in milliseconds to wait for the GPIO write signal
+ * to be transmitted before reading.
+ * @param test_length The number of individual write/reads to test on the given
+ * GPIO connection.
+ *
+ * Returns true if the test passed, or false if it failed.
+ */
+static bool gpio_write_read_test(Capability<volatile SonataGpioFull> gpio, GpioPin output_pin, GpioPin input_pin,
+                                 uint32_t wait_msec, uint32_t test_length) {
+  bool gpio_high = false;
+  for (uint32_t i = 0; i < test_length; i++) {
+    // For each test iteration, invert the GPIO signal
+    gpio_high = !gpio_high;
+
+    // Write this inverted signal on the configured output GPIO
+    set_gpio_output(gpio, output_pin, gpio_high);
+
+    // Wait a short time for the transmission
+    const uint32_t cycles     = wait_msec * CyclesPerMillisecond;
+    const uint32_t end_mcycle = get_mcycle() + cycles;
+    while (get_mcycle() < end_mcycle) {
+      asm("");
+    }
+
+    // Read the GPIO value back
+    if (get_gpio_input(gpio, input_pin) != gpio_high) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -277,6 +377,103 @@ static int pinmux_i2c_test(SonataPinmux *pinmux, I2cPtr i2c0, I2cPtr i2c1) {
 }
 
 /**
+ * Test pinmux by enabling and disabling GPIO pins on the Arduino Shield header. This
+ * requires that there is a cable connecting pins D8 and D9 on the Arduino Shield
+ * header of the Sonata board. This tests writing to and reading from GPIO pins,
+ * checking that the respective tests fail/succeed as expected according to our
+ * pinmux configuration, enabling and disabling these GPIO via pinmux.
+ *
+ * Returns the number of failures durign the test.
+ */
+static int pinmux_gpio_test(SonataPinmux *pinmux, Capability<volatile SonataGpioFull> gpio) {
+  constexpr uint8_t PmxArduinoD8ToGpios_1_8   = 1;
+  constexpr uint8_t PmxArduinoGpio9ToAhTmpio9 = 1;
+
+  constexpr GpioPin GpioPinInput  = {2, 9};
+  constexpr GpioPin GpioPinOutput = {2, 8};
+
+  int failures = 0;
+
+  // Configure the Arduino D9 GPIO as input and D8 as output.
+  set_gpio_output_enable(gpio, GpioPinOutput, true);
+  set_gpio_output_enable(gpio, GpioPinInput, false);
+
+  // Ensure the GPIO (Arduino Shield D8 & D9) are enabled via Pinmux
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD8, PmxArduinoD8ToGpios_1_8)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxArduinoGpio9ToAhTmpio9)) failures++;
+
+  // Check that reading & writing from/to GPIO works as expected.
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  // Disable the GPIO via pinmux, and check that the test now fails.
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD8, PmxToDisabled)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxToDisabled)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  // Re-enable the GPIO via pinmux, and check that the test passes once more
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD8, PmxArduinoD8ToGpios_1_8)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxArduinoGpio9ToAhTmpio9)) failures++;
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  return failures;
+}
+
+/**
+ * Test the muxing capability of pinmux, by dynamically switching between using
+ * (and testing) UART and pinmux on the same two pins - specifically the Arduino
+ * Shield header D0 and D1. It is required that these two pins are manually
+ * connected on the Sonata board for this test.
+ *
+ * This tests that when muxed to UART, the corresponding UART send/receive test
+ * works (and GPIO does not), and when muxed to GPIO, the corresponding GPIO
+ * write/read test works (and UART does not).
+ *
+ * Returns the number of failures during the test.
+ */
+static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, UartPtr uart3,
+                           Capability<volatile SonataGpioFull> gpio) {
+  constexpr uint8_t PmxArduinoD1ToUartTx3     = 2;
+  constexpr uint8_t PmxArduinoD1ToGpio_1_1    = 1;
+  constexpr uint8_t PmxUartReceive3ToAhTmpio0 = 1;
+  constexpr uint8_t PmxArduinoGpio0ToAhTmpio0 = 1;
+
+  constexpr GpioPin GpioPinInput  = {2, 0};
+  constexpr GpioPin GpioPinOutput = {2, 1};
+
+  int failures = 0;
+
+  // Set the Arduino GPIO D0 as input and D1 as output.
+  set_gpio_output_enable(gpio, GpioPinOutput, true);
+  set_gpio_output_enable(gpio, GpioPinInput, false);
+
+  // Mux UART3 over Arduino Shield D0 (RX) & D1 (TX)
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToUartTx3)) failures++;
+
+  // Test that UART3 works over the muxed Arduino Shield D0 & D1 pins,
+  // and that GPIO does not work, as these pins are not muxed for GPIO.
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  // Mux GPIO over Arduino Shield D0 (GPIO input) & D1 (GPIO output)
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio0, PmxArduinoGpio0ToAhTmpio0)) failures++;
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToGpio_1_1)) failures++;
+
+  // Test that UART3 no longer works (no longer muxed over D0 & D1),
+  // and that our muxed GPIO now works.
+  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  // Mux back to UART3 again, and thest that UART again passes and GPIO fails.
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToUartTx3)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+
+  return failures;
+}
+
+/**
  * Run the whole suite of pinmux tests.
  */
 void pinmux_tests(CapRoot root, Log &log) {
@@ -290,6 +487,10 @@ void pinmux_tests(CapRoot root, Log &log) {
   Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   spi.address()                      = SPI_ADDRESS;
   spi.bounds()                       = SPI_BOUNDS;
+
+  Capability<volatile SonataGpioFull> gpio_full = root.cast<volatile SonataGpioFull>();
+  gpio_full.address()                           = GPIO_ADDRESS;
+  gpio_full.bounds()                            = GPIO_FULL_BOUNDS;
 
   SpiFlash spi_flash(spi);
 
@@ -324,8 +525,18 @@ void pinmux_tests(CapRoot root, Log &log) {
     }
 
     if (PINMUX_CABLE_CONNECTIONS_AVAILABLE) {
+      log.print("  Running GPIO Pinmux test... ");
+      failures = pinmux_gpio_test(&Pinmux, gpio_full);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
+
       log.print("  Running UART Pinmux test... ");
       failures = pinmux_uart_test(&Pinmux, prng, uart3);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
+
+      log.print("  Running Mux test... ");
+      failures = pinmux_mux_test(&Pinmux, prng, uart3, gpio_full);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
