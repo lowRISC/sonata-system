@@ -12,9 +12,13 @@
     }
 
     mapping: [
-        {from: "util/tlgen.py", to: "util/tlgen.py"},
-        {from: "util/tlgen",    to: "util/tlgen", patch_dir: "tlgen"},
-        {from: "util/reggen",   to: "util/reggen"},
+        {from: "util/tlgen.py",        to: "util/tlgen.py"},
+        {from: "util/tlgen",           to: "util/tlgen", patch_dir: "tlgen"},
+        {from: "util/regtool.py",      to: "util/regtool.py"},
+        {from: "util/reggen",          to: "util/reggen"},
+        {from: "util/design",          to: "util/design"},
+        {from: "util/version_file.py", to: "util/version_file.py"},
+        {from: "util/topgen"           to: "util/topgen"},
 
         {from: "hw/ip/i2c",     to: "ip/i2c", patch_dir: "i2c"},
         {from: "hw/ip/tlul",    to: "ip/tlul", patch_dir: "tlul"},
