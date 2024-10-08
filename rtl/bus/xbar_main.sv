@@ -325,8 +325,10 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqDepth (96'h0),
-    .DRspDepth (96'h0),
+    .DReqPass  (24'h7e0287),
+    .DRspPass  (24'h7e0287),
+    .DReqDepth (96'h100000011111110101111000),
+    .DRspDepth (96'h100000011111110101111000),
     .N         (24)
   ) u_s1n_26 (
     .clk_i        (clk_sys_i),

@@ -411,10 +411,8 @@ module sonata_system
   tlul_pkg::tl_h2d_t tl_ibex_ins_h2d;
   tlul_pkg::tl_d2h_t tl_ibex_ins_d2h;
 
-  tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d_d;
-  tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h_d;
-  tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d_q;
-  tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h_q;
+  tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d;
+  tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h;
 
   tlul_pkg::tl_h2d_t tl_dbg_host_h2d_d;
   tlul_pkg::tl_d2h_t tl_dbg_host_d2h_d;
@@ -422,10 +420,8 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_dbg_host_d2h_q;
 
   // Device interfaces.
-  tlul_pkg::tl_h2d_t tl_sram_a_h2d_d;
-  tlul_pkg::tl_d2h_t tl_sram_a_d2h_d;
-  tlul_pkg::tl_h2d_t tl_sram_a_h2d_q;
-  tlul_pkg::tl_d2h_t tl_sram_a_d2h_q;
+  tlul_pkg::tl_h2d_t tl_sram_a_h2d;
+  tlul_pkg::tl_d2h_t tl_sram_a_d2h;
   tlul_pkg::tl_h2d_t tl_sram_b_h2d;
   tlul_pkg::tl_d2h_t tl_sram_b_d2h;
   tlul_pkg::tl_h2d_t tl_hyperram_us_h2d[2];
@@ -465,14 +461,14 @@ module sonata_system
     .rst_usb_ni       (rst_usb_ni),
 
     // Host interfaces.
-    .tl_ibex_lsu_i    (tl_ibex_lsu_h2d_q),
-    .tl_ibex_lsu_o    (tl_ibex_lsu_d2h_q),
+    .tl_ibex_lsu_i    (tl_ibex_lsu_h2d),
+    .tl_ibex_lsu_o    (tl_ibex_lsu_d2h),
     .tl_dbg_host_i    (tl_dbg_host_h2d_q),
     .tl_dbg_host_o    (tl_dbg_host_d2h_q),
 
     // Device interfaces.
-    .tl_sram_o        (tl_sram_a_h2d_d),
-    .tl_sram_i        (tl_sram_a_d2h_d),
+    .tl_sram_o        (tl_sram_a_h2d),
+    .tl_sram_i        (tl_sram_a_d2h),
     .tl_hyperram_o    (tl_hyperram_us_h2d[0]),
     .tl_hyperram_i    (tl_hyperram_us_d2h[0]),
     .tl_rev_tag_o     (tl_rev_tag_h2d),
@@ -566,8 +562,8 @@ module sonata_system
     .err_o        (host_err[CoreD]),
     .intg_err_o   (),
 
-    .tl_o         (tl_ibex_lsu_h2d_d),
-    .tl_i         (tl_ibex_lsu_d2h_d)
+    .tl_o         (tl_ibex_lsu_h2d),
+    .tl_i         (tl_ibex_lsu_d2h)
   );
 
   tlul_adapter_host dbg_host_adapter (
@@ -601,27 +597,6 @@ module sonata_system
     .RspPass  ( 0 ),
     .ReqDepth ( 2 ),
     .RspDepth ( 2 )
-  ) tl_ibex_lsu_fifo (
-    .clk_i       (clk_sys_i),
-    .rst_ni      (rst_sys_ni),
-
-    .tl_h_i      (tl_ibex_lsu_h2d_d),
-    .tl_h_o      (tl_ibex_lsu_d2h_d),
-    .tl_d_o      (tl_ibex_lsu_h2d_q),
-    .tl_d_i      (tl_ibex_lsu_d2h_q),
-
-    .spare_req_i (1'b0),
-    .spare_req_o (    ),
-    .spare_rsp_i (1'b0),
-    .spare_rsp_o (    )
-  );
-
-  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
-  tlul_fifo_sync #(
-    .ReqPass  ( 0 ),
-    .RspPass  ( 0 ),
-    .ReqDepth ( 2 ),
-    .RspDepth ( 2 )
   ) tl_dbg_host_fifo (
     .clk_i       (clk_sys_i),
     .rst_ni      (rst_sys_ni),
@@ -630,27 +605,6 @@ module sonata_system
     .tl_h_o      (tl_dbg_host_d2h_d),
     .tl_d_o      (tl_dbg_host_h2d_q),
     .tl_d_i      (tl_dbg_host_d2h_q),
-
-    .spare_req_i (1'b0),
-    .spare_req_o (    ),
-    .spare_rsp_i (1'b0),
-    .spare_rsp_o (    )
-  );
-
-  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
-  tlul_fifo_sync #(
-    .ReqPass  ( 0 ),
-    .RspPass  ( 0 ),
-    .ReqDepth ( 2 ),
-    .RspDepth ( 2 )
-  ) tl_sram_fifo (
-    .clk_i       (clk_sys_i),
-    .rst_ni      (rst_sys_ni),
-
-    .tl_h_i      (tl_sram_a_h2d_d),
-    .tl_h_o      (tl_sram_a_d2h_d),
-    .tl_d_o      (tl_sram_a_h2d_q),
-    .tl_d_i      (tl_sram_a_d2h_q),
 
     .spare_req_i (1'b0),
     .spare_req_o (    ),
@@ -667,8 +621,8 @@ module sonata_system
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
 
-    .tl_a_i (tl_sram_a_h2d_q),
-    .tl_a_o (tl_sram_a_d2h_q),
+    .tl_a_i (tl_sram_a_h2d),
+    .tl_a_o (tl_sram_a_d2h),
     .tl_b_i (tl_sram_b_h2d),
     .tl_b_o (tl_sram_b_d2h)
   );

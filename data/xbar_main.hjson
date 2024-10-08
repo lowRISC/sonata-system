@@ -27,7 +27,6 @@
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
       xbar:  false,
-      pipeline: false,
     },
     { name:  "sram", // Internal memory
       type:  "device",
@@ -63,41 +62,53 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x80000000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     { name:  "pwm", // Pulse width modulator
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x80001000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     { name:  "pinmux", // Pin multiplexer
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x80005000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     { name:  "rgbled_ctrl", // RGB LED Controller
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x80009000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     { name:  "hw_rev", // Hardware revoker control register
       type:  "device",
@@ -113,11 +124,14 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x8000B000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     { name:  "timer", // Interrupt timer
       type:  "device",
@@ -134,11 +148,14 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x8010${i}000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     % endfor
     % for i in range(i2c_num):
@@ -146,11 +163,14 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x8020${i}000",
         size_byte: "0x00001000",
       }],
+      pipeline: true,
     },
     % endfor
     % for i in range(spi_num):
@@ -179,12 +199,15 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         // This block is overaligned to 0x0800_0000 bytes since OpenTitan RV_PLIC block expects it.
         base_addr: "0x88000000",
         size_byte: "0x04000000",
       }],
+      pipeline: true,
     },
   ],
   connections: {
