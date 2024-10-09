@@ -1,0 +1,15 @@
+diff --git a/rtl/i2c_reg_top.sv b/rtl/i2c_reg_top.sv
+index dffe051..c4b9783 100644
+--- a/rtl/i2c_reg_top.sv
++++ b/rtl/i2c_reg_top.sv
+@@ -42,8 +42,8 @@ module i2c_reg_top (
+   // outgoing integrity generation
+   tlul_pkg::tl_d2h_t tl_o_pre;
+   tlul_rsp_intg_gen #(
+-    .EnableRspIntgGen(1),
+-    .EnableDataIntgGen(1)
++    .EnableRspIntgGen(0),
++    .EnableDataIntgGen(0)
+   ) u_rsp_intg_gen (
+     .tl_i(tl_o_pre),
+     .tl_o(tl_o)
