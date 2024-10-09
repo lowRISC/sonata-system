@@ -203,7 +203,9 @@ module top_sonata (
   logic clk_usb;
   logic rst_usb_n;
 
+  // HyperRAM clocks and reset
   logic clk_hr, clk_hr90p, clk_hr3x;
+  logic rst_hr_n;
 
   logic [7:0] reset_counter;
   logic pll_locked;
@@ -397,10 +399,11 @@ module top_sonata (
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    // Hyperram clocks
+    // HyperRAM clocks and reset
     .clk_hr_i       (clk_hr),
     .clk_hr90p_i    (clk_hr90p),
     .clk_hr3x_i     (clk_hr3x),
+    .rst_hr_ni      (rst_hr_n),
 
     // GPIO
     .gp_i           ({
@@ -544,8 +547,10 @@ module top_sonata (
   rst_sync u_rst_sync (
     .clk_sys_i  (clk_sys),
     .clk_usb_i  (clk_usb),
+    .clk_hr_i   (clk_hr),
     .rst_ni     (rst_n),
     .rst_sys_no (rst_sys_n),
-    .rst_usb_no (rst_usb_n)
+    .rst_usb_no (rst_usb_n),
+    .rst_hr_no  (rst_hr_n)
   );
 endmodule

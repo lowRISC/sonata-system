@@ -17,6 +17,7 @@ module hyperram import tlul_pkg::*; #(
   input             clk_hr_i,
   input             clk_hr90p_i,
   input             clk_hr3x_i,
+  input             rst_hr_ni,
 
   input  tl_h2d_t   tl_i,
   output tl_d2h_t   tl_o,
@@ -40,6 +41,7 @@ module hyperram import tlul_pkg::*; #(
   logic       unused_clk_hr;
   logic       unused_clk_hr90p;
   logic       unused_clk_hr3x;
+  logic       unused_rst_hr;
 
   assign hyperram_ckp  = '0;
   assign hyperram_ckn  = '0;
@@ -49,6 +51,7 @@ module hyperram import tlul_pkg::*; #(
   assign unused_clk_hr        = clk_hr_i;
   assign unused_clk_hr90p     = clk_hr90p_i;
   assign unused_clk_hr3x      = clk_hr3x_i;
+  assign unused_rst_hr        = rst_hr_ni;
 
   // TODO: Consider adding extra latency to roughly model the performance of the
   // real hyperram controller
@@ -104,6 +107,7 @@ module hyperram import tlul_pkg::*; #(
     .rst_ni(rst_ni),
     .clk_hbmc_0(clk_hr_i),
     .clk_hbmc_90(clk_hr90p_i),
+    .rst_hbmc_ni(rst_hr_ni),
     .clk_iserdes(clk_hr3x_i),
     .clk_idelay_ref(1'B0),
 
