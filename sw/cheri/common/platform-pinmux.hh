@@ -270,6 +270,11 @@ class SonataPinmux : private utils::NoCopyNoMove {
    */
   static constexpr uint8_t output_pin_options(OutputPin output_pin) {
     switch (output_pin) {
+      case OutputPin::Pmod0Io2:
+      case OutputPin::Pmod0Io4:
+      case OutputPin::Pmod1Io2:
+      case OutputPin::Pmod1Io4:
+        return 4;
       case OutputPin::RaspberryPiHat27:
       case OutputPin::RaspberryPiHat28:
       case OutputPin::RaspberryPiHat3:
@@ -282,6 +287,8 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::ArduinoShieldD11:
       case OutputPin::ArduinoShieldD13:
       case OutputPin::ArduinoShieldD1:
+      case OutputPin::Pmod0Io3:
+      case OutputPin::Pmod1Io3:
         return 3;
       default:
         return 2;
@@ -306,6 +313,8 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case BlockInput::SpiReceive3:
         return 4;
       case BlockInput::SpiReceive4:
+        return 4;
+      case BlockInput::UartReceive2:
         return 3;
       default:
         return 2;
