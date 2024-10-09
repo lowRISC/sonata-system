@@ -8,13 +8,23 @@ from pathlib import Path
 
 import toml
 from pydantic import BaseModel, field_validator, model_validator
+from pydantic.dataclasses import dataclass
 from typing_extensions import Self
 
 
-class BlockIoType(str, Enum):
+class Direction(str, Enum):
     INOUT = "inout"
     INPUT = "input"
     OUTPUT = "output"
+
+    def __and__(self, other: "Direction") -> "Direction":
+        match (self, other):
+            case (Direction.INPUT, Direction.INPUT):
+                return self
+            case (Direction.OUTPUT, Direction.OUTPUT):
+                return self
+            case _:
+                return Direction.INOUT
 
 
 class BlockIoCombine(str, Enum):
@@ -25,15 +35,15 @@ class BlockIoCombine(str, Enum):
 
 class BlockIo(BaseModel, frozen=True):
     name: str
-    type: BlockIoType
+    type: Direction
     combine: BlockIoCombine | None = None
     default: int = 0
     length: int | None = None
 
     @model_validator(mode="after")
-    def verify_square(self) -> Self:
+    def verify_block(self) -> Self:
         assert (
-            self.type != BlockIoType.INOUT or self.default == 0
+            self.type != Direction.INOUT or self.default == 0
         ), "An inout block IO cannot have a default value other than 0."
         return self
 
@@ -45,13 +55,14 @@ class Block(BaseModel, frozen=True):
 
     @field_validator("instances")
     @staticmethod
-    def check_pins(instances: int) -> int:
+    def check_instances(instances: int) -> int:
         if instances < 1:
             raise ValueError("Must have one or more instances of a block.")
         return instances
 
 
-class PinBlockIoPointer(BaseModel, frozen=True):
+@dataclass(frozen=True)
+class BlockIoUid:
     block: str
     instance: int
     io: str | int
@@ -60,7 +71,7 @@ class PinBlockIoPointer(BaseModel, frozen=True):
 class Pin(BaseModel, frozen=True):
     name: str
     length: int | None = None
-    block_ios: list[PinBlockIoPointer]
+    block_ios: list[BlockIoUid]
 
 
 class TopConfig(BaseModel, frozen=True):
@@ -74,6 +85,19 @@ class TopConfig(BaseModel, frozen=True):
         if len(all_names) != len(pins):
             raise ValueError("All pins must have unique names.")
         return pins
+
+    @field_validator("blocks")
+    @staticmethod
+    def check_blocks(blocks: list[Block]) -> list[Block]:
+        block_names = {block.name for block in blocks}
+        expected_block_names = {"gpio", "i2c", "spi", "uart"}
+
+        if block_names != expected_block_names:
+            raise ValueError(
+                "There must be a configuration for each block in "
+                f"{expected_block_names} and only these blocks."
+            )
+        return blocks
 
     def get_block(self, name: str) -> Block:
         try:
