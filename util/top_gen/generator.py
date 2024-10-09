@@ -9,7 +9,7 @@ from typing import Iterator, NamedTuple, TypeAlias
 
 from mako.template import Template
 
-from .parser import BlockIoCombine, BlockIoType, TopConfig
+from .parser import BlockIoCombine, Direction, TopConfig
 
 
 class PinmuxIoToBlocks(NamedTuple):
@@ -29,15 +29,15 @@ def ios_to_blocks_iter(config: TopConfig) -> Iterator[PinmuxIoToBlocks]:
             width = "" if io.length is None else f"[{io.length - 1}:0] "
             # Generate pinmux module input and outputs
             match io.type:
-                case BlockIoType.OUTPUT:
+                case Direction.OUTPUT:
                     yield PinmuxIoToBlocks(
                         "input ", width, name + "_i", instances
                     )
-                case BlockIoType.INPUT:
+                case Direction.INPUT:
                     yield PinmuxIoToBlocks(
                         "output", width, name + "_o", instances
                     )
-                case BlockIoType.INOUT:
+                case Direction.INOUT:
                     yield PinmuxIoToBlocks(
                         "input ", width, name + "_i", instances
                     )
@@ -135,7 +135,7 @@ def pin_to_block_output_map(
 
     for block in config.blocks:
         for io in block.ios:
-            if io.type == BlockIoType.INPUT:
+            if io.type == Direction.INPUT:
                 continue
 
             connections = block_connections[(block.name, io.name)]
@@ -149,7 +149,7 @@ def pin_to_block_output_map(
                                 io.name,
                                 inst_idx,
                                 bit_str,
-                                io.type == BlockIoType.INOUT,
+                                io.type == Direction.INOUT,
                             )
                         )
 
@@ -169,9 +169,8 @@ def input_pins_iter(
 ) -> Iterator[InputPin]:
     for block in config.blocks:
         for io in block.ios:
-            if io.type != BlockIoType.INPUT and (
-                io.type != BlockIoType.INOUT
-                or io.combine != BlockIoCombine.MUX
+            if io.type != Direction.INPUT and (
+                io.type != Direction.INOUT or io.combine != BlockIoCombine.MUX
             ):
                 continue
 
@@ -227,7 +226,7 @@ def inout_pins_iter(
 ) -> Iterator[InOutPin]:
     for block in config.blocks:
         for io in block.ios:
-            if io.type != BlockIoType.INOUT or io.combine not in (
+            if io.type != Direction.INOUT or io.combine not in (
                 BlockIoCombine.AND,
                 BlockIoCombine.OR,
             ):
