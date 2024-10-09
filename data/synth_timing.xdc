@@ -241,13 +241,11 @@ set sclk_ns [expr {2 * [get_property period [get_clocks clk_sys]]}]
 # Inputs to be sampled on rising edge. Output to be driven on falling edge.
 # Assume inputs valid from only a few nanoseconds before rising clk edge
 # (as Greg has observed external signals changing only 3ns ahead of clk edge)
-# to just before the rising clk edge (trying to balance the need for
-# setup margin against the possibility of naughty drivers that
-# launch on the rising edge instead of the falling edge).
-set_input_delay -clock tck -max [expr {$tck_ns - 3.0}] [get_ports td_i]
-set_input_delay -clock tck -min [expr {         -0.2}] [get_ports td_i]
-set_input_delay -clock tck -max [expr {$tck_ns - 3.0}] [get_ports tms_i]
-set_input_delay -clock tck -min [expr {         -0.2}] [get_ports tms_i]
+# to just before the falling clock edge (falling-edge launch less some margin).
+set_input_delay -clock tck -max [expr {$tck_ns - 3.0              }] [get_ports td_i]
+set_input_delay -clock tck -min [expr {          $tck_ns/2.0 - 2.0}] [get_ports td_i]
+set_input_delay -clock tck -max [expr {$tck_ns - 3.0              }] [get_ports tms_i]
+set_input_delay -clock tck -min [expr {          $tck_ns/2.0 - 2.0}] [get_ports tms_i]
 # Require output signal to be valid at other end of the interface (FT4232HQ)
 # from 11 ns (FT4232HQ setup requirement) before the rising clk edge
 # to 1/4th of a clock period after the rising clk edge for some healthy margin.
