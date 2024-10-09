@@ -295,7 +295,10 @@ module hbmc_tl_top import tlul_pkg::*; #(
   end
 
   // Generate integrity for outgoing response
-  tlul_rsp_intg_gen u_tlul_rsp_intg_gen (
+  tlul_rsp_intg_gen #(
+    .EnableRspIntgGen(0),
+    .EnableDataIntgGen(0)
+  ) u_tlul_rsp_intg_gen (
     .tl_i(tl_o_int),
     .tl_o(tl_o)
   );

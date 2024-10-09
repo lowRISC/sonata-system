@@ -124,7 +124,6 @@ module pinmux (
   assign reg_rdata = BusDataWidth'('0);
 
   tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1            ),
     .RegAw            ( RegAddrWidth ),
     .RegDw            ( BusDataWidth ),
     .AccessLatency    ( 1            )
