@@ -37,6 +37,7 @@ filesets:
       - rtl/system/pwm_wrapper.sv
       - rtl/system/pwm_fade.sv
       - rtl/system/sram.sv
+      - rtl/system/rst_sync.sv
       - rtl/system/rv_timer.sv
       - vendor/cheriot_safe/ip/msftDvIp_mmreg.sv
     file_type: systemVerilogSource
