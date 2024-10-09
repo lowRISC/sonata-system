@@ -26,7 +26,9 @@ module tlul_adapter_host
   import prim_mubi_pkg::mubi4_t;
 #(
   parameter int unsigned MAX_REQS = 2,
+  parameter bit EnableCmdIntgGen = 0,
   parameter bit EnableDataIntgGen = 0,
+  parameter bit EnableRspIntgCheck = 0,
   parameter bit EnableRspDataIntgCheck = 0
 ) (
   input clk_i,
@@ -109,7 +111,10 @@ module tlul_adapter_host
     d_ready:   1'b1
   };
 
-  tlul_cmd_intg_gen #(.EnableDataIntgGen (EnableDataIntgGen)) u_cmd_intg_gen (
+  tlul_cmd_intg_gen #(
+    .EnableCmdIntgGen (EnableCmdIntgGen),
+    .EnableDataIntgGen (EnableDataIntgGen)
+  ) u_cmd_intg_gen (
     .tl_i(tl_out),
     .tl_o(tl_o)
   );
@@ -121,21 +126,28 @@ module tlul_adapter_host
   assign rdata_cap_o  = tl_i.d_user.capability;
   assign rdata_intg_o = tl_i.d_user.data_intg;
 
-  logic intg_err;
-  tlul_rsp_intg_chk #(
-    .EnableRspDataIntgCheck(EnableRspDataIntgCheck)
-  ) u_rsp_chk (
-    .tl_i,
-    .err_o(intg_err)
-  );
-
+  // integrity check on response.
   logic intg_err_q;
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      intg_err_q <= '0;
-    end else if (intg_err) begin
-      intg_err_q <= 1'b1;
+  logic intg_err;
+
+  if (EnableRspIntgCheck) begin : gen_rsp_intg_check
+    tlul_rsp_intg_chk #(
+      .EnableRspDataIntgCheck(EnableRspDataIntgCheck)
+    ) u_rsp_chk (
+      .tl_i,
+      .err_o(intg_err)
+    );
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        intg_err_q <= '0;
+      end else if (intg_err) begin
+        intg_err_q <= 1'b1;
+      end
     end
+  end else begin : gen_no_rsp_intg_check
+    assign intg_err   = 1'b0;
+    assign intg_err_q = 1'b0;
   end
 
   // err_o is transactional.  This allows the host to continue

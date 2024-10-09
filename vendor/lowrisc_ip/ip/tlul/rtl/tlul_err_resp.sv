@@ -23,8 +23,8 @@ module tlul_err_resp (
   tlul_pkg::tl_d2h_t                 tl_h_o_int;
 
   tlul_rsp_intg_gen #(
-    .EnableRspIntgGen(1),
-    .EnableDataIntgGen(1)
+    .EnableRspIntgGen(0),
+    .EnableDataIntgGen(0)
   ) u_intg_gen (
     .tl_i(tl_h_o_int),
     .tl_o(tl_h_o)
