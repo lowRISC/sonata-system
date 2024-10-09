@@ -45,7 +45,7 @@ module xadc_adapter #(
     .ErrOnWrite(0),
     .ErrOnRead(0),
     .CmdIntgCheck(0),
-    .EnableRspIntgGen(1),
+    .EnableRspIntgGen(0),
     .EnableDataIntgGen(0),
     .EnableDataIntgPt(0),
     .SecFifoPtr(0)

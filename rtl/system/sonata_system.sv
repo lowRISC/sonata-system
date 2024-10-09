@@ -743,7 +743,6 @@ module sonata_system #(
   );
 
   tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) hardware_revoker_control_reg_device_adapter (
     .clk_i        (clk_sys_i),
@@ -772,7 +771,6 @@ module sonata_system #(
   assign device_addr[HwRev][BusAddrWidth-1:RegAddrWidth] = '0;
 
   tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) gpio_device_adapter (
     .clk_i        (clk_sys_i),
@@ -801,7 +799,6 @@ module sonata_system #(
   assign device_addr[Gpio][BusAddrWidth-1:RegAddrWidth] = '0;
 
   tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
     .AccessLatency    ( 1 )
   ) pwm_device_adapter (
     .clk_i        (clk_sys_i),
@@ -830,7 +827,6 @@ module sonata_system #(
   assign device_addr[Pwm][BusAddrWidth-1:RegAddrWidth] = '0;
 
   tlul_adapter_reg #(
-    .EnableRspIntgGen ( 1 ),
     .RegAw            ( TRegAddrWidth ),
     .AccessLatency    ( 1 )
   ) timer_device_adapter (
@@ -875,8 +871,7 @@ module sonata_system #(
   localparam int unsigned RevTagAddrWidth = $clog2(RevTagDepth);
 
   tlul_adapter_sram #(
-    .SramAw           ( RevTagAddrWidth ),
-    .EnableRspIntgGen ( 1               )
+    .SramAw           ( RevTagAddrWidth )
   ) revocation_sram_adapter (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
