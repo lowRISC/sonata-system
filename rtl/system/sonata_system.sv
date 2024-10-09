@@ -25,10 +25,11 @@ module sonata_system
   input logic                      clk_usb_i,
   input logic                      rst_usb_ni,
 
-  // Hyperram clocks and reset
+  // HyperRAM clocks and reset
   input logic                      clk_hr_i,
   input logic                      clk_hr90p_i,
   input logic                      clk_hr3x_i,
+  input logic                      rst_hr_ni,
 
   // General purpose input and output
   input  logic [WordWidth-1:0]     gp_i,
@@ -677,10 +678,12 @@ module sonata_system
     logic unused_clk_hr;
     logic unused_clk_hr90p;
     logic unused_clk_hr3x;
+    logic unused_rst_hr;
 
     assign unused_clk_hr    = clk_hr_i;
     assign unused_clk_hr90p = clk_hr90p_i;
     assign unused_clk_hr3x  = clk_hr3x_i;
+    assign unused_rst_hr    = rst_hr_ni;
 
     assign hyperram_dq   = '0;
     assign hyperram_rwds = '0;
@@ -706,6 +709,7 @@ module sonata_system
       .clk_hr_i,
       .clk_hr90p_i,
       .clk_hr3x_i,
+      .rst_hr_ni,
 
       .tl_i (tl_hyperram_ds_h2d),
       .tl_o (tl_hyperram_ds_d2h),

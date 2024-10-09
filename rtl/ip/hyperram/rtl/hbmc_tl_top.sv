@@ -66,6 +66,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
   input  rst_ni,
   input  clk_hbmc_0,
   input  clk_hbmc_90,
+  input  rst_hbmc_ni,
   input  clk_iserdes,
   input  clk_idelay_ref,
 
@@ -84,8 +85,6 @@ module hbmc_tl_top import tlul_pkg::*; #(
   localparam integer HyperRAMAddrW = $clog2(HyperRAMSize);
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
-
-  logic sync_rst;
 
   logic idelayctrl_rdy_sync;
   logic clk_idelay;
@@ -120,20 +119,6 @@ module hbmc_tl_top import tlul_pkg::*; #(
   logic                         dfifo_wr_ena;
   logic                         dfifo_wr_full;
 
-/*----------------------------------------------------------------------------------------------------------------------------*/
-
-  /* AXI active low polarity reset inversion.
-   * Positive reset polarity removes useless
-   * LUT-based reset inverters, as all FPGA's
-   * primitives have positive reset polarity.
-   * This also improves timings. */
-  always @(posedge clk_i or negedge rst_ni) begin
-    if (~rst_ni) begin
-      sync_rst <= 1'b1;
-    end else begin
-      sync_rst <= 1'b0;
-    end
-  end
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
 
@@ -155,8 +140,8 @@ module hbmc_tl_top import tlul_pkg::*; #(
       )
       hbmc_arst_sync_idelayctrl
       (
-          .clk   ( clk_i     ),
-          .arst  ( sync_rst   ),
+          .clk   ( clk_i          ),
+          .arst  ( ~rst_ni        ),
           .rst   ( idelayctrl_rst )
       );
 
@@ -178,8 +163,8 @@ module hbmc_tl_top import tlul_pkg::*; #(
       )
       hbmc_bit_sync_idelayctrl_rdy
       (
-          .arst   ( sync_rst        ),
-          .clk    ( clk_i          ),
+          .arst   ( ~rst_ni             ),
+          .clk    ( clk_i               ),
           .d      ( idelayctrl_rdy      ),
           .q      ( idelayctrl_rdy_sync )
       );
@@ -191,22 +176,6 @@ module hbmc_tl_top import tlul_pkg::*; #(
       assign clk_idelay = 1'b0;
     end
   endgenerate
-
-/*----------------------------------------------------------------------------------------------------------------------------*/
-
-  wire    hbmc_rst_sync;
-
-
-  hbmc_arst_sync #
-  (
-      .C_SYNC_STAGES ( 3 )
-  )
-  hbmc_arst_sync_inst
-  (
-      .clk  ( clk_hbmc_0    ),
-      .arst ( sync_rst      ),
-      .rst  ( hbmc_rst_sync )
-  );
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
 
@@ -347,14 +316,14 @@ module hbmc_tl_top import tlul_pkg::*; #(
     .Depth(2)
   ) u_hbmc_cmd_fifo (
     .clk_wr_i (clk_i),
-    .rst_wr_ni(~sync_rst),
+    .rst_wr_ni(rst_ni),
     .wvalid_i (cmd_wvalid),
     .wready_o (cmd_wready),
     .wdata_i  (cmd_wdata),
     .wdepth_o (),
 
     .clk_rd_i (clk_hbmc_0),
-    .rst_rd_ni(~hbmc_rst_sync),
+    .rst_rd_ni(rst_hbmc_ni),
     .rvalid_o (cmd_rvalid),
     .rready_i (cmd_rready),
     .rdata_o  (cmd_rdata),
@@ -398,7 +367,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
   )
   hbmc_ctrl_inst
   (
-      .rst                ( hbmc_rst_sync         ),
+      .rst                ( ~rst_hbmc_ni          ),
       .clk_hbmc_0         ( clk_hbmc_0            ),
       .clk_hbmc_90        ( clk_hbmc_90           ),
       .clk_iserdes        ( clk_iserdes           ),
@@ -436,15 +405,15 @@ module hbmc_tl_top import tlul_pkg::*; #(
   )
   hbmc_ufifo_inst
   (
-      .fifo_arst      ( sync_rst   ),
-
       .fifo_wr_clk    ( clk_hbmc_0     ),
+      .fifo_wr_nrst   ( rst_hbmc_ni    ),
       .fifo_wr_din    ( ufifo_wr_data  ),
       .fifo_wr_last   ( ufifo_wr_last  ),
       .fifo_wr_ena    ( ufifo_wr_ena   ),
       .fifo_wr_full   ( /*----NC----*/ ),
 
       .fifo_rd_clk    ( clk_i     ),
+      .fifo_rd_nrst   ( rst_ni    ),
       .fifo_rd_dout   ( ufifo_rd_dout  ),
       .fifo_rd_free   ( /*----NC----*/ ),
       .fifo_rd_last   ( ufifo_rd_last  ),
@@ -461,15 +430,16 @@ module hbmc_tl_top import tlul_pkg::*; #(
   )
   hbmc_dfifo_inst
   (
-      .fifo_arst      ( sync_rst   ),
 
-      .fifo_wr_clk    ( clk_i     ),
+      .fifo_wr_clk    ( clk_i          ),
+      .fifo_wr_nrst   ( rst_ni         ),
       .fifo_wr_din    ( dfifo_wr_din   ),
       .fifo_wr_strb   ( dfifo_wr_strb  ),
       .fifo_wr_ena    ( dfifo_wr_ena   ),
       .fifo_wr_full   ( dfifo_wr_full  ),
 
       .fifo_rd_clk    ( clk_hbmc_0     ),
+      .fifo_rd_nrst   ( rst_hbmc_ni    ),
       .fifo_rd_dout   ( dfifo_rd_data  ),
       .fifo_rd_strb   ( dfifo_rd_strb  ),
       .fifo_rd_ena    ( dfifo_rd_ena   ),
