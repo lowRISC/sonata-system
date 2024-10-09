@@ -641,8 +641,7 @@ set_clock_groups -asynchronous -group tck -group $mainClk_and_generated
 
 ### False Paths ###
 
-## Reset - asynchronous on-board button or external source.
-# Set as false path and use deassert-synchroniser.
+## Reset port - asynchronous on-board button or external source.
 set_false_path -from [get_ports nrst]
 
 ## General purpose LEDs - human-scale asynchronous
@@ -717,6 +716,14 @@ set async_fifo_startpoints [all_fanin -startpoints_only -flat $async_fifo_pins]
 set_false_path -from $async_fifo_startpoints -through $async_fifo_pins
 
 ### Max Delay / Min Delay ###
+
+## Reset async-assert sync-deassert CDC - async path to synchroniser reset pins
+# Use max_delay rather than false_path to avoid big skew between clock domains.
+set rst_sync_cells [get_cells u_rst_sync/* -filter {ORIG_REF_NAME == prim_flop_2sync}]
+set rst_sync_pins [get_pins -filter {REF_PIN_NAME =~ rst_ni} -of $rst_sync_cells]
+# Filter out any that do not have a real timing path (fail to find leaf cell).
+set rst_sync_endpoints [filter [all_fanout -endpoints_only -flat $rst_sync_pins] IS_LEAF]
+set_max_delay $clk_sys_ns -to $rst_sync_endpoints
 
 ## Ethernet MAC
 # Asynchronous(?) interrupt.
