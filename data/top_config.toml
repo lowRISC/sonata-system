@@ -383,13 +383,98 @@ block_ios = [{block = "uart", instance = 3, io = "rx"}]
 # mb9 is interrupt and already connected to a general purpose input.
 # mb10 is PWM and is already connected to a PWM output.
 
+
 ## PMODs
 [[pins]]
-name = "pmod0"
-length = 8
-block_ios = [{block = "gpio", instance = 2, io = 0}]
+name = "pmod0_1"
+block_ios = [
+  {block = "gpio", instance = 2, io = 0},  # can be used as SPI CS
+  {block = "i2c", instance = 0, io = "sda"},
+]
 
 [[pins]]
-name = "pmod1"
-length = 8
-block_ios = [{block = "gpio", instance = 2, io = 8}]
+name = "pmod0_2"
+block_ios = [
+  {block = "gpio", instance = 2, io = 1},
+  {block = "spi", instance = 3, io = "tx"},
+  {block = "i2c", instance = 0, io = "scl"},
+  {block = "uart", instance = 2, io = "tx"},
+]
+
+[[pins]]
+name = "pmod0_3"
+block_ios = [
+  {block = "gpio", instance = 2, io = 2},
+  {block = "spi", instance = 3, io = "rx"},
+  {block = "uart", instance = 2, io = "rx"},
+]
+
+[[pins]]
+name = "pmod0_4"
+block_ios = [
+  {block = "gpio", instance = 2, io = 3},
+  {block = "spi", instance = 3, io = "sck"},
+]
+
+[[pins]]
+name = "pmod0_5"
+block_ios = [{block = "gpio", instance = 2, io = 4}]
+
+[[pins]]
+name = "pmod0_6"
+block_ios = [{block = "gpio", instance = 2, io = 5}]
+
+[[pins]]
+name = "pmod0_7"
+block_ios = [{block = "gpio", instance = 2, io = 6}]
+
+[[pins]]
+name = "pmod0_8"
+block_ios = [{block = "gpio", instance = 2, io = 7}]
+
+[[pins]]
+name = "pmod1_1"
+block_ios = [
+  {block = "gpio", instance = 2, io = 8},  # can be used as SPI CS
+  {block = "i2c", instance = 1, io = "sda"},
+]
+
+[[pins]]
+name = "pmod1_2"
+block_ios = [
+  {block = "gpio", instance = 2, io = 9},
+  {block = "spi", instance = 4, io = "tx"},
+  {block = "i2c", instance = 1, io = "scl"},
+  {block = "uart", instance = 3, io = "tx"},
+]
+
+[[pins]]
+name = "pmod1_3"
+block_ios = [
+  {block = "gpio", instance = 2, io = 10},
+  {block = "spi", instance = 4, io = "rx"},
+  {block = "uart", instance = 3, io = "rx"},
+]
+
+[[pins]]
+name = "pmod1_4"
+block_ios = [
+  {block = "gpio", instance = 2, io = 11},
+  {block = "spi", instance = 4, io = "sck"},
+]
+
+[[pins]]
+name = "pmod1_5"
+block_ios = [{block = "gpio", instance = 2, io = 12}]
+
+[[pins]]
+name = "pmod1_6"
+block_ios = [{block = "gpio", instance = 2, io = 13}]
+
+[[pins]]
+name = "pmod1_7"
+block_ios = [{block = "gpio", instance = 2, io = 14}]
+
+[[pins]]
+name = "pmod1_8"
+block_ios = [{block = "gpio", instance = 2, io = 15}]

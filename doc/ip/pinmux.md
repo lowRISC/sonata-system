@@ -76,22 +76,22 @@ The default value for all of these selectors is `'b10`.
 | 0x03d | mb5 | 0, i2c_sda_i(1) |
 | 0x03e | mb6 | 0, i2c_scl_i(1) |
 | 0x03f | mb7 | 0, uart_tx_i(3) |
-| 0x040 | pmod0[0] | 0, gpio_ios_i(2)(0) |
-| 0x041 | pmod0[1] | 0, gpio_ios_i(2)(1) |
-| 0x042 | pmod0[2] | 0, gpio_ios_i(2)(2) |
-| 0x043 | pmod0[3] | 0, gpio_ios_i(2)(3) |
-| 0x044 | pmod0[4] | 0, gpio_ios_i(2)(4) |
-| 0x045 | pmod0[5] | 0, gpio_ios_i(2)(5) |
-| 0x046 | pmod0[6] | 0, gpio_ios_i(2)(6) |
-| 0x047 | pmod0[7] | 0, gpio_ios_i(2)(7) |
-| 0x048 | pmod1[0] | 0, gpio_ios_i(2)(8) |
-| 0x049 | pmod1[1] | 0, gpio_ios_i(2)(9) |
-| 0x04a | pmod1[2] | 0, gpio_ios_i(2)(10) |
-| 0x04b | pmod1[3] | 0, gpio_ios_i(2)(11) |
-| 0x04c | pmod1[4] | 0, gpio_ios_i(2)(12) |
-| 0x04d | pmod1[5] | 0, gpio_ios_i(2)(13) |
-| 0x04e | pmod1[6] | 0, gpio_ios_i(2)(14) |
-| 0x04f | pmod1[7] | 0, gpio_ios_i(2)(15) |
+| 0x040 | pmod0_1 | 0, i2c_sda_i(0), gpio_ios_i(2)(0) |
+| 0x041 | pmod0_2 | 0, uart_tx_i(2), i2c_scl_i(0), spi_tx_i(3), gpio_ios_i(2)(1) |
+| 0x042 | pmod0_3 | 0, gpio_ios_i(2)(2) |
+| 0x043 | pmod0_4 | 0, spi_sck_i(3), gpio_ios_i(2)(3) |
+| 0x044 | pmod0_5 | 0, gpio_ios_i(2)(4) |
+| 0x045 | pmod0_6 | 0, gpio_ios_i(2)(5) |
+| 0x046 | pmod0_7 | 0, gpio_ios_i(2)(6) |
+| 0x047 | pmod0_8 | 0, gpio_ios_i(2)(7) |
+| 0x048 | pmod1_1 | 0, i2c_sda_i(1), gpio_ios_i(2)(8) |
+| 0x049 | pmod1_2 | 0, uart_tx_i(3), i2c_scl_i(1), spi_tx_i(4), gpio_ios_i(2)(9) |
+| 0x04a | pmod1_3 | 0, gpio_ios_i(2)(10) |
+| 0x04b | pmod1_4 | 0, spi_sck_i(4), gpio_ios_i(2)(11) |
+| 0x04c | pmod1_5 | 0, gpio_ios_i(2)(12) |
+| 0x04d | pmod1_6 | 0, gpio_ios_i(2)(13) |
+| 0x04e | pmod1_7 | 0, gpio_ios_i(2)(14) |
+| 0x04f | pmod1_8 | 0, gpio_ios_i(2)(15) |
 
 Besides the output pin selectors, there are also selectors for which pin should drive block inputs:
 
@@ -99,62 +99,62 @@ Besides the output pin selectors, there are also selectors for which pin should 
 |---------|-------------|---------------------|
 | 0x800 | uart_rx_o(0) | 1'b1, ser0_rx, |
 | 0x801 | uart_rx_o(1) | 1'b1, ser1_rx, |
-| 0x802 | uart_rx_o(2) | 1'b1, rph_rxd0, |
-| 0x803 | uart_rx_o(3) | 1'b1, ah_tmpio0, mb8, |
+| 0x802 | uart_rx_o(2) | 1'b1, rph_rxd0, pmod0_3, |
+| 0x803 | uart_rx_o(3) | 1'b1, ah_tmpio0, mb8, pmod1_3, |
 | 0x804 | uart_rx_o(4) | 1'b1, rs232_rx, |
 | 0x805 | spi_rx_o(0) | 1'b0, appspi_d1, |
 | 0x806 | spi_rx_o(1) | 1'b0, 1'b0, |
 | 0x807 | spi_rx_o(2) | 1'b0, ethmac_cipo, |
-| 0x808 | spi_rx_o(3) | 1'b0, rph_g9_cipo, ah_tmpio12, |
-| 0x809 | spi_rx_o(4) | 1'b0, rph_g19_cipo, mb3, |
+| 0x808 | spi_rx_o(3) | 1'b0, rph_g9_cipo, ah_tmpio12, pmod0_3, |
+| 0x809 | spi_rx_o(4) | 1'b0, rph_g19_cipo, mb3, pmod1_3, |
 | 0x80a | gpio_ios_o(0)(0) | 1'b0, rph_g0, |
 | 0x80b | gpio_ios_o(1)(0) | 1'b0, ah_tmpio0, |
-| 0x80c | gpio_ios_o(2)(0) | 1'b0, pmod0[0], |
+| 0x80c | gpio_ios_o(2)(0) | 1'b0, pmod0_1, |
 | 0x80d | gpio_ios_o(0)(1) | 1'b0, rph_g1, |
 | 0x80e | gpio_ios_o(1)(1) | 1'b0, ah_tmpio1, |
-| 0x80f | gpio_ios_o(2)(1) | 1'b0, pmod0[1], |
+| 0x80f | gpio_ios_o(2)(1) | 1'b0, pmod0_2, |
 | 0x810 | gpio_ios_o(0)(2) | 1'b0, rph_g2_sda, |
 | 0x811 | gpio_ios_o(1)(2) | 1'b0, ah_tmpio2, |
-| 0x812 | gpio_ios_o(2)(2) | 1'b0, pmod0[2], |
+| 0x812 | gpio_ios_o(2)(2) | 1'b0, pmod0_3, |
 | 0x813 | gpio_ios_o(0)(3) | 1'b0, rph_g3_scl, |
 | 0x814 | gpio_ios_o(1)(3) | 1'b0, ah_tmpio3, |
-| 0x815 | gpio_ios_o(2)(3) | 1'b0, pmod0[3], |
+| 0x815 | gpio_ios_o(2)(3) | 1'b0, pmod0_4, |
 | 0x816 | gpio_ios_o(0)(4) | 1'b0, rph_g4, |
 | 0x817 | gpio_ios_o(1)(4) | 1'b0, ah_tmpio4, |
-| 0x818 | gpio_ios_o(2)(4) | 1'b0, pmod0[4], |
+| 0x818 | gpio_ios_o(2)(4) | 1'b0, pmod0_5, |
 | 0x819 | gpio_ios_o(0)(5) | 1'b0, rph_g5, |
 | 0x81a | gpio_ios_o(1)(5) | 1'b0, ah_tmpio5, |
-| 0x81b | gpio_ios_o(2)(5) | 1'b0, pmod0[5], |
+| 0x81b | gpio_ios_o(2)(5) | 1'b0, pmod0_6, |
 | 0x81c | gpio_ios_o(0)(6) | 1'b0, rph_g6, |
 | 0x81d | gpio_ios_o(1)(6) | 1'b0, ah_tmpio6, |
-| 0x81e | gpio_ios_o(2)(6) | 1'b0, pmod0[6], |
+| 0x81e | gpio_ios_o(2)(6) | 1'b0, pmod0_7, |
 | 0x81f | gpio_ios_o(0)(7) | 1'b0, rph_g7_ce1, |
 | 0x820 | gpio_ios_o(1)(7) | 1'b0, ah_tmpio7, |
-| 0x821 | gpio_ios_o(2)(7) | 1'b0, pmod0[7], |
+| 0x821 | gpio_ios_o(2)(7) | 1'b0, pmod0_8, |
 | 0x822 | gpio_ios_o(0)(8) | 1'b0, rph_g8_ce0, |
 | 0x823 | gpio_ios_o(1)(8) | 1'b0, ah_tmpio8, |
-| 0x824 | gpio_ios_o(2)(8) | 1'b0, pmod1[0], |
+| 0x824 | gpio_ios_o(2)(8) | 1'b0, pmod1_1, |
 | 0x825 | gpio_ios_o(0)(9) | 1'b0, rph_g9_cipo, |
 | 0x826 | gpio_ios_o(1)(9) | 1'b0, ah_tmpio9, |
-| 0x827 | gpio_ios_o(2)(9) | 1'b0, pmod1[1], |
+| 0x827 | gpio_ios_o(2)(9) | 1'b0, pmod1_2, |
 | 0x828 | gpio_ios_o(0)(10) | 1'b0, rph_g10_copi, |
 | 0x829 | gpio_ios_o(1)(10) | 1'b0, ah_tmpio10, |
-| 0x82a | gpio_ios_o(2)(10) | 1'b0, pmod1[2], |
+| 0x82a | gpio_ios_o(2)(10) | 1'b0, pmod1_3, |
 | 0x82b | gpio_ios_o(0)(11) | 1'b0, rph_g11_sclk, |
 | 0x82c | gpio_ios_o(1)(11) | 1'b0, ah_tmpio11, |
-| 0x82d | gpio_ios_o(2)(11) | 1'b0, pmod1[3], |
+| 0x82d | gpio_ios_o(2)(11) | 1'b0, pmod1_4, |
 | 0x82e | gpio_ios_o(0)(12) | 1'b0, rph_g12, |
 | 0x82f | gpio_ios_o(1)(12) | 1'b0, ah_tmpio12, |
-| 0x830 | gpio_ios_o(2)(12) | 1'b0, pmod1[4], |
+| 0x830 | gpio_ios_o(2)(12) | 1'b0, pmod1_5, |
 | 0x831 | gpio_ios_o(0)(13) | 1'b0, rph_g13, |
 | 0x832 | gpio_ios_o(1)(13) | 1'b0, ah_tmpio13, |
-| 0x833 | gpio_ios_o(2)(13) | 1'b0, pmod1[5], |
+| 0x833 | gpio_ios_o(2)(13) | 1'b0, pmod1_6, |
 | 0x834 | gpio_ios_o(0)(14) | 1'b0, rph_txd0, |
 | 0x835 | gpio_ios_o(1)(14) | 1'b0, ah_tmpio14, |
-| 0x836 | gpio_ios_o(2)(14) | 1'b0, pmod1[6], |
+| 0x836 | gpio_ios_o(2)(14) | 1'b0, pmod1_7, |
 | 0x837 | gpio_ios_o(0)(15) | 1'b0, rph_rxd0, |
 | 0x838 | gpio_ios_o(1)(15) | 1'b0, ah_tmpio15, |
-| 0x839 | gpio_ios_o(2)(15) | 1'b0, pmod1[7], |
+| 0x839 | gpio_ios_o(2)(15) | 1'b0, pmod1_8, |
 | 0x83a | gpio_ios_o(0)(16) | 1'b0, rph_g16_ce2, |
 | 0x83b | gpio_ios_o(1)(16) | 1'b0, ah_tmpio16, |
 | 0x83c | gpio_ios_o(2)(16) | 1'b0, 1'b0, |
