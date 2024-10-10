@@ -133,6 +133,16 @@
       }],
       pipeline: true,
     },
+    { name:  "system_info", // System information
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x8000C000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "timer", // Interrupt timer
       type:  "device",
       clock: "clk_sys_i",
@@ -218,6 +228,7 @@
       "gpio",
       "pwm",
       "pinmux",
+      "system_info",
       "rgbled_ctrl",
       "hw_rev",
       "xadc",

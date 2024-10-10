@@ -436,6 +436,8 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_uart_d2h[UART_NUM];
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
+  tlul_pkg::tl_h2d_t tl_system_info_h2d;
+  tlul_pkg::tl_d2h_t tl_system_info_d2h;
   tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
   tlul_pkg::tl_d2h_t tl_rgbled_ctrl_d2h;
   tlul_pkg::tl_h2d_t tl_pwm_h2d;
@@ -479,6 +481,8 @@ module sonata_system
     .tl_pwm_i         (tl_pwm_d2h),
     .tl_pinmux_o      (tl_pinmux_o),
     .tl_pinmux_i      (tl_pinmux_i),
+    .tl_system_info_o (tl_system_info_h2d),
+    .tl_system_info_i (tl_system_info_d2h),
     .tl_rgbled_ctrl_o (tl_rgbled_ctrl_h2d),
     .tl_rgbled_ctrl_i (tl_rgbled_ctrl_d2h),
     .tl_hw_rev_o      (tl_hw_rev_h2d),
@@ -1314,6 +1318,13 @@ module sonata_system
     .trst_ni,
     .td_i,
     .td_o
+  );
+
+  system_info u_system_info (
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
+    .tl_i   (tl_system_info_h2d),
+    .tl_o   (tl_system_info_d2h)
   );
 
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device

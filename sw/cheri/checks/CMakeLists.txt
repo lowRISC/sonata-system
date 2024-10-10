@@ -6,6 +6,7 @@ set(CHECKS
   gpio_check.cc
   uart_check.cc
   spi_test.cc
+  system_info_check.cc
   revocation_test.cc
   rgbled_test.cc
   usbdev_check.cc

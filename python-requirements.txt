@@ -3,17 +3,22 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Individual Python packages
-packaging
 anytree
+gitpython
 hjson
 mako
+mistletoe
 mypy
+packaging
+poetry
+pycryptodome
 pydantic
-pyyaml
-wheel
-toml
-setuptools
+semantic_version
 serial
+setuptools
+tabulate
+toml
+wheel
 
 # Development version of edalize until all our changes are upstream
 git+https://github.com/lowRISC/edalize.git@ot

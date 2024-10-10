@@ -15,6 +15,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_RGBLED_CTRL = 32'h 80009000;
   localparam logic [31:0] ADDR_SPACE_HW_REV      = 32'h 8000a000;
   localparam logic [31:0] ADDR_SPACE_XADC        = 32'h 8000b000;
+  localparam logic [31:0] ADDR_SPACE_SYSTEM_INFO = 32'h 8000c000;
   localparam logic [31:0] ADDR_SPACE_TIMER       = 32'h 80040000;
   localparam logic [31:0] ADDR_SPACE_UART0       = 32'h 80100000;
   localparam logic [31:0] ADDR_SPACE_UART1       = 32'h 80101000;
@@ -40,6 +41,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RGBLED_CTRL = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_HW_REV      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_XADC        = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_SYSTEM_INFO = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_TIMER       = 32'h 0000ffff;
   localparam logic [31:0] ADDR_MASK_UART0       = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_UART1       = 32'h 00000fff;
@@ -57,7 +59,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 24;
+  localparam int N_DEVICE = 25;
 
   typedef enum int {
     TlSram = 0,
@@ -69,21 +71,22 @@ package tl_main_pkg;
     TlRgbledCtrl = 6,
     TlHwRev = 7,
     TlXadc = 8,
-    TlTimer = 9,
-    TlUart0 = 10,
-    TlUart1 = 11,
-    TlUart2 = 12,
-    TlUart3 = 13,
-    TlUart4 = 14,
-    TlI2C0 = 15,
-    TlI2C1 = 16,
-    TlSpi0 = 17,
-    TlSpi1 = 18,
-    TlSpi2 = 19,
-    TlSpi3 = 20,
-    TlSpi4 = 21,
-    TlUsbdev = 22,
-    TlRvPlic = 23
+    TlSystemInfo = 9,
+    TlTimer = 10,
+    TlUart0 = 11,
+    TlUart1 = 12,
+    TlUart2 = 13,
+    TlUart3 = 14,
+    TlUart4 = 15,
+    TlI2C0 = 16,
+    TlI2C1 = 17,
+    TlSpi0 = 18,
+    TlSpi1 = 19,
+    TlSpi2 = 20,
+    TlSpi3 = 21,
+    TlSpi4 = 22,
+    TlUsbdev = 23,
+    TlRvPlic = 24
   } tl_device_e;
 
   typedef enum int {
