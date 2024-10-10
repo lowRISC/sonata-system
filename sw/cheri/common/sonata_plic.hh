@@ -11,59 +11,17 @@
 
 namespace PLIC {
 typedef enum : uint32_t {
-  // Uart 0 Interrupts.
-  Uart0TransmitWaterMark  = 1,
-  Uart0ReceiveWaterMark   = 2,
-  Uart0TransmitEmpty      = 3,
-  Uart0ReceiveOverflow    = 4,
-  Uart0ReceiveFrameError  = 5,
-  Uart0ReceiveBreakError  = 6,
-  Uart0ReceiveTimeout     = 7,
-  Uart0ReceiveParityError = 8,
-  // Uart 1 Interrupts.
-  Uart1TransmitWaterMark  = 9,
-  Uart1ReceiveWaterMark   = 10,
-  Uart1TransmitEmpty      = 11,
-  Uart1ReceiveOverflow    = 12,
-  Uart1ReceiveFrameError  = 13,
-  Uart1ReceiveBreakError  = 14,
-  Uart1ReceiveTimeout     = 15,
-  Uart1ReceiveParityError = 16,
-  // I2c 0 Interrupts.
-  I2c0FormatFifoThreshold  = 17,
-  I2c0ReceiveFifoThreshold = 18,
-  I2c0AcquireFifoThreshold = 19,
-  I2c0ReceiveFifoOverflow  = 20,
-  I2c0ReceiveNack          = 21,
-  I2c0SclInterference      = 22,
-  I2c0SdaInterference      = 23,
-  I2c0StretchTimeout       = 24,
-  I2c0SdaUnstable          = 25,
-  I2c0CommandComplete      = 26,
-  I2c0TransmitStretch      = 27,
-  I2c0TransmitThreshold    = 28,
-  I2c0AcquireFifoFull      = 29,
-  I2c0UnexpectedStop       = 30,
-  I2c0HostTimeout          = 31,
-  // I2c 1 Interrupts.
-  I2c1FormatFifoThreshold  = 32,
-  I2c1ReceiveFifoThreshold = 33,
-  I2c1AcquireFifoThreshold = 34,
-  I2c1ReceiveFifoOverflow  = 35,
-  I2c1ReceiveNack          = 36,
-  I2c1SclInterference      = 37,
-  I2c1SdaInterference      = 38,
-  I2c1StretchTimeout       = 39,
-  I2c1SdaUnstable          = 40,
-  I2c1CommandComplete      = 41,
-  I2c1TransmitStretch      = 42,
-  I2c1TransmitThreshold    = 43,
-  I2c1AcquiteFifoFull      = 44,
-  I2c1UnexpectedStop       = 45,
-  I2c1HostTimeout          = 46,
-  // Ethernet Interrupts.
-  Ethernet = 47,
-  MaxIntrID,
+  HardwareRevoker = 1,
+  Ethernet        = 2,
+  Usbdev          = 3,
+  // Uart Interrupts (up to 8 instances).
+  Uart0 = 8,
+  // I2c Interrupts (up to 8 instances).
+  I2c0 = 16,
+  // Spi Interrupts (up to 8 instances).
+  Spi0 = 24,
+  // Maximum interrupt number (inclusive).
+  MaxIntrID = 31,
 } Interrupts;
 
 enum class Priority {
