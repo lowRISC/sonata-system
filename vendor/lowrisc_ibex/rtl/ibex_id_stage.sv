@@ -1050,11 +1050,13 @@ module ibex_id_stage import cheri_pkg::*; #(
                                   ~stall_ld_hz       &
                                   ~stall_cheri_trvk;
 
+    /* verilator lint_off UNOPTFLAT */
     assign instr_executing = instr_valid_i              &
                              ~instr_kill                &
                              ~stall_ld_hz               &
                              ~stall_cheri_trvk          &
                              ~outstanding_memory_access;
+    /* verilator lint_on UNOPTFLAT */
 
     // allowing a cheri instruction to start execution - valid instruction not stalled by WB/hz
     // note we can't use_instr_kill here since it includes id_exception (cherr_ex_err), which causes a
