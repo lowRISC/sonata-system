@@ -73,13 +73,16 @@ struct PlicTest {
       // This lambda will handle the uart specific register to clear the irq.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
         plic_test->log(irq);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
         auto uart = uart_ptr(plic_test->root, plic_test->instance);
+        plic_test->error_count += (irq != plic_test->plic_irq_id);
+        plic_test->error_count += !(uart->interruptState & plic_test->ip_irq_id);
         // Some interrupts can't be cleared, so we have to disable it.
         if (plic_test->is_irq_clearable) {
           uart->interruptState = plic_test->ip_irq_id;
         } else {
           uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
+          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+          uart->interruptTest = 0;
         }
       };
       uart->interrupt_enable(uartMap[i].first.id);
@@ -128,12 +131,15 @@ struct PlicTest {
       i2c->interrupt_enable(i2cMap[i].first.id);
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
         plic_test->log(irq);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
         auto i2c = i2c_ptr(plic_test->root, plic_test->instance);
+        plic_test->error_count += (irq != plic_test->plic_irq_id);
+        plic_test->error_count += !(i2c->interruptState & (0x1 << plic_test->ip_irq_id));
         if (plic_test->is_irq_clearable) {
           i2c->interruptState = 0x1 << plic_test->ip_irq_id;
         } else {
           i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(plic_test->ip_irq_id));
+          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+          i2c->interruptTest = 0;
         }
       };
       i2c->interruptTest = 0x01 << ip_irq_id;
