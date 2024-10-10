@@ -191,16 +191,21 @@ module top_sonata (
   parameter SRAMInitFile    = "";
   parameter DisableHyperram = 1'b0;
 
-  // Main system clock and reset
+  // Main/board clock and reset
   logic main_clk_buf;
+  logic rst_n;
+
+  // System clock and reset
   logic clk_sys;
   logic rst_sys_n;
 
   // USB device clock and reset
   logic clk_usb;
-  wire  rst_usb_n = rst_sys_n;
+  logic rst_usb_n;
 
+  // HyperRAM clocks and reset
   logic clk_hr, clk_hr90p, clk_hr3x;
+  logic rst_hr_n;
 
   logic [7:0] reset_counter;
   logic pll_locked;
@@ -394,10 +399,11 @@ module top_sonata (
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
-    // Hyperram clocks
+    // HyperRAM clocks and reset
     .clk_hr_i       (clk_hr),
     .clk_hr90p_i    (clk_hr90p),
     .clk_hr3x_i     (clk_hr3x),
+    .rst_hr_ni      (rst_hr_n),
 
     // GPIO
     .gp_i           ({
@@ -485,7 +491,7 @@ module top_sonata (
     // User JTAG
     .tck_i,
     .tms_i,
-    .trst_ni(rst_sys_n),
+    .trst_ni(rst_n),
     .td_i,
     .td_o,
 
@@ -534,6 +540,17 @@ module top_sonata (
     .clk_i       (main_clk_buf),
     .pll_locked_i(pll_locked),
     .rst_btn_i   (rst_btn),
-    .rst_no      (rst_sys_n)
+    .rst_no      (rst_n)
+  );
+
+  // Synchronise reset signals for other clock domains
+  rst_sync u_rst_sync (
+    .clk_sys_i  (clk_sys),
+    .clk_usb_i  (clk_usb),
+    .clk_hr_i   (clk_hr),
+    .rst_ni     (rst_n),
+    .rst_sys_no (rst_sys_n),
+    .rst_usb_no (rst_usb_n),
+    .rst_hr_no  (rst_hr_n)
   );
 endmodule

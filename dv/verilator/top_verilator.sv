@@ -49,6 +49,7 @@ module top_verilator (input logic clk_i, rst_ni);
   // Simplified clocking scheme for simulations.
   wire clk_usb   = clk_i;
   wire rst_usb_n = rst_ni;
+  wire rst_hr_n  = rst_ni;
 
   // In Verilator simulation where tri-stated drivers, pullups/pulldowns and drive strengths are
   // not available, the USBDPI model is connected directly to the two-state inputs and outputs of
@@ -311,6 +312,7 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_hr_i       (1'b0),
     .clk_hr90p_i    (1'b0),
     .clk_hr3x_i     (1'b0),
+    .rst_hr_ni      (rst_hr_n),
 
     .gp_i           (0),
     .gp_o           ({
