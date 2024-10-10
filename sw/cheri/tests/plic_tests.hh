@@ -38,12 +38,13 @@ struct PlicTest {
       OpenTitanUart::OpenTitanUartInterrupt id;
       bool can_clear;
     };
-    constexpr std::array<uart_irq, 8> uartMap = {{
+    static constexpr std::array<uart_irq, 8> uartMap = {{
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveTimeout, true},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveParityErr, true},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveBreakErr, true},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveFrameErr, true},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveOverflow, true},
+
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveWatermark, false},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitWatermark, false},
         {OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitEmpty, false},
@@ -64,15 +65,16 @@ struct PlicTest {
         auto uart = uart_ptr(plic_test->root, plic_test->instance);
         plic_test->error_count += (irq != plic_test->plic_irq_id);
         plic_test->error_count += !(uart->interruptState & plic_test->ip_irq_id);
-        // Some interrupts can't be cleared, so we have to disable it.
         if (plic_test->is_irq_clearable) {
           uart->interruptState = plic_test->ip_irq_id;
         } else {
           // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
           uart->interruptTest = 0;
         }
+        // Disable interrupt to prevent interference with other tests.
         uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
       };
+      // Enable and trigger the interrupt now that the handler has been registered.
       uart->interrupt_enable(uartMap[i].id);
       uart->interruptTest = ip_irq_id;
       wfi();
@@ -86,7 +88,7 @@ struct PlicTest {
       OpenTitanI2cInterrupt id;
       bool can_clear;
     };
-    constexpr std::array<i2c_irq, 15> i2cMap = {{
+    static constexpr std::array<i2c_irq, 15> i2cMap = {{
         {OpenTitanI2cInterrupt::ReceiveOverflow, true},
         {OpenTitanI2cInterrupt::Nak, true},
         {OpenTitanI2cInterrupt::SclInterference, true},
@@ -114,7 +116,7 @@ struct PlicTest {
       is_irq_clearable = i2cMap[i].can_clear;
       plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::I2c0 + instance);
 
-      i2c->interrupt_enable(i2cMap[i].id);
+      // Register interrupt handler.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
         plic_test->log(irq);
         auto i2c = i2c_ptr(plic_test->root, plic_test->instance);
@@ -126,9 +128,115 @@ struct PlicTest {
           // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
           i2c->interruptTest = 0;
         }
+        // Disable interrupt to prevent interference with other tests.
         i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(plic_test->ip_irq_id));
       };
+      // Enable and trigger the interrupt now that the handler has been registered.
+      i2c->interrupt_enable(i2cMap[i].id);
       i2c->interruptTest = 0x01 << ip_irq_id;
+      wfi();
+    }
+  }
+
+  void spi_test(size_t spi_instance) {
+    instance = spi_instance;
+
+    struct spi_irq {
+      SonataSpi::SonataSpiInterrupt id;
+      bool can_clear;
+    };
+    static constexpr std::array<spi_irq, 5> spiMap = {{
+      {SonataSpi::SonataSpiInterrupt::InterruptComplete, true},
+      {SonataSpi::SonataSpiInterrupt::InterruptReceiveFull, false},
+
+      {SonataSpi::SonataSpiInterrupt::InterruptReceiveWatermark, false},
+      {SonataSpi::SonataSpiInterrupt::InterruptTransmitEmpty, false},
+      {SonataSpi::SonataSpiInterrupt::InterruptTransmitWatermark, false},
+    }};
+
+    auto spi = spi_ptr(root, instance);
+    write_str(console, "testing spi: ");
+    write_hex8b(console, instance);
+    write_str(console, "\r\n");
+    for (size_t i = 0; i < spiMap.size(); ++i) {
+      ip_irq_id        = spiMap[i].id;
+      is_irq_clearable = spiMap[i].can_clear;
+      plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::Spi0 + instance);
+
+      // Register interrupt handler.
+      irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
+        plic_test->log(irq);
+        plic_test->error_count += (irq != plic_test->plic_irq_id);
+        auto spi = spi_ptr(plic_test->root, plic_test->instance);
+        if (plic_test->is_irq_clearable) {
+          spi->interruptState = plic_test->ip_irq_id;
+        } else {
+          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+          spi->interruptTest = 0;
+        }
+        // Disable interrupt to prevent interference with other tests.
+        spi->interrupt_disable(static_cast<SonataSpi::SonataSpiInterrupt>(plic_test->ip_irq_id));
+      };
+      // Enable and trigger the interrupt now that the handler has been registered.
+      spi->interrupt_enable(spiMap[i].id);
+      spi->interruptTest = ip_irq_id;
+      wfi();
+    }
+  }
+
+  void usbdev_test() {
+    instance = 0;
+
+    struct usbdev_irq {
+      OpenTitanUsbdev::OpenTitanUsbdevInterrupt id;
+      bool can_clear;
+    };
+    static constexpr std::array<usbdev_irq, 18> usbdevMap = {{
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptDisconnected, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptHostLost, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkReset, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkSuspend, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkResume, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvBufferOverflow, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkInError, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptCrcError, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPidError, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptBitstuffError, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptFrame, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPowered, true},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkOutError, true},
+
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketReceived, false},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketSent, false},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptRecvFifoFull, false},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvOutBufferEmpty, false},
+      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvSetupBufferEmpty, false},
+    }};
+
+    auto usbdev = usbdev_ptr(root);
+    write_str(console, "testing usbdev: \r\n");
+    for (size_t i = 0; i < usbdevMap.size(); ++i) {
+      ip_irq_id        = usbdevMap[i].id;
+      is_irq_clearable = usbdevMap[i].can_clear;
+      plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::Usbdev + instance);
+
+      // Register interrupt handler.
+      irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
+        plic_test->log(irq);
+        plic_test->error_count += (irq != plic_test->plic_irq_id);
+        auto usbdev = usbdev_ptr(plic_test->root);
+        if (plic_test->is_irq_clearable) {
+          usbdev->interruptState = plic_test->ip_irq_id;
+        } else {
+          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+          usbdev->interruptTest = 0;
+        }
+        // Disable interrupt to prevent interference with other tests.
+        usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::OpenTitanUsbdevInterrupt>(plic_test->ip_irq_id));
+      };
+      // Enable and trigger the interrupt now that the handler has been registered.
+      usbdev->interrupt_enable(usbdevMap[i].id);
+      usbdev->interruptTest = ip_irq_id;
       wfi();
     }
   }
@@ -152,7 +260,7 @@ struct PlicTest {
   }
 
   bool all_interrupts_test(void) {
-    constexpr auto beginning = static_cast<uint32_t>(PLIC::Interrupts::Uart0);
+    constexpr auto beginning = static_cast<uint32_t>(PLIC::Interrupts::Usbdev);
     constexpr auto end       = static_cast<uint32_t>(PLIC::Interrupts::MaxIntrID);
 
     for (uint32_t inter = beginning; inter <= end; ++inter) {
@@ -161,10 +269,16 @@ struct PlicTest {
     }
 
     ASM::Ibex::external_interrupt_set(true);
-    uart_test(0);
-    uart_test(1);
-    i2c_test(0);
-    i2c_test(1);
+    for (unsigned uart = 0; uart < UART_NUM; ++uart) {
+      uart_test(uart);
+    }
+    for (unsigned i2c = 0; i2c < I2C_NUM; ++i2c) {
+      i2c_test(i2c);
+    }
+    for (unsigned spi = 0; spi < SPI_NUM; ++spi) {
+      spi_test(spi);
+    }
+    usbdev_test();
     return error_count == 0;
   }
 };
