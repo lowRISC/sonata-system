@@ -22,8 +22,8 @@ using namespace CHERI;
  * Configures the number of iteratios.
  * It can be overwride with a compilation flag
  */
-#ifndef TEST_ITERATIONS
-#define TEST_ITERATIONS 1
+#ifndef HYPERRAM_TEST_ITERATIONS
+#define HYPERRAM_TEST_ITERATIONS 1
 #endif
 
 /*
@@ -266,11 +266,11 @@ void hyperram_tests(CapRoot root, UartPtr console) {
   ds::xoroshiro::P64R32 prng;
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
 
-  for (size_t i = 0; i < TEST_ITERATIONS; i++) {
+  for (size_t i = 0; i < HYPERRAM_TEST_ITERATIONS; i++) {
     write_str(console, "\r\nrunning hyperram_test: ");
     write_hex8b(console, i);
     write_str(console, "\\");
-    write_hex8b(console, TEST_ITERATIONS - 1);
+    write_hex8b(console, HYPERRAM_TEST_ITERATIONS - 1);
     write_str(console, "\r\n  ");
     write_hex(console, HYPERRAM_TEST_SIZE);
     write_str(console, "\r\n  ");
