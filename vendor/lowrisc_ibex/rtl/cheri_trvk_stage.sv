@@ -5,8 +5,8 @@
 /* verilator lint_off UNUSED */
 
 module cheri_trvk_stage #(
-  parameter int unsigned HeapBase,
-  parameter int unsigned TSMapSize
+  parameter int unsigned HeapBase  = '0,
+  parameter int unsigned TSMapSize = '0
 ) (
    // Clock and Reset
   input  logic                clk_i,

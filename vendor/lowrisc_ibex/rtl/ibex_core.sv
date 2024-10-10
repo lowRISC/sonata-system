@@ -50,9 +50,9 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   // CHERIoT paramters
   parameter bit          CHERIoTEn         = 1'b1,
   parameter int unsigned DataWidth         = 33,
-  parameter int unsigned HeapBase          ,
-  parameter int unsigned TSMapBase         ,
-  parameter int unsigned TSMapSize         ,
+  parameter int unsigned HeapBase          = '0,
+  parameter int unsigned TSMapBase         = '0,
+  parameter int unsigned TSMapSize         = '0,
   parameter bit          MemCapFmt         = 1'b0,
   parameter bit          CheriPPLBC        = 1'b1,
   parameter bit          CheriSBND2        = 1'b0,
