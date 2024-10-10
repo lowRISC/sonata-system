@@ -25,10 +25,10 @@
 [[maybe_unused]] static void write_test_result(volatile OpenTitanUart *uart, int failures) {
   if (failures == 0) {
     set_console_mode(uart, CC_GREEN);
-    write_str(uart, "PASS!\n");
+    write_str(uart, "PASS!\r\n");
   } else {
     set_console_mode(uart, CC_RED);
-    write_str(uart, "FAIL!\n");
+    write_str(uart, "FAIL!\r\n");
   }
   set_console_mode(uart, CC_RESET);
 }
