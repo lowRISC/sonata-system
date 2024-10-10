@@ -33,15 +33,15 @@ class OpenTitanUsbdev {
   /**
    * Interrupt State Register.
    */
-  uint32_t intrState;
+  uint32_t interruptState;
   /**
    * Interrupt Enable Register.
    */
-  uint32_t intrEnable;
+  uint32_t interruptEnable;
   /**
    * Interrupt Test Register.
    */
-  uint32_t intrTest;
+  uint32_t interruptTest;
   /**
    * Alert Test Register.
    */
@@ -122,6 +122,49 @@ class OpenTitanUsbdev {
    */
   uint32_t phyConfig;
 
+	/// OpenTitan USBDEV Interrupts
+	typedef enum [[clang::flag_enum]]
+	: uint32_t {
+		/// Asserted whilst the Available SETUP Buffer FIFO is empty.
+		InterruptAvSetupBufferEmpty = 1 << 17,
+		/// Raised when an error occurs during an OUT transaction.
+		InterruptLinkOutError = 1 << 16,
+		/// Raised when VBUS is detected.
+		InterruptPowered = 1 << 15,
+		/// Raised when the USB frame number is updated.
+		InterruptFrame = 1 << 14,
+		/// Raised when a bit stuffing violation is detected.
+		InterruptBitstuffError = 1 << 13,
+		/// Raised when an invalid Packet IDentifier is detected.
+		InterruptPidError = 1 << 12,
+		/// Raised when a CRC error is detected on a received packet.
+		InterruptCrcError = 1 << 11,
+		/// Raised when an errors occurs during an IN transaction.
+		InterruptLinkInError = 1 << 10,
+		/// Raised when the Available OUT/Setup Buffer FIFO overflows.
+		InterruptAvBufferOverflow = 1 << 9,
+		/// Asserted whilst the Available OUT Buffer FIFO is empty.
+		InterruptAvOutBufferEmpty = 1 << 8,
+		/// Asserted whilst the receive FIFO is full.
+		InterruptRecvFifoFull = 1 << 7,
+		/// Raised when the link transitions from Suspended to non-Idle.
+		InterruptLinkResume = 1 << 6,
+		/// Raised when the link has entered the suspend state (Idle for > 3ms).
+		InterruptLinkSuspend = 1 << 5,
+		/// Raised when the link has been in SE0 state for longer than 3us
+		/// indicating a Bus Reset condition.
+		InterruptLinkReset = 1 << 4,
+		/// Raised when link has been active for 4.096ms without detecting a
+		/// Start of Frame (SOF) packet.
+		InterruptHostLost = 1 << 3,
+		/// Raised when VBUS is lost; link to USB host controller disconnected.
+		InterruptDisconnected = 1 << 2,
+		/// Asserted whilst a packet has been sent but not cleared from `inSent`.
+		InterruptPacketSent = 1 << 1,
+		/// Asserted whilst the receive FIFO is full.
+		InterruptPacketReceived = 1 << 0,
+	} OpenTitanUsbdevInterrupt;
+
   /// USB Control Register Fields.
   static constexpr uint32_t usbCtrlEnable          = 1U;
   static constexpr uint32_t usbCtrlDeviceAddr      = 0x7F0000U;
@@ -168,6 +211,18 @@ class OpenTitanUsbdev {
     }
     return buf_avail;
   }
+
+	/// Enable the given interrupt(s).
+	void interrupt_enable(OpenTitanUsbdevInterrupt interrupt) volatile
+	{
+		interruptEnable = interruptEnable | interrupt;
+	}
+
+	/// Disable the given interrupt(s).
+	void interrupt_disable(OpenTitanUsbdevInterrupt interrupt) volatile
+	{
+		interruptEnable = interruptEnable & ~interrupt;
+	}
 
   /**
    * Initialise the USB device, ensuring that packet buffers are available for reception and that
