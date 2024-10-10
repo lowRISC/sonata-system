@@ -30,7 +30,8 @@ protected:
 
   // No need to be informed of CS changes.
 private:
-  // TODO: we do not concern ourselves with orientation presently! tut!
+  // These are the physical properties of the LCD, not the screen properties from the perspective
+  // of the driver software.
   static constexpr unsigned kWidth  = 160u;
   static constexpr unsigned kHeight = 128u;
   typedef uint16_t pixel_t;
@@ -44,6 +45,8 @@ private:
   time_t imgLatestTime;
 
   bool pixWriting;  // Pixel writing mode?
+
+  uint8_t  madCtl;  // Memory Data Access Control.
 
   uint16_t colAdr;  // Current column.
   uint16_t rowAdr;  // Current row.
