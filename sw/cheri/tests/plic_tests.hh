@@ -33,31 +33,20 @@ struct PlicTest {
 
   void uart_test(size_t uart_instance) {
     instance = uart_instance;
-    // This offset is used to compute the plic irq index of different instances.
-    constexpr uint32_t instanceOffset = static_cast<uint32_t>(PLIC::Interrupts::Uart1ReceiveTimeout) -
-                                        static_cast<uint32_t>(PLIC::Interrupts::Uart0ReceiveTimeout);
 
     struct uart_irq {
       OpenTitanUart::OpenTitanUartInterrupt id;
       bool can_clear;
     };
-    constexpr std::array<std::pair<uart_irq, PLIC::Interrupts>, 7> uartMap = {{
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveTimeout, true}, PLIC::Interrupts::Uart0ReceiveTimeout},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveParityErr, true},
-         PLIC::Interrupts::Uart0ReceiveParityError},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveBreakErr, true},
-         PLIC::Interrupts::Uart0ReceiveBreakError},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveFrameErr, true},
-         PLIC::Interrupts::Uart0ReceiveFrameError},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveOverflow, true},
-         PLIC::Interrupts::Uart0ReceiveOverflow},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveWatermark, false},
-         PLIC::Interrupts::Uart0ReceiveWaterMark},
-        {{OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitWatermark, false},
-         PLIC::Interrupts::Uart0TransmitWaterMark},
-        // Fixme: TransmitEmpty interrupt is wired to the wrong index in RTL.
-        //  {{OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitEmpty, false} ,
-        //  PLIC::Interrupts::Uart0TransmitEmpty},
+    constexpr std::array<uart_irq, 8> uartMap = {{
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveTimeout, true},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveParityErr, true},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveBreakErr, true},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveFrameErr, true},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveOverflow, true},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptReceiveWatermark, false},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitWatermark, false},
+        {OpenTitanUart::OpenTitanUartInterrupt::InterruptTransmitEmpty, false},
     }};
 
     auto uart = uart_ptr(root, instance);
@@ -65,10 +54,9 @@ struct PlicTest {
     write_hex8b(console, instance);
     write_str(console, "\r\n");
     for (size_t i = 0; i < uartMap.size(); ++i) {
-      ip_irq_id        = uartMap[i].first.id;
-      is_irq_clearable = uartMap[i].first.can_clear;
-      plic_irq_id =
-          static_cast<PLIC::Interrupts>(static_cast<uint32_t>(uartMap[i].second) + (instance * instanceOffset));
+      ip_irq_id        = uartMap[i].id;
+      is_irq_clearable = uartMap[i].can_clear;
+      plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::Uart0 + instance);
 
       // This lambda will handle the uart specific register to clear the irq.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
@@ -85,7 +73,7 @@ struct PlicTest {
         }
         uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
       };
-      uart->interrupt_enable(uartMap[i].first.id);
+      uart->interrupt_enable(uartMap[i].id);
       uart->interruptTest = ip_irq_id;
       wfi();
     }
@@ -93,30 +81,28 @@ struct PlicTest {
 
   void i2c_test(size_t i2c_instance) {
     instance = i2c_instance;
-    constexpr uint32_t instanceOffset =
-        PLIC::Interrupts::I2c1FormatFifoThreshold - PLIC::Interrupts::I2c0FormatFifoThreshold;
 
     struct i2c_irq {
       OpenTitanI2cInterrupt id;
       bool can_clear;
     };
-    constexpr std::array<std::pair<i2c_irq, PLIC::Interrupts>, 15> i2cMap = {{
-        {{OpenTitanI2cInterrupt::ReceiveOverflow, true}, PLIC::Interrupts::I2c0ReceiveFifoOverflow},
-        {{OpenTitanI2cInterrupt::Nak, true}, PLIC::Interrupts::I2c0ReceiveNack},
-        {{OpenTitanI2cInterrupt::SclInterference, true}, PLIC::Interrupts::I2c0SclInterference},
-        {{OpenTitanI2cInterrupt::SdaInterference, true}, PLIC::Interrupts::I2c0SdaInterference},
-        {{OpenTitanI2cInterrupt::StretchTimeout, true}, PLIC::Interrupts::I2c0StretchTimeout},
-        {{OpenTitanI2cInterrupt::SdaUnstable, true}, PLIC::Interrupts::I2c0SdaUnstable},
-        {{OpenTitanI2cInterrupt::CommandComplete, true}, PLIC::Interrupts::I2c0CommandComplete},
-        {{OpenTitanI2cInterrupt::UnexpectedStop, true}, PLIC::Interrupts::I2c0UnexpectedStop},
-        {{OpenTitanI2cInterrupt::HostTimeout, true}, PLIC::Interrupts::I2c0HostTimeout},
+    constexpr std::array<i2c_irq, 15> i2cMap = {{
+        {OpenTitanI2cInterrupt::ReceiveOverflow, true},
+        {OpenTitanI2cInterrupt::Nak, true},
+        {OpenTitanI2cInterrupt::SclInterference, true},
+        {OpenTitanI2cInterrupt::SdaInterference, true},
+        {OpenTitanI2cInterrupt::StretchTimeout, true},
+        {OpenTitanI2cInterrupt::SdaUnstable, true},
+        {OpenTitanI2cInterrupt::CommandComplete, true},
+        {OpenTitanI2cInterrupt::UnexpectedStop, true},
+        {OpenTitanI2cInterrupt::HostTimeout, true},
 
-        {{OpenTitanI2cInterrupt::TransmitStretch, false}, PLIC::Interrupts::I2c0TransmitStretch},
-        {{OpenTitanI2cInterrupt::AcquiredFull, false}, PLIC::Interrupts::I2c0AcquireFifoFull},
-        {{OpenTitanI2cInterrupt::TransmitThreshold, false}, PLIC::Interrupts::I2c0TransmitThreshold},
-        {{OpenTitanI2cInterrupt::FormatThreshold, false}, PLIC::Interrupts::I2c0FormatFifoThreshold},
-        {{OpenTitanI2cInterrupt::ReceiveThreshold, false}, PLIC::Interrupts::I2c0ReceiveFifoThreshold},
-        {{OpenTitanI2cInterrupt::AcquiredThreshold, false}, PLIC::Interrupts::I2c0AcquireFifoThreshold},
+        {OpenTitanI2cInterrupt::TransmitStretch, false},
+        {OpenTitanI2cInterrupt::AcquiredFull, false},
+        {OpenTitanI2cInterrupt::TransmitThreshold, false},
+        {OpenTitanI2cInterrupt::FormatThreshold, false},
+        {OpenTitanI2cInterrupt::ReceiveThreshold, false},
+        {OpenTitanI2cInterrupt::AcquiredThreshold, false},
     }};
 
     auto i2c = i2c_ptr(root, instance);
@@ -124,11 +110,11 @@ struct PlicTest {
     write_hex8b(console, instance);
     write_str(console, "\r\n");
     for (size_t i = 0; i < i2cMap.size(); ++i) {
-      ip_irq_id        = static_cast<uint32_t>(i2cMap[i].first.id);
-      is_irq_clearable = i2cMap[i].first.can_clear;
-      plic_irq_id      = static_cast<PLIC::Interrupts>(i2cMap[i].second + (instance * instanceOffset));
+      ip_irq_id        = static_cast<uint32_t>(i2cMap[i].id);
+      is_irq_clearable = i2cMap[i].can_clear;
+      plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::I2c0 + instance);
 
-      i2c->interrupt_enable(i2cMap[i].first.id);
+      i2c->interrupt_enable(i2cMap[i].id);
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
         plic_test->log(irq);
         auto i2c = i2c_ptr(plic_test->root, plic_test->instance);
@@ -166,10 +152,10 @@ struct PlicTest {
   }
 
   bool all_interrupts_test(void) {
-    constexpr auto beginning = static_cast<uint32_t>(PLIC::Interrupts::Uart0TransmitWaterMark);
+    constexpr auto beginning = static_cast<uint32_t>(PLIC::Interrupts::Uart0);
     constexpr auto end       = static_cast<uint32_t>(PLIC::Interrupts::MaxIntrID);
 
-    for (uint32_t inter = beginning; inter < end; ++inter) {
+    for (uint32_t inter = beginning; inter <= end; ++inter) {
       plic->interrupt_enable(static_cast<PLIC::Interrupts>(inter));
       plic->priority_set(static_cast<PLIC::Interrupts>(inter), 1);
     }
