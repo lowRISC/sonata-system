@@ -35,6 +35,15 @@ typedef PLIC::SonataPlic *PlicPtr;
     case 1:
       uart.address() = UART1_ADDRESS;
       break;
+    case 2:
+      uart.address() = UART2_ADDRESS;
+      break;
+    case 3:
+      uart.address() = UART3_ADDRESS;
+      break;
+    case 4:
+      uart.address() = UART4_ADDRESS;
+      break;
     default:
       uart.address() = UART_ADDRESS;
   };

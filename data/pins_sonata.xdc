@@ -92,6 +92,9 @@ set_property -dict { PACKAGE_PIN J13 IOSTANDARD LVCMOS33 } [get_ports {pmod0[4]}
 set_property -dict { PACKAGE_PIN E17 IOSTANDARD LVCMOS33 } [get_ports {pmod0[5]}]
 set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 } [get_ports {pmod0[6]}]
 set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 } [get_ports {pmod0[7]}]
+## Enable pull-ups because this I2C bus will often be undriven externally.
+set_property PULLTYPE PULLUP [get_ports {pmod0[0]}]
+set_property PULLTYPE PULLUP [get_ports {pmod0[1]}]
 
 ## PMOD1
 set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 } [get_ports {pmod1[0]}]
@@ -105,6 +108,9 @@ set_property -dict { PACKAGE_PIN D15 IOSTANDARD LVCMOS33 } [get_ports {pmod1[4]}
 set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports {pmod1[5]}]
 set_property -dict { PACKAGE_PIN H16 IOSTANDARD LVCMOS33 } [get_ports {pmod1[6]}]
 set_property -dict { PACKAGE_PIN G16 IOSTANDARD LVCMOS33 } [get_ports {pmod1[7]}]
+## Enable pull-ups because this I2C bus will often be undriven externally.
+set_property PULLTYPE PULLUP [get_ports {pmod1[0]}]
+set_property PULLTYPE PULLUP [get_ports {pmod1[1]}]
 
 ## Status LEDs
 set_property -dict { PACKAGE_PIN K5  IOSTANDARD LVCMOS33 } [get_ports led_legacy]
