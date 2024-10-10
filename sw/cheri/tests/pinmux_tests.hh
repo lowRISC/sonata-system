@@ -35,7 +35,63 @@ using namespace CHERI;
 #define PINMUX_CABLE_CONNECTIONS_AVAILABLE true
 #endif
 
+// Testing parameters
+static constexpr uint32_t UartTimeoutMsec = 10;
+static constexpr uint32_t UartTestBytes   = 100;
+
 static constexpr uint8_t PmxToDisabled         = 0;
+static constexpr uint32_t CyclesPerMillisecond = CPU_TIMER_HZ / 1'000;
+
+/**
+ * Tests that the given UART appears to be working as expected, by sending and
+ * receiving some data using the given UART block. To pass, this test expects
+ * the Tx and the Rx of the specified UART to be manually connected on the
+ * board, so that data that is written can be read back by the board.
+ *
+ * @param read_timeout_msec The timeout in milliseconds provided to read each
+ * individual byte sent over UART. Any timeout causes immediate failure.
+ * @param test_length The number of random bytes to try sending over UART.
+ *
+ * Returns true if the test passed, or false if it failed.
+ */
+static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uint32_t read_timeout_msec,
+                                   uint32_t test_length) {
+  constexpr uint8_t UartStatusRegTxIdle = (1 << 2);
+  constexpr uint8_t UartStatusRegRxIdle = (1 << 4);
+
+  // Re-initialise the UART and clear its FIFOs.
+  uart->init();
+  uart->fifos_clear();
+  uart->parity();
+  reset_mcycle();
+
+  // Wait for the UART TX FIFO to be empty and all bits to be transmitted,
+  // and the RX to be idle.
+  while ((uart->status & UartStatusRegTxIdle) == 0 || (uart->status & UartStatusRegRxIdle) == 0) {
+    asm("");
+  }
+  uart->fifos_clear();
+
+  // Send and receive a test message, character by character
+  for (uint32_t i = 0; i < test_length; ++i) {
+    const uint8_t test_byte = prng();
+    uart->blocking_write(test_byte);
+
+    // Try to read the character back within the given timeout.
+    const uint32_t start_mcycle   = get_mcycle();
+    const uint32_t cycles         = read_timeout_msec * CyclesPerMillisecond;
+    const uint32_t timeout_mcycle = start_mcycle + cycles;
+    while (!uart->can_read() && get_mcycle() < timeout_mcycle) {
+      asm("");
+    }
+    if (!uart->can_read() || uart->blocking_read() != test_byte) {
+      // On timeout or an incorrect read, fail immediately.
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /**
  * Attempt to retrieve the JEDEC ID of the Spi Flash device on the Sonata board,
@@ -58,6 +114,50 @@ static int spi_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash spi_fl
       failures++;
     }
   }
+
+  return failures;
+}
+
+/**
+ * Test pinmux by enabling and disabling the UART3 TX pin output and UART3 RX
+ * block input. Tests the UART itself by sending and receiving some data over
+ * UART3; it is required that UART3 TX and RX are manually connected on Sonata
+ * for this test (mikroBus P7 RX & TX).
+ *
+ * Tests UART3 normally, then disables TX and checks the test fails, then
+ * disables RX and checks the test fails, and then re-enables the pins and
+ * repeats the test, checking that it succeeds.
+ *
+ * Returns the number of failures during the test.
+ */
+static int pinmux_uart_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, UartPtr uart3) {
+  constexpr uint8_t PmxMikroBusUartTransmitToUartTx3 = 1;
+  constexpr uint8_t PmxUartReceive3ToMb8             = 2;
+
+  int failures = 0;
+
+  // Mux UART3 over mikroBus P7 RX & TX via default.
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::MikroBusUartTransmit, PmxMikroBusUartTransmitToUartTx3))
+    failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToMb8)) failures++;
+
+  // Check that messages are sent and received via UART3
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+
+  // Disable UART3 TX through pinmux, and check the test now fails (no TX sent)
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::MikroBusUartTransmit, PmxToDisabled)) failures++;
+  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+
+  // Re-enable UART3 TX and disable UART3 RX through pinmux, and check that the test
+  // still fails (no RX received)
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::MikroBusUartTransmit, PmxMikroBusUartTransmitToUartTx3))
+    failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxToDisabled)) failures++;
+  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+
+  // Re-enable UART3 RX and check the test now passes again
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToMb8)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
 
   return failures;
 }
@@ -193,6 +293,8 @@ void pinmux_tests(CapRoot root, Log &log) {
 
   SpiFlash spi_flash(spi);
 
+  UartPtr uart3 = uart_ptr(root, 3);
+
   I2cPtr i2c0 = i2c_ptr(root, 0);
   I2cPtr i2c1 = i2c_ptr(root, 1);
 
@@ -217,6 +319,13 @@ void pinmux_tests(CapRoot root, Log &log) {
     if (I2C_RPI_HAT_AVAILABLE) {
       log.print("  Running I2C Pinmux test... ");
       failures = pinmux_i2c_test(&Pinmux, i2c0, i2c1);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
+    }
+
+    if (PINMUX_CABLE_CONNECTIONS_AVAILABLE) {
+      log.print("  Running UART Pinmux test... ");
+      failures = pinmux_uart_test(&Pinmux, prng, uart3);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
