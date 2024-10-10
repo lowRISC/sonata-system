@@ -5,6 +5,7 @@
   description = "Sonata System";
   inputs = {
     lowrisc-nix.url = "github:lowRISC/lowrisc-nix";
+    lowrisc-it.url = "git+ssh://git@github.com/lowrisc/lowrisc-it";
 
     nixpkgs.follows = "lowrisc-nix/nixpkgs";
     flake-utils.follows = "lowrisc-nix/flake-utils";
@@ -21,6 +22,7 @@
     nixpkgs,
     flake-utils,
     lowrisc-nix,
+    lowrisc-it,
     ...
   } @ inputs: let
     system_outputs = system: let
@@ -32,6 +34,7 @@
 
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
+      lrItPkgs = lowrisc-it.outputs.packages.${system};
       inherit (pkgs.lib) fileset getExe;
 
       pythonEnv = let
@@ -60,44 +63,6 @@
         };
       };
 
-      lint-python = pkgs.writeShellApplication {
-        name = "lint-python";
-        runtimeInputs = [pythonEnv];
-        text = ''
-          ruff format --check .
-          ruff check .
-          mypy .
-        '';
-      };
-
-      lint-all = pkgs.writers.writeBashBin "lint-all" ''
-        set -e
-        ${getExe pkgs.reuse} --suppress-deprecation lint
-        ${getExe pkgs.lychee} --offline --no-progress .
-        ${getExe lint-python}
-        ${getExe lint-cpp}
-      '';
-
-      lint-cpp = pkgs.writeShellApplication {
-        name = "lint-cpp";
-        runtimeInputs = [pkgs.clang-tools_18];
-        text = ''
-          set +u
-          EXCLUDE="sw/cheri/build"
-          FILES=$(find sw -type f -path "$EXCLUDE" -prune -o \( -name "*.c" -o -name "*.cc" -o -name "*.h" -o -name "*.hh" \))
-          ARG="$1"
-          [ -z "$1" ] && ARG="check"
-          case "$ARG" in
-            check)
-              echo "$FILES" | xargs clang-format -n --Werror
-            ;;
-            fix)
-              echo "$FILES" | xargs clang-format -i
-            ;;
-          esac
-        '';
-      };
-
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
       sonataSimulatorFileset = fileset.toSource {
@@ -113,20 +78,7 @@
           ./open_hbmc.core
         ];
       };
-      sonata-simulator-lint = pkgs.stdenvNoCC.mkDerivation {
-        name = "sonta-simulator-lint";
-        src = sonataSimulatorFileset;
-        buildInputs = with pkgs; [libelf zlib];
-        nativeBuildInputs = [pkgs.verilator pythonEnv];
-        dontBuild = true;
-        doCheck = true;
-        checkPhase = ''
-          HOME=$TMPDIR fusesoc --cores-root=. run \
-            --target=lint --setup --build lowrisc:sonata:system \
-            --verilator_options="+define+RVFI -j $NIX_BUILD_CORES"
-        '';
-        installPhase = "mkdir $out";
-      };
+
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
         inherit version;
         pname = "sonata-simulator";
@@ -206,38 +158,20 @@
         };
       };
 
-      tests-fpga = pkgs.writeShellApplication {
-        name = "tests-fpga";
-        runtimeInputs = [pythonEnv];
-        text = ''
-          set +u
-          if [ -z "$1" ]; then
-            echo "Please provide the tty device location (e.g. /dev/ttyUSB2)" \
-              "as the first argument."
-            exit 2
-          fi
-          ${./util/test_runner.py} -t 30 fpga "$1" \
-            --elf-file ${sonata-system-software}/bin/test_runner \
-            --tcl-file ${./util/sonata-openocd-cfg.tcl}
-          ${./util/test_runner.py} -t 600 fpga "$1" \
-            --uf2-file ${cheriot-rtos-test-suite}/share/test-suite.uf2
-        '';
+      bitstream = import nix/bitstream.nix {inherit pkgs lrPkgs pythonEnv;};
+
+      tests = import nix/tests.nix {
+        inherit pkgs pythonEnv sonata-system-software sonata-sim-boot-stub cheriot-rtos-test-suite sonata-simulator;
+        # bitstream-build = bitstream.build;
+        # bitstream-load = bitstream.load;
       };
 
-      tests-simulator = pkgs.stdenvNoCC.mkDerivation {
-        name = "tests-simulator";
-        src = ./.;
-        dontBuild = true;
-        doCheck = true;
-        buildInputs = [sonata-simulator pythonEnv];
-        checkPhase = ''
-          python ${./util/test_runner.py} -t 60 sim \
-              --elf-file ${sonata-system-software}/bin/test_runner
-          python ${./util/test_runner.py} -t 600 sim \
-              --sim-boot-stub ${sonata-sim-boot-stub.out}/share/sim_boot_stub \
-              --elf-file ${cheriot-rtos-test-suite}/share/test-suite
-        '';
-        installPhase = "mkdir $out";
+      lint = import nix/lint.nix {
+        inherit
+          pkgs
+          pythonEnv
+          sonataSimulatorFileset
+          ;
       };
     in {
       formatter = pkgs.alejandra;
@@ -263,21 +197,23 @@
       packages = {
         inherit
           sonata-simulator
-          sonata-simulator-lint
           sonata-sim-boot-stub
           sonata-documentation
           sonata-system-software
           cheriot-rtos-test-suite
           ;
+        sonata-simulator-lint = lint.sonata-simulator;
+        bitstream-build = bitstream.build;
+        bitstream-load = bitstream.load;
       };
-      checks = {inherit tests-simulator;};
+      checks = {test-simulator = tests.simulator;};
       apps = builtins.listToAttrs (map (program: {
         inherit (program) name;
         value = {
           type = "app";
           program = getExe program;
         };
-      }) [lint-all lint-python tests-fpga lint-cpp]);
+      }) [lint.all lint.python tests.fpga lint.cpp]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
