@@ -56,3 +56,16 @@ add_custom_command(
   VERBATIM
 )
 install(TARGETS ${NAME})
+
+SET (NAME pinmux_all_blocks)
+add_executable(${NAME} pinmux_all_blocks_check.cc pinmux_checker.cc)
+target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
+target_link_libraries(${NAME} common)
+
+add_custom_command(
+  TARGET ${NAME} POST_BUILD
+  COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:${NAME}>" "$<TARGET_FILE:${NAME}>.bin"
+  COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
+  VERBATIM
+)
+install(TARGETS ${NAME})
