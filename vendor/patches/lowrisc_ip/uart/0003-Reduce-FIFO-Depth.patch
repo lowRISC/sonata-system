@@ -1,0 +1,36 @@
+diff --git a/data/uart.hjson b/data/uart.hjson
+index 2db6fbc..82e1228 100644
+--- a/data/uart.hjson
++++ b/data/uart.hjson
+@@ -136,13 +136,13 @@
+     { name:    "RxFifoDepth",
+       desc:    "Number of bytes in the RX FIFO.",
+       type:    "int",
+-      default: "64",
++      default: "8",
+       local:   "true",
+     }
+     { name:    "TxFifoDepth",
+       desc:    "Number of bytes in the TX FIFO.",
+       type:    "int",
+-      default: "32",
++      default: "8",
+       local:   "true",
+     }
+   ]
+diff --git a/rtl/uart_reg_pkg.sv b/rtl/uart_reg_pkg.sv
+index 6105d10..e9cfb0c 100644
+--- a/rtl/uart_reg_pkg.sv
++++ b/rtl/uart_reg_pkg.sv
+@@ -7,8 +7,8 @@
+ package uart_reg_pkg;
+ 
+   // Param list
+-  parameter int RxFifoDepth = 64;
+-  parameter int TxFifoDepth = 32;
++  parameter int RxFifoDepth = 8;
++  parameter int TxFifoDepth = 8;
+   parameter int NumAlerts = 1;
+ 
+   // Address widths within the block
+

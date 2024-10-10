@@ -1,0 +1,37 @@
+diff --git a/data/i2c.hjson b/data/i2c.hjson
+index 57eaca7..5a97e19 100644
+--- a/data/i2c.hjson
++++ b/data/i2c.hjson
+@@ -118,7 +118,7 @@
+             The maximum supported value is 2^12-1, although much lower values are recommended to keep area requirements reasonable.
+             ''',
+       type: "int",
+-      default: "64",
++      default: "8",
+     }
+     { name: "AcqFifoDepth",
+       desc: '''
+@@ -126,7 +126,7 @@
+             The maximum supported value is 2^12-1, although much lower values are recommended to keep area requirements reasonable.
+             ''',
+       type: int
+-      default: "268",
++      default: "8",
+     }
+   ],
+   features: [
+diff --git a/rtl/i2c_reg_pkg.sv b/rtl/i2c_reg_pkg.sv
+index 74cc862..cfb965f 100644
+--- a/rtl/i2c_reg_pkg.sv
++++ b/rtl/i2c_reg_pkg.sv
+@@ -7,8 +7,8 @@
+ package i2c_reg_pkg;
+ 
+   // Param list
+-  parameter int FifoDepth = 64;
+-  parameter int AcqFifoDepth = 268;
++  parameter int FifoDepth = 8;
++  parameter int AcqFifoDepth = 8;
+   parameter int NumAlerts = 1;
+ 
+   // Address widths within the block
