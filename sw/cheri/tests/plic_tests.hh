@@ -20,7 +20,7 @@
 struct PlicTest {
   CapRoot root;
   PLIC::SonataPlic *plic;
-  UartPtr console;
+  Log *log_;
   uint32_t error_count = 0;
 
   size_t instance = 0;
@@ -61,9 +61,7 @@ struct PlicTest {
     }};
 
     auto uart = uart_ptr(root, instance);
-    write_str(console, "testing uart: ");
-    write_hex8b(console, instance);
-    write_str(console, "\r\n");
+    log_->println("testing uart: {}", instance);
     for (size_t i = 0; i < uartMap.size(); ++i) {
       ip_irq_id        = uartMap[i].first.id;
       is_irq_clearable = uartMap[i].first.can_clear;
@@ -117,9 +115,7 @@ struct PlicTest {
     }};
 
     auto i2c = i2c_ptr(root, instance);
-    write_str(console, "testing i2c: ");
-    write_hex8b(console, instance);
-    write_str(console, "\r\n");
+    log_->println("testing i2c: {}", instance);
     for (size_t i = 0; i < i2cMap.size(); ++i) {
       ip_irq_id        = static_cast<uint32_t>(i2cMap[i].first.id);
       is_irq_clearable = i2cMap[i].first.can_clear;
@@ -152,11 +148,8 @@ struct PlicTest {
   }
 
   void log(PLIC::Interrupts fired) {
-    write_str(console, "irq fired: 0x");
-    write_hex8b(console, static_cast<uint32_t>(fired));
-    write_str(console, ", expected: 0x");
-    write_hex8b(console, static_cast<uint32_t>(plic_irq_id));
-    write_str(console, "\r\n");
+    log_->println("irq fired: {:#x}, expected: {:#x}", static_cast<uint32_t>(fired),
+                  static_cast<uint32_t>(plic_irq_id));
   }
 
   bool all_interrupts_test(void) {
@@ -192,11 +185,11 @@ extern "C" void irq_external_handler(void) {
   }
 }
 
-void plic_tests(CapRoot root, UartPtr console) {
+void plic_tests(CapRoot root, Log &log) {
   PLIC::SonataPlic plic(root);
-  plic_test.root    = root;
-  plic_test.plic    = &plic;
-  plic_test.console = console;
-  write_str(console, "running plic_test\r\n");
-  check_result(console, plic_test.all_interrupts_test());
+  plic_test.root = root;
+  plic_test.plic = &plic;
+  plic_test.log_ = &log;
+  log.println("running plic_test");
+  check_result(log, plic_test.all_interrupts_test());
 }
