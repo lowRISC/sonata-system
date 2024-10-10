@@ -42,7 +42,7 @@ bool uart_interrupt_state_test(UartPtr uart) {
   while (uart->interruptState & OpenTitanUart::InterruptTransmitWatermark) {
     uart->blocking_write('x');
     ++count;
-  };
+  }
 
   return count == 5;
 }
