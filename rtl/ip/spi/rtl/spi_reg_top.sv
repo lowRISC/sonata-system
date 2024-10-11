@@ -130,6 +130,9 @@ module spi_reg_top (
   logic [3:0] control_tx_watermark_wd;
   logic [3:0] control_rx_watermark_qs;
   logic [3:0] control_rx_watermark_wd;
+  logic control_int_loopback_qs;
+  logic control_int_loopback_wd;
+  logic control_sw_reset_wd;
   logic status_re;
   logic [7:0] status_tx_fifo_level_qs;
   logic [7:0] status_rx_fifo_level_qs;
@@ -627,7 +630,7 @@ module spi_reg_top (
 
   // R[control]: V(False)
   logic control_qe;
-  logic [5:0] control_flds_we;
+  logic [7:0] control_flds_we;
   prim_flop #(
     .Width(1),
     .ResetValue(0)
@@ -804,6 +807,62 @@ module spi_reg_top (
     .qs     (control_rx_watermark_qs)
   );
   assign reg2hw.control.rx_watermark.qe = control_qe;
+
+  //   F[int_loopback]: 30:30
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
+  ) u_control_int_loopback (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (control_we),
+    .wd     (control_int_loopback_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (control_flds_we[6]),
+    .q      (reg2hw.control.int_loopback.q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (control_int_loopback_qs)
+  );
+  assign reg2hw.control.int_loopback.qe = control_qe;
+
+  //   F[sw_reset]: 31:31
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessWO),
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
+  ) u_control_sw_reset (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (control_we),
+    .wd     (control_sw_reset_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (control_flds_we[7]),
+    .q      (reg2hw.control.sw_reset.q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     ()
+  );
+  assign reg2hw.control.sw_reset.qe = control_qe;
 
 
   // R[status]: V(True)
@@ -1205,6 +1264,10 @@ module spi_reg_top (
   assign control_tx_watermark_wd = reg_wdata[7:4];
 
   assign control_rx_watermark_wd = reg_wdata[11:8];
+
+  assign control_int_loopback_wd = reg_wdata[30];
+
+  assign control_sw_reset_wd = reg_wdata[31];
   assign status_re = addr_hit[5] & reg_re & !reg_error;
   assign start_we = addr_hit[6] & reg_we & !reg_error;
 
@@ -1266,6 +1329,8 @@ module spi_reg_top (
         reg_rdata_next[3] = control_rx_enable_qs;
         reg_rdata_next[7:4] = control_tx_watermark_qs;
         reg_rdata_next[11:8] = control_rx_watermark_qs;
+        reg_rdata_next[30] = control_int_loopback_qs;
+        reg_rdata_next[31] = '0;
       end
 
       addr_hit[5]: begin

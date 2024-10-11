@@ -47,6 +47,8 @@ module spi_core #(
   input clk_i,
   input rst_ni,
 
+  input sw_reset_i,
+
   input  logic [7:0] data_in_i,
   input  logic       data_in_valid_i,
   output logic       data_in_ready_o,
@@ -268,6 +270,8 @@ module spi_core #(
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
+      state_q <= IDLE;
+    end else if (sw_reset_i) begin
       state_q <= IDLE;
     end else begin
       state_q <= state_d;
