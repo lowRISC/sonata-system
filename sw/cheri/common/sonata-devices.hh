@@ -15,10 +15,9 @@
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <platform-uart.hh>
-#include "../common/platform-usbdev.hh"
 #include <platform-i2c.hh>
 #include <platform-spi.hh>
-#include "platform-usbdev.hh"
+#include <platform-usbdev.hh>
 
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGPIO *GpioPtr;
@@ -41,7 +40,7 @@ typedef PLIC::SonataPlic *PlicPtr;
   CHERI::Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
   assert(idx < UART_NUM);
   uart.address() = UART_ADDRESS + (idx * UART_RANGE);
-  uart.bounds() = UART_BOUNDS;
+  uart.bounds()  = UART_BOUNDS;
   return uart;
 }
 
@@ -49,7 +48,7 @@ typedef PLIC::SonataPlic *PlicPtr;
   CHERI::Capability<volatile OpenTitanI2c> i2c = root.cast<volatile OpenTitanI2c>();
   assert(idx < I2C_NUM);
   i2c.address() = I2C_ADDRESS + (idx * I2C_RANGE);
-  i2c.bounds() = I2C_BOUNDS;
+  i2c.bounds()  = I2C_BOUNDS;
   return i2c;
 }
 
@@ -57,15 +56,8 @@ typedef PLIC::SonataPlic *PlicPtr;
   CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   assert(idx < SPI_NUM);
   spi.address() = SPI_ADDRESS + (idx * SPI_RANGE);
-  spi.bounds() = UART_BOUNDS;
+  spi.bounds()  = UART_BOUNDS;
   return spi;
-}
-
-[[maybe_unused]] static UsbdevPtr usbdev_ptr(CapRoot root) {
-  CHERI::Capability<volatile OpenTitanUsbdev> usbdev = root.cast<volatile OpenTitanUsbdev>();
-  usbdev.address() = USBDEV_ADDRESS;
-  usbdev.bounds() = USBDEV_BOUNDS;
-  return usbdev;
 }
 
 [[maybe_unused]] static HyperramPtr hyperram_ptr(CapRoot root) {

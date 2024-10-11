@@ -9,7 +9,7 @@
 #include <cheri.hh>
 #include <stdint.h>
 
-#include "platform-usbdev.hh"
+#include <platform-usbdev.hh>
 
 // SETUP requests
 typedef enum usb_setup_req {
