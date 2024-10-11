@@ -36,9 +36,14 @@ using namespace CHERI;
   sysinfo.address()            = SYSTEM_INFO_ADDRESS;
   sysinfo.bounds()             = SYSTEM_INFO_BOUNDS;
 
-  uint32_t git_hash_0 = sysinfo[0];
-  uint32_t git_hash_1 = sysinfo[1];
-  uint32_t git_dirty  = sysinfo[2];
+  uint32_t git_hash_0       = sysinfo[0];
+  uint32_t git_hash_1       = sysinfo[1];
+  uint32_t git_dirty        = sysinfo[2];
+  uint32_t system_frequency = sysinfo[3];
+  uint32_t gpio_info        = sysinfo[4];
+  uint32_t uart_info        = sysinfo[5];
+  uint32_t i2c_info         = sysinfo[6];
+  uint32_t spi_info         = sysinfo[7];
 
   uart->init(BAUD_RATE);
   write_str(uart, "Hash is equal to:\r\n");
@@ -50,6 +55,26 @@ using namespace CHERI;
   } else {
     write_str(uart, "clean");
   }
+  write_str(uart, "\r\n");
+
+  write_str(uart, "System clock frequency: 0x");
+  write_hex(uart, system_frequency);
+  write_str(uart, "\r\n");
+
+  write_str(uart, "GPIO instances: 0x");
+  write_hex(uart, gpio_info);
+  write_str(uart, "\r\n");
+
+  write_str(uart, "UART instances: 0x");
+  write_hex(uart, uart_info);
+  write_str(uart, "\r\n");
+
+  write_str(uart, "I2C instances: 0x");
+  write_hex(uart, i2c_info);
+  write_str(uart, "\r\n");
+
+  write_str(uart, "SPI instances: 0x");
+  write_hex(uart, spi_info);
   write_str(uart, "\r\n");
 
   char ch = '\n';
