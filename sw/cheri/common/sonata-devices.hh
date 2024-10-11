@@ -56,7 +56,7 @@ typedef PLIC::SonataPlic *PlicPtr;
   CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   assert(idx < SPI_NUM);
   spi.address() = SPI_ADDRESS + (idx * SPI_RANGE);
-  spi.bounds()  = UART_BOUNDS;
+  spi.bounds()  = SPI_BOUNDS;
   return spi;
 }
 

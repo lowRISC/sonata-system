@@ -256,6 +256,76 @@ int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro:
 }
 
 /**
+ * SPI loopback test transmits a sequence of pseudo-random bytes and checks that
+ * the same data is received correctly with transmit and receive enabled correctly.
+ *
+ * Note: presently this relies upon an external jumper cable rather than internal
+ *       configuration.
+ */
+int spi_loopback_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, UartPtr console) {
+  constexpr uint32_t kSpiSpeed = 0u;  // Let's go as fast as possible.
+  // Take a copy of the PRNG so that we can predict the read-side data.
+  ds::xoroshiro::P32R8 read_prng = prng;
+  size_t bytes_read = 0u;
+  size_t bytes_sent = 0u;
+  // Number of bytes to be transferred.
+  size_t len = 0x200u;
+  int failures = 0;
+  bool log = false;
+
+  spi->wait_idle();
+  spi->init(false, false, true, kSpiSpeed);
+
+  spi->control = SonataSpi::ControlTransmitEnable | SonataSpi::ControlReceiveEnable;
+  spi->start = len;
+
+  // Repeat until all bytes have been received, which should imply that all bytes have
+  // been sent, but we'll check that after the test...
+  while (bytes_read < len) {
+    // Can we send another byte yet?
+    if (bytes_sent < len && !(SonataSpi::StatusTxFifoFull & spi->status)) {
+      uint8_t b = static_cast<uint8_t>(prng());
+      spi->transmitFifo = b;
+      bytes_sent++;
+      if (log) {
+        write_str(console, "sent ");
+        write_hex8b(console, b);
+        write_str(console, "\r\n");
+      }
+    }
+    // Is there any data to read and check?
+    if (!(SonataSpi::StatusRxFifoEmpty & spi->status)) {
+      // Check the received data against the transmitted data.
+      uint8_t act_byte = static_cast<uint8_t>(spi->receiveFifo);
+      uint8_t exp_byte = read_prng();
+      failures += (act_byte != exp_byte);
+      bytes_read++;
+      if (log) {
+        write_str(console, "expected ");
+        write_hex8b(console, exp_byte);
+        write_str(console, " read ");
+        write_hex8b(console, act_byte);
+        write_str(console, "\r\n");
+      }
+    }
+  }
+
+  // Check that we also sent the expected number of bytes, and that nothing remains.
+  failures +=  (bytes_sent != bytes_read);
+  failures +=  (spi->status & SonataSpi::StatusTxFifoLevel) != 0;
+  failures +=  (spi->status & SonataSpi::StatusRxFifoLevel) != 0;
+  failures += !(spi->status & SonataSpi::StatusIdle);
+
+  if (log) {
+    write_str(console, "failures: ");
+    write_hex(console, failures);
+    write_str(console, "\r\n");
+  }
+
+  return failures;
+}
+
+/**
  * Run the whole suite of SPI tests.
  */
 void spi_tests(CapRoot root, UartPtr console) {
@@ -263,6 +333,10 @@ void spi_tests(CapRoot root, UartPtr console) {
   Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   spi.address()                      = SPI_ADDRESS;
   spi.bounds()                       = SPI_BOUNDS;
+
+  // Try a loopback test with another SPI controller; we use SPI 3 to
+  // talk via the Raspberry Pi header.
+  SpiPtr spi3 = spi_ptr(root, 3);
 
   SpiFlash spi_flash(spi);
 
@@ -298,6 +372,11 @@ void spi_tests(CapRoot root, UartPtr console) {
 
     write_str(console, "  Running Slow Clock test... ");
     failures = spi_flash_slow_clock_test(spi, prng, spi_flash);
+    test_failed |= (failures > 0);
+    write_test_result(console, failures);
+
+    write_str(console, "  Running SPI loopback test... ");
+    failures = spi_loopback_test(spi3, prng, console);
     test_failed |= (failures > 0);
     write_test_result(console, failures);
 
