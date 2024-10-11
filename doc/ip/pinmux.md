@@ -54,7 +54,7 @@ The default value for all of these selectors is `'b10`.
 | 0x027 | rph_g26 | 0, gpio_ios_i(0)(26) |
 | 0x028 | rph_g27 | 0, gpio_ios_i(0)(27) |
 | 0x029 | ah_tmpio0 | 0, gpio_ios_i(1)(0) |
-| 0x02a | ah_tmpio1 | 0, gpio_ios_i(1)(1) |
+| 0x02a | ah_tmpio1 | 0, uart_tx_i(3), gpio_ios_i(1)(1) |
 | 0x02b | ah_tmpio2 | 0, gpio_ios_i(1)(2) |
 | 0x02c | ah_tmpio3 | 0, gpio_ios_i(1)(3) |
 | 0x02d | ah_tmpio4 | 0, gpio_ios_i(1)(4) |
@@ -100,7 +100,7 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x800 | uart_rx_o(0) | 1'b1, ser0_rx, |
 | 0x801 | uart_rx_o(1) | 1'b1, ser1_rx, |
 | 0x802 | uart_rx_o(2) | 1'b1, rph_rxd0, |
-| 0x803 | uart_rx_o(3) | 1'b1, mb8, |
+| 0x803 | uart_rx_o(3) | 1'b1, ah_tmpio0, mb8, |
 | 0x804 | uart_rx_o(4) | 1'b1, rs232_rx, |
 | 0x805 | spi_rx_o(0) | 1'b0, appspi_d1, |
 | 0x806 | spi_rx_o(1) | 1'b0, 1'b0, |

@@ -2355,7 +2355,7 @@ module pinmux (
 
   assign ah_tmpio0 = ah_tmpio0_en_o ? ah_tmpio0_o : 1'bz;
 
-  logic [1:0] ah_tmpio1_sel;
+  logic [2:0] ah_tmpio1_sel;
   logic ah_tmpio1_o;
   logic ah_tmpio1_en_o;
   logic ah_tmpio1_sel_addressed;
@@ -2369,22 +2369,23 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      ah_tmpio1_sel <= 2'b10;
+      ah_tmpio1_sel <= 3'b10;
     end else begin
       if (reg_we & ah_tmpio1_sel_addressed) begin
-        ah_tmpio1_sel <= reg_wdata[16+:2];
+        ah_tmpio1_sel <= reg_wdata[16+:3];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(2)
+    .Inputs(3)
   ) ah_tmpio1_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
+      uart_tx_i[3],
       gpio_ios_i[1][1]
     }),
     .sel_i(ah_tmpio1_sel),
@@ -2393,12 +2394,13 @@ module pinmux (
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(2)
+    .Inputs(3)
   ) ah_tmpio1_enable_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0,
+      '1,
       gpio_ios_en_i[1][1]
     }),
     .sel_i(ah_tmpio1_sel),
@@ -4439,7 +4441,7 @@ module pinmux (
     .out_o(uart_rx_o[2])
   );
 
-  logic [1:0] uart_rx_3_sel;
+  logic [2:0] uart_rx_3_sel;
   logic uart_rx_3_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
@@ -4451,22 +4453,23 @@ module pinmux (
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      uart_rx_3_sel <= 2'b10;
+      uart_rx_3_sel <= 3'b10;
     end else begin
       if (reg_we & uart_rx_3_sel_addressed) begin
-        uart_rx_3_sel <= reg_wdata[24+:2];
+        uart_rx_3_sel <= reg_wdata[24+:3];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(2)
+    .Inputs(3)
   ) uart_rx_3_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b1,
+      ah_tmpio0,
       mb8
     }),
     .sel_i(uart_rx_3_sel),
