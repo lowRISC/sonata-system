@@ -9,6 +9,7 @@ filesets:
     depend:
     - lowrisc:tlul:adapter_reg
     files:
+    - sonata_pkg.sv
     - system_info_reg_pkg.sv
     - system_info_reg_top.sv
     - system_info.sv

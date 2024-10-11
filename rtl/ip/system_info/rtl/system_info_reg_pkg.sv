@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors (OpenTitan project).
+// Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -7,7 +7,7 @@
 package system_info_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 4;
+  parameter int BlockAw = 5;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -25,36 +25,81 @@ package system_info_reg_pkg;
     logic        d;
   } system_info_hw2reg_rtl_commit_dirty_reg_t;
 
+  typedef struct packed {
+    logic [31:0] d;
+  } system_info_hw2reg_system_frequency_reg_t;
+
+  typedef struct packed {
+    logic [7:0]  d;
+  } system_info_hw2reg_gpio_info_reg_t;
+
+  typedef struct packed {
+    logic [7:0]  d;
+  } system_info_hw2reg_uart_info_reg_t;
+
+  typedef struct packed {
+    logic [7:0]  d;
+  } system_info_hw2reg_i2c_info_reg_t;
+
+  typedef struct packed {
+    logic [7:0]  d;
+  } system_info_hw2reg_spi_info_reg_t;
+
   // HW -> register type
   typedef struct packed {
-    system_info_hw2reg_rtl_commit_hash_0_reg_t rtl_commit_hash_0; // [64:33]
-    system_info_hw2reg_rtl_commit_hash_1_reg_t rtl_commit_hash_1; // [32:1]
-    system_info_hw2reg_rtl_commit_dirty_reg_t rtl_commit_dirty; // [0:0]
+    system_info_hw2reg_rtl_commit_hash_0_reg_t rtl_commit_hash_0; // [128:97]
+    system_info_hw2reg_rtl_commit_hash_1_reg_t rtl_commit_hash_1; // [96:65]
+    system_info_hw2reg_rtl_commit_dirty_reg_t rtl_commit_dirty; // [64:64]
+    system_info_hw2reg_system_frequency_reg_t system_frequency; // [63:32]
+    system_info_hw2reg_gpio_info_reg_t gpio_info; // [31:24]
+    system_info_hw2reg_uart_info_reg_t uart_info; // [23:16]
+    system_info_hw2reg_i2c_info_reg_t i2c_info; // [15:8]
+    system_info_hw2reg_spi_info_reg_t spi_info; // [7:0]
   } system_info_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET = 4'h 0;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET = 4'h 4;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET = 4'h 8;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET = 5'h 0;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET = 5'h 4;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET = 5'h 8;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET = 5'h c;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_GPIO_INFO_OFFSET = 5'h 10;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_UART_INFO_OFFSET = 5'h 14;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_I2C_INFO_OFFSET = 5'h 18;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_SPI_INFO_OFFSET = 5'h 1c;
 
   // Reset values for hwext registers and their fields
   parameter logic [31:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_RESVAL = 32'h 0;
   parameter logic [31:0] SYSTEM_INFO_RTL_COMMIT_HASH_1_RESVAL = 32'h 0;
   parameter logic [0:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_RESVAL = 1'h 1;
   parameter logic [0:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_DIRTY_RESVAL = 1'h 1;
+  parameter logic [31:0] SYSTEM_INFO_SYSTEM_FREQUENCY_RESVAL = 32'h 0;
+  parameter logic [7:0] SYSTEM_INFO_GPIO_INFO_RESVAL = 8'h 0;
+  parameter logic [7:0] SYSTEM_INFO_UART_INFO_RESVAL = 8'h 0;
+  parameter logic [7:0] SYSTEM_INFO_I2C_INFO_RESVAL = 8'h 0;
+  parameter logic [7:0] SYSTEM_INFO_SPI_INFO_RESVAL = 8'h 0;
 
   // Register index
   typedef enum int {
     SYSTEM_INFO_RTL_COMMIT_HASH_0,
     SYSTEM_INFO_RTL_COMMIT_HASH_1,
-    SYSTEM_INFO_RTL_COMMIT_DIRTY
+    SYSTEM_INFO_RTL_COMMIT_DIRTY,
+    SYSTEM_INFO_SYSTEM_FREQUENCY,
+    SYSTEM_INFO_GPIO_INFO,
+    SYSTEM_INFO_UART_INFO,
+    SYSTEM_INFO_I2C_INFO,
+    SYSTEM_INFO_SPI_INFO
   } system_info_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SYSTEM_INFO_PERMIT [3] = '{
+  parameter logic [3:0] SYSTEM_INFO_PERMIT [8] = '{
     4'b 1111, // index[0] SYSTEM_INFO_RTL_COMMIT_HASH_0
     4'b 1111, // index[1] SYSTEM_INFO_RTL_COMMIT_HASH_1
-    4'b 0001  // index[2] SYSTEM_INFO_RTL_COMMIT_DIRTY
+    4'b 0001, // index[2] SYSTEM_INFO_RTL_COMMIT_DIRTY
+    4'b 1111, // index[3] SYSTEM_INFO_SYSTEM_FREQUENCY
+    4'b 0001, // index[4] SYSTEM_INFO_GPIO_INFO
+    4'b 0001, // index[5] SYSTEM_INFO_UART_INFO
+    4'b 0001, // index[6] SYSTEM_INFO_I2C_INFO
+    4'b 0001  // index[7] SYSTEM_INFO_SPI_INFO
   };
 
 endpackage
