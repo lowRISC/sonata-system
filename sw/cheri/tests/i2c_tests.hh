@@ -6,6 +6,7 @@
 #include "../common/console-utils.hh"
 #include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
+#include "../common/rpi-hat-eeprom.hh"
 #include "test_runner.hh"
 #include <cheri.hh>
 #include <platform-i2c.hh>
@@ -54,23 +55,16 @@ using namespace CHERI;
  * ID EEPROM registers, and the length of data to read in tests for
  * testing purposes.
  */
-constexpr uint8_t RpiHatIdEepromAddr       = 0x50u;
-constexpr uint8_t RpiHatIdEepromHeaderSize = 0x80u;
+constexpr uint8_t RpiHatIdEepromAddr        = 0x50u;
+constexpr uint32_t RpiHatIdEepromHeaderSize = 0x400u;
 
-/**
- * The expected (if not manually written) EEPROM ID Header from the
- * Raspberry Pi Sense HAT.
- */
-static const uint8_t expectedRpiHatIdEepromHeader[] = {
-    0x52, 0x2D, 0x50, 0x69, 0x01, 0x00, 0x03, 0x00, 0xF0, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,  // R-Pi............
-    0x2D, 0x00, 0x00, 0x00, 0xE7, 0x58, 0xD1, 0x95, 0xF1, 0x56, 0x28, 0xAB, 0xCB, 0x4E, 0x99, 0x42,  // -....X...V(..N.B
-    0xC7, 0x79, 0xD6, 0xA3, 0x01, 0x00, 0x01, 0x00, 0x0C, 0x09, 0x52, 0x61, 0x73, 0x70, 0x62, 0x65,  // .y........Raspbe
-    0x72, 0x72, 0x79, 0x20, 0x50, 0x69, 0x53, 0x65, 0x6E, 0x73, 0x65, 0x20, 0x48, 0x41, 0x54, 0x7F,  // rry PiSense HAT.
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // ................
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // ................
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // ................
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   // ................
-};
+// Expected vendor and product strings from an R-PI sense HAT EEPROM
+// "Raspberry Pi"
+static const uint8_t expectedRiPiHatVendor[] = {0x52, 0x61, 0x73, 0x70, 0x62, 0x65, 0x72, 0x72, 0x79, 0x20, 0x50, 0x69};
+static const uint32_t expectedRiPiHatVendorLength = sizeof(expectedRiPiHatVendor);
+// "Sense HAT"
+static const uint8_t expectedRiPiHatProduct[]      = {0x53, 0x65, 0x6E, 0x73, 0x65, 0x20, 0x48, 0x41, 0x54};
+static const uint32_t expectedRiPiHatProductLength = sizeof(expectedRiPiHatProduct);
 
 /**
  * The location of the Raspberry Pi Sense HAT's Accelerometer and
@@ -99,13 +93,98 @@ constexpr uint8_t RpiHatWhoAmIRegAddr = 0x0F;
 constexpr uint8_t As6212TempRegAddr   = 0x00;
 constexpr uint8_t As6212ConfigRegAddr = 0x01;
 
+static bool buf_cmp(const uint8_t buf_a[], const uint8_t buf_b[], uint32_t cmp_len) {
+  for (uint32_t i = 0; i < cmp_len; ++i) {
+    if (buf_a[i] != buf_b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+int i2c_epi_hat_id_epprom_check(uint8_t id_eeprom_buf[], uint32_t id_eeprom_buf_length) {
+  int failures = 0;
+  RpiHatEeprom::eeprom_header_t eeprom_header;
+
+  // Get EEPROM header
+  if (!RpiHatEeprom::parse_header(id_eeprom_buf, id_eeprom_buf_length, eeprom_header)) {
+    // Cannot parse EEPROM header, so cannot sensibly continue
+    return 1;
+  }
+
+  // Read every atom in EEPROM and check for consistency
+  uint32_t atom_index = RpiHatEeprom::EepromHeaderLength;
+  for (int i = 0; i < eeprom_header.num_atoms; ++i) {
+    RpiHatEeprom::atom_info_t atom_info;
+
+    // Get atom info
+    if (!parse_atom_info(id_eeprom_buf, atom_index, id_eeprom_buf_length, atom_info)) {
+      failures += 1;
+      // Cannot sensibly continue without atom info
+      return failures;
+    }
+
+    // Atom count should increase monotonically
+    if (atom_info.atom_count != i) {
+      failures += 1;
+    }
+
+    // Furher checks if we have a vendor atom
+    if (atom_info.type == RpiHatEeprom::AtomType::VendorInfo) {
+      RpiHatEeprom::vendor_atom_t vendor_atom;
+
+      // Extract vendor info from atom
+      uint32_t vendor_atom_index = atom_index + RpiHatEeprom::AtomHeaderLength;
+      if (!RpiHatEeprom::parse_vendor_info(id_eeprom_buf, vendor_atom_index, id_eeprom_buf_length, vendor_atom)) {
+        // Without the info cannot sensibly do other vendor atom checks
+        failures += 1;
+        continue;
+      }
+
+      // Check vendor string is as expected
+      if (vendor_atom.vendor_str_len != expectedRiPiHatVendorLength) {
+        failures += 1;
+      } else {
+        // Only do actual string comparison if string length is as expected
+        uint8_t* vendor_str_buf = &id_eeprom_buf[vendor_atom_index + RpiHatEeprom::VendorHeaderLength];
+
+        if (!buf_cmp(vendor_str_buf, expectedRiPiHatVendor, expectedRiPiHatVendorLength)) {
+          failures += 1;
+        }
+      }
+
+      // Check Product string is as expected
+      if (vendor_atom.product_str_len != expectedRiPiHatProductLength) {
+        failures += 1;
+      } else {
+        // Only do actual string comparison if string length is as expected
+        uint8_t* product_str_buf =
+            &id_eeprom_buf[vendor_atom_index + RpiHatEeprom::VendorHeaderLength + vendor_atom.vendor_str_len];
+
+        if (!buf_cmp(product_str_buf, expectedRiPiHatProduct, expectedRiPiHatProductLength)) {
+          failures += 1;
+        }
+      }
+    }
+
+    atom_index += atom_info.length + RpiHatEeprom::AtomHeaderLength;
+  }
+
+  if (atom_index != eeprom_header.length) {
+    failures += 1;
+  }
+
+  return failures;
+}
+
 /**
  * This test expects a Raspberry Pi Sense HAT to be connected to the Sonata
  * board. The test configures the I2C, and then performs a write and read
  * to the appropriate RPI HAT ID EEPROM pins to access the data stored in
  * the I2C EEPROM header. Depending on the definition of
  * `I2C_TEST_RPI_HAT_ID_EEPROM_CONTENTS`, this test will either verify that
- * *something* is read, or will verify the exact contents match.
+ * *something* is read, or will verify the contents are a valid sense HAT ID.
  * Returns the number of failures that occur.
  */
 int i2c_rpi_hat_id_eeprom_test(I2cPtr i2c) {
@@ -130,21 +209,20 @@ int i2c_rpi_hat_id_eeprom_test(I2cPtr i2c) {
     failures++;
   }
 
-  // Verify the contents of the EEPROM header that were read.
-  bool buffer_changed = false;
-  for (uint32_t index = 0; index < RpiHatIdEepromHeaderSize; index++) {
-    if (I2C_TEST_RPI_HAT_ID_EEPROM_CONTENTS && eeprom_data[index] != expectedRpiHatIdEepromHeader[index]) {
-      failures++;
-    } else if (!I2C_TEST_RPI_HAT_ID_EEPROM_CONTENTS && eeprom_data[index] != DummyReadVal) {
-      buffer_changed = true;
-    }
-  }
+  if (I2C_TEST_RPI_HAT_ID_EEPROM_CONTENTS) {
+    failures += i2c_epi_hat_id_epprom_check(eeprom_data.data(), RpiHatIdEepromHeaderSize);
+  } else {
+    bool buffer_changed = false;
 
-  // If not checking the contents, check that at least some value in the buffer
-  // changed. Should not fail unless the entire contents of the EEPROM header
-  // are 0x3D.
-  if (!I2C_TEST_RPI_HAT_ID_EEPROM_CONTENTS && !buffer_changed) {
-    failures++;
+    for (uint32_t index = 0; index < RpiHatIdEepromHeaderSize; index++) {
+      if (eeprom_data[index] != DummyReadVal) {
+        buffer_changed = true;
+      }
+    }
+
+    if (!buffer_changed) {
+      failures++;
+    }
   }
 
   return failures;
