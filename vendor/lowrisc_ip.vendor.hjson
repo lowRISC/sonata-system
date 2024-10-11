@@ -15,7 +15,7 @@
         {from: "util/tlgen.py",        to: "util/tlgen.py"},
         {from: "util/tlgen",           to: "util/tlgen", patch_dir: "tlgen"},
         {from: "util/regtool.py",      to: "util/regtool.py"},
-        {from: "util/reggen",          to: "util/reggen"},
+        {from: "util/reggen",          to: "util/reggen", patch_dir: "reggen"},
         {from: "util/design",          to: "util/design"},
         {from: "util/version_file.py", to: "util/version_file.py"},
         {from: "util/topgen"           to: "util/topgen"},
