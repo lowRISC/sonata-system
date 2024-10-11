@@ -14,6 +14,7 @@
         - [FPGA programming](doc/dev/fpga-programming.md)
     - [Simulation environment](doc/dev/simulation.md)
     - [Building documentation](doc/dev/building-doc.md)
+    - [Release procedure](doc/dev/release-procedure.md)
 
 - [Sonata Hardware Reference](doc/architecture/sonata-hardware.md)
   - [Sonata Core Reference](doc/dev/ref-manual.md)
