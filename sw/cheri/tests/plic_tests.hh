@@ -80,10 +80,10 @@ struct PlicTest {
         if (plic_test->is_irq_clearable) {
           uart->interruptState = plic_test->ip_irq_id;
         } else {
-          uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
           // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
           uart->interruptTest = 0;
         }
+        uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
       };
       uart->interrupt_enable(uartMap[i].first.id);
       uart->interruptTest = ip_irq_id;
@@ -137,10 +137,10 @@ struct PlicTest {
         if (plic_test->is_irq_clearable) {
           i2c->interruptState = 0x1 << plic_test->ip_irq_id;
         } else {
-          i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(plic_test->ip_irq_id));
           // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
           i2c->interruptTest = 0;
         }
+        i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(plic_test->ip_irq_id));
       };
       i2c->interruptTest = 0x01 << ip_irq_id;
       wfi();
