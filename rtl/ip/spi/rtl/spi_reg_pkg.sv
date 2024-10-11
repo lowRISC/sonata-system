@@ -92,6 +92,14 @@ package spi_reg_pkg;
 
   typedef struct packed {
     struct packed {
+      logic        q;
+      logic        qe;
+    } sw_reset;
+    struct packed {
+      logic        q;
+      logic        qe;
+    } int_loopback;
+    struct packed {
       logic [3:0]  q;
       logic        qe;
     } rx_watermark;
@@ -192,11 +200,11 @@ package spi_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    spi_reg2hw_intr_state_reg_t intr_state; // [90:86]
-    spi_reg2hw_intr_enable_reg_t intr_enable; // [85:81]
-    spi_reg2hw_intr_test_reg_t intr_test; // [80:71]
-    spi_reg2hw_cfg_reg_t cfg; // [70:52]
-    spi_reg2hw_control_reg_t control; // [51:34]
+    spi_reg2hw_intr_state_reg_t intr_state; // [94:90]
+    spi_reg2hw_intr_enable_reg_t intr_enable; // [89:85]
+    spi_reg2hw_intr_test_reg_t intr_test; // [84:75]
+    spi_reg2hw_cfg_reg_t cfg; // [74:56]
+    spi_reg2hw_control_reg_t control; // [55:34]
     spi_reg2hw_start_reg_t start; // [33:22]
     spi_reg2hw_rx_fifo_reg_t rx_fifo; // [21:13]
     spi_reg2hw_tx_fifo_reg_t tx_fifo; // [12:4]
@@ -256,7 +264,7 @@ package spi_reg_pkg;
     4'b 0001, // index[ 1] SPI_INTR_ENABLE
     4'b 0001, // index[ 2] SPI_INTR_TEST
     4'b 1111, // index[ 3] SPI_CFG
-    4'b 0011, // index[ 4] SPI_CONTROL
+    4'b 1111, // index[ 4] SPI_CONTROL
     4'b 0111, // index[ 5] SPI_STATUS
     4'b 0011, // index[ 6] SPI_START
     4'b 0001, // index[ 7] SPI_RX_FIFO

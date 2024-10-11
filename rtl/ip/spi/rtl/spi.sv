@@ -180,13 +180,24 @@ module spi import spi_reg_pkg::*; #(
   assign hw2reg.status.rx_fifo_empty.d = ~|rx_fifo_depth;
   assign hw2reg.status.idle.d          = spi_idle;
 
+  // Software reset of the core logic.
+  logic sw_reset;
+  assign sw_reset = reg2hw.control.sw_reset.qe & reg2hw.control.sw_reset.q;
+
+  // Internal loopback functionality allowing the input (CIPO) to be received directly from
+  // the output (COPI) for testing.
+  logic spi_cipo;
+  assign spi_cipo = reg2hw.control.int_loopback.q ? spi_copi_o : spi_cipo_i;
+
   spi_core u_spi_core (
     .clk_i,
     .rst_ni,
 
-    .data_in_i       (spi_data_in),
-    .data_in_valid_i (spi_data_in_valid),
-    .data_in_ready_o (spi_data_in_ready),
+    .sw_reset_i       (sw_reset),
+
+    .data_in_i        (spi_data_in),
+    .data_in_valid_i  (spi_data_in_valid),
+    .data_in_ready_o  (spi_data_in_ready),
 
     .data_out_o       (spi_data_out),
     .data_out_valid_o (spi_data_out_valid),
@@ -202,7 +213,7 @@ module spi import spi_reg_pkg::*; #(
     .half_clk_period_i(spi_half_clk_period),
 
     .spi_copi_o,
-    .spi_cipo_i,
+    .spi_cipo_i       (spi_cipo),
     .spi_clk_o
   );
 
