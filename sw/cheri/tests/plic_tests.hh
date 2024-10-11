@@ -146,12 +146,12 @@ struct PlicTest {
       bool can_clear;
     };
     static constexpr std::array<spi_irq, 5> spiMap = {{
-      {SonataSpi::SonataSpiInterrupt::InterruptComplete, true},
-      {SonataSpi::SonataSpiInterrupt::InterruptReceiveFull, false},
+        {SonataSpi::SonataSpiInterrupt::InterruptComplete, true},
+        {SonataSpi::SonataSpiInterrupt::InterruptReceiveFull, false},
 
-      {SonataSpi::SonataSpiInterrupt::InterruptReceiveWatermark, false},
-      {SonataSpi::SonataSpiInterrupt::InterruptTransmitEmpty, false},
-      {SonataSpi::SonataSpiInterrupt::InterruptTransmitWatermark, false},
+        {SonataSpi::SonataSpiInterrupt::InterruptReceiveWatermark, false},
+        {SonataSpi::SonataSpiInterrupt::InterruptTransmitEmpty, false},
+        {SonataSpi::SonataSpiInterrupt::InterruptTransmitWatermark, false},
     }};
 
     auto spi = spi_ptr(root, instance);
@@ -192,25 +192,25 @@ struct PlicTest {
       bool can_clear;
     };
     static constexpr std::array<usbdev_irq, 18> usbdevMap = {{
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptDisconnected, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptHostLost, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkReset, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkSuspend, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkResume, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvBufferOverflow, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkInError, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptCrcError, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPidError, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptBitstuffError, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptFrame, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPowered, true},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkOutError, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptDisconnected, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptHostLost, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkReset, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkSuspend, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkResume, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvBufferOverflow, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkInError, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptCrcError, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPidError, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptBitstuffError, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptFrame, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPowered, true},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkOutError, true},
 
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketReceived, false},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketSent, false},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptRecvFifoFull, false},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvOutBufferEmpty, false},
-      {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvSetupBufferEmpty, false},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketReceived, false},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketSent, false},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptRecvFifoFull, false},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvOutBufferEmpty, false},
+        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvSetupBufferEmpty, false},
     }};
 
     auto usbdev = usbdev_ptr(root);
