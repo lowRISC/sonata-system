@@ -1320,7 +1320,9 @@ module sonata_system
     .td_o
   );
 
-  system_info u_system_info (
+  system_info #(
+    .SysClkFreq ( SysClkFreq )
+  ) u_system_info (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
     .tl_i   (tl_system_info_h2d),

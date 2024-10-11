@@ -57,6 +57,10 @@ def generate_system_info() -> None:
             system_info_dir / "rtl" / "system_info_reg_top.sv",
             Path("system_info_reg_top.sv"),
         ),
+        (
+            system_info_dir.parents[1] / "system" / "sonata_pkg.sv",
+            Path("sonata_pkg.sv"),
+        ),
     ):
         content = Template(filename=str(template)).render(
             system_info=system_info

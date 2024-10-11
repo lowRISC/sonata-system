@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors (OpenTitan project).
+// Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,7 +20,7 @@ module system_info_reg_top (
 
   import system_info_reg_pkg::* ;
 
-  localparam int AW = 4;
+  localparam int AW = 5;
   localparam int DW = 32;
   localparam int DBW = DW/8;                    // Byte Width
 
@@ -44,16 +44,17 @@ module system_info_reg_top (
 
   // incoming payload check
   logic intg_err;
-  tlul_cmd_intg_chk u_chk (
-    .tl_i(tl_i),
-    .err_o(intg_err)
-  );
+  //tlul_cmd_intg_chk u_chk (
+  //  .tl_i(tl_i),
+  //  .err_o(intg_err)
+  //);
+  assign intg_err = 1'b0;
 
   // also check for spurious write enables
   logic reg_we_err;
-  logic [2:0] reg_we_check;
+  logic [7:0] reg_we_check;
   prim_reg_we_check #(
-    .OneHotWidth(3)
+    .OneHotWidth(8)
   ) u_prim_reg_we_check (
     .clk_i(clk_i),
     .rst_ni(rst_ni),
@@ -126,6 +127,16 @@ module system_info_reg_top (
   logic [31:0] rtl_commit_hash_1_qs;
   logic rtl_commit_dirty_re;
   logic rtl_commit_dirty_qs;
+  logic system_frequency_re;
+  logic [31:0] system_frequency_qs;
+  logic gpio_info_re;
+  logic [7:0] gpio_info_qs;
+  logic uart_info_re;
+  logic [7:0] uart_info_qs;
+  logic i2c_info_re;
+  logic [7:0] i2c_info_qs;
+  logic spi_info_re;
+  logic [7:0] spi_info_qs;
 
   // Register instances
   // R[rtl_commit_hash_0]: V(True)
@@ -176,13 +187,98 @@ module system_info_reg_top (
   );
 
 
+  // R[system_frequency]: V(True)
+  prim_subreg_ext #(
+    .DW    (32)
+  ) u_system_frequency (
+    .re     (system_frequency_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.system_frequency.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (system_frequency_qs)
+  );
 
-  logic [2:0] addr_hit;
+
+  // R[gpio_info]: V(True)
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_gpio_info (
+    .re     (gpio_info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.gpio_info.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (gpio_info_qs)
+  );
+
+
+  // R[uart_info]: V(True)
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_uart_info (
+    .re     (uart_info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.uart_info.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (uart_info_qs)
+  );
+
+
+  // R[i2c_info]: V(True)
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_i2c_info (
+    .re     (i2c_info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.i2c_info.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (i2c_info_qs)
+  );
+
+
+  // R[spi_info]: V(True)
+  prim_subreg_ext #(
+    .DW    (8)
+  ) u_spi_info (
+    .re     (spi_info_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.spi_info.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (spi_info_qs)
+  );
+
+
+
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET);
     addr_hit[1] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET);
     addr_hit[2] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET);
+    addr_hit[3] = (reg_addr == SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET);
+    addr_hit[4] = (reg_addr == SYSTEM_INFO_GPIO_INFO_OFFSET);
+    addr_hit[5] = (reg_addr == SYSTEM_INFO_UART_INFO_OFFSET);
+    addr_hit[6] = (reg_addr == SYSTEM_INFO_I2C_INFO_OFFSET);
+    addr_hit[7] = (reg_addr == SYSTEM_INFO_SPI_INFO_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -192,13 +288,23 @@ module system_info_reg_top (
     wr_err = (reg_we &
               ((addr_hit[0] & (|(SYSTEM_INFO_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(SYSTEM_INFO_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(SYSTEM_INFO_PERMIT[2] & ~reg_be)))));
+               (addr_hit[2] & (|(SYSTEM_INFO_PERMIT[2] & ~reg_be))) |
+               (addr_hit[3] & (|(SYSTEM_INFO_PERMIT[3] & ~reg_be))) |
+               (addr_hit[4] & (|(SYSTEM_INFO_PERMIT[4] & ~reg_be))) |
+               (addr_hit[5] & (|(SYSTEM_INFO_PERMIT[5] & ~reg_be))) |
+               (addr_hit[6] & (|(SYSTEM_INFO_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(SYSTEM_INFO_PERMIT[7] & ~reg_be)))));
   end
 
   // Generate write-enables
   assign rtl_commit_hash_0_re = addr_hit[0] & reg_re & !reg_error;
   assign rtl_commit_hash_1_re = addr_hit[1] & reg_re & !reg_error;
   assign rtl_commit_dirty_re = addr_hit[2] & reg_re & !reg_error;
+  assign system_frequency_re = addr_hit[3] & reg_re & !reg_error;
+  assign gpio_info_re = addr_hit[4] & reg_re & !reg_error;
+  assign uart_info_re = addr_hit[5] & reg_re & !reg_error;
+  assign i2c_info_re = addr_hit[6] & reg_re & !reg_error;
+  assign spi_info_re = addr_hit[7] & reg_re & !reg_error;
 
   // Assign write-enables to checker logic vector.
   always_comb begin
@@ -206,6 +312,11 @@ module system_info_reg_top (
     reg_we_check[0] = 1'b0;
     reg_we_check[1] = 1'b0;
     reg_we_check[2] = 1'b0;
+    reg_we_check[3] = 1'b0;
+    reg_we_check[4] = 1'b0;
+    reg_we_check[5] = 1'b0;
+    reg_we_check[6] = 1'b0;
+    reg_we_check[7] = 1'b0;
   end
 
   // Read data return
@@ -222,6 +333,26 @@ module system_info_reg_top (
 
       addr_hit[2]: begin
         reg_rdata_next[0] = rtl_commit_dirty_qs;
+      end
+
+      addr_hit[3]: begin
+        reg_rdata_next[31:0] = system_frequency_qs;
+      end
+
+      addr_hit[4]: begin
+        reg_rdata_next[7:0] = gpio_info_qs;
+      end
+
+      addr_hit[5]: begin
+        reg_rdata_next[7:0] = uart_info_qs;
+      end
+
+      addr_hit[6]: begin
+        reg_rdata_next[7:0] = i2c_info_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[7:0] = spi_info_qs;
       end
 
       default: begin
