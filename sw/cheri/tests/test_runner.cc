@@ -22,6 +22,7 @@
 #include "hyperram_tests.hh"
 #include "i2c_tests.hh"
 #include "spi_tests.hh"
+#include "pinmux_tests.hh"
 #include "uart_tests.hh"
 #include "usbdev_tests.hh"
 
@@ -31,6 +32,7 @@ extern "C" void entry_point(void *rwRoot) {
   auto console = uart_ptr(root);
 
   console->init(BAUD_RATE);
+  pinmux_tests(root, console);
   uart_tests(root, console);
   i2c_tests(root, console);
   spi_tests(root, console);
