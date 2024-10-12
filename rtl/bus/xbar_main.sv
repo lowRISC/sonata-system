@@ -340,8 +340,9 @@ end
     .dev_select_i (dev_sel_s1n_26)
   );
   tlul_socket_m1 #(
-    .HReqDepth (8'h0),
-    .HRspDepth (8'h0),
+    .HReqPass  (2'h1),
+    .HReqDepth (8'h10),
+    .HRspDepth (8'h10),
     .DReqDepth (4'h0),
     .DRspDepth (4'h0),
     .M         (2)

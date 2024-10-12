@@ -415,10 +415,8 @@ module sonata_system
   tlul_pkg::tl_h2d_t tl_ibex_lsu_h2d;
   tlul_pkg::tl_d2h_t tl_ibex_lsu_d2h;
 
-  tlul_pkg::tl_h2d_t tl_dbg_host_h2d_d;
-  tlul_pkg::tl_d2h_t tl_dbg_host_d2h_d;
-  tlul_pkg::tl_h2d_t tl_dbg_host_h2d_q;
-  tlul_pkg::tl_d2h_t tl_dbg_host_d2h_q;
+  tlul_pkg::tl_h2d_t tl_dbg_host_h2d;
+  tlul_pkg::tl_d2h_t tl_dbg_host_d2h;
 
   // Device interfaces.
   tlul_pkg::tl_h2d_t tl_sram_a_h2d;
@@ -464,8 +462,8 @@ module sonata_system
     // Host interfaces.
     .tl_ibex_lsu_i    (tl_ibex_lsu_h2d),
     .tl_ibex_lsu_o    (tl_ibex_lsu_d2h),
-    .tl_dbg_host_i    (tl_dbg_host_h2d_q),
-    .tl_dbg_host_o    (tl_dbg_host_d2h_q),
+    .tl_dbg_host_i    (tl_dbg_host_h2d),
+    .tl_dbg_host_o    (tl_dbg_host_d2h),
 
     // Device interfaces.
     .tl_sram_o        (tl_sram_a_h2d),
@@ -588,29 +586,8 @@ module sonata_system
     .err_o        (host_err[DbgHost]),
     .intg_err_o   (),
 
-    .tl_o         (tl_dbg_host_h2d_d),
-    .tl_i         (tl_dbg_host_d2h_d)
-  );
-
-  // This latch is necessary to avoid circular logic. This shows up as an `UNOPTFLAT` warning in Verilator.
-  tlul_fifo_sync #(
-    .ReqPass  ( 0 ),
-    .RspPass  ( 0 ),
-    .ReqDepth ( 2 ),
-    .RspDepth ( 2 )
-  ) tl_dbg_host_fifo (
-    .clk_i       (clk_sys_i),
-    .rst_ni      (rst_sys_ni),
-
-    .tl_h_i      (tl_dbg_host_h2d_d),
-    .tl_h_o      (tl_dbg_host_d2h_d),
-    .tl_d_o      (tl_dbg_host_h2d_q),
-    .tl_d_i      (tl_dbg_host_d2h_q),
-
-    .spare_req_i (1'b0),
-    .spare_req_o (    ),
-    .spare_rsp_i (1'b0),
-    .spare_rsp_o (    )
+    .tl_o         (tl_dbg_host_h2d),
+    .tl_i         (tl_dbg_host_d2h)
   );
 
   sram #(

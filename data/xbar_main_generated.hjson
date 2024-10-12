@@ -26,7 +26,10 @@
       type:  "host",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:  false,
+      pipeline: true,
     },
     { name:  "sram", // Internal memory
       type:  "device",
