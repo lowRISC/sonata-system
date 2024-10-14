@@ -166,7 +166,7 @@ module spi import spi_reg_pkg::*; #(
     else rx_fifo_ge_watermark = |(rx_fifo_depth_w >> reg2hw.control.rx_watermark.q);
   end
   // Rx FIFO level at or below programmed watermark (1,2,4,8,16)
-  assign tx_fifo_le_watermark = (tx_fifo_depth_w == (8'h1 << reg2hw.control.rx_watermark.q)) ||
+  assign tx_fifo_le_watermark = (tx_fifo_depth_w == (8'h1 << reg2hw.control.tx_watermark.q)) ||
                               ~|(tx_fifo_depth_w >> reg2hw.control.tx_watermark.q);
 
   assign spi_data_in_valid = reg2hw.control.tx_enable.q ? tx_fifo_rvalid    : 1'b1;
