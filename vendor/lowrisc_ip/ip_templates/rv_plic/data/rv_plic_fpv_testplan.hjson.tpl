@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 {
-  name: "rv_plic"
+  name: "${module_instance_name}"
   import_testplans: ["hw/dv/tools/dvsim/testplans/fpv_csr_testplan.hjson"]
   testpoints: [
     {
@@ -11,33 +11,33 @@
             level triggered (`le=0`), then in the prvious clock cycle, the interrupt source
             (`intr_src_i) should be set to 1.'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: LevelTriggeredIpWithClaim_A
       desc: '''If `intr_src_i` is set to 1, level indicator is set to level triggered, and claim
             signal is not set, then at the next clock cycle `ip` will be triggered.'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: IpStableAfterTriggered_A
       desc: "Once `ip` is set, it stays stable until is being claimed."
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: IpClearAfterClaim_A
       desc: "Once `ip` is set and being claimed, its value is cleared to 0."
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: IpStableAfterClaimed_A
       desc: '''Once `ip` is cleared to 0, it stays stable until completed and being triggered
             again.'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: TriggerIrqForwardCheck_A
@@ -46,7 +46,7 @@
             above the threshold. Then in the next clock clcye, the `irq_o` should be triggered,
             and the `irq_id_o` will reflect the input ID.'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
     {
       name: TriggerIrqBackwardCheck_A
@@ -54,7 +54,7 @@
             `ip` should be set, `ie` should be enabled, and the interrupt source should above the
             threshold and have the highest priority.'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
 
     }
     {
@@ -67,7 +67,7 @@
                  largest among the rest of the interrupt, but the interrupt source
                  priority is smaller than the threshold'''
       stage: V2
-      tests: ["rv_plic_assert"]
+      tests: ["${module_instance_name}_assert"]
     }
   ]
 }
