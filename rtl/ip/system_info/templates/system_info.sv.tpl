@@ -41,7 +41,6 @@ module system_info import system_info_reg_pkg::*; #(
     .rst_ni,
     .tl_i,
     .tl_o,
-    .hw2reg,
-    .intg_err_o()
+    .hw2reg
   );
 endmodule

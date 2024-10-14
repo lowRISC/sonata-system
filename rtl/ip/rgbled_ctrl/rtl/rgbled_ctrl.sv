@@ -184,8 +184,7 @@ module rgbled_ctrl import rgbled_ctrl_reg_pkg::*; #(
     .tl_i,
     .tl_o,
     .reg2hw,
-    .hw2reg,
-    .intg_err_o()
+    .hw2reg
   );
 
   assign off = (reg2hw.ctrl.off.qe    & reg2hw.ctrl.off.q)    | startup_go;

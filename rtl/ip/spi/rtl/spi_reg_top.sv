@@ -9,14 +9,12 @@
 module spi_reg_top (
   input clk_i,
   input rst_ni,
-  input  tlul_pkg::tl_h2d_t tl_i,
-  output tlul_pkg::tl_d2h_t tl_o,
   // To HW
   output spi_reg_pkg::spi_reg2hw_t reg2hw, // Write
   input  spi_reg_pkg::spi_hw2reg_t hw2reg, // Read
 
-  // Integrity check errors
-  output logic intg_err_o
+  input  tlul_pkg::tl_h2d_t tl_i,
+  output tlul_pkg::tl_d2h_t tl_o
 );
 
   import spi_reg_pkg::* ;
@@ -42,40 +40,6 @@ module spi_reg_top (
   tlul_pkg::tl_h2d_t tl_reg_h2d;
   tlul_pkg::tl_d2h_t tl_reg_d2h;
 
-
-  // incoming payload check
-  logic intg_err;
-  //tlul_cmd_intg_chk u_chk (
-  //  .tl_i(tl_i),
-  //  .err_o(intg_err)
-  //);
-  assign intg_err = 1'b0;
-
-  // also check for spurious write enables
-  logic reg_we_err;
-  logic [10:0] reg_we_check;
-  prim_reg_we_check #(
-    .OneHotWidth(11)
-  ) u_prim_reg_we_check (
-    .clk_i(clk_i),
-    .rst_ni(rst_ni),
-    .oh_i  (reg_we_check),
-    .en_i  (reg_we && !addrmiss),
-    .err_o (reg_we_err)
-  );
-
-  logic err_q;
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      err_q <= '0;
-    end else if (intg_err || reg_we_err) begin
-      err_q <= 1'b1;
-    end
-  end
-
-  // integrity error output is permanent and should be used for alert generation
-  // register errors are transactional
-  assign intg_err_o = err_q | intg_err | reg_we_err;
 
   // outgoing integrity generation
   tlul_pkg::tl_d2h_t tl_o_pre;
@@ -117,7 +81,7 @@ module spi_reg_top (
   // cdc oversampling signals
 
   assign reg_rdata = reg_rdata_next ;
-  assign reg_error = addrmiss | wr_err | intg_err;
+  assign reg_error = addrmiss | wr_err;
 
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
@@ -1259,22 +1223,6 @@ module spi_reg_top (
   assign cs_cs_2_wd = reg_wdata[2];
 
   assign cs_cs_3_wd = reg_wdata[3];
-
-  // Assign write-enables to checker logic vector.
-  always_comb begin
-    reg_we_check = '0;
-    reg_we_check[0] = intr_state_we;
-    reg_we_check[1] = intr_enable_we;
-    reg_we_check[2] = intr_test_we;
-    reg_we_check[3] = cfg_we;
-    reg_we_check[4] = control_we;
-    reg_we_check[5] = 1'b0;
-    reg_we_check[6] = start_we;
-    reg_we_check[7] = 1'b0;
-    reg_we_check[8] = tx_fifo_we;
-    reg_we_check[9] = 1'b0;
-    reg_we_check[10] = cs_we;
-  end
 
   // Read data return
   always_comb begin
