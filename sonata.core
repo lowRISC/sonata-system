@@ -64,6 +64,10 @@ filesets:
   files_tcl:
     files:
       - flow/vivado_setup.tcl : { file_type: tclSource }
+      - flow/vivado_hook_opt_design_pre.tcl : { file_type: user, copyto: vivado_hook_opt_design_pre.tcl }
+      - flow/vivado_hook_opt_design_post.tcl : { file_type: user, copyto: vivado_hook_opt_design_post.tcl }
+      - flow/vivado_hook_route_design_pre.tcl : { file_type: user, copyto: vivado_hook_route_design_pre.tcl }
+      - flow/vivado_hook_route_design_post.tcl : { file_type: user, copyto: vivado_hook_route_design_post.tcl }
 
 parameters:
   # XXX: This parameter needs to be absolute, or relative to the *.runs/synth_1
