@@ -9,7 +9,7 @@ module top_verilator (input logic clk_i, rst_ni);
   parameter bit DisableHyperram = 1'b0;
 
   // System clock frequency.
-  localparam int unsigned SysClkFreq = 30_000_000;
+  localparam int unsigned SysClkFreq = 40_000_000;
   // HyperRAM clock frequency.
   localparam int unsigned HRClkFreq  = 100_000_000;
   localparam int unsigned BaudRate   = 921_600;
