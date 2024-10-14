@@ -1,28 +1,85 @@
-diff --git a/reg_top.sv.tpl b/reg_top.sv.tpl
-index 828ceb1..c686fdd 100644
+diff --git a/reg_top.sv.tpl b0/reg_top.sv.tpl
+index 828ceb1..5f6f474 100644
 --- a/reg_top.sv.tpl
 +++ b/reg_top.sv.tpl
-@@ -217,10 +217,11 @@ module ${mod_name} (
- % if rb.all_regs:
-   // incoming payload check
-   logic intg_err;
+@@ -125,8 +125,6 @@ module ${mod_name} (
+   input ${clock.clock},
+   input ${clock.reset},
+ % endfor
+-  input  tlul_pkg::tl_h2d_t tl_i,
+-  output tlul_pkg::tl_d2h_t tl_o,
+ % if num_wins != 0:
+ 
+   // Output port for window
+@@ -147,8 +145,8 @@ module ${mod_name} (
+   output logic shadowed_update_err_o,
+ 
+ %endif
+-  // Integrity check errors
+-  output logic intg_err_o
++  input  tlul_pkg::tl_h2d_t tl_i,
++  output tlul_pkg::tl_d2h_t tl_o
+ );
+ 
+   import ${lblock}${alias_impl}_reg_pkg::* ;
+@@ -214,65 +212,11 @@ module ${mod_name} (
+   );
+ % endif
+ 
+-% if rb.all_regs:
+-  // incoming payload check
+-  logic intg_err;
 -  tlul_cmd_intg_chk u_chk (
 -    .tl_i(${tl_h2d_expr}),
 -    .err_o(intg_err)
 -  );
-+  //tlul_cmd_intg_chk u_chk (
-+  //  .tl_i(${tl_h2d_expr}),
-+  //  .err_o(intg_err)
-+  //);
-+  assign intg_err = 1'b0;
- 
-   // also check for spurious write enables
-   logic reg_we_err;
-diff --git a/reg_top.sv.tpl b/reg_top.sv.tpl
-index c686fdd..07c45f4 100644
---- a/reg_top.sv.tpl
-+++ b/reg_top.sv.tpl
-@@ -272,8 +272,8 @@ module ${mod_name} (
+-
+-  // also check for spurious write enables
+-  logic reg_we_err;
+-  ## Note that the write-enables are per register.
+-  ## Hence, we reduce the byte address to a word address here.
+-  logic [${len(regs_flat)-1}:0] reg_we_check;
+-  prim_reg_we_check #(
+-    .OneHotWidth(${len(regs_flat)})
+-  ) u_prim_reg_we_check (
+-    .clk_i(${reg_clk_expr}),
+-    .rst_ni(${reg_rst_expr}),
+-    .oh_i  (reg_we_check),
+-    .en_i  (reg_we && !addrmiss),
+-    .err_o (reg_we_err)
+-  );
+-
+-  logic err_q;
+-<%
+-  clk_lc_found = False;
+-  for clock in rb.clocks.values():
+-    if clock.clock == "clk_lc_i":
+-      clk_lc_found = True;
+-    endif
+-  endfor
+-%>\
+-% if clk_lc_found:
+-  always_ff @(posedge clk_lc_i or negedge rst_lc_ni) begin
+-    if (!rst_lc_ni) begin
+-% else:
+-  always_ff @(posedge ${reg_clk_expr} or negedge ${reg_rst_expr}) begin
+-    if (!${reg_rst_expr}) begin
+-% endif
+-      err_q <= '0;
+-    end else if (intg_err || reg_we_err) begin
+-      err_q <= 1'b1;
+-    end
+-  end
+-
+-  // integrity error output is permanent and should be used for alert generation
+-  // register errors are transactional
+-  assign intg_err_o = err_q | intg_err | reg_we_err;
+-% else:
+-  // Since there are no registers in this block, commands are routed through to windows which
+-  // can report their own integrity errors.
+-  assign intg_err_o = 1'b0;
+-% endif
+-
    // outgoing integrity generation
    tlul_pkg::tl_d2h_t tl_o_pre;
    tlul_rsp_intg_gen #(
@@ -33,3 +90,55 @@ index c686fdd..07c45f4 100644
    ) u_rsp_intg_gen (
      .tl_i(tl_o_pre),
      .tl_o(${tl_d2h_expr})
+@@ -310,7 +254,7 @@ module ${mod_name} (
+     ## passthrough, we must generate data integrity for it here.
+   tlul_rsp_intg_gen #(
+     .EnableRspIntgGen(0),
+-    .EnableDataIntgGen(1)
++    .EnableDataIntgGen(0)
+   ) u_win${i}_data_intg_gen (
+     .tl_i(tl_win_i${win_suff}),
+     .tl_o(tl_socket_d2h[${i}])
+@@ -402,7 +345,7 @@ module ${mod_name} (
+ 
+   % endif
+   assign reg_rdata = reg_rdata_next ;
+-  assign reg_error = addrmiss | wr_err | intg_err;
++  assign reg_error = addrmiss | wr_err;
+ 
+   // Define SW related signals
+   // Format: <reg>_<field>_{wd|we|qs}
+@@ -684,33 +628,6 @@ ${field_wd_gen(f, r.name.lower() + "_" + f.name.lower(), r.hwext, r.shadowed, r.
+     % endif
+   % endfor
+ 
+-  // Assign write-enables to checker logic vector.
+-  always_comb begin
+-    reg_we_check = '0;
+-    % for i, r in enumerate(regs_flat):
+-<%
+-    # The WE checking logic does NOT protect RC fields.
+-    if r.needs_we():
+-      # In case this is an asynchronous register, the WE signal is taken from
+-      # the CDC primitive input. This could be enhanced in the future to provide
+-      # more protection for asynchronous registers.
+-      if r.async_clk or not r.regwen:
+-        we_expr = f'{r.name.lower()}_we'
+-      else:
+-        we_expr = f'{r.name.lower()}_gated_we'
+-    else:
+-      we_expr = "1'b0"
+-
+-    assignment = f'reg_we_check[{i}] = {we_expr};'
+-
+-    # Wrap the assignment if the statement is too long
+-    if len(assignment) > 100-4:
+-      assignment = f'reg_we_check[{i}] =\n        {we_expr};'
+-%>\
+-    ${assignment}
+-    % endfor
+-  end
+-
+   // Read data return
+   always_comb begin
+     reg_rdata_next = '0;
