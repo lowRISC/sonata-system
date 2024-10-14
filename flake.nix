@@ -174,9 +174,9 @@
       cheriotRtosSource = pkgs.fetchFromGitHub {
         owner = "lowRISC";
         repo = "CHERIoT-RTOS";
-        rev = "54e4f827c321013afe4013fe046b756854803ef8";
+        rev = "ad22e7d9cdcf135ec69f3204c4d18c93da3f5639";
         fetchSubmodules = true;
-        hash = "sha256-fCrQBUyAtaS9AZ3hBoCj/e335ztlBXfX/g367iLCyYM=";
+        hash = "sha256-/xae1dToXVu4/2dUYs+Z4zP5HX7KJlcR/TieMhTYyV8=";
       };
 
       sonata-system-software = pkgs.stdenv.mkDerivation rec {

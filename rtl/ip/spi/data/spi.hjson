@@ -116,6 +116,27 @@
       hwaccess: "hro",
       hwqe:     "true",
       fields: [
+        { bits: "31",
+          name: "SW_RESET",
+          desc: '''When a 1 is written to this field a reset of the controller logic
+                   is performed.
+                   This shall be used only to recover from error conditions.
+                   The TX FIFO shall be cleared before resetting the controller logic;
+                   then clear the RX FIFO after the controller reset.
+                   The bit self-clears and always reads as zero.'''
+          resval: "0",
+          swaccess: "wo",
+          hwaccess: "hro"
+        },
+        { bits: "30",
+          name: "INT_LOOPBACK",
+          desc: '''When set the CIPO line is internally connected to the COPI line,
+                   providing loopback functionality which may be useful in testing.
+                   Note that the COPI line is unaffected and still carries data so
+                   test software should normally leave the CS lines deasserted.
+                   This bit shall be changed only when the SPI core is idle.'''
+          resval: "0"
+        },
         { bits: "11:8",
           name: "RX_WATERMARK",
           desc: '''The watermark level for the receive FIFO, depending on the
