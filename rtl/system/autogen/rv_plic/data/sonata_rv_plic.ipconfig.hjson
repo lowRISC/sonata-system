@@ -1,0 +1,13 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  instance_name: sonata_rv_plic
+  param_values:
+  {
+    topname: sonata
+    src: 32
+    target: 1
+    prio: 3
+  }
+}
