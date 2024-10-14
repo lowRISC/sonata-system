@@ -13,7 +13,7 @@
 #include "uart.h"
 
 // System Clock Frequency (Hz)
-#define SYSCLK_FREQ (30 * 1000 * 1000)
+#define SYSCLK_FREQ (40 * 1000 * 1000)
 
 #define UART_IRQ_NUM 16
 #define UART_IRQ (1 << UART_IRQ_NUM)

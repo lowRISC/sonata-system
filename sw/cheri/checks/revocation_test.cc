@@ -13,7 +13,7 @@
 
 using namespace CHERI;
 
-#define CPU_FREQ_HZ (30'000'000)
+#define CPU_FREQ_HZ (40'000'000)
 #include "../../common/defs.h"
 
 /**
