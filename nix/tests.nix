@@ -19,12 +19,10 @@
           "as the first argument."
         exit 2
       fi
-
+      echo "Sonata system test suite"
       ${../util/test_runner.py} -t 30 fpga "$1" \
         --elf-file ${sonata-system-software}/bin/test_runner \
         --tcl-file ${../util/sonata-openocd-cfg.tcl}
-      ${../util/test_runner.py} -t 600 fpga "$1" \
-        --uf2-file ${cheriot-rtos-test-suite}/share/test-suite.uf2
     '';
   };
 
