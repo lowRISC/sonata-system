@@ -24,6 +24,7 @@
     - [ADC](doc/ip/adc.md)
     - [Pinmux](doc/ip/pinmux.md)
     - [Revoker](doc/ip/revoker.md)
+    - [System info](doc/ip/system_info.md)
     - [Timer](doc/ip/timer.md)
     - [UART](doc/ip/uart.md)
     - [I2C host](doc/ip/i2c.md)
