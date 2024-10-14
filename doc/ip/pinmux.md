@@ -92,6 +92,8 @@ The default value for all of these selectors is `'b10`.
 | 0x04d | `pmod1[5]` | 0, `gpio[2].ios[13]` |
 | 0x04e | `pmod1[6]` | 0, `gpio[2].ios[14]` |
 | 0x04f | `pmod1[7]` | 0, `gpio[2].ios[15]` |
+| 0x050 | `microsd_clk` | 0, `spi[3].sck` |
+| 0x051 | `microsd_cmd` | 0, `spi[3].tx` |
 
 Besides the output pin selectors, there are also selectors for which pin should drive block inputs:
 
@@ -105,7 +107,7 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x805 | `spi[0].rx` | 0, `appspi_d1` |
 | 0x806 | `spi[1].rx` | 0, 0 |
 | 0x807 | `spi[2].rx` | 0, `ethmac_cipo` |
-| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12` |
+| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `microsd_dat0` |
 | 0x809 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3` |
 | 0x80a | `gpio[0].ios[0]` | 0, `rph_g0` |
 | 0x80b | `gpio[1].ios[0]` | 0, `ah_tmpio0` |

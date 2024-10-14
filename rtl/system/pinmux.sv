@@ -3951,6 +3951,102 @@ module pinmux
     .out_o(inout_to_pins_en_o[INOUT_PIN_PMOD1_7])
   );
 
+  logic [1:0] microsd_clk_sel;
+  logic microsd_clk_sel_addressed;
+
+  // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
+  assign microsd_clk_sel_addressed =
+    reg_addr[RegAddrWidth-1] == 1'b0 &
+    reg_addr[RegAddrWidth-2:0] == 80 &
+    reg_be[0] == 1'b1;
+
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      microsd_clk_sel <= 2'b10;
+    end else begin
+      if (reg_we & microsd_clk_sel_addressed) begin
+        microsd_clk_sel <= reg_wdata[0+:2];
+      end
+    end
+  end
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) microsd_clk_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0, // This is set to Z later when output enable is low.
+      spi_sck_i[3]
+    }),
+    .sel_i(microsd_clk_sel),
+    .out_o(out_to_pins_o[OUT_PIN_MICROSD_CLK])
+  );
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) microsd_clk_enable_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0,
+      1'b1
+    }),
+    .sel_i(microsd_clk_sel),
+    .out_o(out_to_pins_en_o[OUT_PIN_MICROSD_CLK])
+  );
+
+  logic [1:0] microsd_cmd_sel;
+  logic microsd_cmd_sel_addressed;
+
+  // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
+  assign microsd_cmd_sel_addressed =
+    reg_addr[RegAddrWidth-1] == 1'b0 &
+    reg_addr[RegAddrWidth-2:0] == 80 &
+    reg_be[1] == 1'b1;
+
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      microsd_cmd_sel <= 2'b10;
+    end else begin
+      if (reg_we & microsd_cmd_sel_addressed) begin
+        microsd_cmd_sel <= reg_wdata[8+:2];
+      end
+    end
+  end
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) microsd_cmd_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0, // This is set to Z later when output enable is low.
+      spi_tx_i[3]
+    }),
+    .sel_i(microsd_cmd_sel),
+    .out_o(out_to_pins_o[OUT_PIN_MICROSD_CMD])
+  );
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) microsd_cmd_enable_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0,
+      1'b1
+    }),
+    .sel_i(microsd_cmd_sel),
+    .out_o(out_to_pins_en_o[OUT_PIN_MICROSD_CMD])
+  );
+
   // Inputs - Physical pin inputs are muxed to particular block IO
 
   logic [1:0] uart_rx_0_sel;
@@ -4225,7 +4321,7 @@ module pinmux
     .out_o(spi_rx_o[2])
   );
 
-  logic [2:0] spi_rx_3_sel;
+  logic [3:0] spi_rx_3_sel;
   logic spi_rx_3_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
@@ -4237,24 +4333,25 @@ module pinmux
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      spi_rx_3_sel <= 3'b10;
+      spi_rx_3_sel <= 4'b10;
     end else begin
       if (reg_we & spi_rx_3_sel_addressed) begin
-        spi_rx_3_sel <= reg_wdata[0+:3];
+        spi_rx_3_sel <= reg_wdata[0+:4];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(3)
+    .Inputs(4)
   ) spi_rx_3_mux (
     .clk_i,
     .rst_ni,
     .in_i({
       1'b0,
       inout_from_pins_i[INOUT_PIN_RPH_G9_CIPO],
-      inout_from_pins_i[INOUT_PIN_AH_TMPIO12]
+      inout_from_pins_i[INOUT_PIN_AH_TMPIO12],
+      in_from_pins_i[IN_PIN_MICROSD_DAT0]
     }),
     .sel_i(spi_rx_3_sel),
     .out_o(spi_rx_o[3])

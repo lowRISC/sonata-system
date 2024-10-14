@@ -109,10 +109,12 @@ module top_verilator (input logic clk_i, rst_ni);
   wire ethmac_rst, ethmac_cs;
   // User LEDs.
   wire [7:0] usrLed;
+  // MicroSD card slot
+  wire microsd_dat3;
   // None of these signals is used presently.
   wire unused_io_ = ^{mb0, mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1, ethmac_rst, ethmac_cs,
-                      usrLed};
+                      usrLed, microsd_dat3};
 
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
@@ -202,16 +204,17 @@ module top_verilator (input logic clk_i, rst_ni);
   logic gp_ah_tmpio10, gp_mb1;
 
   // CS outputs to SPI peripherals from controllers.
-  assign appspi_cs   = spi_cs[0][0];
-  assign lcd_cs      = spi_cs[1][0];
-  assign ethmac_cs   = spi_cs[2][0];
-  assign rph_g8_ce0  = spi_cs[3][0];
-  assign rph_g7_ce1  = spi_cs[3][1];
-  assign ah_tmpio10  = spi_cs[3][2];
-  assign rph_g18     = spi_cs[4][0];
-  assign rph_g17     = spi_cs[4][1];
-  assign rph_g16_ce2 = spi_cs[4][2];
-  assign mb1         = spi_cs[4][3];
+  assign appspi_cs    = spi_cs[0][0];
+  assign lcd_cs       = spi_cs[1][0];
+  assign ethmac_cs    = spi_cs[2][0];
+  assign rph_g8_ce0   = spi_cs[3][0];
+  assign rph_g7_ce1   = spi_cs[3][1];
+  assign ah_tmpio10   = spi_cs[3][2];
+  assign microsd_dat3 = spi_cs[3][3];
+  assign rph_g18      = spi_cs[4][0];
+  assign rph_g17      = spi_cs[4][1];
+  assign rph_g16_ce2  = spi_cs[4][2];
+  assign mb1          = spi_cs[4][3];
 
   wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
                              gp_rph_g8_ce0, gp_rph_g7_ce1, gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2,
