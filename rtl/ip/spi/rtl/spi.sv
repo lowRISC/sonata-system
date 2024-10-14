@@ -41,8 +41,7 @@ module spi import spi_reg_pkg::*; #(
     .tl_i,
     .tl_o,
     .reg2hw,
-    .hw2reg,
-    .intg_err_o ()
+    .hw2reg
   );
 
   logic [7:0]  spi_data_in, spi_data_out;
