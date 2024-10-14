@@ -269,6 +269,144 @@ int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro:
 }
 
 /**
+ * SPI controller interrupt test.
+ */
+int spi_irq_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, Log &log) {
+  // Ensure that the SPI SCLK speed is substantially slower than the system clock
+  // so that the CPU has time to check the interrupt state immediately after
+  // hitting the `start` button.
+  const uint32_t kSpeed = 8u;
+  const bool logging    = false;
+  int failures          = 0;
+
+  // Choose some watermark levels.
+  const uint8_t encRxWatermark = prng() % 5;
+  const uint8_t encTxWatermark = prng() % 4;
+  const uint8_t rxWatermark    = 1u << encRxWatermark;
+  const uint8_t txWatermark    = 1u << encTxWatermark;
+
+  spi->wait_idle();
+  spi->init(false, false, true, kSpeed);
+  spi->control = SonataSpi::ControlInternalLoopback | SonataSpi::ControlTransmitEnable |
+                 SonataSpi::ControlReceiveEnable | (encRxWatermark << 8) | (encTxWatermark << 4);
+
+  // Ascertain the FIFO sizes.
+  const uint8_t rxFifoSize = (spi->info & SonataSpi::InfoRxFifoDepth) >> 8;
+  const uint8_t txFifoSize = (spi->info & SonataSpi::InfoTxFifoDepth);
+
+  if (logging) {
+    log.println("rxWatermark {} txWatermark {} rxFifoSize {} txFifoSize {}", rxWatermark, txWatermark, rxFifoSize,
+                txFifoSize);
+  }
+
+  // The test consists of a number of phases.
+  enum { PhaseFillTx, PhaseTransfer, PhaseDrainRx, PhaseComplete } testPhase = PhaseFillTx;
+  // Each test phase needs to count iterations.
+  unsigned iter = 0u;
+
+  // The data values do not matter for this test.
+  const uint8_t testDatum = 0xaau;
+  // Expected state of the FIFOs.
+  uint32_t expRxLevel = 0u;
+  uint32_t expTxLevel = 0u;
+  do {
+    // Derived, expected status.
+    bool expRxWatermark = (expRxLevel >= rxWatermark);
+    bool expTxWatermark = (expTxLevel <= txWatermark);
+    bool expRxFull      = (expRxLevel >= rxFifoSize);
+    bool expTxFull      = (expTxLevel >= txFifoSize);
+    bool expRxEmpty     = !expRxLevel;
+    bool expTxEmpty     = !expTxLevel;
+
+    // Read the current state information from the SPI controller.
+    uint32_t interruptState = spi->interruptState;
+    bool actRxWatermark     = (SonataSpi::InterruptReceiveWatermark & interruptState) != 0u;
+    bool actTxWatermark     = (SonataSpi::InterruptTransmitWatermark & interruptState) != 0u;
+    bool actTxEmpty         = (SonataSpi::InterruptTransmitEmpty & interruptState) != 0u;
+    bool actRxFull          = (SonataSpi::InterruptReceiveFull & interruptState) != 0u;
+    uint32_t status         = spi->status;
+    uint8_t actRxLevel      = (SonataSpi::StatusRxFifoLevel & status) >> 8;
+    uint8_t actTxLevel      = (SonataSpi::StatusTxFifoLevel & status);
+    bool actRxEmpty         = (SonataSpi::StatusRxFifoEmpty & status) != 0u;
+    bool actTxFull          = (SonataSpi::StatusTxFifoFull & status) != 0u;
+
+    if (logging) {
+      log.println("status {} interruptState {}", status, interruptState);
+    }
+
+    // Check that the FIFO levels are as expected.
+    failures += (actRxLevel != expRxLevel);
+    failures += (actTxLevel != expTxLevel);
+    // Check that interrupt state indicators are as expected.
+    failures += (actRxEmpty != expRxEmpty);
+    failures += (actTxEmpty != expTxEmpty);
+    failures += (actRxFull != expRxFull);
+    failures += (actTxFull != expTxFull);
+    // Check that the watermark interrupts are as expected.
+    failures += (actRxWatermark != expRxWatermark);
+    failures += (actTxWatermark != expTxWatermark);
+
+    switch (testPhase) {
+      // Filling the Tx FIFO.
+      case PhaseFillTx:
+        if (iter++ < txFifoSize) {
+          spi->transmitFifo = testDatum;
+          expTxLevel++;
+        } else {
+          testPhase = PhaseTransfer;
+          iter      = 0u;
+        }
+        break;
+
+      // Transferring data from Tx FIFO to Rx FIFO using the controller.
+      case PhaseTransfer:
+        if (iter++ < txFifoSize) {
+          // Ensure that the `complete` interrupt is clear.
+          spi->interruptState = static_cast<uint32_t>(SonataSpi::InterruptComplete);
+
+          // Shuffle a single byte from the Tx FIFO to the Rx FIFO.
+          spi->start = 1u;
+          // Check that the interrupt is still clear; the SPI controller is limited
+          // by its programmed SCLK speed, but we need to perform this test promptly.
+          failures += (SonataSpi::InterruptComplete & spi->interruptState) != 0u;
+          spi->wait_idle();
+
+          // Check that the `complete` interrupt has become set, before clearing it.
+          failures += !(SonataSpi::InterruptComplete & spi->interruptState);
+          spi->interruptState = static_cast<uint32_t>(SonataSpi::InterruptComplete);
+
+          // A single byte should have been moved.
+          expTxLevel--;
+          expRxLevel++;
+        } else {
+          testPhase = PhaseDrainRx;
+          iter      = 0u;
+        }
+        break;
+
+      // Draining the data from the Rx FIFO.
+      case PhaseDrainRx:
+        if (iter++ < rxFifoSize) {
+          // Remove a byte from the Rx FIFO; may as well check its value.
+          failures += (testDatum != spi->receiveFifo);
+          expRxLevel--;
+        } else {
+          testPhase = PhaseComplete;
+        }
+        break;
+
+      // Invalid/undefined state.
+      default: {
+        testPhase = PhaseComplete;
+        failures++;
+      } break;
+    }
+  } while (testPhase != PhaseComplete);
+
+  return failures;
+}
+
+/**
  * SPI loopback test transmits a sequence of pseudo-random bytes and checks that
  * the same data is received correctly with transmit and receive enabled correctly.
  *
@@ -389,7 +527,7 @@ void spi_tests(CapRoot root, Log &log) {
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    // Loopback testing.
+    // Loopback testing and IRQ testing.
     for (int s = 0; s < SPI_NUM; s++) {
       // Default configuration.
       const bool msb_first = true;
@@ -411,6 +549,12 @@ void spi_tests(CapRoot root, Log &log) {
         test_failed |= (failures > 0);
         write_test_result(log, failures);
       }
+
+      // Interrupt test; this also uses the loopback functionality so it should follow that.
+      log.print("  Running SPI {} IRQ test... ", s);
+      failures = spi_irq_test(spis[s], prng, log);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
     }
 
     // Check all polarities and phases; we'll use the highest-numbered
