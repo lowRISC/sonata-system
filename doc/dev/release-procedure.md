@@ -247,3 +247,43 @@ In your release directory from the procedures above you should have:
  - `snake_demo_vX.Y.slot1.uf2`
 
 Use these to create the GitHub release, remember to include the RP2040 UF2 and include appropriate release notes.
+
+### Versioning
+
+Choose a release number in the form "vX.Y" which is higher than the previous release.
+Create a tag in sonata-system:
+```shell
+# Create git tag
+git tag vX.Y
+# Push this tag to upstream
+git push --set-upstream upstream vX.Y
+```
+
+For the sonata-software repository we should create a branch:
+```shell
+git checkout -b vX.Y
+git push --setupstream upstream vX.Y
+```
+
+### Release notes
+
+Look for the previous tagged release and go through the commit history since then.
+Note down any major updates like the additions of an IP block and make a bulleted list.
+An example release notes looks something like this:
+
+> This release contains on top of PREVIOUS_RELEASE:
+>
+> - MAJOR_FEATURE_ADDED_1
+> - MAJOR_FEATURE_ADDED_2
+> - ...
+>
+> Here's the flow for using these files:
+>
+> 1. Make sure the bitstream select switch (immediately below the main USB-C port) is set to position 1.
+> 2. Before plugging in your Sonata board, hold down the "SW9" button labelled "RP2040 Boot", and while holding this button plug your board into your laptop using the Main USB.
+> 3. A drive called "RPI-RP2" should pop up on your computer and copy `rpi_rp2_vX.Y.uf2` into it.
+> 4. This drive should automatically dismount once the file is transferred and remount as "SONATA". Once the remount has happened, you can drag in the wrapped bitstream `sonata_bitstream_vX.Y.bit.slot1.uf2`.
+> 5. Once programming is successful, you should see the "CHERI" LED light up and the "LEGACY" LED turn off. If this is not the case, the bitstream loading may have failed and you should retry by unplugging and replugging the main USB on the Sonata board. Then re-drag the bitstream into the "SONATA" drive.
+> 6. After programming the bitstream, drag the `sonata_simple_demo_vX.Y.slot1.uf2` into the "SONATA" drive.
+> 7. You should now see the user LEDs turn on and off, as well as the lowRISC logo appear on the LCD.
+> 8. You can also drag `snake_demo_vX.Y.slot1.uf2` into the SONATA drive to play snake using the joystick. Watch the CHERI error LEDs as you hit the boundary.
