@@ -391,3 +391,16 @@ block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 0}]
 name = "pmod1"
 length = 8
 block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 8}]
+
+## MicroSD card slot
+[[pins]]
+name = "microsd_clk"
+block_ios = [{block = "spi", instance = 3, io = "sck"}]
+
+[[pins]]
+name = "microsd_dat0"
+block_ios = [{block = "spi", instance = 3, io = "rx"}]
+
+[[pins]]
+name = "microsd_cmd"
+block_ios = [{block = "spi", instance = 3, io = "tx"}]

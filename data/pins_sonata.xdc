@@ -289,6 +289,15 @@ set_property -dict { PACKAGE_PIN H6  IOSTANDARD LVCMOS18 } [get_ports ethmac_int
 set_property PULLTYPE PULLUP [get_ports ethmac_intr]
 set_property -dict { PACKAGE_PIN H5  IOSTANDARD LVCMOS18 } [get_ports ethmac_cs]
 
+## MicroSD card slot
+set_property -dict { PACKAGE_PIN U6  IOSTANDARD LVCMOS33 } [get_ports microsd_clk]
+set_property -dict { PACKAGE_PIN V4  IOSTANDARD LVCMOS33 } [get_ports microsd_dat0]
+# set_property -dict { PACKAGE_PIN R7  IOSTANDARD LVCMOS33 } [get_ports microsd_dat1] // unused in SPI bus mode
+# set_property -dict { PACKAGE_PIN V5  IOSTANDARD LVCMOS33 } [get_ports microsd_dat2] // unused in SPI bus mode
+set_property -dict { PACKAGE_PIN T8  IOSTANDARD LVCMOS33 } [get_ports microsd_dat3]
+set_property -dict { PACKAGE_PIN R8  IOSTANDARD LVCMOS33 } [get_ports microsd_cmd]
+set_property -dict { PACKAGE_PIN B3  IOSTANDARD LVCMOS18 } [get_ports microsd_det]
+
 # HyperRAM
 set_property -dict { PACKAGE_PIN   B1  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[0] }]
 set_property -dict { PACKAGE_PIN   E2  IOSTANDARD   LVCMOS18 } [get_ports { hyperram_dq[1] }]

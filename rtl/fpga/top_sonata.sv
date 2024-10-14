@@ -177,6 +177,15 @@ module top_sonata
   output logic       appspi_d3, // HOLD_N or RESET_N
   output logic       appspi_cs, // Chip select negated
 
+  // MicroSD card slot
+  output logic       microsd_clk,  // SPI mode: SCLK
+  input  logic       microsd_dat0, // SPI mode: CIPO
+//input  logic       microsd_dat1, // SPI mode: NC
+//input  logic       microsd_dat2, // SPI mode: NC
+  output logic       microsd_dat3, // SPI mode: CS_N
+  output logic       microsd_cmd,  // SPI mode: COPI
+  input  logic       microsd_det,  // Card insertion detection
+
   inout  wire [7:0]  hyperram_dq,
   inout  wire        hyperram_rwds,
   output wire        hyperram_ckp,
@@ -250,16 +259,17 @@ module top_sonata
   logic gp_ah_tmpio10, gp_mb1;
 
   // CS outputs to SPI peripherals from controllers.
-  assign appspi_cs   = spi_cs[0][0];
-  assign lcd_cs      = spi_cs[1][0];
-  assign ethmac_cs   = spi_cs[2][0];
-  assign rph_g8_ce0  = spi_cs[3][0];
-  assign rph_g7_ce1  = spi_cs[3][1];
-  assign ah_tmpio10  = spi_cs[3][2];
-  assign rph_g18     = spi_cs[4][0];
-  assign rph_g17     = spi_cs[4][1];
-  assign rph_g16_ce2 = spi_cs[4][2];
-  assign mb1         = spi_cs[4][3];
+  assign appspi_cs    = spi_cs[0][0];
+  assign lcd_cs       = spi_cs[1][0];
+  assign ethmac_cs    = spi_cs[2][0];
+  assign rph_g8_ce0   = spi_cs[3][0];
+  assign rph_g7_ce1   = spi_cs[3][1];
+  assign ah_tmpio10   = spi_cs[3][2];
+  assign microsd_dat3 = spi_cs[3][3];
+  assign rph_g18      = spi_cs[4][0];
+  assign rph_g17      = spi_cs[4][1];
+  assign rph_g16_ce2  = spi_cs[4][2];
+  assign mb1          = spi_cs[4][3];
 
   wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
                              gp_rph_g8_ce0, gp_rph_g7_ce1,
@@ -269,8 +279,7 @@ module top_sonata
   // Collect the unused CS lines.
   wire unused_spi_cs_ = ^{spi_cs[0][SPI_CS_NUM-1:1],
                           spi_cs[1][SPI_CS_NUM-1:1],
-                          spi_cs[2][SPI_CS_NUM-1:1],
-                          spi_cs[3][SPI_CS_NUM-1]};
+                          spi_cs[2][SPI_CS_NUM-1:1]};
 
   // Enable CHERI by default.
   logic enable_cheri;
@@ -303,7 +312,8 @@ module top_sonata
 
     // GPIO
     .gp_i           ({
-                      15'b0,
+                      14'b0,
+                      microsd_det, // MicroSD card insertion detection
                       sel_sw_n, // Software selection switches
                       mb9, // mikroBUS Click interrupt
                       user_sw_n, // user switches
@@ -430,18 +440,21 @@ module top_sonata
   );
 
   // Input Pins
-  assign in_from_pins[IN_PIN_MB8        ] = mb8;
-  assign in_from_pins[IN_PIN_MB3        ] = mb3;
-  assign in_from_pins[IN_PIN_ETHMAC_CIPO] = ethmac_cipo;
-  assign in_from_pins[IN_PIN_APPSPI_D1  ] = appspi_d1;
-  assign in_from_pins[IN_PIN_RS232_RX   ] = rs232_rx;
-  assign in_from_pins[IN_PIN_SER1_RX    ] = ser1_rx;
-  assign in_from_pins[IN_PIN_SER0_RX    ] = ser0_rx;
+  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
+  assign in_from_pins[IN_PIN_MB8         ] = mb8;
+  assign in_from_pins[IN_PIN_MB3         ] = mb3;
+  assign in_from_pins[IN_PIN_ETHMAC_CIPO ] = ethmac_cipo;
+  assign in_from_pins[IN_PIN_APPSPI_D1   ] = appspi_d1;
+  assign in_from_pins[IN_PIN_RS232_RX    ] = rs232_rx;
+  assign in_from_pins[IN_PIN_SER1_RX     ] = ser1_rx;
+  assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
 
   // Output Pins
   // pull output pins low when their output isn't enabled.
   assign output_pins = out_to_pins_en & out_to_pins;
 
+  assign microsd_cmd = output_pins[OUT_PIN_MICROSD_CMD];
+  assign microsd_clk = output_pins[OUT_PIN_MICROSD_CLK];
   assign mb7         = output_pins[OUT_PIN_MB7        ];
   assign mb4         = output_pins[OUT_PIN_MB4        ];
   assign mb2         = output_pins[OUT_PIN_MB2        ];

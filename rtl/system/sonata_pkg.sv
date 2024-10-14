@@ -13,8 +13,8 @@ package sonata_pkg;
 
   localparam int unsigned SPI_CS_NUM = 4;
 
-  localparam int unsigned IN_PIN_NUM = 7;
-  localparam int unsigned OUT_PIN_NUM = 12;
+  localparam int unsigned IN_PIN_NUM = 8;
+  localparam int unsigned OUT_PIN_NUM = 14;
   localparam int unsigned INOUT_PIN_NUM = 68;
 
   localparam int unsigned IN_PIN_SER0_RX = 0;
@@ -24,6 +24,7 @@ package sonata_pkg;
   localparam int unsigned IN_PIN_ETHMAC_CIPO = 4;
   localparam int unsigned IN_PIN_MB3 = 5;
   localparam int unsigned IN_PIN_MB8 = 6;
+  localparam int unsigned IN_PIN_MICROSD_DAT0 = 7;
 
   localparam int unsigned OUT_PIN_SER0_TX = 0;
   localparam int unsigned OUT_PIN_SER1_TX = 1;
@@ -37,6 +38,8 @@ package sonata_pkg;
   localparam int unsigned OUT_PIN_MB2 = 9;
   localparam int unsigned OUT_PIN_MB4 = 10;
   localparam int unsigned OUT_PIN_MB7 = 11;
+  localparam int unsigned OUT_PIN_MICROSD_CLK = 12;
+  localparam int unsigned OUT_PIN_MICROSD_CMD = 13;
 
   localparam int unsigned INOUT_PIN_SCL0 = 0;
   localparam int unsigned INOUT_PIN_SDA0 = 1;
