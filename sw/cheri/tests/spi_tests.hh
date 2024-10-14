@@ -39,6 +39,18 @@ using namespace CHERI;
 #define SPI_TEST_FLASH_PAGES_WRITTEN (10U)
 #endif
 
+/**
+ * Configures which of the SPI controllers shall use an external loopback
+ * via a jumper cable rather than the internal loopback within the SPI
+ * block itself. (-1 = no jumper cable present)
+ */
+#ifndef SPI_TEST_EXT_LOOPBACK_CONN
+// Try an external loopback test with another SPI controller;
+// Note: we can use SPI 3 to test on the Raspberry Pi header between pins 19 and 20.
+// #define SPI_TEST_EXT_LOOPBACK_CONN (3)
+#define SPI_TEST_EXT_LOOPBACK_CONN (-1)
+#endif
+
 // The expected JEDEC ID to read from the SPI Flash
 static constexpr uint8_t ExpectedSpiFlashJedecId[3] = {0xEF, 0x40, 0x19};
 
@@ -256,15 +268,99 @@ int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro:
 }
 
 /**
+ * SPI loopback test transmits a sequence of pseudo-random bytes and checks that
+ * the same data is received correctly with transmit and receive enabled correctly.
+ *
+ * This test may be performed using internal loopback on any of the SPI controllers
+ * and, to gain additional confidence of the pinmux/connectivity, optionally using
+ * an external loopback via a jumper cable, eg. on the Raspberry Pi header between
+ * pins 19 and 20.
+ */
+int spi_loopback_test(SpiPtr spi, bool external, bool cpol, bool cpha, bool msb_first, ds::xoroshiro::P32R8 &prng,
+                      UartPtr console) {
+  constexpr uint32_t kSpiSpeed = 0u;  // Let's go as fast as possible.
+  // Take a copy of the PRNG so that we can predict the read-side data.
+  ds::xoroshiro::P32R8 read_prng = prng;
+  size_t bytes_read              = 0u;
+  size_t bytes_sent              = 0u;
+  // Number of bytes to be transferred; remember that we can only supply 0x7ffu bytes
+  // in a single operation.
+  size_t len   = 0x700u;
+  int failures = 0;
+  bool log     = false;
+
+  spi->wait_idle();
+  spi->init(cpol, cpha, msb_first, kSpiSpeed);
+
+  spi->control = SonataSpi::ControlTransmitEnable | SonataSpi::ControlReceiveEnable;
+  if (!external) {
+    // Enable the internal loopback function.
+    spi->control = spi->control | SonataSpi::ControlInternalLoopback;
+  }
+  spi->start = len;
+
+  // Repeat until all bytes have been received, which should imply that all bytes have
+  // been sent, but we'll check that after the test...
+  while (bytes_read < len) {
+    // Can we send another byte yet?
+    if (bytes_sent < len && !(SonataSpi::StatusTxFifoFull & spi->status)) {
+      uint8_t b         = static_cast<uint8_t>(prng());
+      spi->transmitFifo = b;
+      bytes_sent++;
+      if (log) {
+        write_str(console, "sent ");
+        write_hex8b(console, b);
+        write_str(console, "\r\n");
+      }
+    }
+    // Is there any data to read and check?
+    if (!(SonataSpi::StatusRxFifoEmpty & spi->status)) {
+      // Check the received data against the transmitted data.
+      uint8_t act_byte = static_cast<uint8_t>(spi->receiveFifo);
+      uint8_t exp_byte = read_prng();
+      failures += (act_byte != exp_byte);
+      bytes_read++;
+      if (log) {
+        write_str(console, "expected ");
+        write_hex8b(console, exp_byte);
+        write_str(console, " read ");
+        write_hex8b(console, act_byte);
+        write_str(console, "\r\n");
+      }
+    }
+  }
+
+  // Check that we also sent the expected number of bytes, and that nothing remains.
+  failures += (bytes_sent != bytes_read);
+  failures += (spi->status & SonataSpi::StatusTxFifoLevel) != 0;
+  failures += (spi->status & SonataSpi::StatusRxFifoLevel) != 0;
+  failures += !(spi->status & SonataSpi::StatusIdle);
+
+  if (log) {
+    write_str(console, "failures: ");
+    write_hex(console, failures);
+    write_str(console, "\r\n");
+  }
+
+  return failures;
+}
+
+/**
  * Run the whole suite of SPI tests.
  */
 void spi_tests(CapRoot root, UartPtr console) {
   // Create bounded capabilities for SPI.
-  Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
-  spi.address()                      = SPI_ADDRESS;
-  spi.bounds()                       = SPI_BOUNDS;
+  Capability<volatile SonataSpi> spi0 = root.cast<volatile SonataSpi>();
+  spi0.address()                      = SPI_ADDRESS;
+  spi0.bounds()                       = SPI_BOUNDS;
 
-  SpiFlash spi_flash(spi);
+  // Access to each of the SPI controllers.
+  SpiPtr spis[SPI_NUM];
+  for (int s = 0; s < SPI_NUM; s++) {
+    spis[s] = spi_ptr(root, s);
+  }
+
+  SpiFlash spi_flash(spi0);
 
   // Initialise 8-bit PRNG for use in random test data
   ds::xoroshiro::P32R8 prng;
@@ -282,24 +378,72 @@ void spi_tests(CapRoot root, UartPtr console) {
     int failures     = 0;
 
     write_str(console, "  Running Flash Jedec ID Read test... ");
-    failures = spi_read_flash_jedec_id_test(spi, spi_flash);
+    failures = spi_read_flash_jedec_id_test(spi0, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "  Running Flash Sector Erase test... ");
-    failures = spi_flash_erase_test(spi, prng, spi_flash);
+    failures = spi_flash_erase_test(spi0, prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "  Running Flash Random Data test... ");
-    failures = spi_flash_random_data_test(spi, prng, spi_flash);
+    failures = spi_flash_random_data_test(spi0, prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(console, failures);
 
     write_str(console, "  Running Slow Clock test... ");
-    failures = spi_flash_slow_clock_test(spi, prng, spi_flash);
+    failures = spi_flash_slow_clock_test(spi0, prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(console, failures);
+
+    // Loopback testing.
+    for (int s = 0; s < SPI_NUM; s++) {
+      // Default configuration.
+      const bool msb_first = true;
+      const bool cpha      = false;
+      const bool cpol      = false;
+
+      write_str(console, "  Running SPI ");
+      write_hex(console, s);
+      write_str(console, " internal loopback test... ");
+
+      // Internal loopback test.
+      failures = spi_loopback_test(spis[s], false, cpol, cpha, msb_first, prng, console);
+      test_failed |= (failures > 0);
+      write_test_result(console, failures);
+
+      // Do we have an external loopback on this controller?
+      if (SPI_TEST_EXT_LOOPBACK_CONN == s) {
+        write_str(console, "  Running SPI ");
+        write_hex(console, s);
+        write_str(console, " external loopback test... ");
+
+        failures = spi_loopback_test(spis[s], true, cpol, cpha, msb_first, prng, console);
+        test_failed |= (failures > 0);
+        write_test_result(console, failures);
+      }
+    }
+
+    // Check all polarities and phases; we'll use the highest-numbered
+    // SPI controller this time just to minimise the chance of
+    // unintended iteraction with physical devices.
+    // (Chip Select is not being asserted, but still...)
+    for (unsigned cfg = 0u; cfg <= 7u; ++cfg) {
+      const unsigned spi_num = SPI_NUM - 1u;
+      const bool msb_first   = (cfg & 4u) != 0u;
+      const bool cpha        = (cfg & 2u) != 0u;
+      const bool cpol        = (cfg & 1u) != 0u;
+      write_str(console, "  Running SPI ");
+      write_hex8b(console, spi_num);
+      write_str(console, " with config ");
+      write_hex8b(console, cfg);
+      write_str(console, "... ");
+
+      failures = spi_loopback_test(spis[spi_num], false, cpol, cpha, msb_first, prng, console);
+      test_failed |= (failures > 0);
+      write_test_result(console, failures);
+    }
 
     check_result(console, !test_failed);
   }
