@@ -1,0 +1,122 @@
+diff --git a/data/rv_plic.hjson.tpl b/data/rv_plic.hjson.tpl
+index 1c07deb..b5cd55e 100644
+--- a/data/rv_plic.hjson.tpl
++++ b/data/rv_plic.hjson.tpl
+@@ -189,19 +189,5 @@
+       ],
+     }
+ % endfor
+-  { skipto: "0x4004000" }
+-  { name: "ALERT_TEST",
+-      desc: '''Alert Test Register.''',
+-      swaccess: "wo",
+-      hwaccess: "hro",
+-      hwqe:     "True",
+-      hwext:    "True",
+-      fields: [
+-        { bits: "0",
+-          name: "fatal_fault",
+-          desc: "'Write 1 to trigger one alert event of this kind.'",
+-        }
+-      ],
+-    }
+   ],
+ }
+diff --git a/rtl/rv_plic.sv.tpl b/rtl/rv_plic.sv.tpl
+index eb292bf..1c64c78 100644
+--- a/rtl/rv_plic.sv.tpl
++++ b/rtl/rv_plic.sv.tpl
+@@ -15,7 +15,6 @@
+ //   MAX_PRIO: Maximum value of interrupt priority
+ 
+ module ${module_instance_name} import ${module_instance_name}_reg_pkg::*; #(
+-  parameter logic [NumAlerts-1:0] AlertAsyncOn  = {NumAlerts{1'b1}},
+   // OpenTitan IP standardizes on level triggered interrupts,
+   // hence LevelEdgeTrig is set to all-zeroes by default.
+   // Note that in case of edge-triggered interrupts, CDC handling is not
+@@ -35,10 +34,6 @@ module ${module_instance_name} import ${module_instance_name}_reg_pkg::*; #(
+   // Interrupt Sources
+   input  [NumSrc-1:0] intr_src_i,
+ 
+-  // Alerts
+-  input  prim_alert_pkg::alert_rx_t [NumAlerts-1:0] alert_rx_i,
+-  output prim_alert_pkg::alert_tx_t [NumAlerts-1:0] alert_tx_o,
+-
+   // Interrupt notification to targets
+   output [NumTarget-1:0] irq_o,
+   output [SRCW-1:0]      irq_id_o [NumTarget],
+@@ -195,33 +190,6 @@ module ${module_instance_name} import ${module_instance_name}_reg_pkg::*; #(
+     );
+   end
+ 
+-  ////////////
+-  // Alerts //
+-  ////////////
+-
+-  logic [NumAlerts-1:0] alert_test, alerts;
+-
+-  assign alert_test = {
+-    reg2hw.alert_test.q &
+-    reg2hw.alert_test.qe
+-  };
+-
+-  for (genvar i = 0; i < NumAlerts; i++) begin : gen_alert_tx
+-    prim_alert_sender #(
+-      .AsyncOn(AlertAsyncOn[i]),
+-      .IsFatal(1'b1)
+-    ) u_prim_alert_sender (
+-      .clk_i,
+-      .rst_ni,
+-      .alert_test_i  ( alert_test[i] ),
+-      .alert_req_i   ( alerts[i]     ),
+-      .alert_ack_o   (               ),
+-      .alert_state_o (               ),
+-      .alert_rx_i    ( alert_rx_i[i] ),
+-      .alert_tx_o    ( alert_tx_o[i] )
+-    );
+-  end
+-
+   ////////////////////////
+   // Register interface //
+   ////////////////////////
+@@ -235,10 +203,7 @@ module ${module_instance_name} import ${module_instance_name}_reg_pkg::*; #(
+     .tl_o,
+ 
+     .reg2hw,
+-    .hw2reg,
+-
+-    // SEC_CM: BUS.INTEGRITY
+-    .intg_err_o(alerts[0])
++    .hw2reg
+   );
+ 
+   // Assertions
+@@ -252,13 +217,4 @@ module ${module_instance_name} import ${module_instance_name}_reg_pkg::*; #(
+ 
+   // Assume
+   `ASSUME(Irq0Tied_A, intr_src_i[0] == 1'b0)
+-
+- // RV_PLIC does not have a block-level DV environment, hence we add an FPV assertion to test this.
+-  `ASSERT(FpvSecCmBusIntegrity_A,
+-          $rose(u_reg.intg_err)
+-          |->
+-          ${'##'}[0:`_SEC_CM_ALERT_MAX_CYC] (alert_tx_o[0].alert_p))
+-
+-  // Alert assertions for reg_we onehot check
+-  `ASSERT_PRIM_REG_WE_ONEHOT_ERROR_TRIGGER_ALERT(RegWeOnehotCheck_A, u_reg, alert_tx_o[0])
+ endmodule
+diff --git a/rv_plic_component.core.tpl b/rv_plic_component.core.tpl
+index 3285326..817ec07 100644
+--- a/rv_plic_component.core.tpl
++++ b/rv_plic_component.core.tpl
+@@ -9,10 +9,8 @@ filesets:
+   files_rtl:
+     depend:
+       - lowrisc:prim:assert
+-      - lowrisc:prim:alert
+       - lowrisc:prim:max_tree
+       - lowrisc:prim:flop_2sync
+-      - lowrisc:prim:reg_we_check
+     files:
+       - rtl/${module_instance_name}_gateway.sv
+       - rtl/${module_instance_name}_target.sv

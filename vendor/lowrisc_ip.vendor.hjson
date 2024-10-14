@@ -19,13 +19,15 @@
         {from: "util/design",          to: "util/design"},
         {from: "util/version_file.py", to: "util/version_file.py"},
         {from: "util/topgen"           to: "util/topgen"},
+        {from: "util/ipgen.py",        to: "util/ipgen.py"},
+        {from: "util/ipgen",           to: "util/ipgen"},
 
         {from: "hw/ip/i2c",     to: "ip/i2c", patch_dir: "i2c"},
         {from: "hw/ip/tlul",    to: "ip/tlul", patch_dir: "tlul"},
         {from: "hw/ip/uart",    to: "ip/uart", patch_dir: "uart"},
         {from: "hw/ip/usbdev",  to: "ip/usbdev", patch_dir: "usbdev"},
 
-        {from: "hw/top_earlgrey/ip_autogen/rv_plic", to: "ip/rv_plic", patch_dir: "rv_plic"},
+        {from: "hw/ip_templates/rv_plic", to: "ip_templates/rv_plic", patch_dir: "rv_plic"},
 
         {from: "hw/top_earlgrey/top_pkg.core",   to: "ip/top_pkg/top_pkg.core"},
         {from: "hw/top_earlgrey/rtl/top_pkg.sv", to: "ip/top_pkg/rtl/top_pkg.sv"},
