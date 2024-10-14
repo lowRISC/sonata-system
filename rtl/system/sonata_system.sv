@@ -1204,7 +1204,11 @@ module sonata_system
   );
 
   system_info #(
-    .SysClkFreq ( SysClkFreq )
+    .SysClkFreq ( SysClkFreq ),
+    .GpioNum    (   GPIO_NUM ),
+    .UartNum    (   UART_NUM ),
+    .I2cNum     (    I2C_NUM ),
+    .SpiNum     (    SPI_NUM )
   ) u_system_info (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),

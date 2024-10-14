@@ -12,7 +12,11 @@
 // ./util/top_gen.py system_info
 
 module system_info import system_info_reg_pkg::*; #(
-  parameter int unsigned SysClkFreq = 0
+  parameter int unsigned SysClkFreq = 0,
+  parameter int unsigned GpioNum    = 0,
+  parameter int unsigned UartNum    = 0,
+  parameter int unsigned I2cNum     = 0,
+  parameter int unsigned SpiNum     = 0
 ) (
   // Clock and reset.
   input logic clk_i,
@@ -22,18 +26,16 @@ module system_info import system_info_reg_pkg::*; #(
   input  tlul_pkg::tl_h2d_t tl_i,
   output tlul_pkg::tl_d2h_t tl_o
 );
-  import sonata_pkg::*;
-
   system_info_hw2reg_t hw2reg;
 
   assign hw2reg.rtl_commit_hash_0.d = 'h${system_info.commit_hash[0:8]};
   assign hw2reg.rtl_commit_hash_1.d = 'h${system_info.commit_hash[8:16]};
   assign hw2reg.rtl_commit_dirty.d = 'b${'1' if system_info.dirty else '0'};
   assign hw2reg.system_frequency.d = SysClkFreq;
-  assign hw2reg.gpio_info.d = 8'(GPIO_NUM);
-  assign hw2reg.uart_info.d = 8'(UART_NUM);
-  assign hw2reg.i2c_info.d = 8'(I2C_NUM);
-  assign hw2reg.spi_info.d = 8'(SPI_NUM);
+  assign hw2reg.gpio_info.d = 8'(GpioNum);
+  assign hw2reg.uart_info.d = 8'(UartNum);
+  assign hw2reg.i2c_info.d = 8'(I2cNum);
+  assign hw2reg.spi_info.d = 8'(SpiNum);
 
   // Instantiate the registers
   system_info_reg_top u_system_info_reg_top (
