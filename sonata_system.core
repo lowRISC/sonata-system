@@ -20,7 +20,7 @@ filesets:
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
       - lowrisc:ip:system_info
-      - lowrisc:opentitan:top_earlgrey_rv_plic
+      - lowrisc:opentitan:sonata_rv_plic
       - lowrisc:prim:onehot
       - lowrisc:tlul:adapter_host
       - lowrisc:tlul:adapter_reg

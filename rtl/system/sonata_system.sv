@@ -210,9 +210,7 @@ module sonata_system
     usbdev_irq = |usbdev_interrupts;
   end
 
-  // TODO: Reduce the number of interrupt sources within the PLIC.
-  logic [181:0] intr_vector;
-  assign intr_vector[181:32] = 'b0;
+  logic [31:0] intr_vector;
 
   assign intr_vector[31 : SPI_NUM + 24] = 'b0;      // Support up to 8 SPI controllers.
   assign intr_vector[SPI_NUM + 23 : 24] = spi_irq;
@@ -1169,7 +1167,9 @@ module sonata_system
     .tl_i       (tl_rv_plic_h2d),
     .tl_o       (tl_rv_plic_d2h),
 
-    .intr_src_i (intr_vector)
+    .intr_src_i (intr_vector),
+
+    .msip_o     ()
   );
 
   // Number of clock cycles in 1.25us. The divide by 10 exists to avoid integer overflow.
