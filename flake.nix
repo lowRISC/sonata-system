@@ -174,9 +174,9 @@
       cheriotRtosSource = pkgs.fetchFromGitHub {
         owner = "lowRISC";
         repo = "CHERIoT-RTOS";
-        rev = "54e4f827c321013afe4013fe046b756854803ef8";
+        rev = "043721196e8ad7260a10799b2fb5df1d2b534a80";
         fetchSubmodules = true;
-        hash = "sha256-fCrQBUyAtaS9AZ3hBoCj/e335ztlBXfX/g367iLCyYM=";
+        hash = "sha256-lWoQVaF1CVS6KAyTqWaY7H+505qJ2vzlZB4TlMZbuPo=";
       };
 
       sonata-system-software = pkgs.stdenv.mkDerivation rec {
@@ -245,6 +245,7 @@
         checkPhase = ''
           python ${./util/test_runner.py} -t 60 sim \
               --elf-file ${sonata-system-software}/bin/test_runner
+          echo "Test runner complete!"
           python ${./util/test_runner.py} -t 600 sim \
               --sim-boot-stub ${sonata-sim-boot-stub.out}/share/sim_boot_stub \
               --elf-file ${cheriot-rtos-test-suite}/share/test-suite
