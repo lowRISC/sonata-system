@@ -21,7 +21,7 @@ module ibex_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
   parameter rv32b_e      RV32B            = RV32BNone,
   parameter regfile_e    RegFile          = RegFileFF,
   parameter bit          BranchTargetALU  = 1'b1,
-  parameter bit          WritebackStage   = 1'b0,
+  parameter bit          WritebackStage   = 1'b1,
   parameter bit          ICache           = 1'b0,
   parameter bit          ICacheECC        = 1'b0,
   parameter bit          BranchPredictor  = 1'b0,
@@ -42,7 +42,8 @@ module ibex_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
   parameter bit          MemCapFmt        = 1'b0,
   parameter bit          CheriPPLBC       = 1'b1,
   parameter bit          CheriSBND2       = 1'b0,
-  parameter bit          CheriTBRE        = 1'b0,
+  parameter bit          CheriTBRE        = 1'b1,
+  parameter bit          CheriStkZ        = 1'b1,
   parameter int unsigned MMRegDinW        = 128,
   parameter int unsigned MMRegDoutW       = 64
 ) (
@@ -192,7 +193,6 @@ module ibex_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
     .RndCnstLfsrPerm  ( RndCnstLfsrPerm  ),
     .DmHaltAddr       (DmHaltAddr       ),
     .DmExceptionAddr  (DmExceptionAddr  ),
-    .BranchTargetALU  (BranchTargetALU),
     .CHERIoTEn        (CHERIoTEn),
     .DataWidth        (DataWidth),
     .HeapBase         (HeapBase   ),
@@ -201,7 +201,8 @@ module ibex_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
     .MemCapFmt        (MemCapFmt   ),
     .CheriPPLBC       (CheriPPLBC),
     .CheriSBND2       (CheriSBND2),
-    .CheriTBRE        (CheriTBRE)
+    .CheriTBRE        (CheriTBRE),
+    .CheriStkZ        (CheriStkZ)
   ) u_ibex_top (
     .clk_i,
     .rst_ni,

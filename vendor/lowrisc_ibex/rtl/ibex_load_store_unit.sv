@@ -44,13 +44,14 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   // signals to/from ID/EX stage
   input  logic         lsu_we_i,             // write enable                     -> from ID/EX
   input  logic         lsu_is_cap_i,         // kliu
-  input  logic         lsu_is_intl_i,        // kliu: "internal" requests from cheri_ex
   input  logic         lsu_cheri_err_i,      // kliu
   input  logic [1:0]   lsu_type_i,           // data type: word, half word, byte -> from ID/EX
   input  logic [32:0]  lsu_wdata_i,          // data to write to memory          -> from ID/EX
   input  reg_cap_t     lsu_wcap_i,           // kliu
   input  logic [3:0]   lsu_lc_clrperm_i,
   input  logic         lsu_sign_ext_i,       // sign extension                   -> from ID/EX
+  input  logic         cpu_stall_by_stkz_i, 
+  input  logic         cpu_grant_to_stkz_i, 
 
   output reg_cap_t     lsu_rcap_o,           // kliu
   output logic [32:0]  lsu_rdata_o,          // requested data                   -> to ID/EX
@@ -68,9 +69,7 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   output logic         lsu_req_done_o,       // Signals that data request is complete
                                               // (only need to await final data
                                               // response)                        -> to ID/EX
-  output logic         lsu_req_done_intl_o,
   output logic         lsu_resp_valid_o,     // LSU has response from transaction -> to ID/EX & WB
-  output logic         lsu_resp_valid_intl_o, // LSU response is for a cheri cap load/store -> to cheri_ex
   output logic         lsu_resp_is_wr_o,
 
   // TBRE related signals
@@ -87,7 +86,6 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   output logic         load_err_o,
   output logic         store_err_o,
   output logic         lsu_err_is_cheri_o,
-  output logic         lsu_resp_err_intl_o,
 
   output logic         busy_o,
   output logic         busy_tbre_o,
@@ -127,16 +125,19 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   logic         lsu_err_q, lsu_err_d;
   logic         data_or_pmp_err;
 
-  logic         resp_is_cap_q, resp_is_intl_q;
+  logic         resp_is_cap_q;
   logic         cheri_err_d, cheri_err_q;
   logic [3:0]   resp_lc_clrperm_q;
-  logic         cur_req_is_tbre, req_is_tbre_q;
-  logic         resp_is_tbre_q;
+  logic         cur_req_is_tbre;
+  logic         req_is_tbre_q;
+  logic         resp_is_tbre;
   logic         tbre_req_good;
   logic         outstanding_resp_q, resp_wait;
   logic         lsu_resp_valid;
   logic         lsu_go;
   logic         addr_incr_req;
+  logic         cpu_req_erred, cpu_req_valid;
+  
 
   ls_fsm_e ls_fsm_cs, ls_fsm_ns;
 
@@ -403,6 +404,8 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
       ((lsu_type_i == 2'b00) && (data_offset != 2'b00)) || // misaligned word access
       ((lsu_type_i == 2'b01) && (data_offset == 2'b11));   // misaligned half-word access
 
+  assign cpu_req_valid = lsu_req_i & ~lsu_cheri_err_i & ~cpu_stall_by_stkz_i;
+  assign cpu_req_erred = lsu_req_i & lsu_cheri_err_i;
 
   // FSM
   always_comb begin
@@ -430,7 +433,7 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
         pmp_err_d   = 1'b0;
         cheri_err_d = 1'b0;
 
-        if (CHERIoTEn & cheri_pmode_i & lsu_req_i & lsu_cheri_err_i & ~resp_wait) begin
+        if (CHERIoTEn & cheri_pmode_i & cpu_req_erred & ~resp_wait) begin
           // cheri access error case, don't issue data_req but send error response back to WB stage
           data_req_o   = 1'b0;          
           cheri_err_d  = 1'b1;
@@ -441,7 +444,8 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
           perf_load_o  = 1'b0;
           lsu_go       = 1'b1;         // decision to move forward with a request
           ls_fsm_ns    = IDLE;
-        end else if (CHERIoTEn & cheri_pmode_i & (lsu_req_i | tbre_req_good) & lsu_is_cap_i & ~resp_wait) begin
+        end else if (CHERIoTEn & cheri_pmode_i & (cpu_req_valid | tbre_req_good) &
+                     lsu_is_cap_i & ~resp_wait) begin
           // normal cap access case
           data_req_o   = 1'b1;
           cheri_err_d  = 1'b0;
@@ -458,7 +462,7 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
           end else begin
             ls_fsm_ns           = CTX_WAIT_GNT1;
           end
-        end else if ((lsu_req_i | tbre_req_good) & ~resp_wait) begin   
+        end else if ((cpu_req_valid | tbre_req_good) & ~resp_wait) begin   
           // normal data access case
           data_req_o   = 1'b1;
           cheri_err_d  = 1'b0;
@@ -612,7 +616,9 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
     endcase
   end
 
-  assign tbre_req_good  = CHERIoTEn & cheri_pmode_i & CheriTBRE & tbre_lsu_req_i & ~cpu_lsu_dec_i;
+  // this is the decision of granting LSU to TBRE/STKZ
+  assign tbre_req_good  = CHERIoTEn & cheri_pmode_i & CheriTBRE & tbre_lsu_req_i & 
+                          (~cpu_lsu_dec_i | (cpu_lsu_dec_i & cpu_grant_to_stkz_i));
 
   assign resp_wait = CHERIoTEn & cheri_pmode_i & CheriTBRE & outstanding_resp_q & ~lsu_resp_valid;
 
@@ -622,8 +628,7 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
 
   assign lsu_req_done        = (lsu_go | (ls_fsm_cs != IDLE)) & (ls_fsm_ns == IDLE);
 
-  assign lsu_req_done_o      = lsu_req_done & (~lsu_is_intl_i) & (~cur_req_is_tbre);
-  assign lsu_req_done_intl_o = lsu_req_done & (lsu_is_intl_i)  & (~cur_req_is_tbre) & cheri_pmode_i;
+  assign lsu_req_done_o      = lsu_req_done & (~cur_req_is_tbre);
   assign lsu_tbre_req_done_o = lsu_req_done & cur_req_is_tbre & cheri_pmode_i;
 
   assign lsu_addr_incr_req_o      = addr_incr_req & ~cur_req_is_tbre;
@@ -631,6 +636,8 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
 
   assign cur_req_is_tbre = CHERIoTEn & cheri_pmode_i & CheriTBRE & ((ls_fsm_cs == IDLE) ? 
                            (tbre_req_good & ~resp_wait) : req_is_tbre_q);
+
+  assign lsu_tbre_sel_o = cur_req_is_tbre;        // req ctrl signal mux select (to cheri_ex/tbre_wrapper)
 
   // registers for FSM
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -640,14 +647,12 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
       pmp_err_q           <= '0;
       lsu_err_q           <= '0;
       resp_is_cap_q       <= 1'b0;
-      resp_is_intl_q      <= 1'b0;
       resp_lc_clrperm_q   <= 4'h0;
-      resp_is_tbre_q      <= 1'b0;
+      req_is_tbre_q       <= 1'b0;
       cheri_err_q         <= 1'b0;
       cap_rx_fsm_q        <= CRX_IDLE;
       cap_lsw_err_q       <= 1'b0;
       cap_lsw_q           <= 33'h0;
-      req_is_tbre_q       <= 1'b0;
       outstanding_resp_q  <= 1'b0;
     end else begin
       ls_fsm_cs           <= ls_fsm_ns;
@@ -658,16 +663,15 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
 
       cap_rx_fsm_q        <= cap_rx_fsm_d;
 
-      // resp_is_cap_q aligns with responses, lsu_is_cap_i aligns with requests
+      // resp_is_cap_q aligns with responses on the data interface, lsu_is_cap_i aligns with requests
       //   we use lsu_go to qualify this update
       //   - note this implies that LSU only support a outstand request at a time
       //   - new request can't be issued (go) until resp_valid
       //   - also note resp_valid is gated by (ls_fsm_cs == IDLE)
       if (lsu_go) begin
         resp_is_cap_q     <= lsu_is_cap_i;
-        resp_is_intl_q    <= lsu_is_intl_i;
         resp_lc_clrperm_q <= lsu_lc_clrperm_i;
-        resp_is_tbre_q    <= cur_req_is_tbre;
+        req_is_tbre_q     <= cur_req_is_tbre;
       end
 
       if (CHERIoTEn & cheri_pmode_i && (cap_rx_fsm_q == CRX_WAIT_RESP1) && data_rvalid_i && (~data_we_q))
@@ -675,8 +679,6 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
 
       if (CHERIoTEn & cheri_pmode_i && (cap_rx_fsm_q == CRX_WAIT_RESP1) && data_rvalid_i)
         cap_lsw_err_q <= data_err_i;
-
-      if (CHERIoTEn & cheri_pmode_i & lsu_go) req_is_tbre_q <= tbre_req_good;
 
       if (lsu_go)
         outstanding_resp_q <= 1'b1;
@@ -689,6 +691,9 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   /////////////
   // Outputs //
   /////////////
+
+  assign resp_is_tbre = req_is_tbre_q;
+
   logic all_resp;
   assign data_or_pmp_err    = lsu_err_q | data_err_i | pmp_err_q | (cheri_pmode_i & 
                               (cheri_err_q | (resp_is_cap_q & cap_lsw_err_q)));
@@ -696,14 +701,13 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   assign all_resp           = data_rvalid_i | pmp_err_q | (cheri_pmode_i & cheri_err_q);
   assign lsu_resp_valid     = all_resp & (ls_fsm_cs == IDLE) ;
 
-  assign lsu_resp_valid_o        = lsu_resp_valid & (~cheri_pmode_i | ((~resp_is_intl_q) & (~resp_is_tbre_q))) ;
-  assign lsu_resp_valid_intl_o   = lsu_resp_valid & resp_is_intl_q ;
-  assign lsu_tbre_resp_valid_o   = lsu_resp_valid & resp_is_tbre_q;
+  assign lsu_resp_valid_o        = lsu_resp_valid & (~cheri_pmode_i | (~resp_is_tbre)) ;
+  assign lsu_tbre_resp_valid_o   = lsu_resp_valid & resp_is_tbre;
   assign lsu_resp_is_wr_o        = data_we_q;
 
   // this goes to wb as rf_we_lsu, so needs to be gated when data needs to go back to EX
   assign lsu_rdata_valid_o  = (ls_fsm_cs == IDLE) & data_rvalid_i & ~data_or_pmp_err & ~data_we_q & 
-                              (~cheri_pmode_i | ((~resp_is_intl_q) & (~resp_is_tbre_q)));
+                              (~cheri_pmode_i | (~resp_is_tbre));
 
   // output to register file
   if (CHERIoTEn & ~MemCapFmt) begin : gen_memcap_rd_fmt0
@@ -721,7 +725,6 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   
   
   assign lsu_tbre_raw_lsw_o = cap_lsw_q;          // "raw" memory word to tbre
-  assign lsu_tbre_sel_o = cur_req_is_tbre;        // req ctrl signal mux select (to cheri_ex)
 
   // output data address must be word aligned
   assign data_addr_w_aligned = {data_addr[31:2], 2'b00};
@@ -739,15 +742,14 @@ module ibex_load_store_unit import ibex_pkg::*; import cheri_pkg::*; #(
   assign addr_last_o   = addr_last_q;
 
   // Signal a load or store error depending on the transaction type outstanding
-  assign load_err_o    = data_or_pmp_err & ~data_we_q & lsu_resp_valid & (~resp_is_intl_q) & (~resp_is_tbre_q);
-  assign store_err_o   = data_or_pmp_err &  data_we_q & lsu_resp_valid & (~resp_is_intl_q) & (~resp_is_tbre_q);
+  assign load_err_o    = data_or_pmp_err & ~data_we_q & lsu_resp_valid & (~resp_is_tbre);
+  assign store_err_o   = data_or_pmp_err &  data_we_q & lsu_resp_valid & (~resp_is_tbre);
 
   assign lsu_err_is_cheri_o  = cheri_pmode_i & cheri_err_q;     // send to controller for mcause encoding
-  assign lsu_resp_err_intl_o = cheri_pmode_i & data_or_pmp_err & lsu_resp_valid & resp_is_intl_q;
-  assign lsu_tbre_resp_err_o = cheri_pmode_i & data_or_pmp_err & lsu_resp_valid & resp_is_tbre_q;
+  assign lsu_tbre_resp_err_o = cheri_pmode_i & data_or_pmp_err & lsu_resp_valid & resp_is_tbre;
 
   assign busy_o = (ls_fsm_cs != IDLE);
   // assign busy_tbre_o = (ls_fsm_cs != IDLE) & cur_req_is_tbre;
-  assign busy_tbre_o = (ls_fsm_cs != IDLE) & cheri_pmode_i & req_is_tbre_q;
+  assign busy_tbre_o = (ls_fsm_cs != IDLE) & cheri_pmode_i & resp_is_tbre;
 
 endmodule

@@ -110,8 +110,8 @@ module ibex_decoder import cheri_pkg::*; #(
 
   // output to cheri EX
   output logic                 instr_is_cheri_o,
+  output logic                 instr_is_legal_cheri_o,
   output logic [11:0]          cheri_imm12_o,
-  output logic [13:0]          cheri_imm14_o,
   output logic [19:0]          cheri_imm20_o,
   output logic [20:0]          cheri_imm21_o,
   output logic [OPDW-1:0]      cheri_operator_o,
@@ -230,21 +230,26 @@ module ibex_decoder import cheri_pkg::*; #(
   ////////////////////
   // Register check //
   ////////////////////
+
+  // rf_we from decoder doesn't cover memory load case (where regfile write signal comes from LSU response)
+  logic rf_we_or_load;
+  assign rf_we_or_load = rf_we | (opcode == OPCODE_LOAD);
+ 
   if (RV32E) begin : gen_rv32e_reg_check_active
-    assign illegal_reg_rv32e = ((rf_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
-                                (rf_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
-                                (rf_waddr_o[4]   & rf_we));
+    //assign illegal_reg_rv32e = ((rf_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
+    //                            (rf_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
+    assign illegal_reg_rv32e = ((rf_raddr_a_o[4] & rf_ren_a_o) |
+                                (rf_raddr_b_o[4] & rf_ren_b_o) |
+                                (rf_waddr_o[4]   & rf_we_or_load));
   end else begin : gen_rv32e_reg_check_inactive
     assign illegal_reg_rv32e = 1'b0;
   end
 
   if (CheriLimit16Regs) begin : gen_cheri_reg_check_active
     assign illegal_reg_cheri = cheri_pmode_i & 
-                               ((rf_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
-                                (rf_raddr_a_o[4] & cheri_rf_ren_a) | 
-                                (rf_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
-                                (rf_raddr_b_o[4] & cheri_rf_ren_b) | 
-                                (rf_waddr_o[4]   & rf_we));
+                               ((raddr_a[4]  & rf_ren_a_o) |
+                                (raddr_b[4]  & rf_ren_b_o) |
+                                (instr_rd[4] & rf_we_or_load ));
   end else begin : gen_cheri_reg_check_inactive
     assign illegal_reg_cheri = 1'b0;
   end
@@ -341,7 +346,10 @@ module ibex_decoder import cheri_pkg::*; #(
           cheri_jalr_en     = (instr[14:12] == 3'b0);
           rf_ren_a_o        = 1'b1;
           rf_we             = 1'b1;
-          illegal_insn      = 1'b0;
+
+          if (instr[14:12] != 3'b0) begin
+            illegal_insn    = 1'b1;
+          end
         end else begin
           jump_in_dec_o      = 1'b1;
 
@@ -1350,8 +1358,8 @@ module ibex_decoder import cheri_pkg::*; #(
   end
 
   // do not enable multdiv in case of illegal instruction exceptions
-  assign mult_en_o = illegal_insn ? 1'b0 : mult_sel_o;
-  assign div_en_o  = illegal_insn ? 1'b0 : div_sel_o;
+  assign mult_en_o = illegal_insn_o ? 1'b0 : mult_sel_o;
+  assign div_en_o  = illegal_insn_o ? 1'b0 : div_sel_o;
 
   // make sure instructions accessing non-available registers in RV32E cause illegal
   // instruction exceptions
@@ -1362,6 +1370,8 @@ module ibex_decoder import cheri_pkg::*; #(
 
   // Not all bits are used
   assign unused_instr_alu = {instr_alu[19:15],instr_alu[11:7]};
+
+  assign instr_is_legal_cheri_o = instr_is_legal_cheri & ~illegal_reg_cheri;
 
   // cheri decoder
   if (CHERIoTEn) begin : gen_cheri_decoder
@@ -1381,7 +1391,6 @@ module ibex_decoder import cheri_pkg::*; #(
       .instr_is_cheri_o        (instr_is_cheri_o),
       .instr_is_legal_cheri_o  (instr_is_legal_cheri),
       .cheri_imm12_o           (cheri_imm12_o),
-      .cheri_imm14_o           (cheri_imm14_o),
       .cheri_imm20_o           (cheri_imm20_o),
       .cheri_imm21_o           (cheri_imm21_o),
       .cheri_operator_o        (cheri_operator_o),
@@ -1395,7 +1404,6 @@ module ibex_decoder import cheri_pkg::*; #(
     assign instr_is_cheri_o       = 1'b0;
     assign instr_is_legal_cheri   = 1'b0;
     assign cheri_imm12_o          = 12'h0;
-    assign cheri_imm14_o          = 14'h0;
     assign cheri_imm20_o          = 20'h0;
     assign cheri_imm21_o          = 21'h0;
     assign cheri_operator_o       = 'h0;
