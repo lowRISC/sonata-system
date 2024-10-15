@@ -55,13 +55,13 @@ module cheri_regfile import cheri_pkg::*; #(
   localparam logic [6:0] TrvkParIncr = 7'h15;
   localparam logic [6:0] NullParBits = 7'h2a;           // 7-bit parity for 32'h0
 
-  logic [31:0] rf_reg   [NREGS-1:0];
+  logic [31:0] rf_reg   [31:0];
   logic [31:0] rf_reg_q [NREGS-1:1];
   
-  logic [6:0]  rf_reg_par   [NREGS-1:0];
+  logic [6:0]  rf_reg_par   [31:0];
   logic [6:0]  rf_reg_par_q [NREGS-1:0];
   
-  reg_cap_t         rf_cap   [NCAPS-1:0];
+  reg_cap_t         rf_cap   [31:0];
   reg_cap_t         rf_cap_q [NCAPS-1:1];
 
   reg_cap_t         rcap_a, rcap_b;
@@ -117,9 +117,14 @@ module cheri_regfile import cheri_pkg::*; #(
 
   assign rf_reg[0]     = 32'h0;
   assign rf_reg_par[0] = DefParBits[0];
-  for (genvar i=1; i<NREGS ; i++) begin
-    assign rf_reg[i]     = rf_reg_q[i];         
-    assign rf_reg_par[i] = rf_reg_par_q[i];     
+  for (genvar i=1; i<32 ; i++) begin
+    if (i < NREGS) begin
+      assign rf_reg[i]     = rf_reg_q[i];         
+      assign rf_reg_par[i] = rf_reg_par_q[i];     
+    end else begin
+      assign rf_reg[i]     = 0;
+      assign rf_reg_par[i] = DefParBits[i];
+    end
   end
 
   assign rdata_a_o = DataWidth'({rf_reg_par[raddr_a_i], rf_reg[raddr_a_i]});
@@ -140,12 +145,16 @@ module cheri_regfile import cheri_pkg::*; #(
   end
 
   assign rf_cap[0] = NULL_REG_CAP;
-  for (genvar i=1; i<NCAPS ; i++) begin
-    assign rf_cap[i] = rf_cap_q[i];
+  for (genvar i=1; i<32 ; i++) begin
+    if (i < NCAPS) begin 
+      assign rf_cap[i] = rf_cap_q[i];
+    end else begin
+      assign rf_cap[i] = NULL_REG_CAP;
+    end
   end
 
-  assign rcap_a = (int'(raddr_a_i) < NCAPS) ? rf_cap[raddr_a_i] : NULL_REG_CAP;
-  assign rcap_b = (int'(raddr_b_i) < NCAPS) ? rf_cap[raddr_b_i] : NULL_REG_CAP;
+  assign rcap_a = rf_cap[raddr_a_i];
+  assign rcap_b = rf_cap[raddr_b_i];
 
   if (CheriPPLBC) begin : g_regrdy
 
@@ -154,19 +163,25 @@ module cheri_regfile import cheri_pkg::*; #(
         reg_rdy_vec[0] <= 1'b1;
     end
 
-    for (genvar i=1; i<32; i++) begin
+    for (genvar i=1; i<NCAPS; i++) begin
       always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni)
-          reg_rdy_vec[i] <= 1'b1;
-        else if (i >= NCAPS) 
           reg_rdy_vec[i] <= 1'b1;
         else if (trsv_dec[i] & trsv_en_i)   // prioritize trsv t
           reg_rdy_vec[i] <= 1'b0;
         else if (trvk_dec[i] & trvk_en_i)
           reg_rdy_vec[i] <= 1'b1;
       end  // always_ff
-    end      // for
+    end
 
+    // unused bits
+    for (genvar i=NCAPS; i<32; i++) begin
+      always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni)
+          reg_rdy_vec[i] <= 1'b1;
+      end
+    end
+    
     // build the shadow copy of reg_rdy_vec for fault protection
     if (RegFileECC) begin : gen_shdw
       logic  [4:0] trvk_addr_q;

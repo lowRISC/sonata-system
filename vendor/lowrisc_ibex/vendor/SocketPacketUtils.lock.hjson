@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/lowrisc/cheriot-ibex.git
-    rev: adc4803d5d13cdf5a629b3f53fb4ce8d1ac38fe5
+    url: https://github.com/CTSRD-CHERI/SocketPacketUtils
+    rev: 41a3deefabb7a7bc66c0d7363a0e03a74b741d0c
   }
 }
