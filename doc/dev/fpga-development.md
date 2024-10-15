@@ -26,4 +26,10 @@ You can also manually set the initial value of the SRAM, for example:
 ```sh
 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system --SRAMInitFile=$PWD/sw/cheri/build/tests/uart_check.vmem
 ```
+## Build bitstream using nix
+Optionally, the bitstream can be built using a nix command:
+```sh
+nix run .#bitstream-build
+``
+Note: Vivado must in one's path for this command to work.
 
