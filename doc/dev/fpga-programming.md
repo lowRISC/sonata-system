@@ -164,6 +164,12 @@ program_ftdi -erase
 
 > The `program_ftdi` command can also be run from the system command prompt with the Vivado path setup.
 
+#### Using nix
+Alternatively, you can use the nix command to load the bitstream.
+```shell
+nix run .#bitstream-load
+```
+
 ## JTAG Programming Using External Probe
 
 If using an external probe, you need to connect to P10, labeled `FPGA JTAG`. This is normally done with flying wire leads.
