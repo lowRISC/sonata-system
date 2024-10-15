@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   CMAKE_BUILD_TYPE: Release
