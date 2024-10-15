@@ -8,4 +8,4 @@ vendor/lowrisc_ip/util/ipgen.py generate \
   -c data/rv_plic_cfg.hjson -o rtl/system/autogen/rv_plic
 rm -r rtl/system/autogen/rv_plic/doc
 rm -r rtl/system/autogen/rv_plic/fpv
-
+rm rtl/system/autogen/rv_plic/README.md
