@@ -11,10 +11,11 @@
 // clang-format on
 #include <platform-uart.hh>
 
-#include "../common/console-utils.hh"
+#include "../common/console.hh"
 #include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
+#include "../common/console.hh"
 
 using namespace CHERI;
 
@@ -256,7 +257,7 @@ int execute_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64
   return failures;
 }
 
-void hyperram_tests(CapRoot root, UartPtr console) {
+void hyperram_tests(CapRoot root, Log &log) {
   auto hyperram_area = hyperram_ptr(root);
 
   Capability<Capability<volatile uint32_t>> hyperram_cap_area = root.cast<Capability<volatile uint32_t>>();
@@ -267,52 +268,47 @@ void hyperram_tests(CapRoot root, UartPtr console) {
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
 
   for (size_t i = 0; i < HYPERRAM_TEST_ITERATIONS; i++) {
-    write_str(console, "\r\nrunning hyperram_test: ");
-    write_hex8b(console, i);
-    write_str(console, "\\");
-    write_hex8b(console, HYPERRAM_TEST_ITERATIONS - 1);
-    write_str(console, "\r\n  ");
-    write_hex(console, HYPERRAM_TEST_SIZE);
-    write_str(console, "\r\n  ");
+    log.println("\nrunning hyperram_test: {} \\ {}", i, HYPERRAM_TEST_ITERATIONS - 1);
+    log.println("HYPERRAM_TEST_SIZE: 0x{:08x}", HYPERRAM_TEST_SIZE);
 
     bool test_failed = false;
     int failures     = 0;
 
-    write_str(console, "Running RND cap test...");
+    log.print("Running RND cap test...");
     failures = rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running RND data test...");
+    log.print("Running RND data test...");
     failures = rand_data_test_full(hyperram_area, prng);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running RND data & address test...");
+    log.print("Running RND data & address test...");
     failures = rand_data_addr_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running 0101 stripe test...");
+    log.print("Running 0101 stripe test...");
     failures = stripe_test(hyperram_area, 0x55555555);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running 1001 stripe test...");
+    log.print("Running 1001 stripe test...");
     failures = stripe_test(hyperram_area, 0x99999999);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running 0000_1111 stripe test...");
+    log.print("Running 0000_1111 stripe test...");
     failures = stripe_test(hyperram_area, 0x0F0F0F0F);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "Running Execution test...");
+    log.print("Running Execution test...");
     failures = execute_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    check_result(console, !test_failed);
+    check_result(log, !test_failed);
   }
 }
