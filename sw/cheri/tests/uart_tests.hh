@@ -47,11 +47,11 @@ bool uart_interrupt_state_test(UartPtr uart) {
   return count == 5;
 }
 
-void uart_tests(CapRoot root, UartPtr console) {
+void uart_tests(CapRoot root, Log& log) {
   auto uart1 = uart_ptr(root, 1);
 
-  write_str(console, "running uart_loopback_test\r\n");
-  check_result(console, uart_loopback_test(uart1));
-  write_str(console, "running uart_interrupt_state_test\r\n");
-  check_result(console, uart_interrupt_state_test(uart1));
+  log.println("running uart_loopback_test");
+  check_result(log, uart_loopback_test(uart1));
+  log.println("running uart_interrupt_state_test");
+  check_result(log, uart_interrupt_state_test(uart1));
 }

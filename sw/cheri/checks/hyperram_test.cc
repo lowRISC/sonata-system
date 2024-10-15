@@ -16,7 +16,7 @@
 // clang-format on
 #include <platform-uart.hh>
 
-#include "../common/console-utils.hh"
+#include "../common/console.hh"
 #include "../common/uart-utils.hh"
 
 using namespace CHERI;
@@ -236,14 +236,17 @@ int execute_test(Capability<volatile uint32_t> &hyperram_area, ds::xoroshiro::P6
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
-  Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address()                          = UART_ADDRESS;
-  uart.bounds()                           = UART_BOUNDS;
+  Capability<volatile OpenTitanUart> uart0 = root.cast<volatile OpenTitanUart>();
+  uart0.address()                          = UART_ADDRESS;
+  uart0.bounds()                           = UART_BOUNDS;
 
-  uart->init(BAUD_RATE);
-  set_console_mode(uart, CC_BOLD);
-  write_str(uart, "\r\n\r\nGet hyped for hyperram!\r\n");
-  set_console_mode(uart, CC_RESET);
+  uart0->init(BAUD_RATE);
+  WriteUart uart{uart0};
+  Log log(uart);
+
+  set_console_mode(log, CC_BOLD);
+  log.print("\r\n\r\nGet hyped for hyperram!\r\n");
+  set_console_mode(log, CC_RESET);
 
   ds::xoroshiro::P64R32 prng;
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
@@ -258,32 +261,32 @@ int execute_test(Capability<volatile uint32_t> &hyperram_area, ds::xoroshiro::P6
 
   while (true) {
     int failures = 0;
-    write_str(uart, "Running RND cap test...");
+    log.print("Running RND cap test...");
     failures += rand_cap_test(hyperram_area, hyperram_cap_area, prng, HyperramSize / 4);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running RND data test...");
+    log.print("Running RND data test...");
     failures = rand_data_test_full(hyperram_area, prng);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running RND data & address test...");
+    log.print("Running RND data & address test...");
     failures = rand_data_addr_test(hyperram_area, prng, HyperramSize / 4);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running 0101 stripe test...");
+    log.print("Running 0101 stripe test...");
     failures = stripe_test(hyperram_area, 0x55555555);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running 1001 stripe test...");
+    log.print("Running 1001 stripe test...");
     failures = stripe_test(hyperram_area, 0x99999999);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running 0000_1111 stripe test...");
+    log.print("Running 0000_1111 stripe test...");
     failures = stripe_test(hyperram_area, 0x0F0F0F0F);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
 
-    write_str(uart, "Running Execution test...");
+    log.print("Running Execution test...");
     failures = execute_test(hyperram_area, prng, HyperramSize / 4);
-    write_test_result(uart, failures);
+    write_test_result(log, failures);
   }
 }

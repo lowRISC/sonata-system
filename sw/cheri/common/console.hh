@@ -4,31 +4,39 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-// clang-format off
+
+#include "fmt.hh"
+#include "sonata-devices.hh"
 #include "../../common/defs.h"
-// clang-format on
 #include <platform-uart.hh>
 
-#include "uart-utils.hh"
+#include "console.hh"
 
 #define CC_BOLD "1"
 #define CC_RED "31"
 #define CC_GREEN "32"
 #define CC_RESET "0"
 
-[[maybe_unused]] static void set_console_mode(volatile OpenTitanUart *uart, const char *cc) {
-  write_str(uart, "\x1b[");
-  write_str(uart, cc);
-  write_str(uart, "m");
-}
-
-[[maybe_unused]] static void write_test_result(volatile OpenTitanUart *uart, int failures) {
-  if (failures == 0) {
-    set_console_mode(uart, CC_GREEN);
-    write_str(uart, "PASS!\r\n");
-  } else {
-    set_console_mode(uart, CC_RED);
-    write_str(uart, "FAIL!\r\n");
+struct WriteUart {
+  UartPtr uart;
+  void write(const char* buf, size_t n) {
+    while (n--) {
+      uart->blocking_write(*buf++);
+    }
   }
-  set_console_mode(uart, CC_RESET);
+};
+
+using Log = reisfmt::Fmt<WriteUart>;
+
+[[maybe_unused]] static void set_console_mode(Log& log, const char* cc) { log.print("\x1b[{}m", cc); }
+
+[[maybe_unused]] static void write_test_result(Log& log, int failures) {
+  if (failures == 0) {
+    set_console_mode(log, CC_GREEN);
+    log.println("PASS!");
+  } else {
+    set_console_mode(log, CC_RED);
+    log.println("FAIL!");
+  }
+  set_console_mode(log, CC_RESET);
 }

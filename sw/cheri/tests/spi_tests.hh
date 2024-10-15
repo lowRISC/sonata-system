@@ -3,7 +3,7 @@
 
 #pragma once
 #include "../../common/defs.h"
-#include "../common/console-utils.hh"
+#include "../common/console.hh"
 #include "../common/flash-utils.hh"
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
@@ -258,8 +258,8 @@ int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro:
 /**
  * Run the whole suite of SPI tests.
  */
-void spi_tests(CapRoot root, UartPtr console) {
-  // Create bounded capabilities for SPI.
+void spi_tests(CapRoot root, Log &log) {
+  // Create bounded capabilities for SPI and GPIO.
   Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   spi.address()                      = SPI_ADDRESS;
   spi.bounds()                       = SPI_BOUNDS;
@@ -272,35 +272,31 @@ void spi_tests(CapRoot root, UartPtr console) {
 
   // Execute the specified number of iterations of each test.
   for (size_t i = 0; i < SPI_TEST_ITERATIONS; i++) {
-    write_str(console, "\r\nrunning spi_test: ");
-    write_hex8b(console, i);
-    write_str(console, "\\");
-    write_hex8b(console, SPI_TEST_ITERATIONS - 1);
-    write_str(console, "\r\n");
+    log.println("\r\nrunning spi_test: {} \\ {}", i, SPI_TEST_ITERATIONS - 1);
 
     bool test_failed = false;
     int failures     = 0;
 
-    write_str(console, "  Running Flash Jedec ID Read test... ");
+    log.print("  Running Flash Jedec ID Read test... ");
     failures = spi_read_flash_jedec_id_test(spi, spi_flash);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "  Running Flash Sector Erase test... ");
+    log.print("  Running Flash Sector Erase test... ");
     failures = spi_flash_erase_test(spi, prng, spi_flash);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "  Running Flash Random Data test... ");
+    log.print("  Running Flash Random Data test... ");
     failures = spi_flash_random_data_test(spi, prng, spi_flash);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    write_str(console, "  Running Slow Clock test... ");
+    log.print("  Running Slow Clock test... ");
     failures = spi_flash_slow_clock_test(spi, prng, spi_flash);
     test_failed |= (failures > 0);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    check_result(console, !test_failed);
+    check_result(log, !test_failed);
   }
 }
