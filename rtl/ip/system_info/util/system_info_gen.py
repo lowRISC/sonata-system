@@ -21,13 +21,10 @@ def generate_system_info() -> None:
     if commit is None or dirty is None:
         import git
 
-        try:
-            repo = git.Repo(search_parent_directories=True)
-            commit = repo.head.object.hexsha
-            dirty = repo.is_dirty()
-        except git.exc.InvalidGitRepositoryError:
-            print("Error: Couldn't get commit and dirty via git or Nix")
-            exit()
+        repo = git.Repo(search_parent_directories=True)
+        commit = repo.head.object.hexsha
+        dirty = repo.is_dirty()
+
     system_info = SystemInfo(commit[0:16], dirty)
 
     print(
