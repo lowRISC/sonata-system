@@ -186,6 +186,14 @@ module top_verilator (input logic clk_i, rst_ni);
   assign inout_from_pins[INOUT_PIN_SCL1] = scl1_in;
   assign inout_from_pins[INOUT_PIN_SDA1] = sda1_in;
 
+  // These unused inputs must be pulled high.
+  assign {inout_from_pins[INOUT_PIN_RPH_G0],
+          inout_from_pins[INOUT_PIN_RPH_G1],
+          inout_from_pins[INOUT_PIN_RPH_G2_SDA],
+          inout_from_pins[INOUT_PIN_RPH_G3_SCL],
+          inout_from_pins[INOUT_PIN_MB5],
+          inout_from_pins[INOUT_PIN_MB6]} = {6{1'b1}};  // SCL/SDA are shared with other pins.
+
   // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
   // by the `gp_o` port presently.
   logic gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs;
