@@ -4,9 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import sys
 from pathlib import Path
 from typing import NamedTuple
 
+import yaml
 from mako.template import Template
 
 
@@ -15,13 +17,13 @@ class SystemInfo(NamedTuple):
     dirty: bool
 
 
-def generate_system_info() -> None:
+def generate_system_info(files_root: str) -> None:
     commit = os.environ.get("FLAKE_GIT_COMMIT")
     dirty = bool(os.environ.get("FLAKE_GIT_DIRTY"))
     if commit is None or dirty is None:
         import git
 
-        repo = git.Repo(search_parent_directories=True)
+        repo = git.Repo(files_root, search_parent_directories=True)
         commit = repo.head.object.hexsha
         dirty = repo.is_dirty()
 
@@ -62,7 +64,14 @@ def generate_system_info() -> None:
 
 
 def main() -> None:
-    generate_system_info()
+    if len(sys.argv) < 2:
+        print("Expect a fusesoc generator configuration file.")
+        exit(2)
+
+    with Path(sys.argv[1]).open() as file:
+        config = yaml.load(file.read(), yaml.SafeLoader)
+
+    generate_system_info(config["files_root"])
 
 
 if __name__ == "__main__":
