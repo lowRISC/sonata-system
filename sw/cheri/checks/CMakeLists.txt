@@ -17,7 +17,7 @@ foreach(CHECK ${CHECKS})
   get_filename_component(NAME ${CHECK} NAME_WE)
 
   add_executable(${NAME} ${CHECK})
-  target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
+  target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
   target_link_libraries(${NAME} common)
 
   add_custom_command(
@@ -33,7 +33,7 @@ endforeach()
 set(NAME tag_test)
 
 add_executable(${NAME} "tag_test.S")
-target_include_directories(${NAME} PRIVATE "${CHERIOT_RTOS_SDK}/include")
+target_include_directories(${NAME} PRIVATE "${CHERIOT_RTOS_SDK}/include" "${reisfmt_SOURCE_DIR}/include")
 
 add_custom_command(
   TARGET ${NAME} POST_BUILD
@@ -45,7 +45,7 @@ install(TARGETS ${NAME})
 
 set(NAME hyperram_test)
 add_executable(${NAME}  hyperram_test.cc)
-target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
+target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
 target_link_libraries(${NAME} common)
 
 add_custom_command(

@@ -15,6 +15,14 @@
     fetchSubmodules = true;
     hash = "sha256-sN0tkHTQBYUFs+5Ia83aTXzEvn5LiR+QCbeOcYy5eDk=";
   };
+
+  reisfmtSource = pkgs.fetchFromGitHub {
+    owner = "engdoreis";
+    repo = "reisfmt";
+    rev = "c624a03b48e6b17a0d6fe5c8630597eeefca9125";
+    fetchSubmodules = true;
+    hash = "sha256-KXRJbo2geqf9T3RiEca+CD6kdgv+/lbjp8SiumZMp9k=";
+  };
 in {
   sonata-system-software = pkgs.stdenv.mkDerivation rec {
     name = "sonata-system-software";
@@ -29,6 +37,7 @@ in {
     nativeBuildInputs = cheriotPkgs ++ (with pkgs; [cmake]);
     cmakeFlags = [
       "-DFETCHCONTENT_SOURCE_DIR_CHERIOT_RTOS=${cheriotRtosSource}"
+      "-DFETCHCONTENT_SOURCE_DIR_REISFMT=${reisfmtSource}"
     ];
     dontFixup = true;
   };
