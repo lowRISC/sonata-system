@@ -173,8 +173,9 @@
       bitstream = import nix/bitstream.nix {
         inherit
           pkgs
-          lrPkgs
           pythonEnv
+          sonataGatewareFiles
+          sonata-system-software
           FLAKE_GIT_COMMIT
           FLAKE_GIT_DIRTY
           ;
