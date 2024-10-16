@@ -2,11 +2,11 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-set(TEST boot_loader.cc)
+set(SRC_BOOT boot_loader.cc)
 
-get_filename_component(NAME ${TEST} NAME_WE)
+get_filename_component(NAME ${SRC_BOOT} NAME_WE)
 
-add_executable(${NAME} ${TEST} boot.S)
+add_executable(${NAME} ${SRC_BOOT} boot.S)
 target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
 
 add_custom_command(
