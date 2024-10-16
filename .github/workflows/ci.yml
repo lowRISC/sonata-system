@@ -66,8 +66,10 @@ jobs:
           substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
           trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
-    - name: Nix Format Check
-      run: nix fmt -- . --check
+    - name: Nix Checks
+      run: |
+        nix fmt -- . --check
+        nix flake check
 
     - name: Run Lints
       run: |
@@ -75,15 +77,10 @@ jobs:
         nix build .#sonata-simulator-lint -L
 
     - name: Build Documentation
-      run: |
-        nix build .#sonata-documentation -L
+      run: nix build .#sonata-documentation -L
 
-    - name: Build Verilator simulator
-      run: |
-        nix build .#sonata-simulator -L
-
-    - name: Nix Checks
-      run: nix flake check -L
+    - name: Run tests on the simulator
+      run: nix build .#test-simulator -L
 
   fpga:
     runs-on: [ubuntu-22.04-fpga, sonata]
