@@ -86,7 +86,7 @@ jobs:
     runs-on: [ubuntu-22.04-fpga, sonata]
     env:
       BITSTREAM_PATH: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
-      GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream/
+      GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream
 
     steps:
     - uses: actions/checkout@v4
@@ -113,7 +113,7 @@ jobs:
         if gcloud storage stat "${GS_PATH}/$BITSTREAM_HASH.bit" >/dev/null 2>&1; then
           gcloud storage cp -v "${GS_PATH}/$BITSTREAM_HASH.bit" "${BITSTREAM_PATH}" 2>/dev/null
         else
-          echo "Bitstream not cached"
+          echo "Bitstream $BITSTREAM_HASH.bit not cached."
         fi
 
     # Only runs if the bitstream does not exist (not found in cache).
@@ -130,6 +130,7 @@ jobs:
       run: |
         BITSTREAM_HASH=$(nix eval .#sonata-simulator --apply 'd: d.outPath' --raw | cut -d '/' -f4 | cut -d '-' -f1)
         gcloud storage cp "${BITSTREAM_PATH}" "${GS_PATH}/$BITSTREAM_HASH.bit"
+        echo "Bitstream $BITSTREAM_HASH.bit uploaded to cache."
 
     - name: Flash bitstream
       run: |
