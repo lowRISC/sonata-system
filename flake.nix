@@ -182,11 +182,11 @@
           sonata-documentation
           ;
         inherit (software) sonata-system-software cheriot-rtos-test-suite;
+        test-simulator = tests.simulator;
         sonata-simulator-lint = lint.sonata-simulator;
         bitstream-build = bitstream.build;
         bitstream-load = bitstream.load;
       };
-      checks = {test-simulator = tests.simulator;};
       apps = builtins.listToAttrs (map (program: {
         inherit (program) name;
         value = {
