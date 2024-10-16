@@ -30,6 +30,5 @@ fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system 
 Optionally, the bitstream can be built using a nix command:
 ```sh
 nix run .#bitstream-build
-``
-Note: Vivado must in one's path for this command to work.
-
+```
+Note: Vivado must be in one's path for this command to work.
