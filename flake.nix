@@ -71,17 +71,21 @@
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
+      sonataGatewareFiles = fileset.unions [
+        ./rtl
+        ./vendor
+        ./sonata.core
+        ./sonata_system.core
+        ./rv_timer.core
+        ./pulp_riscv_dbg.core
+        ./open_hbmc.core
+      ];
+
       sonataSimulatorFileset = fileset.toSource {
         root = ./.;
         fileset = fileset.unions [
-          ./rtl
+          sonataGatewareFiles
           ./dv
-          ./vendor
-          ./sonata.core
-          ./sonata_system.core
-          ./rv_timer.core
-          ./pulp_riscv_dbg.core
-          ./open_hbmc.core
         ];
       };
 
