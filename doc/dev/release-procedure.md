@@ -269,6 +269,7 @@ git push --setupstream upstream vX.Y
 
 Look for the previous tagged release and go through the commit history since then.
 Note down any major updates like the additions of an IP block and make a bulleted list.
+In Vivado look for the utilization report of the placed design, the timing summary of the routed design and the power report of the routed design to fill in the bitstream characteristics.
 An example release notes looks something like this:
 
 > This release contains on top of PREVIOUS_RELEASE:
@@ -277,7 +278,20 @@ An example release notes looks something like this:
 > - MAJOR_FEATURE_ADDED_2
 > - ...
 >
-> Here's the flow for using these files:
+> Here are a few characteristics of this bitstream:
+> - Utilization
+>   * Slice LUTs XX.XX%
+>   * Slice Registers: XX.XX%
+>   * Block RAM Tile: XX.XX%
+>   * DSPs: XX.XX%
+> - Timing
+>   * Overall WNS: X.XXX ns
+>   * System clock WNS: X.XXX ns
+>   * HyperRAM clock WNS: X.XXX ns
+>   * USB clock WNS: X.XXX ns
+> - Total on-chip power: X.XXX W
+>
+> Here's the developer flow for using these files:
 >
 > 1. Make sure the bitstream select switch (immediately below the main USB-C port) is set to position 1.
 > 2. Before plugging in your Sonata board, hold down the "SW9" button labelled "RP2040 Boot", and while holding this button plug your board into your laptop using the Main USB.
