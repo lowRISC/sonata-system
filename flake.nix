@@ -25,7 +25,6 @@
     ...
   } @ inputs: let
     system_outputs = system: let
-      version = "0.0.1";
       FLAKE_GIT_COMMIT =
         if (self ? rev)
         then self.rev
@@ -57,7 +56,7 @@
         };
 
       sonata-documentation = lrDoc.buildMdbookSite {
-        inherit version;
+        version = "";
         pname = "sonata-documentation";
         src = fileset.toSource {
           root = ./.;
@@ -90,8 +89,7 @@
       };
 
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
-        inherit version;
-        pname = "sonata-simulator";
+        name = "sonata-simulator";
         src = sonataSimulatorFileset;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
@@ -104,14 +102,13 @@
         '';
         installPhase = ''
           mkdir -p $out/bin/
-          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/${pname}
+          cp -r build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator $out/bin/${name}
         '';
-        meta.mainProgram = pname;
+        meta.mainProgram = name;
       };
 
       sonata-sim-boot-stub = pkgs.stdenv.mkDerivation {
-        inherit version;
-        pname = "sonata-sim-boot-stub";
+        name = "sonata-sim-boot-stub";
         src = sw/cheri/sim_boot_stub/.;
         nativeBuildInputs = cheriotPkgs;
         buildPhase = ''
