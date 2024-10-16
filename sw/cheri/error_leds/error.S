@@ -20,20 +20,17 @@ start:
 	la_abs t0, trap
 	csetaddr ct0, ca1, t0
 	cspecialw mtcc, ct0
-	// Enable trap on permit store local capability violation.
-	li t0, 1
-	csrw 0xBC4, t0
 	// Keeps track of which violation to cause next.
 	// Start at 8 because first thing we do is add one and wrap to zero.
-	li s0, 8
+	li s0, 7
 
 .section .text
 
 nextviolation:
 	addi s0, s0, 1 // Go to next exception.
-	addi t0, s0, -9 // Check if we hit 9.
+	addi t0, s0, -8 // Check if we hit 8.
 	bnez t0, checkvalues
-	li s0, 0 // Wrap to zero if we hit 9.
+	li s0, 0 // Wrap to zero if we hit 8.
 checkvalues:
 	li t0, 0
 	beq s0, t0, bounds
@@ -49,8 +46,6 @@ checkvalues:
 	beq s0, t0, permitstore
 	addi t0, t0, 1
 	beq s0, t0, permitstorecap
-	addi t0, t0, 1
-	beq s0, t0, permitstoreloccap
 	addi t0, t0, 1
 	beq s0, t0, permitaccsysreg
 	j fail // We should never get here.
@@ -98,14 +93,6 @@ permitstorecap:
 	li t0, 4
 	candperm ct0, ca0, t0
 	// Cause store capability permission violation.
-	csc ct0, 0(ct0)
-	j fail // We should never get here.
-
-permitstoreloccap:
-	// Create capability write only capability that is local.
-	li t0, 0x44
-	candperm ct0, ca0, t0
-	// Cause store local capability permission violation.
 	csc ct0, 0(ct0)
 	j fail // We should never get here.
 
