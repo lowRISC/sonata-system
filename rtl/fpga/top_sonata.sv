@@ -246,7 +246,11 @@ module top_sonata
   logic [7:0] user_sw_n;
   logic [2:0] sel_sw_n;
 
-  assign led_bootok = rst_sys_n;
+  // Instantiate OBUF to keep rst_sys_n and led_bootok nets separate
+  OBUF OBUF_led_bootok (
+    .I  ( rst_sys_n  ),
+    .O  ( led_bootok )
+  );
 
   // Switch inputs have pull-ups and switches pull to ground when on. Invert here so CPU sees 1 for
   // on and 0 for off.

@@ -447,3 +447,13 @@ set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
 set sync_clk_in [get_pins -of $sync_cells -filter {REF_PIN_NAME == clk_i}]
 set sync_flops [all_fanout -flat -only_cells -endpoints_only $sync_clk_in]
 set_property ASYNC_REG TRUE $sync_flops
+
+# Use spare global clock-routing resource (BUFG) for high-level reset signals
+# to save data-routing resource and hopefully improve timing.
+# Unfortunately, reset signals are often inverted before use,
+# so the benefit of using BUFGs may be limited.
+set_property -dict {KEEP TRUE  CLOCK_BUFFER_TYPE BUFG} [get_nets rst_n]
+set_property -dict {KEEP TRUE  CLOCK_BUFFER_TYPE BUFG} [get_nets rst_sys_n]
+set_property -dict {KEEP TRUE  CLOCK_BUFFER_TYPE BUFG} [get_nets rst_usb_n]
+set_property -dict {KEEP TRUE  CLOCK_BUFFER_TYPE BUFG} [get_nets rst_hr_n]
+set_property -dict {KEEP TRUE  CLOCK_BUFFER_TYPE BUFG} [get_nets u_sonata_system/rst_core_n]
