@@ -3,18 +3,31 @@
 # SPDX-License-Identifier: Apache-2.0
 {
   pkgs,
-  lrPkgs,
   pythonEnv,
+  sonata-system-software,
+  sonataGatewareFiles,
   FLAKE_GIT_COMMIT,
   FLAKE_GIT_DIRTY,
-}: {
+}: let
+  inherit (pkgs.lib) fileset;
+
+  sonataFpgaFileset = fileset.toSource {
+    root = ../.;
+    fileset = fileset.unions [
+      sonataGatewareFiles
+      (fileset.fileFilter (file: file.hasExt "xdc") ../data)
+      ../flow
+    ];
+  };
+in {
   build = pkgs.writeShellApplication {
     name = "bitstream-build";
-    runtimeInputs = [pythonEnv lrPkgs.llvm_cheriot pkgs.cmake];
+    runtimeInputs = [pythonEnv];
     runtimeEnv = {inherit FLAKE_GIT_COMMIT FLAKE_GIT_DIRTY;};
     text = ''
-      cmake -B sw/cheri/build -S sw/cheri ;cmake --build sw/cheri/build
-      fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system
+      fusesoc --cores-root=${sonataFpgaFileset} \
+        run --target=synth --build lowrisc:sonata:system \
+        --SRAMInitFile=${sonata-system-software}/share/boot_loader.vmem
     '';
   };
 
