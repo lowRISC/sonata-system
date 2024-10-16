@@ -15,3 +15,6 @@ add_custom_command(
   COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
   VERBATIM
 )
+
+install(TARGETS ${NAME})
+install(FILES "$<TARGET_FILE:${NAME}>.vmem" DESTINATION share)
