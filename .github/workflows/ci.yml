@@ -109,7 +109,8 @@ jobs:
     # Check if there's a bitstream in the cache that maches the RTL hash computed by Nix.
     - name: Check bitstream cache
       run: |
-        BITSTREAM_HASH=$(nix eval .#sonata-simulator --apply 'd: d.outPath' --raw | cut -d '/' -f4 | cut -d '-' -f1)
+        BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.fpgaDependanciesFileset --apply 'd: d.outPath' --raw \
+          | cut -d '/' -f4 | cut -d '-' -f1)
         if gcloud storage stat "${GS_PATH}/$BITSTREAM_HASH.bit" >/dev/null 2>&1; then
           gcloud storage cp -v "${GS_PATH}/$BITSTREAM_HASH.bit" "${BITSTREAM_PATH}" 2>/dev/null
         else
@@ -128,7 +129,8 @@ jobs:
     - name: Upload bitstream to the cache
       if: github.event_name != 'pull_request' 
       run: |
-        BITSTREAM_HASH=$(nix eval .#sonata-simulator --apply 'd: d.outPath' --raw | cut -d '/' -f4 | cut -d '-' -f1)
+        BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.fpgaDependanciesFileset --apply 'd: d.outPath' --raw \
+          | cut -d '/' -f4 | cut -d '-' -f1)
         gcloud storage cp "${BITSTREAM_PATH}" "${GS_PATH}/$BITSTREAM_HASH.bit"
         echo "Bitstream $BITSTREAM_HASH.bit uploaded to cache."
 
