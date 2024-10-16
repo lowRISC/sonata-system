@@ -126,7 +126,7 @@ accesssystemregister:
 .section .text.trap, "ax", @progbits
 .p2align 2
 trap:
-	li t0, 0x01000000 //0x10 for simulation 0x01000000 for FPGA.
+	li t0, 0x00400000 //0x10 for simulation 0x00400000 for FPGA.
 delayloop: // Delay clearing error LEDs so that you can see them.
 	addi t0, t0, -1
 	bnez t0, delayloop
