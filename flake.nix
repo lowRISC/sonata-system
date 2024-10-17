@@ -67,7 +67,7 @@
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
 
-      sonataGatewareFiles = fileset.unions [
+      sonataGatewareFileset = fileset.unions [
         ./rtl
         ./vendor
         ./sonata.core
@@ -77,17 +77,17 @@
         ./open_hbmc.core
       ];
 
-      sonataSimulatorFileset = fileset.toSource {
+      sonataSimulatorSource = fileset.toSource {
         root = ./.;
         fileset = fileset.unions [
-          sonataGatewareFiles
+          sonataGatewareFileset
           ./dv
         ];
       };
 
       sonata-simulator = pkgs.stdenv.mkDerivation rec {
         name = "sonata-simulator";
-        src = sonataSimulatorFileset;
+        src = sonataSimulatorSource;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
         inherit FLAKE_GIT_COMMIT;
@@ -125,7 +125,7 @@
         inherit
           pkgs
           pythonEnv
-          sonataGatewareFiles
+          sonataGatewareFileset
           FLAKE_GIT_COMMIT
           FLAKE_GIT_DIRTY
           ;
@@ -146,7 +146,7 @@
         inherit
           pkgs
           pythonEnv
-          sonataSimulatorFileset
+          sonataSimulatorSource
           FLAKE_GIT_COMMIT
           FLAKE_GIT_DIRTY
           ;
@@ -172,7 +172,7 @@
           ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
-      filesets = {inherit (bitstream) fpgaDependanciesFileset;};
+      filesets = {inherit (bitstream) bitstreamDependancies;};
       packages = {
         inherit
           sonata-simulator
