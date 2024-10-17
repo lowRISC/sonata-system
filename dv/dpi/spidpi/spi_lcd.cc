@@ -79,6 +79,7 @@ void spi_lcd::reset() {
   cmdLen = 0u;
   xEnd = xStart = 0u;
   yEnd = yStart = 0u;
+  madCtl = 0u;
   colAdr = 0u;
   rowAdr = 0u;
   pixWriting = false;
@@ -94,16 +95,23 @@ void spi_lcd::reset() {
 void spi_lcd::outputImage() {
   FILE *out = fopen(imgFilename.c_str(), "wb");
   if (out) {
-    fprintf(out, "P6 %u %u %u\n", kWidth, kHeight, 0x3fu);
+    // Present the image from the perspective of the controller writes.
+    bool transposed = (madCtl & ST77_MADCTL_MV) != 0;
+    uint32_t w = transposed ? kHeight : kWidth;
+    uint32_t h = transposed ? kWidth  : kHeight;
+    fprintf(out, "P6 %u %u %u\n", w, h, 0x3fu);
     unsigned y = 0u;
-    while (y < kHeight) {
-      const pixel_t *row = frameBuf[y];
+    while (y < h) {
+      const pixel_t *ppix = transposed ? &frameBuf[0][y] : frameBuf[y];
       unsigned x = 0;
-      while (x < kWidth) {
+      while (x < w) {
+        // Collect pixel.
+        pixel_t pix = *ppix;
+        ppix += transposed ? kWidth : 0;
         // Extract components from 5:6:5 format.
-        unsigned r =  row[x] & 0x1fu;
-        unsigned g = (row[x] >> 5) & 0x3fu;
-        unsigned b =  row[x] >> 11;
+        unsigned r =  pix & 0x1fu;
+        unsigned g = (pix >> 5) & 0x3fu;
+        unsigned b =  pix >> 11;
         // We must use 6:6:6 output format.
         b = (b << 1) | (b >> 4);
         r = (r << 1) | (r >> 4);
@@ -131,10 +139,12 @@ void spi_lcd::writeByte(uint8_t inByte, uint32_t oobIn) {
     // We support only the 5:6:5 format presently, so two bytes per pixel.
     cmdComplete = (cmdLen >= 2);
     if (cmdComplete) {
+      uint16_t colPhysAdr = (madCtl & ST77_MADCTL_MV) ? rowAdr : colAdr;
+      uint16_t rowPhysAdr = (madCtl & ST77_MADCTL_MV) ? colAdr : rowAdr;
       // Ensure that we do not write out-of-bounds.
-      if (colAdr < kWidth && rowAdr < kHeight) {
+      if (colPhysAdr < kWidth && rowPhysAdr < kHeight) {
         uint16_t pixCol = ((uint16_t)cmd[0] << 8) | cmd[1];
-        frameBuf[rowAdr][colAdr] = pixCol;
+        frameBuf[rowPhysAdr][colPhysAdr] = pixCol;
       }
       // Advance to the next pixel.
       if (++colAdr > xEnd) {
@@ -159,7 +169,13 @@ void spi_lcd::writeByte(uint8_t inByte, uint32_t oobIn) {
       case ST7735_FRMCTR1: cmdComplete = (cmdLen >= 4); break;
       case ST7735_FRMCTR2: cmdComplete = (cmdLen >= 4); break;
       case ST7735_FRMCTR3: cmdComplete = (cmdLen >= 7); break;
-      case ST7735_MADCTL:  cmdComplete = (cmdLen >= 2); break;
+      case ST7735_MADCTL:
+        cmdComplete = (cmdLen >= 2);
+        if (cmdComplete) {
+          madCtl = cmd[1];
+          logText("MADCTL 0x%0x\n", madCtl);
+        }
+        break;
       case ST7735_DISSET5: cmdComplete = (cmdLen >= 3); break;
       case ST7735_INVCTR:  cmdComplete = (cmdLen >= 2); break;
       case ST7735_PWCTR1:  cmdComplete = (cmdLen >= 3); break;
