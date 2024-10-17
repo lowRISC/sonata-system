@@ -8,7 +8,9 @@
   sonata-sim-boot-stub,
   cheriot-rtos-test-suite,
   sonata-simulator,
-}: {
+}: let
+  inherit (pkgs.lib) fileset;
+in {
   fpga = pkgs.writeShellApplication {
     name = "tests-fpga";
     runtimeInputs = [pythonEnv pkgs.openocd];
@@ -28,7 +30,10 @@
 
   simulator = pkgs.stdenvNoCC.mkDerivation {
     name = "tests-simulator";
-    src = ./.;
+    src = fileset.toSource {
+      root = ./.; # an empty source directory
+      fileset = fileset.unions [];
+    };
     dontBuild = true;
     doCheck = true;
     buildInputs = [sonata-simulator pythonEnv];
