@@ -170,8 +170,8 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
                                 io.name,
                                 io_index,
                             ),
-                            direction=io.type,
                             default_value=io.default,
+                            direction=io.type,
                             combine=io.combine,
                         )
 
