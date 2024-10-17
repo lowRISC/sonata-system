@@ -70,7 +70,14 @@ module xadc_adapter #(
     .rdata_i     (mem_rdata),
     .rdata_cap_i (1'b0),
     .rvalid_i    (mem_rvalid),
-    .rerror_i    (mem_rerror)
+    .rerror_i    (mem_rerror),
+
+    // Readback functionality not required.
+    .compound_txn_in_progress_o (),
+    .readback_en_i              (prim_mubi_pkg::MuBi4False),
+    .readback_error_o           (),
+    .wr_collision_i             (1'b0),
+    .write_pending_i            (1'b0)
   );
 
   // Use the supplied clock as the XADC DCLK.

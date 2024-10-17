@@ -1,4 +1,4 @@
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 """
@@ -162,15 +162,15 @@ def gen_cdefine_register(outstr: TextIO,
                         dname + '_FIELD', [],
                         '((bitfield_field32_t) {{ .mask = {dname}_MASK, .index = {dname}_OFFSET }})'
                         .format(dname=dname), existing_defines))
-            if field.enum is not None:
-                for enum in field.enum:
-                    ename = as_define(enum.name)
-                    value = hex(enum.value)
-                    genout(
-                        outstr,
-                        gen_define(
-                            defname + '_' + as_define(field.name) +
-                            '_VALUE_' + ename, [], value, existing_defines))
+        if field.enum is not None:
+            for enum in field.enum:
+                ename = as_define(enum.name)
+                value = hex(enum.value)
+                genout(
+                    outstr,
+                    gen_define(
+                        defname + '_' + as_define(field.name) +
+                        '_VALUE_' + ename, [], value, existing_defines))
     genout(outstr, '\n')
     return
 

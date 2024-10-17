@@ -1,4 +1,4 @@
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 '''Code representing the registers, windows etc. for a block'''
@@ -465,7 +465,8 @@ class RegBlock:
             shadowed=False,
             fields=fields,
             update_err_alert=None,
-            storage_err_alert=None)
+            storage_err_alert=None,
+            writes_ignore_errors=False)
         self.add_register(reg)
 
     def make_intr_regs(self, interrupts: Sequence[Interrupt]) -> None:
@@ -550,7 +551,8 @@ class RegBlock:
                 shadowed=False,
                 fields=fields,
                 update_err_alert=None,
-                storage_err_alert=None))
+                storage_err_alert=None,
+                writes_ignore_errors=False))
 
         self._add_intr_alert_reg(
             interrupts, 'INTR_ENABLE', 'Interrupt Enable Register',

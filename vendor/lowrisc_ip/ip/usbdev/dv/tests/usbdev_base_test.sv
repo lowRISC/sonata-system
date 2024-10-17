@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -18,4 +18,3 @@ class usbdev_base_test extends cip_base_test #(
   // the run_phase; as such, nothing more needs to be done
 
 endclass : usbdev_base_test
-

@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -28,7 +28,6 @@ module tlul_rsp_intg_gen import tlul_pkg::*; #(
       .data_i(D2HRspMaxWidth'(rsp)),
       .data_o({rsp_intg, unused_payload})
     );
-
     logic [DataIntgWidth-1:0] data_intg;
     if (EnableDataIntgGen) begin : gen_data_intg
       logic [DataMaxWidth-1:0] unused_data;

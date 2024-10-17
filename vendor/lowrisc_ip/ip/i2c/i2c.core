@@ -1,5 +1,5 @@
 CAPI=2:
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 name: "lowrisc:ip:i2c:0.1"
@@ -19,7 +19,9 @@ filesets:
       - rtl/i2c_fifo_sync_sram_adapter.sv
       - rtl/i2c_fifos.sv
       - rtl/i2c_core.sv
-      - rtl/i2c_fsm.sv
+      - rtl/i2c_bus_monitor.sv
+      - rtl/i2c_controller_fsm.sv
+      - rtl/i2c_target_fsm.sv
       - rtl/i2c.sv
     file_type: systemVerilogSource
 

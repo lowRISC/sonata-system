@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 {
@@ -116,6 +116,11 @@
     }
 
     {
+      name: i2c_host_perf_precise
+      uvm_test_seq: i2c_host_perf_precise_vseq
+    }
+
+    {
       name: i2c_host_stretch_timeout
       uvm_test_seq: i2c_host_stretch_timeout_vseq
     }
@@ -207,7 +212,7 @@
       name: i2c_target_bad_addr
       uvm_test_seq: i2c_target_smoke_vseq
       run_opts: ["+i2c_agent_mode=Host", "+test_timeout_ns=20_000_000",
-                 "+use_intr_handler=1", "+i2c_bad_addr_pct=5"]
+                 "+use_intr_handler=1", "+i2c_bad_addr_pct=50"]
     }
     {
       name: i2c_target_hrst
@@ -221,6 +226,7 @@
       run_opts: ["+run_stress_all_with_rand_reset",
                  "+stress_seq=i2c_host_stress_all_vseq"]
       run_timeout_mins: 20
+      reseed: 10
     }
     {
       name: "i2c_target_stress_all_with_rand_reset"
@@ -229,11 +235,65 @@
                  "+run_stress_all_with_rand_reset",
                  "+stress_seq=i2c_target_stress_all_vseq"]
       run_timeout_mins: 20
+      reseed: 10
     }
     {
       name: "i2c_host_mode_toggle"
       uvm_test_seq: "i2c_host_mode_toggle_vseq"
       run_timeout_mins: 10
+    }
+    {
+      name: "i2c_host_may_nack"
+      uvm_test_seq: "i2c_host_may_nack_vseq"
+    }
+    {
+      name: i2c_target_fifo_watermarks_acq
+      uvm_test_seq: i2c_target_fifo_watermarks_acq_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_fifo_watermarks_tx
+      uvm_test_seq: i2c_target_fifo_watermarks_tx_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_tx_stretch_ctrl
+      uvm_test_seq: i2c_target_tx_stretch_ctrl_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_smbus_maxlen
+      uvm_test_seq: i2c_target_smbus_maxlen_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_nack_acqfull
+      uvm_test_seq: i2c_target_nack_acqfull_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_nack_acqfull_addr
+      uvm_test_seq: i2c_target_nack_acqfull_addr_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
+    }
+    {
+      name: i2c_target_nack_txstretch
+      uvm_test_seq: i2c_target_nack_txstretch_vseq
+      run_opts: ["+i2c_agent_mode=Host",
+                 "+test_timeout_ns=20_000_000",
+                 "+use_intr_handler=1"]
     }
   ]
 
@@ -249,7 +309,7 @@
               "i2c_host_fifo_watermark", "i2c_host_fifo_overflow", "i2c_host_fifo_reset_fmt",
               "i2c_host_rx_oversample",  "i2c_host_stretch_timeout",
               "i2c_host_fifo_fmt_empty", "i2c_host_fifo_reset_rx", "i2c_host_stretch_timeout",
-              "i2c_host_fifo_full",
+              "i2c_host_fifo_full", "i2c_host_may_nack",
               "i2c_host_error_intr"]
     }
     {
@@ -260,7 +320,8 @@
               "i2c_target_timeout", "i2c_target_unexp_stop",
               "i2c_target_glitch", "i2c_target_perf",
               "i2c_target_fifo_reset_acq", "i2c_target_fifo_reset_tx",
-              "i2c_target_bad_addr", "i2c_target_hrst"]
+              "i2c_target_bad_addr", "i2c_target_hrst",
+              "i2c_target_smbus_maxlen"]
     }
   ]
 }

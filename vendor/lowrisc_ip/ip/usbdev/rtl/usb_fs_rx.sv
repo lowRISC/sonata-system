@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Copyright Luke Valenty (TinyFPGA project, https://github.com/tinyfpga/TinyFPGA-Bootloader).
@@ -43,7 +43,9 @@ module usb_fs_rx (
   output logic rx_data_put_o,
   output logic [7:0] rx_data_o,
 
-  // Most recent packet passes PID and CRC checks
+  // Most recent packet passes PID check
+  output logic valid_pid_o,
+  // Most recent packet passes PID, length and CRC checks
   output logic valid_packet_o,
 
   // line status for the status detection (actual rx bits after clock recovery)
@@ -513,6 +515,8 @@ module usb_fs_rx (
   ////////////////////////////
   // output control signals //
   ////////////////////////////
+  logic valid_token_len, valid_data_len, valid_handshake_len;
+
   logic pkt_is_token, pkt_is_data, pkt_is_handshake;
   assign pkt_is_token     = full_pid_q[2:1] == 2'b01;
   assign pkt_is_data      = full_pid_q[2:1] == 2'b11;
@@ -521,12 +525,12 @@ module usb_fs_rx (
   assign see_preamble = packet_valid_q & pid_valid & pid_complete &&
                         (usb_pid_e'(full_pid_q[4:1]) == UsbPidPre);
 
+  assign valid_pid_o = pid_valid;
 
   assign valid_packet_o = pid_valid && !bitstuff_error_q &&
-    ((pkt_is_handshake) ||
-    (pkt_is_data && crc16_valid) ||
-    (pkt_is_token && crc5_valid)
-  );
+    ((pkt_is_handshake && valid_handshake_len) ||
+     (pkt_is_data && valid_data_len && crc16_valid) ||
+     (pkt_is_token && valid_token_len && crc5_valid));
 
   // Detect CRC errors
   assign crc5_error_o  = pkt_is_token & packet_end & !crc5_valid;
@@ -581,7 +585,6 @@ module usb_fs_rx (
   /////////////////////////////////
   // deserialize and output data //
   /////////////////////////////////
-  //assign rx_data_put = dvalid && pid_complete && pkt_is_data;
   logic [8:0] rx_data_buffer_q, rx_data_buffer_d;
   logic rx_data_buffer_full;
 
@@ -601,6 +604,29 @@ module usb_fs_rx (
     end
   end
 
+  // Counting packet length in bits; we need to know whether the length is byte-aligned,
+  // and whether it's equal to 16 (token packet) or at least 16 (data packet; CRC16 required).
+  logic       rx_data_len16_q, rx_data_len16_d;
+  logic [3:0] rx_data_len_q,   rx_data_len_d;
+
+  // Valid packet length indications.
+  assign valid_token_len     = rx_data_len16_q & ~|rx_data_len_q;
+  assign valid_data_len      = rx_data_len16_q & ~|rx_data_len_q[2:0];  // Must be byte-aligned.
+  assign valid_handshake_len = ~|{rx_data_len16_q, rx_data_len_q};
+
+  always_comb begin
+    rx_data_len16_d  = rx_data_len16_q;
+    rx_data_len_d    = rx_data_len_q;
+
+    if (packet_start) begin
+      rx_data_len16_d  = 1'b0;
+      rx_data_len_d    = 4'h0;
+    end
+    if (dvalid && pid_complete) begin
+      rx_data_len16_d  = rx_data_len16_q | &rx_data_len_q;
+      rx_data_len_d    = rx_data_len_q + 4'h1;
+    end
+  end
 
   ///////////////
   // Registers //
@@ -615,6 +641,8 @@ module usb_fs_rx (
       endp_q              <= 0;
       frame_num_q         <= 0;
       rx_data_buffer_q    <= 0;
+      rx_data_len16_q     <= 0;
+      rx_data_len_q       <= 0;
     end else begin
       if (link_reset_i) begin
         full_pid_q          <= 0;
@@ -625,6 +653,8 @@ module usb_fs_rx (
         endp_q              <= 0;
         frame_num_q         <= 0;
         rx_data_buffer_q    <= 0;
+        rx_data_len16_q     <= 0;
+        rx_data_len_q       <= 0;
       end else begin
         full_pid_q          <= full_pid_d;
         crc16_q             <= crc16_d;
@@ -634,6 +664,8 @@ module usb_fs_rx (
         endp_q              <= endp_d;
         frame_num_q         <= frame_num_d;
         rx_data_buffer_q    <= rx_data_buffer_d;
+        rx_data_len16_q     <= rx_data_len16_d;
+        rx_data_len_q       <= rx_data_len_d;
       end
     end
   end

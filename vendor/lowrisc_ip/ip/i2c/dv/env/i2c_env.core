@@ -1,5 +1,5 @@
 CAPI=2:
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 name: "lowrisc:dv:i2c_env:0.1"
@@ -19,6 +19,7 @@ filesets:
       - i2c_env_cov.sv: {is_include_file: true}
       - i2c_env.sv: {is_include_file: true}
       - i2c_virtual_sequencer.sv: {is_include_file: true}
+      - i2c_reference_model.sv: {is_include_file: true}
       - i2c_scoreboard.sv: {is_include_file: true}
       - seq_lib/i2c_vseq_list.sv: {is_include_file: true}
       - seq_lib/i2c_base_vseq.sv: {is_include_file: true}
@@ -35,6 +36,7 @@ filesets:
       - seq_lib/i2c_host_timeout_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_fifo_full_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_perf_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_host_perf_precise_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_stretch_timeout_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_error_intr_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_stress_all_vseq.sv: {is_include_file: true}
@@ -52,6 +54,14 @@ filesets:
       - seq_lib/i2c_target_hrst_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_host_mode_toggle_vseq.sv: {is_include_file: true}
       - seq_lib/i2c_glitch_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_host_may_nack_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_fifo_watermarks_acq_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_fifo_watermarks_tx_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_tx_stretch_ctrl_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_smbus_maxlen_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_nack_acqfull_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_nack_acqfull_addr_vseq.sv: {is_include_file: true}
+      - seq_lib/i2c_target_nack_txstretch_vseq.sv: {is_include_file: true}
     file_type: systemVerilogSource
 
 generate:
