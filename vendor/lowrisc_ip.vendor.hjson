@@ -8,7 +8,7 @@
 
     upstream: {
         url: "https://github.com/lowRISC/opentitan"
-        rev: "master"
+        rev: "earlgrey_1.0.0"
     }
 
     mapping: [
