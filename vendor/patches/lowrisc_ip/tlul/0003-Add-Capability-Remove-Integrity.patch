@@ -1,0 +1,357 @@
+diff --git a/rtl/tlul_adapter_host.sv b/rtl/tlul_adapter_host.sv
+index 3ae8af5..65df639 100644
+--- a/rtl/tlul_adapter_host.sv
++++ b/rtl/tlul_adapter_host.sv
+@@ -26,7 +26,9 @@ module tlul_adapter_host
+   import prim_mubi_pkg::mubi4_t;
+ #(
+   parameter int unsigned MAX_REQS = 2,
++  parameter bit EnableCmdIntgGen = 0,
+   parameter bit EnableDataIntgGen = 0,
++  parameter bit EnableRspIntgCheck = 0,
+   parameter bit EnableRspDataIntgCheck = 0
+ ) (
+   input clk_i,
+@@ -37,12 +39,14 @@ module tlul_adapter_host
+   input  logic [top_pkg::TL_AW-1:0]  addr_i,
+   input  logic                       we_i,
+   input  logic [top_pkg::TL_DW-1:0]  wdata_i,
++  input  logic                       wdata_cap_i,
+   input  logic [DataIntgWidth-1:0]   wdata_intg_i,
+   input  logic [top_pkg::TL_DBW-1:0] be_i,
+   input  mubi4_t                     instr_type_i,
+ 
+   output logic                       valid_o,
+   output logic [top_pkg::TL_DW-1:0]  rdata_o,
++  output logic                       rdata_cap_o,
+   output logic [DataIntgWidth-1:0]   rdata_intg_o,
+   output logic                       err_o,
+   output logic                       intg_err_o,
+@@ -104,11 +108,15 @@ module tlul_adapter_host
+     a_source:  tl_source,
+     a_address: {addr_i[31:WordSize], {WordSize{1'b0}}},
+     a_data:    wdata_i,
+-    a_user:    '{default: '0, data_intg: wdata_intg_i, instr_type: instr_type_i},
++    a_user:    '{default: '0, data_intg: wdata_intg_i, instr_type: instr_type_i,
++                 capability: wdata_cap_i},
+     d_ready:   1'b1
+   };
+ 
+-  tlul_cmd_intg_gen #(.EnableDataIntgGen (EnableDataIntgGen)) u_cmd_intg_gen (
++  tlul_cmd_intg_gen #(
++    .EnableCmdIntgGen (EnableCmdIntgGen),
++    .EnableDataIntgGen (EnableDataIntgGen)
++  ) u_cmd_intg_gen (
+     .tl_i(tl_out),
+     .tl_o(tl_o)
+   );
+@@ -117,23 +125,30 @@ module tlul_adapter_host
+ 
+   assign valid_o      = tl_i.d_valid;
+   assign rdata_o      = tl_i.d_data;
++  assign rdata_cap_o  = tl_i.d_user.capability;
+   assign rdata_intg_o = tl_i.d_user.data_intg;
+ 
++  // integrity check on response.
++  logic intg_err_q;
+   logic intg_err;
+-  tlul_rsp_intg_chk #(
+-    .EnableRspDataIntgCheck(EnableRspDataIntgCheck)
+-  ) u_rsp_chk (
+-    .tl_i,
+-    .err_o(intg_err)
+-  );
++  if (EnableRspIntgCheck) begin : gen_rsp_intg_check
++    tlul_rsp_intg_chk #(
++      .EnableRspDataIntgCheck(EnableRspDataIntgCheck)
++    ) u_rsp_chk (
++      .tl_i,
++      .err_o(intg_err)
++    );
+ 
+-  logic intg_err_q;
+-  always_ff @(posedge clk_i or negedge rst_ni) begin
+-    if (!rst_ni) begin
+-      intg_err_q <= '0;
+-    end else if (intg_err) begin
+-      intg_err_q <= 1'b1;
++    always_ff @(posedge clk_i or negedge rst_ni) begin
++      if (!rst_ni) begin
++        intg_err_q <= '0;
++      end else if (intg_err) begin
++        intg_err_q <= 1'b1;
++      end
+     end
++  end else begin : gen_no_rsp_intg_check
++    assign intg_err   = 1'b0;
++    assign intg_err_q = 1'b0;
+   end
+ 
+   // err_o is transactional.  This allows the host to continue
+diff --git a/rtl/tlul_adapter_sram.sv b/rtl/tlul_adapter_sram.sv
+index 41c7edb..ed3c126 100644
+--- a/rtl/tlul_adapter_sram.sv
++++ b/rtl/tlul_adapter_sram.sv
+@@ -59,9 +59,11 @@ module tlul_adapter_sram
+   output logic                we_o,
+   output logic [SramAw-1:0]   addr_o,
+   output logic [DataOutW-1:0] wdata_o,
++  output logic                wdata_cap_o,
+   output logic [DataOutW-1:0] wmask_o,
+   output logic                intg_error_o,
+   input        [DataOutW-1:0] rdata_i,
++  input                       rdata_cap_i,
+   input                       rvalid_i,
+   input        [1:0]          rerror_i, // 2 bit error [1]: Uncorrectable, [0]: Correctable
+   output logic                compound_txn_in_progress_o,
+@@ -241,6 +243,7 @@ module tlul_adapter_sram
+ 
+   typedef struct packed {
+     logic [top_pkg::TL_DW-1:0] data ;
++    logic                      data_cap ;
+     logic [DataIntgWidth-1:0]  data_intg ;
+     logic                      error ;
+   } rsp_t ;
+@@ -341,6 +344,10 @@ module tlul_adapter_sram
+   assign d_data = (vld_rd_rsp & ~d_error) ? rspfifo_rdata.data   // valid read
+                                           : error_blanking_data; // write or TL-UL error
+ 
++  logic d_cap;
++  assign d_cap = (vld_rd_rsp & ~d_error) ? rspfifo_rdata.data_cap // valid read
++                                         : 0;                     // write or TL-UL error
++
+   // If this a write response with data fields set to 0, we have to set all ECC bits correctly
+   // since we are using an inverted Hsiao code.
+   logic [DataIntgWidth-1:0] data_intg;
+@@ -374,10 +381,12 @@ module tlul_adapter_sram
+       d_source : (d_valid) ? reqfifo_rdata.source : '0,
+       d_sink   : 1'b0,
+       d_data   : d_data,
+-      d_user   : '{default: '0, data_intg: data_intg},
++      d_user   : '{default: '0, data_intg: data_intg, capability: d_cap},
+       d_error  : d_valid && d_error,
++      /* verilator lint_off UNOPTFLAT */
+       a_ready  : (gnt_i | missed_err_gnt_q) & reqfifo_wready & sramreqfifo_wready &
+                   sramreqaddrfifo_wready
++      /* verilator lint_on UNOPTFLAT */
+   };
+ 
+   // a_ready depends on the FIFO full condition and grant from SRAM (or SRAM arbiter)
+@@ -415,6 +424,9 @@ module tlul_adapter_sram
+   logic [WidthMult-1:0][top_pkg::TL_DW-1:0] wmask_int;
+   logic [WidthMult-1:0][top_pkg::TL_DW-1:0] wdata_int;
+ 
++  // Capability portion
++  logic wcap_int;
++
+   // Integrity portion
+   logic [WidthMult-1:0][DataIntgWidth-1:0] wmask_intg;
+   logic [WidthMult-1:0][DataIntgWidth-1:0] wdata_intg;
+@@ -422,12 +434,14 @@ module tlul_adapter_sram
+   always_comb begin
+     wmask_int = '0;
+     wdata_int = '0;
++    wcap_int  = '0;
+ 
+     if (tl_i_int.a_valid) begin
+       for (int i = 0 ; i < top_pkg::TL_DW/8 ; i++) begin
+         wmask_int[woffset][8*i +: 8] = {8{tl_i_int.a_mask[i]}};
+         wdata_int[woffset][8*i +: 8] = (tl_i_int.a_mask[i] && we_o) ? tl_i_int.a_data[8*i+:8] : '0;
+       end
++      wcap_int = we_o ? tl_i_int.a_user.capability : 1'b0;
+     end
+   end
+ 
+@@ -455,6 +469,7 @@ module tlul_adapter_sram
+ 
+   assign wmask_o = wmask_combined;
+   assign wdata_o = wdata_combined;
++  assign wdata_cap_o = wcap_int;
+ 
+   assign reqfifo_wvalid = a_ack ; // Push to FIFO only when granted
+   assign reqfifo_wdata  = '{
+@@ -525,6 +540,7 @@ module tlul_adapter_sram
+ 
+   assign rspfifo_wdata  = '{
+     data      : rdata_tlword[top_pkg::TL_DW-1:0],
++    data_cap  : rdata_cap_i,
+     data_intg : EnableDataIntgPt ? rdata_tlword[DataWidth-1 -: DataIntgWidth] : '0,
+     error     : rerror_i[1] // Only care for Uncorrectable error
+   };
+@@ -667,6 +683,7 @@ module tlul_adapter_sram
+   `ASSERT_KNOWN(WeOutKnown_A,    we_o   )
+   `ASSERT_KNOWN(AddrOutKnown_A,  addr_o )
+   `ASSERT_KNOWN(WdataOutKnown_A, wdata_o)
++  `ASSERT_KNOWN(WcapOutKnown_A,  wdata_cap_o)
+   `ASSERT_KNOWN(WmaskOutKnown_A, wmask_o)
+ 
+   // We'd like to claim that the payload of the TL output is known, but this isn't necessarily true!
+diff --git a/rtl/tlul_cmd_intg_gen.sv b/rtl/tlul_cmd_intg_gen.sv
+index dbed9fd..01ba72d 100644
+--- a/rtl/tlul_cmd_intg_gen.sv
++++ b/rtl/tlul_cmd_intg_gen.sv
+@@ -9,6 +9,7 @@
+  */
+ 
+ module tlul_cmd_intg_gen import tlul_pkg::*; #(
++  parameter bit EnableCmdIntgGen = 1'b1,
+   parameter bit EnableDataIntgGen = 1'b1
+ ) (
+   // TL-UL interface
+@@ -16,15 +17,20 @@ module tlul_cmd_intg_gen import tlul_pkg::*; #(
+   output tl_h2d_t tl_o
+ );
+ 
+-  tl_h2d_cmd_intg_t cmd;
+-  assign cmd = extract_h2d_cmd_intg(tl_i);
+-  logic [H2DCmdMaxWidth-1:0] unused_cmd_payload;
+-
+   logic [H2DCmdIntgWidth-1:0] cmd_intg;
+-  prim_secded_inv_64_57_enc u_cmd_gen (
+-    .data_i(H2DCmdMaxWidth'(cmd)),
+-    .data_o({cmd_intg, unused_cmd_payload})
+-  );
++
++  if (EnableCmdIntgGen) begin : gen_cmd_intg
++    tl_h2d_cmd_intg_t cmd;
++    assign cmd = extract_h2d_cmd_intg(tl_i);
++    logic [H2DCmdMaxWidth-1:0] unused_cmd_payload;
++
++    prim_secded_inv_64_57_enc u_cmd_gen (
++      .data_i(H2DCmdMaxWidth'(cmd)),
++      .data_o({cmd_intg, unused_cmd_payload})
++    );
++  end else begin : gen_no_cmd_intg
++    assign cmd_intg = tl_i.a_user.cmd_intg;
++  end
+ 
+   logic [top_pkg::TL_DW-1:0] data_final;
+   logic [DataIntgWidth-1:0] data_intg;
+diff --git a/rtl/tlul_err_resp.sv b/rtl/tlul_err_resp.sv
+index 7ab5c83..86ebef8 100644
+--- a/rtl/tlul_err_resp.sv
++++ b/rtl/tlul_err_resp.sv
+@@ -23,8 +23,8 @@ module tlul_err_resp (
+   tlul_pkg::tl_d2h_t                 tl_h_o_int;
+ 
+   tlul_rsp_intg_gen #(
+-    .EnableRspIntgGen(1),
+-    .EnableDataIntgGen(1)
++    .EnableRspIntgGen(0),
++    .EnableDataIntgGen(0)
+   ) u_intg_gen (
+     .tl_i(tl_h_o_int),
+     .tl_o(tl_h_o)
+diff --git a/rtl/tlul_pkg.sv b/rtl/tlul_pkg.sv
+index 80be654..48f0886 100644
+--- a/rtl/tlul_pkg.sv
++++ b/rtl/tlul_pkg.sv
+@@ -46,13 +46,15 @@ package tlul_pkg;
+     prim_mubi_pkg::mubi4_t      instr_type;
+     logic [H2DCmdIntgWidth-1:0] cmd_intg;
+     logic [DataIntgWidth-1:0]   data_intg;
++    logic                       capability;
+   } tl_a_user_t;
+ 
+   parameter tl_a_user_t TL_A_USER_DEFAULT = '{
+     rsvd: '0,
+     instr_type: prim_mubi_pkg::MuBi4False,
+     cmd_intg:  {H2DCmdIntgWidth{1'b1}},
+-    data_intg: {DataIntgWidth{1'b1}}
++    data_intg: {DataIntgWidth{1'b1}},
++    capability: 1'b0
+   };
+ 
+   typedef struct packed {
+@@ -95,11 +97,13 @@ package tlul_pkg;
+   typedef struct packed {
+     logic [D2HRspIntgWidth-1:0]    rsp_intg;
+     logic [DataIntgWidth-1:0]      data_intg;
++    logic                          capability;
+   } tl_d_user_t;
+ 
+   parameter tl_d_user_t TL_D_USER_DEFAULT = '{
+     rsp_intg: {D2HRspIntgWidth{1'b1}},
+-    data_intg: {DataIntgWidth{1'b1}}
++    data_intg: {DataIntgWidth{1'b1}},
++    capability: 1'b0
+   };
+ 
+   typedef struct packed {
+diff --git a/rtl/tlul_rsp_intg_gen.sv b/rtl/tlul_rsp_intg_gen.sv
+index 5b7651f..ecdd88a 100644
+--- a/rtl/tlul_rsp_intg_gen.sv
++++ b/rtl/tlul_rsp_intg_gen.sv
+@@ -17,8 +17,8 @@ module tlul_rsp_intg_gen import tlul_pkg::*; #(
+   output tl_d2h_t tl_o
+ );
+ 
+-  logic [D2HRspIntgWidth-1:0] rsp_intg;
+   if (EnableRspIntgGen) begin : gen_rsp_intg
++    logic [D2HRspIntgWidth-1:0] rsp_intg;
+     tl_d2h_rsp_intg_t rsp;
+     logic [D2HRspMaxWidth-1:0] unused_payload;
+ 
+@@ -28,31 +28,29 @@ module tlul_rsp_intg_gen import tlul_pkg::*; #(
+       .data_i(D2HRspMaxWidth'(rsp)),
+       .data_o({rsp_intg, unused_payload})
+     );
++    logic [DataIntgWidth-1:0] data_intg;
++    if (EnableDataIntgGen) begin : gen_data_intg
++      logic [DataMaxWidth-1:0] unused_data;
++      tlul_data_integ_enc u_tlul_data_integ_enc (
++        .data_i(DataMaxWidth'(tl_i.d_data)),
++        .data_intg_o({data_intg, unused_data})
++      );
++    end else begin : gen_passthrough_data_intg
++      assign data_intg = tl_i.d_user.data_intg;
++    end
++
++    always_comb begin
++      tl_o = tl_i;
++      tl_o.d_user.rsp_intg = rsp_intg;
++      tl_o.d_user.data_intg = data_intg;
++    end
+   end else begin : gen_passthrough_rsp_intg
+-    assign rsp_intg = tl_i.d_user.rsp_intg;
+-  end
+-
+-  logic [DataIntgWidth-1:0] data_intg;
+-  if (EnableDataIntgGen) begin : gen_data_intg
+-    logic [DataMaxWidth-1:0] unused_data;
+-    tlul_data_integ_enc u_tlul_data_integ_enc (
+-      .data_i(DataMaxWidth'(tl_i.d_data)),
+-      .data_intg_o({data_intg, unused_data})
+-    );
+-  end else begin : gen_passthrough_data_intg
+-    assign data_intg = tl_i.d_user.data_intg;
+-  end
+-
+-  always_comb begin
+-    tl_o = tl_i;
+-    tl_o.d_user.rsp_intg = rsp_intg;
+-    tl_o.d_user.data_intg = data_intg;
++    assign tl_o = tl_i;
+   end
+ 
+   logic unused_tl;
+   assign unused_tl = ^tl_i;
+ 
+-
+   `ASSERT_INIT(PayLoadWidthCheck, $bits(tl_d2h_rsp_intg_t) <= D2HRspMaxWidth)
+   `ASSERT_INIT(DataWidthCheck_A, $bits(tl_i.d_data) <= DataMaxWidth)
+ 
+diff --git a/rtl/tlul_socket_1n.sv b/rtl/tlul_socket_1n.sv
+index a0cdbf5..eb2842e 100644
+--- a/rtl/tlul_socket_1n.sv
++++ b/rtl/tlul_socket_1n.sv
+@@ -146,7 +146,8 @@ module tlul_socket_1n #(
+     rsvd: tl_t_o.a_user.rsvd,
+     instr_type: tl_t_o.a_user.instr_type,
+     cmd_intg: tlul_pkg::get_bad_cmd_intg(tl_t_o),
+-    data_intg: tlul_pkg::get_bad_data_intg(tlul_pkg::BlankedAData)
++    data_intg: tlul_pkg::get_bad_data_intg(tlul_pkg::BlankedAData),
++    capability: 1'b0
+   };
+ 
+   // if a host is not selected, or if requests are held off, blank the bus

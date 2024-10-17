@@ -1,0 +1,14 @@
+diff --git a/rtl/usbdev.sv b/rtl/usbdev.sv
+index f03194d..df05905 100644
+--- a/rtl/usbdev.sv
++++ b/rtl/usbdev.sv
+@@ -857,8 +857,7 @@ module usbdev
+       .rdata_o    (mem_rdata),
+       .rvalid_o   (mem_rvalid),
+       .rerror_o   (mem_rerror),
+-      .cfg_i      (ram_cfg_i),
+-      .alert_o    ()
++      .cfg_i      (ram_cfg_i)
+     );
+   end : gen_no_stubbed_memory
+ 
