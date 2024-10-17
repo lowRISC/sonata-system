@@ -1,4 +1,4 @@
-/* Copyright lowRISC contributors. */
+/* Copyright lowRISC contributors (OpenTitan project). */
 /* Licensed under the Apache License, Version 2.0, see LICENSE for details. */
 /* SPDX-License-Identifier: Apache-2.0 */
 <%!
@@ -64,17 +64,25 @@ MEMORY {
 }
 
 /**
- * Stack at the top of the main SRAM.
+ * Exception frame at the top of main SRAM
  */
-_stack_size = 16384;
-_stack_end = ORIGIN(ram_main) + LENGTH(ram_main);
+_exception_frame_size = 128;
+_exception_frame_end = ORIGIN(ram_main) + LENGTH(ram_main);
+_exception_frame_start = _exception_frame_end - _exception_frame_size;
+
+
+/**
+ * Stack just below the exception frame.
+ */
+_stack_size = 16384 - _exception_frame_size;
+_stack_end = _exception_frame_start;
 _stack_start = _stack_end - _stack_size;
 
 /**
  * Size of the `.static_critical` section at the bottom of the main SRAM (in
  * bytes).
  */
-_static_critical_size = 8136;
+_static_critical_size = 8168;
 
 /**
  * `.chip_info` at the top of ROM.

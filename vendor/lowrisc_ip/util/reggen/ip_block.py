@@ -1,4 +1,4 @@
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 '''Code representing an IP block for reggen'''
@@ -60,7 +60,8 @@ KNOWN_CIP_IDS = {
     36: 'dma',
     37: 'mbx',
     38: 'soc_proxy',
-    39: 'keymgr_dpe'
+    39: 'keymgr_dpe',
+    40: 'ascon'
 }
 
 REQUIRED_ALIAS_FIELDS = {
@@ -610,9 +611,9 @@ class IpBlock:
         return self.clocking.primary
 
     def check_cm_annotations(self, rtl_names: Dict[str, List[Tuple[str, int]]],
-                             where: str) -> None:
+                             hjson_path: str) -> bool:
         '''Check RTL annotations against countermeasure list of this block'''
 
-        what = '{} block at {}'.format(self.name, where)
-        CounterMeasure.check_annotation_list(what, rtl_names,
-                                             self.countermeasures)
+        return CounterMeasure.check_annotation_list(self.name, hjson_path,
+                                                    rtl_names,
+                                                    self.countermeasures)

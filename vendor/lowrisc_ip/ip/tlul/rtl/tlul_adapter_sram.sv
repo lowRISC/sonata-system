@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -24,6 +24,8 @@ module tlul_adapter_sram
   parameter int SramAw            = 12,
   parameter int SramDw            = 32, // Must be multiple of the TL width
   parameter int Outstanding       = 1,  // Only one request is accepted
+  parameter int SramBusBankAW     = 12, // SRAM bus address width of the SRAM bank. Only used
+                                        // when DataXorAddr=1.
   parameter bit ByteAccess        = 1,  // 1: Enables sub-word write transactions. Note that this
                                         //    results in read-modify-write operations for integrity
                                         //    re-generation if EnableDataIntgPt is set to 1.
@@ -34,6 +36,8 @@ module tlul_adapter_sram
   parameter bit EnableDataIntgGen = 0,  // 1: Generate response data integrity
   parameter bit EnableDataIntgPt  = 0,  // 1: Passthrough command/response data integrity
   parameter bit SecFifoPtr        = 0,  // 1: Duplicated fifo pointers
+  parameter bit EnableReadback    = 0,  // 1: Readback and check written/read data.
+  parameter bit DataXorAddr       = 0,  // 1: XOR data and address for address protection
   localparam int WidthMult        = SramDw / top_pkg::TL_DW,
   localparam int IntgWidth        = tlul_pkg::DataIntgWidth * WidthMult,
   localparam int DataOutW         = EnableDataIntgPt ? SramDw + IntgWidth : SramDw
@@ -61,7 +65,12 @@ module tlul_adapter_sram
   input        [DataOutW-1:0] rdata_i,
   input                       rdata_cap_i,
   input                       rvalid_i,
-  input        [1:0]          rerror_i // 2 bit error [1]: Uncorrectable, [0]: Correctable
+  input        [1:0]          rerror_i, // 2 bit error [1]: Uncorrectable, [0]: Correctable
+  output logic                compound_txn_in_progress_o,
+  input  mubi4_t              readback_en_i,
+  output logic                readback_error_o,
+  input  logic                wr_collision_i,
+  input  logic                write_pending_i
 );
 
   localparam int SramByte = SramDw/8;
@@ -76,8 +85,35 @@ module tlul_adapter_sram
   logic wr_vld_error;
   logic rd_vld_error;
   logic rsp_fifo_error;
+  logic sramreqfifo_error;
+  logic reqfifo_error;
   logic intg_error;
   logic tlul_error;
+  logic readback_error;
+  logic sram_byte_readback_error;
+
+  // readback check
+  logic readback_error_q;
+  if (EnableReadback) begin : gen_cmd_readback_check
+    assign readback_error = sram_byte_readback_error;
+    // permanently latch readback error until reset
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        readback_error_q <= '0;
+      end else if (readback_error) begin
+        readback_error_q <= 1'b1;
+      end
+    end
+  end else begin : gen_no_readback_check
+    logic unused_sram_byte_readback_error;
+    assign unused_sram_byte_readback_error = sram_byte_readback_error;
+    assign readback_error = '0;
+    assign readback_error_q = '0;
+  end
+
+  // readback error output is permanent and should be used for alert generation
+  // or other downstream effects
+  assign readback_error_o = readback_error | readback_error_q;
 
   // integrity check
   if (CmdIntgCheck) begin : gen_cmd_intg_check
@@ -94,14 +130,15 @@ module tlul_adapter_sram
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       intg_error_q <= '0;
-    end else if (intg_error || rsp_fifo_error) begin
+    end else if (intg_error || rsp_fifo_error || sramreqfifo_error || reqfifo_error) begin
       intg_error_q <= 1'b1;
     end
   end
 
   // integrity error output is permanent and should be used for alert generation
   // or other downstream effects
-  assign intg_error_o = intg_error | rsp_fifo_error | intg_error_q;
+  assign intg_error_o = intg_error | rsp_fifo_error | sramreqfifo_error |
+      reqfifo_error | intg_error_q;
 
   // wr_attr_error: Check if the request size, mask are permitted.
   //    Basic check of size, mask, addr align is done in tlul_err module.
@@ -163,7 +200,8 @@ module tlul_adapter_sram
   // byte handling for integrity
   tlul_sram_byte #(
     .EnableIntg(ByteAccess & EnableDataIntgPt & !ErrOnWrite),
-    .Outstanding(Outstanding)
+    .Outstanding(Outstanding),
+    .EnableReadback(EnableReadback)
   ) u_sram_byte (
     .clk_i,
     .rst_ni,
@@ -172,13 +210,22 @@ module tlul_adapter_sram
     .tl_sram_o(tl_i_int),
     .tl_sram_i(tl_o_int),
     .error_i(error_det),
-    .error_o(error_internal)
+    .error_o(error_internal),
+    .alert_o(sram_byte_readback_error),
+    .compound_txn_in_progress_o,
+    .readback_en_i,
+    .wr_collision_i,
+    .write_pending_i
   );
 
   typedef struct packed {
     logic [top_pkg::TL_DBW-1:0] mask ; // Byte mask within the TL-UL word
     logic [WoffsetWidth-1:0]    woffset ; // Offset of the TL-UL word within the SRAM word
   } sram_req_t ;
+
+  typedef struct packed {
+    logic [SramBusBankAW-1:0] addr; // Address of the request going to the memory.
+  } sram_req_addr_t ;
 
   typedef enum logic [1:0] {
     OpWrite,
@@ -216,6 +263,9 @@ module tlul_adapter_sram
   logic sramreqfifo_wvalid, sramreqfifo_wready;
   logic sramreqfifo_rready;
   sram_req_t sramreqfifo_wdata, sramreqfifo_rdata;
+
+  logic sramreqaddrfifo_wready;
+  logic [SramBusBankAW-1:0] sramreqaddrfifo_wdata, sramreqaddrfifo_rdata;
 
   logic rspfifo_wvalid, rspfifo_wready;
   logic rspfifo_rvalid, rspfifo_rready;
@@ -305,6 +355,24 @@ module tlul_adapter_sram
                      (vld_rd_rsp)                        ? rspfifo_rdata.data_intg : // valid read
                      prim_secded_pkg::SecdedInv3932ZeroEcc;                          // valid write
 
+  // When an error is seen on an incoming transaction it gets an immediate response without
+  // performing an SRAM request. It may be the transaction receives a ready the first cycle it is
+  // seen, but if not we force a ready the following cycle. This avoids factoring the error
+  // calculation into the outgoing ready preventing a feedthrough path from the incoming tilelink
+  // signals to the outgoing tilelink signals.
+  logic missed_err_gnt_d, missed_err_gnt_q;
+
+  // Track whether we've seen an incoming transaction with an error that didn't get a ready
+  assign missed_err_gnt_d = error_internal & tl_i_int.a_valid & ~tl_o_int.a_ready;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      missed_err_gnt_q <= 1'b0;
+    end else begin
+      missed_err_gnt_q <= missed_err_gnt_d;
+    end
+  end
+
   assign tl_o_int = '{
       d_valid  : d_valid ,
       d_opcode : (d_valid && reqfifo_rdata.op != OpRead) ? AccessAck : AccessAckData,
@@ -316,7 +384,8 @@ module tlul_adapter_sram
       d_user   : '{default: '0, data_intg: data_intg, capability: d_cap},
       d_error  : d_valid && d_error,
       /* verilator lint_off UNOPTFLAT */
-      a_ready  : (gnt_i | error_internal) & reqfifo_wready & sramreqfifo_wready
+      a_ready  : (gnt_i | missed_err_gnt_q) & reqfifo_wready & sramreqfifo_wready &
+                  sramreqaddrfifo_wready
       /* verilator lint_on UNOPTFLAT */
   };
 
@@ -422,6 +491,8 @@ module tlul_adapter_sram
 
   assign rspfifo_wvalid = rvalid_i & reqfifo_rvalid;
 
+  assign sramreqaddrfifo_wdata = tl_i_int.a_address[DataBitWidth+:SramBusBankAW];
+
   // Make sure only requested bytes are forwarded
   logic [WidthMult-1:0][DataWidth-1:0] rdata_reshaped;
   logic [DataWidth-1:0] rdata_tlword;
@@ -439,7 +510,20 @@ module tlul_adapter_sram
       // will not calculate correctly.
       if (|sramreqfifo_rdata.mask) begin
         // Select correct word.
-        rdata_tlword = rdata_reshaped[sramreqfifo_rdata.woffset];
+        if (DataXorAddr) begin : gen_data_xor_addr
+          // When DataXorAddr is enabled, on a read, the address is XORed with the data fetched from
+          // the memory in the underlying memory controller (e.g., flash controller). At this point,
+          // the address is again removed. If the address in the read transaction has been modified,
+          // e.g., due to a fault, rdata now contains faulty data, which is detected by the
+          // integrity mechanism.
+          rdata_tlword = {
+              rdata_reshaped[sramreqfifo_rdata.woffset][DataWidth-1:top_pkg::TL_DW],
+              rdata_reshaped[sramreqfifo_rdata.woffset][top_pkg::TL_DW-1:0] ^
+                  {{(top_pkg::TL_DW-SramBusBankAW){1'b0}}, sramreqaddrfifo_rdata}
+          };
+        end else begin: gen_no_data_xor_addr
+          rdata_tlword = rdata_reshaped[sramreqfifo_rdata.woffset];
+        end
       end
     end
   end else begin : gen_rmask
@@ -480,7 +564,8 @@ module tlul_adapter_sram
   prim_fifo_sync #(
     .Width   (ReqFifoWidth),
     .Pass    (1'b0),
-    .Depth   (Outstanding)
+    .Depth   (Outstanding),
+    .Secure  (SecFifoPtr)
   ) u_reqfifo (
     .clk_i,
     .rst_ni,
@@ -493,7 +578,7 @@ module tlul_adapter_sram
     .rdata_o (reqfifo_rdata),
     .full_o  (),
     .depth_o (),
-    .err_o   ()
+    .err_o   (reqfifo_error)
   );
 
   // sramreqfifo:
@@ -503,7 +588,8 @@ module tlul_adapter_sram
   prim_fifo_sync #(
     .Width   (SramReqFifoWidth),
     .Pass    (1'b0),
-    .Depth   (Outstanding)
+    .Depth   (Outstanding),
+    .Secure  (SecFifoPtr)
   ) u_sramreqfifo (
     .clk_i,
     .rst_ni,
@@ -516,8 +602,39 @@ module tlul_adapter_sram
     .rdata_o (sramreqfifo_rdata),
     .full_o  (),
     .depth_o (),
-    .err_o   ()
+    .err_o   (sramreqfifo_error)
   );
+
+  // sramreqaddrfifo:
+  //    This fifo holds the address used for undoing the address XOR data infection.
+  if (DataXorAddr) begin : gen_data_xor_addr_fifo
+    prim_fifo_sync #(
+      .Width              (SramBusBankAW),
+      .Pass               (1'b0),
+      .Depth              (Outstanding),
+      .OutputZeroIfEmpty  (1)
+    ) u_sramreqaddrfifo (
+      .clk_i,
+      .rst_ni,
+      .clr_i   (1'b0),
+      .wvalid_i(sramreqfifo_wvalid),
+      .wready_o(sramreqaddrfifo_wready),
+      .wdata_i (sramreqaddrfifo_wdata),
+      .rvalid_o(),
+      .rready_i(sramreqfifo_rready),
+      .rdata_o (sramreqaddrfifo_rdata),
+      .full_o  (),
+      .depth_o (),
+      .err_o   ()
+    );
+  end else begin : gen_no_data_xor_addr_fifo
+    assign sramreqaddrfifo_wready = 1'b1;
+    assign sramreqaddrfifo_rdata = '0;
+
+    // Tie-off unused signals
+    logic unused_sramreqaddrfifo;
+    assign unused_sramreqaddrfifo = ^{sramreqaddrfifo_wdata, sramreqaddrfifo_rdata};
+  end
 
   // Rationale having #Outstanding depth in response FIFO.
   //    In normal case, if the host or the crossbar accepts the response data,
@@ -561,14 +678,23 @@ module tlul_adapter_sram
   // These parameter options cannot both be true at the same time
   `ASSERT_INIT(DataIntgOptions_A, ~(EnableDataIntgGen & EnableDataIntgPt))
 
-  // make sure outputs are defined
-  `ASSERT_KNOWN(TlOutKnown_A,    tl_o.d_valid)
-  `ASSERT_KNOWN_IF(TlOutPayloadKnown_A, tl_o, tl_o.d_valid)
+  // Make sure that outputs are defined (a special case for tl_o is explained separately below)
   `ASSERT_KNOWN(ReqOutKnown_A,   req_o  )
   `ASSERT_KNOWN(WeOutKnown_A,    we_o   )
   `ASSERT_KNOWN(AddrOutKnown_A,  addr_o )
   `ASSERT_KNOWN(WdataOutKnown_A, wdata_o)
   `ASSERT_KNOWN(WcapOutKnown_A,  wdata_cap_o)
   `ASSERT_KNOWN(WmaskOutKnown_A, wmask_o)
+
+  // We'd like to claim that the payload of the TL output is known, but this isn't necessarily true!
+  // This block is just an adapter that converts from an SRAM interface to a TL interface. To make
+  // the assertion true, we need to weaken it to say that that tl_o is only X if the SRAM supplied
+  // that X.
+  //
+  // This is a bit tricky to track because SRAM responses get stored in u_rspfifo. Assuming that the
+  // FIFO doesn't manufacture X's (an assertion in prim_fifo_sync), the only stage of the path
+  // needed in this file is the following:
+  `ASSERT_KNOWN(TlOutValidKnown_A, tl_o.d_valid)
+  `ASSERT(TlOutKnownIfFifoKnown_A, !$isunknown(rspfifo_rdata) -> !$isunknown(tl_o))
 
 endmodule

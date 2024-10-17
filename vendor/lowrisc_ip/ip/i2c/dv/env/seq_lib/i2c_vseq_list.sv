@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -17,6 +17,7 @@
 `include "i2c_host_rx_oversample_vseq.sv"
 `include "i2c_host_fifo_full_vseq.sv"
 `include "i2c_host_perf_vseq.sv"
+`include "i2c_host_perf_precise_vseq.sv"
 `include "i2c_host_stretch_timeout_vseq.sv"
 `include "i2c_host_error_intr_vseq.sv"
 `include "i2c_host_stress_all_vseq.sv"
@@ -34,3 +35,11 @@
 `include "i2c_target_hrst_vseq.sv"
 `include "i2c_host_mode_toggle_vseq.sv"
 `include "i2c_glitch_vseq.sv"
+`include "i2c_host_may_nack_vseq.sv"
+`include "i2c_target_fifo_watermarks_acq_vseq.sv"
+`include "i2c_target_fifo_watermarks_tx_vseq.sv"
+`include "i2c_target_tx_stretch_ctrl_vseq.sv"
+`include "i2c_target_smbus_maxlen_vseq.sv"
+`include "i2c_target_nack_acqfull_vseq.sv"
+`include "i2c_target_nack_acqfull_addr_vseq.sv"
+`include "i2c_target_nack_txstretch_vseq.sv"

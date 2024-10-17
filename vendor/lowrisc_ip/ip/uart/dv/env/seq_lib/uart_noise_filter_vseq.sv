@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -8,7 +8,8 @@ class uart_noise_filter_vseq extends uart_tx_rx_vseq;
 
   `uvm_object_new
 
-  string cdc_sel_path = "tb.dut.uart_core.sync_rx.u_prim_cdc_rand_delay.gen_enable.data_sel";
+  string cdc_sel_path = {"tb.dut.uart_core.sync_rx.gen_generic.u_impl_generic",
+                         ".u_prim_cdc_rand_delay.gen_enable.data_sel"};
 
   virtual task dut_init(string reset_kind = "HARD");
     super.dut_init(reset_kind);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 r"""Generate ROT creator authentication data from JSON file.
@@ -152,11 +152,7 @@ class RotCreatorAuthCodesign:
         partition_buffer += self.build_key_type_buffer(_STRUCT_ITEM_NAMES_SPX,
                                                        _SPX_KEY_COUNT)
         digest = SHA256.new(partition_buffer).digest()
-        reversed_digest = list(digest)
-        reversed_digest.reverse()
-        digest = bytes(reversed_digest)
-
-        return partition_buffer, digest
+        return partition_buffer, bytes(digest)
 
     def update_json_with_partition_digest(self, digest):
         """Update the JSON with the partition digest.

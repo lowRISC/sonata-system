@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 r"""OTP memory image class, used to create preload images for the OTP
@@ -29,7 +29,8 @@ _OTP_SW_SKIP_DIGEST_FIELDS = ('HW_CFG_DIGEST', 'SECRET0_DIGEST',
 _OTP_SW_WRITE_BYTE_ALIGNMENT = {
     'CREATOR_SW_CFG': 4,
     'OWNER_SW_CFG': 4,
-    'HW_CFG': 4,
+    'HW_CFG0': 4,
+    'HW_CFG1': 4,
     'ROT_CREATOR_AUTH_CODESIGN': 4,
     'ROT_CREATOR_AUTH_STATE': 4,
     'SECRET0': 8,

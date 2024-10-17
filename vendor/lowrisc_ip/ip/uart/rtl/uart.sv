@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -21,8 +21,9 @@ module uart import uart_reg_pkg::*; (
 
   // Interrupts
   output logic    intr_tx_watermark_o ,
+  output logic    intr_tx_empty_o ,
   output logic    intr_rx_watermark_o ,
-  output logic    intr_tx_empty_o  ,
+  output logic    intr_tx_done_o  ,
   output logic    intr_rx_overflow_o  ,
   output logic    intr_rx_frame_err_o ,
   output logic    intr_rx_break_err_o ,
@@ -52,8 +53,9 @@ module uart import uart_reg_pkg::*; (
     .tx    (cio_tx_o   ),
 
     .intr_tx_watermark_o,
-    .intr_rx_watermark_o,
     .intr_tx_empty_o,
+    .intr_rx_watermark_o,
+    .intr_tx_done_o,
     .intr_rx_overflow_o,
     .intr_rx_frame_err_o,
     .intr_rx_break_err_o,
@@ -70,8 +72,9 @@ module uart import uart_reg_pkg::*; (
 
   // Assert Known for interrupts
   `ASSERT_KNOWN(TxWatermarkKnown_A, intr_tx_watermark_o)
-  `ASSERT_KNOWN(RxWatermarkKnown_A, intr_rx_watermark_o)
   `ASSERT_KNOWN(TxEmptyKnown_A, intr_tx_empty_o)
+  `ASSERT_KNOWN(RxWatermarkKnown_A, intr_rx_watermark_o)
+  `ASSERT_KNOWN(TxDoneKnown_A, intr_tx_done_o)
   `ASSERT_KNOWN(RxOverflowKnown_A, intr_rx_overflow_o)
   `ASSERT_KNOWN(RxFrameErrKnown_A, intr_rx_frame_err_o)
   `ASSERT_KNOWN(RxBreakErrKnown_A, intr_rx_break_err_o)

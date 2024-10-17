@@ -1,13 +1,12 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
 class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
   `uvm_component_utils(usbdev_env_cov)
 
-  // Have observed all PIDs about which we care; a number of the available PIDs are ignored
-  // by the USB device because they related only to High Speed operation and/or hubs.
-  covergroup pids_cg with function sample(pid_type_e pid);
+  // All of the Packet IDentifiers that the DUT should expect to see from the USB host controller.
+  covergroup pids_to_dut_cg with function sample(pid_type_e pid);
     cp_pid: coverpoint pid {
       bins sof   = {PidTypeSofToken};
       bins setup = {PidTypeSetupToken};
@@ -23,9 +22,17 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
     }
   endgroup
 
-  // Have observed all significant/extreme frame numbers being reported via CSRs; this just
-  // ensures that all bits have been decoded and presented; the frame number has no significance
-  // to USBDEV but it's important to software.
+  // All of the PIDs that the DUT sends to the host in response.
+  covergroup pids_from_dut_cg with function sample(pid_type_e pid);
+    cp_pid: coverpoint pid {
+      bins data0 = {PidTypeData0};
+      bins data1 = {PidTypeData1};
+      bins ack   = {PidTypeAck};
+      bins nak   = {PidTypeNak};
+      bins stall = {PidTypeStall};
+    }
+  endgroup
+
   covergroup framenum_rx_cg with function sample(bit [10:0] frame);
     cp_frame: coverpoint frame {
       bins zero = {0};
@@ -38,7 +45,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
     }
   endgroup
 
-  // CRC16 values on packets in each direction, because CRC16 is subject to bit stuffing
   covergroup crc16_cg with function sample(bit dir_in, bit [15:0] crc16);
     cp_crc16: coverpoint crc16 {
       // Contrive a packet that results in all 1s.
@@ -54,8 +60,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_dir;
   endgroup
 
-  // CRC5 in Token packets is subject to bit stuffing too, so check some potentially problematic
-  // cases.
   covergroup crc5_cg with function sample(bit dir_in, bit [4:0] crc5);
     cp_crc5: coverpoint crc5 {
       bins trailing_zero = {15};
@@ -69,9 +73,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_dir;
   endgroup
 
-  // Check that all Device Address bits are decoded and usable and that those problematic
-  // combinations with endpoint values that demand bit stuffing within the token packet
-  // have been observed.
   covergroup address_cg with function sample(bit [6:0] address, bit [4:0] endp);
     // In the address field, which is 7 bits, there could be three 1 bits from the
     // OUT PID: LSB 1000_0111 MSB
@@ -96,7 +97,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_endp;
   endgroup
 
-  // Receipt of SETUP, OUT and PRE packets with different OUT endpoint configurations
   covergroup ep_out_cfg_cg with function sample(pid_type_e pid, bit out_enable, bit rxenable_setup,
                                                 bit rxenable_out, bit set_nak_out, bit out_stall,
                                                 bit out_iso);
@@ -129,7 +129,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_out_stall;
   endgroup
 
-  // Receipt of IN and PRE packets with different IN endpoint configurations
   covergroup ep_in_cfg_cg with function sample(pid_type_e pid,
                                                bit in_enable, bit in_stall, bit in_iso);
     cp_pid: coverpoint pid {
@@ -151,7 +150,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_in_stall;
   endgroup
 
-  // Received SETUP/OUT packets within FIFO levels of interest
   covergroup fifo_lvl_cg with function sample(pid_type_e pid, bit [2:0] avsetup_lvl,
                                               bit [3:0] avout_lvl, bit [3:0] rx_lvl);
     // Buffer is plucked from AV SETUP or AV OUT FIFO according to PID.
@@ -183,7 +181,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_pid;
   endgroup
 
-  // Length of DATA packets in each direction
   covergroup data_pkt_cg with function sample(bit dir_in, bit [6:0] pkt_len);
     // Packets are read/written from/to memory as 32-bit quantities.
     cp_pkt_len: coverpoint pkt_len {
@@ -197,10 +194,10 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       bins five  = {5};
       // Plus those where the additional bytes of the CRC16 cause the total byte count to near or
       // exceed 64.
-      bins sixty_one   = {61};
-      bins sixty_two   = {62};
-      bins sixty_three = {63};
-      bins sixty_four  = {64};
+      bins max_len_m3 = {MaxPktSizeByte-3};
+      bins max_len_m2 = {MaxPktSizeByte-2};
+      bins max_len_m1 = {MaxPktSizeByte-1};
+      bins max_len    = {MaxPktSizeByte};
     }
     // Directions
     cp_dir: coverpoint dir_in;
@@ -210,8 +207,6 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_dir;
   endgroup
 
-  // Both DATA0 and DATA1 for each endpoint, and in each direction (Data Toggles),
-  // as well as both ACK and NAK (rollback and retry transaction in Packet Engines).
   covergroup data_tog_endp_cg with function sample(pid_type_e pid, bit dir_in, bit [3:0] endp);
     cp_pid: coverpoint pid {
       bins data0 = {PidTypeData0};
@@ -220,7 +215,10 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       bins nak = {PidTypeNak};
     }
     cp_dir: coverpoint dir_in;  // 'dir_in' is set to indicate IN
-    cp_endp: coverpoint endp;
+    cp_endp: coverpoint endp {
+      // Device supports only 12 endpoints.
+      bins endpoints[] = {[0:NEndpoints-1]};
+    }
 
     cr_pid_X_dir_X_endp: cross
       cp_pid,
@@ -228,15 +226,14 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
       cp_endp;
   endgroup
 
-  // All of SETUP, IN, and OUT for each endpoint
-  covergroup pid_type_endp_cfg with function sample(pid_type_e pid, bit [3:0] endp);
+  covergroup pid_type_endp_cg with function sample(pid_type_e pid, bit [3:0] endp);
     cp_pid: coverpoint pid {
       bins pkt_types[] = {PidTypeSetupToken, PidTypeOutToken, PidTypeInToken};
     }
     cp_endp: coverpoint endp {
-      bins endpoints[] = {[0:11]};
+      bins endpoints[] = {[0:NEndpoints-1]};
       // Device should ignore all packets to unimplemented endpoints.
-      bins invalid_ep[] = {[12:15]};
+      bins invalid_ep[] = {[NEndpoints:15]};
     }
 
     cr_pid_X_endp: cross
@@ -246,7 +243,18 @@ class usbdev_env_cov extends cip_base_env_cov #(.CFG_T(usbdev_env_cfg));
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
-    // [instantiate covergroups here]
+    pids_to_dut_cg = new();
+    pids_from_dut_cg = new();
+    framenum_rx_cg = new();
+    crc16_cg = new();
+    crc5_cg = new();
+    address_cg = new();
+    ep_out_cfg_cg = new();
+    ep_in_cfg_cg = new();
+    fifo_lvl_cg = new();
+    data_pkt_cg = new();
+    data_tog_endp_cg = new();
+    pid_type_endp_cg = new();
   endfunction : new
 
   virtual function void build_phase(uvm_phase phase);

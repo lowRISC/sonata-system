@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -6,7 +6,11 @@
 
 `include "prim_assert.sv"
 
-module i2c import i2c_reg_pkg::*; (
+module i2c
+  import i2c_reg_pkg::*;
+#(
+  parameter int unsigned InputDelayCycles = 0
+) (
   input                               clk_i,
   input                               rst_ni,
   input prim_ram_1p_pkg::ram_1p_cfg_t ram_cfg_i,
@@ -28,7 +32,7 @@ module i2c import i2c_reg_pkg::*; (
   output logic              intr_rx_threshold_o,
   output logic              intr_acq_threshold_o,
   output logic              intr_rx_overflow_o,
-  output logic              intr_nak_o,
+  output logic              intr_controller_halt_o,
   output logic              intr_scl_interference_o,
   output logic              intr_sda_interference_o,
   output logic              intr_stretch_timeout_o,
@@ -36,7 +40,7 @@ module i2c import i2c_reg_pkg::*; (
   output logic              intr_cmd_complete_o,
   output logic              intr_tx_stretch_o,
   output logic              intr_tx_threshold_o,
-  output logic              intr_acq_full_o,
+  output logic              intr_acq_stretch_o,
   output logic              intr_unexp_stop_o,
   output logic              intr_host_timeout_o
 );
@@ -56,7 +60,9 @@ module i2c import i2c_reg_pkg::*; (
   logic scl_int;
   logic sda_int;
 
-  i2c_core i2c_core (
+  i2c_core #(
+    .InputDelayCycles(InputDelayCycles)
+  ) i2c_core (
     .clk_i,
     .rst_ni,
     .ram_cfg_i,
@@ -73,7 +79,7 @@ module i2c import i2c_reg_pkg::*; (
     .intr_rx_threshold_o,
     .intr_acq_threshold_o,
     .intr_rx_overflow_o,
-    .intr_nak_o,
+    .intr_controller_halt_o,
     .intr_scl_interference_o,
     .intr_sda_interference_o,
     .intr_stretch_timeout_o,
@@ -81,7 +87,7 @@ module i2c import i2c_reg_pkg::*; (
     .intr_cmd_complete_o,
     .intr_tx_stretch_o,
     .intr_tx_threshold_o,
-    .intr_acq_full_o,
+    .intr_acq_stretch_o,
     .intr_unexp_stop_o,
     .intr_host_timeout_o
   );
@@ -106,7 +112,7 @@ module i2c import i2c_reg_pkg::*; (
   `ASSERT_KNOWN(IntrRxWtmkKnownO_A, intr_rx_threshold_o)
   `ASSERT_KNOWN(IntrAcqWtmkKnownO_A, intr_acq_threshold_o)
   `ASSERT_KNOWN(IntrRxOflwKnownO_A, intr_rx_overflow_o)
-  `ASSERT_KNOWN(IntrNakKnownO_A, intr_nak_o)
+  `ASSERT_KNOWN(IntrControllerHaltKnownO_A, intr_controller_halt_o)
   `ASSERT_KNOWN(IntrSclInterfKnownO_A, intr_scl_interference_o)
   `ASSERT_KNOWN(IntrSdaInterfKnownO_A, intr_sda_interference_o)
   `ASSERT_KNOWN(IntrStretchTimeoutKnownO_A, intr_stretch_timeout_o)
@@ -114,7 +120,7 @@ module i2c import i2c_reg_pkg::*; (
   `ASSERT_KNOWN(IntrCommandCompleteKnownO_A, intr_cmd_complete_o)
   `ASSERT_KNOWN(IntrTxStretchKnownO_A, intr_tx_stretch_o)
   `ASSERT_KNOWN(IntrTxWtmkKnownO_A, intr_tx_threshold_o)
-  `ASSERT_KNOWN(IntrAcqFulllwKnownO_A, intr_acq_full_o)
+  `ASSERT_KNOWN(IntrAcqStretchKnownO_A, intr_acq_stretch_o)
   `ASSERT_KNOWN(IntrUnexpStopKnownO_A, intr_unexp_stop_o)
   `ASSERT_KNOWN(IntrHostTimeoutKnownO_A, intr_host_timeout_o)
 endmodule

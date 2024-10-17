@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -12,6 +12,13 @@
 #  - module_instance_name: Module instance name.
 {
   name:               "${module_instance_name}",
+  human_name:         "RISC-V platform level interrupt controller",
+  one_line_desc:      "Interrupt controller, adhering to RISC-V PLIC specification",
+  one_paragraph_desc: '''
+    rv_plic is an interrupt controller which handles multiple interrupt sources. Each interrupt
+    source can be enabled or disabled, and can be given a priority. rv_plic generates an output
+    that identifies the source with the highest priority amongst those that are currently asserted.
+  '''
   // Unique comportable IP identifier defined under KNOWN_CIP_IDS in the regtool.
   cip_id:             "33",
   design_spec:        "../doc",
@@ -20,7 +27,7 @@
   sw_checklist:       "/sw/device/lib/dif/dif_${module_instance_name.lower()}",
   revisions: [
     {
-      version:            "1.0.0",
+      version:            "2.0.0",
       life_stage:         "L1",
       design_stage:       "D3",
       verification_stage: "V2",
