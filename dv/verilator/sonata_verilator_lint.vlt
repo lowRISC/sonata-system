@@ -72,7 +72,8 @@ lint_off -rule UNUSED -file "*uartdpi.sv"
 
 lint_off -rule WIDTH -file "*uart_core.sv"
 
-lint_off -rule WIDTH -file "*i2c_fsm.sv"
+lint_off -rule WIDTH -file "*i2c_controller_fsm.sv"
+lint_off -rule WIDTH -file "*i2c_target_fsm.sv"
 lint_off -rule UNOPTFLAT -file "*i2c_fifo*.sv"
 lint_off -rule IMPERFECTSCH -file "*i2c_fifo*.sv"
 
