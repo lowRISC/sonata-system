@@ -10,7 +10,7 @@
   sonata-simulator,
 }: {
   fpga = pkgs.writeShellApplication {
-    name = "fpga-test";
+    name = "tests-fpga";
     runtimeInputs = [pythonEnv pkgs.openocd];
     text = ''
       set +u
@@ -27,7 +27,7 @@
   };
 
   simulator = pkgs.stdenvNoCC.mkDerivation {
-    name = "simulator-test";
+    name = "tests-simulator";
     src = ./.;
     dontBuild = true;
     doCheck = true;

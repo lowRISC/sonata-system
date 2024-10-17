@@ -80,7 +80,7 @@ jobs:
       run: nix build .#sonata-documentation -L
 
     - name: Run tests on the simulator
-      run: nix build .#test-simulator -L
+      run: nix build .#tests-simulator -L
 
   fpga:
     runs-on: [ubuntu-22.04-fpga, sonata]
@@ -144,6 +144,6 @@ jobs:
 
     - name: Run software tests
       run: |
-        nix run .#fpga-test /dev/ttySONATA_UART_0
+        nix run .#tests-fpga /dev/ttySONATA_UART_0
 
 
