@@ -111,16 +111,20 @@ jobs:
       run: |
         BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.fpgaDependanciesFileset --apply 'd: d.outPath' --raw \
           | cut -d '/' -f4 | cut -d '-' -f1)
-        if gcloud storage stat "${GS_PATH}/$BITSTREAM_HASH.bit" >/dev/null 2>&1; then
-          gcloud storage cp -v "${GS_PATH}/$BITSTREAM_HASH.bit" "${BITSTREAM_PATH}" 2>/dev/null
+        mkdir -p $(dirname $BITSTREAM_PATH)
+        curl -fo "$BITSTREAM_PATH" "https://storage.googleapis.com/lowrisc-ci-cache/lowRISC/sonata-system/bitstream/$BITSTREAM_HASH.bit" || true
+        if [ -f "$BITSTREAM_PATH" ]; then
+          echo "Bitstream $BITSTREAM_HASH.bit cached."
+          echo "file_exists=true" >> $GITHUB_ENV
         else
           echo "Bitstream $BITSTREAM_HASH.bit not cached."
+          echo "file_exists=false" >> $GITHUB_ENV
         fi
 
     # Only runs if the bitstream does not exist (not found in cache).
     - name: Build bitstream
       id: build_bitstream
-      if: ${{hashFiles('${BITSTREAM_PATH}') == ''}} 
+      if: env.file_exists == 'false' 
       run: |
         module load xilinx/vivado
         nix run .#bitstream-build
