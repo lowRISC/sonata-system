@@ -129,9 +129,9 @@ jobs:
         module load xilinx/vivado
         nix run .#bitstream-build
 
-    # Only upload the bistream if the build bistream step completed successfuly and this is not a pull-request. 
+    # Only upload the bistream if this is not a pull-request and the build bistream step ran. 
     - name: Upload bitstream to the cache
-      if: github.event_name != 'pull_request' 
+      if: github.event_name != 'pull_request' && env.file_exists == 'false' 
       run: |
         BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.bitstreamDependancies.outPath --raw \
           | cut -d '/' -f4 | cut -d '-' -f1)
