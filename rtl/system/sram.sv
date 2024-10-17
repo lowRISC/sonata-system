@@ -84,7 +84,14 @@ module sram #(
     .rdata_i     (mem_a_rdata),
     .rdata_cap_i (mem_a_rcap),
     .rvalid_i    (mem_a_rvalid),
-    .rerror_i    (2'b00)
+    .rerror_i    (2'b00),
+
+    // Readback functionality not required.
+    .compound_txn_in_progress_o (),
+    .readback_en_i              (prim_mubi_pkg::MuBi4False),
+    .readback_error_o           (),
+    .wr_collision_i             (1'b0),
+    .write_pending_i            (1'b0)
   );
 
   tlul_adapter_sram #(
@@ -114,7 +121,14 @@ module sram #(
     .rdata_i     (mem_b_rdata),
     .rdata_cap_i (1'b0),
     .rvalid_i    (mem_b_rvalid),
-    .rerror_i    (2'b00)
+    .rerror_i    (2'b00),
+
+    // Readback functionality not required.
+    .compound_txn_in_progress_o (),
+    .readback_en_i              (prim_mubi_pkg::MuBi4False),
+    .readback_error_o           (),
+    .wr_collision_i             (1'b0),
+    .write_pending_i            (1'b0)
   );
 
   // Instantiate RAM blocks

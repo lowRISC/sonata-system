@@ -173,7 +173,7 @@ module sonata_system
   // Interrupts.
   localparam int unsigned I2cIrqs    = 15;
   localparam int unsigned SpiIrqs    = 5;
-  localparam int unsigned UartIrqs   = 8;
+  localparam int unsigned UartIrqs   = 9;
   localparam int unsigned UsbdevIrqs = 18;
 
   logic timer_irq;
@@ -735,7 +735,14 @@ module sonata_system
     .rdata_i      (device_rdata[RevTags]),
     .rdata_cap_i  (1'b0),
     .rvalid_i     (device_rvalid[RevTags]),
-    .rerror_i     (2'b00)
+    .rerror_i     (2'b00),
+
+    // Readback functionality not required.
+    .compound_txn_in_progress_o (),
+    .readback_en_i              (prim_mubi_pkg::MuBi4False),
+    .readback_error_o           (),
+    .wr_collision_i             (1'b0),
+    .write_pending_i            (1'b0)
   );
 
   // Tie off upper bits of address.
@@ -952,7 +959,7 @@ module sonata_system
       .intr_rx_threshold_o     (i2c_interrupts[i][1]),
       .intr_acq_threshold_o    (i2c_interrupts[i][2]),
       .intr_rx_overflow_o      (i2c_interrupts[i][3]),
-      .intr_nak_o              (i2c_interrupts[i][4]),
+      .intr_controller_halt_o  (i2c_interrupts[i][4]),
       .intr_scl_interference_o (i2c_interrupts[i][5]),
       .intr_sda_interference_o (i2c_interrupts[i][6]),
       .intr_stretch_timeout_o  (i2c_interrupts[i][7]),
@@ -960,7 +967,7 @@ module sonata_system
       .intr_cmd_complete_o     (i2c_interrupts[i][9]),
       .intr_tx_stretch_o       (i2c_interrupts[i][10]),
       .intr_tx_threshold_o     (i2c_interrupts[i][11]),
-      .intr_acq_full_o         (i2c_interrupts[i][12]),
+      .intr_acq_stretch_o      (i2c_interrupts[i][12]),
       .intr_unexp_stop_o       (i2c_interrupts[i][13]),
       .intr_host_timeout_o     (i2c_interrupts[i][14])
     );
@@ -1000,9 +1007,12 @@ module sonata_system
       .tl_o                 (tl_uart_d2h[i]),
 
       // Interrupts.
+      // Note: the indexes here match the bits in the `intr_` registers,
+      // but we also keep the port ordering the same as the module.
       .intr_tx_watermark_o  (uart_interrupts[i][0]),
+      .intr_tx_empty_o      (uart_interrupts[i][8]),  // Interrupt was appended.
       .intr_rx_watermark_o  (uart_interrupts[i][1]),
-      .intr_tx_empty_o      (uart_interrupts[i][2]),
+      .intr_tx_done_o       (uart_interrupts[i][2]),
       .intr_rx_overflow_o   (uart_interrupts[i][3]),
       .intr_rx_frame_err_o  (uart_interrupts[i][4]),
       .intr_rx_break_err_o  (uart_interrupts[i][5]),
