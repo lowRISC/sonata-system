@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -59,17 +59,19 @@ class i2c_target_smoke_vseq extends i2c_base_vseq;
 
   virtual task pre_start();
     super.pre_start();
+    `uvm_info(`gfn, $sformatf("Using %0s-based testbench routines to stimulate the CSR interface.",
+      cfg.use_intr_handler ? "interrupt" : "polling"), UVM_MEDIUM)
     if (cfg.use_intr_handler) begin
       // Without populating the FMT FIFO its threshold interrupt will remain asserted.
       expected_intr[FmtThreshold] = 1;
       expected_intr[TxThreshold] = 1;
       expected_intr[AcqThreshold] = 1;
-      expected_intr[AcqFull] = 1;
+      expected_intr[AcqStretch] = 1;
       expected_intr[TxStretch] = 1;
       expected_intr[CmdComplete] = 1;
       for (int i = 0; i < NumI2cIntr; i++) intr_q.push_back(i2c_intr_e'(i));
+      cfg.ack_ctrl_en = $urandom_range(0, 1);
     end
-    if (cfg.bad_addr_pct > 0) cfg.m_i2c_agent_cfg.allow_bad_addr = 1;
   endtask
 
   virtual task body();
@@ -81,42 +83,42 @@ class i2c_target_smoke_vseq extends i2c_base_vseq;
     `uvm_info("cfg_summary",
               $sformatf("target_addr0:0x%x target_addr1:0x%x illegal_addr:0x%x num_trans:%0d",
                              target_addr0, target_addr1, illegal_addr, num_trans), UVM_MEDIUM)
+    `uvm_info(`gfn, $sformatf("ack_ctrl_en:%0d", cfg.ack_ctrl_en), UVM_MEDIUM);
 
     fork
       begin
         for (int i = 0; i < num_trans; i++) begin
-          item_q txn_q;
-          // Generate all the transactions up-front
-          create_txn(txn_q);
-          fetch_txn(txn_q, txn_stimulus[i]);
-        end
-        for (int i = 0; i < num_trans; i++) begin
-          get_timing_values();
+          `uvm_info(`gfn, $sformatf("Starting stimulus transaction %0d/%0d.",
+            i+1, num_trans), UVM_HIGH)
+          generate_agent_controller_stimulus(txn_stimulus[i]);
+
           if (i > 0) begin
-            // wait for previous stop before program a new timing param.
+            // Wait for the STOP-condition (the end of the previous transaction) before
+            // programming new timing parameters.
             `DV_WAIT(cfg.m_i2c_agent_cfg.got_stop,, cfg.spinwait_timeout_ns, "target_smoke_vseq")
-            cfg.m_i2c_agent_cfg.got_stop = 0;
           end
+          cfg.m_i2c_agent_cfg.got_stop = 0;
+          get_timing_values();
           program_registers();
 
           `uvm_create_obj(i2c_target_base_seq, m_i2c_host_seq)
           m_i2c_host_seq.req_q = txn_stimulus[i];
           m_i2c_host_seq.start(p_sequencer.i2c_sequencer_h);
+
           sent_txn_cnt++;
+          `uvm_info(`gfn, $sformatf("Finished stimulus transaction %0d/%0d.",
+            i+1, num_trans), UVM_HIGH)
         end
+        `uvm_info(`gfn, "Finished all i2c_agent bus stimulus.", UVM_MEDIUM)
       end
-      begin
-        if (!cfg.use_intr_handler) process_acq();
-      end
-      begin
-        if (cfg.use_intr_handler == 1'b0 && cfg.rd_pct != 0) process_txq();
-      end
-      begin
-        if (cfg.use_intr_handler) process_target_interrupts();
-      end
-      begin
-        if (cfg.use_intr_handler) stop_target_interrupt_handler();
-      end
+      if (!cfg.use_intr_handler) fork
+        process_acq();
+        if (cfg.rd_pct != 0) process_txq();
+      join
+      if (cfg.use_intr_handler) fork
+        while (!cfg.stop_intr_handler) process_target_interrupts();
+        stop_target_interrupt_handler(); // Sets cfg.stop_intr_handler once stimulus has completed
+      join
     join
   endtask : body
 

@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -103,8 +103,8 @@ module usbdev_usbif  #(
   // status
   output logic                     frame_start_o, // Pulses with host-generated and internal SOF
   output logic [10:0]              frame_o,
-  output logic                     sof_valid_o, // Pulses with only host-generated SOF.
-                                                // Used for clock sync.
+  output logic                     sof_detected_o, // Pulses with only host-generated SOF.
+                                                   // Used for clock sync.
   output logic [2:0]               link_state_o,
   output logic                     link_disconnect_o,
   output logic                     link_powered_o,
@@ -198,6 +198,9 @@ module usbdev_usbif  #(
     if (!rst_ni) begin
       out_max_used_q <= '0;
       wdata_q        <= '0;
+      std_write_q    <= 1'b0;
+    end else if (link_reset) begin
+      out_max_used_q <= '0;
       std_write_q    <= 1'b0;
     end else begin
       out_max_used_q <= out_max_used_d;
@@ -301,6 +304,7 @@ module usbdev_usbif  #(
                       (in_ep_get_addr[0] ? mem_rdata_i[31:24] : mem_rdata_i[23:16]) :
                       (in_ep_get_addr[0] ? mem_rdata_i[15:8]  : mem_rdata_i[7:0]);
 
+  logic            sof_valid;
   logic [10:0]     frame_index_raw;
   logic            rx_idle_det;
   logic            rx_j_det;
@@ -383,7 +387,8 @@ module usbdev_usbif  #(
     .rx_bitstuff_err_o     (rx_bitstuff_err_o),
 
     // sof interface
-    .sof_valid_o           (sof_valid_o),
+    .sof_detected_o        (sof_detected_o),
+    .sof_valid_o           (sof_valid),
     .frame_index_o         (frame_index_raw),
 
     // event counters
@@ -403,9 +408,9 @@ module usbdev_usbif  #(
 
   always_comb begin
     frame_d = frame_q;
-    if (sof_valid_o) begin
+    if (sof_valid) begin
       frame_d = frame_index_raw;
-    end else if (do_internal_sof) begin
+    end else if (sof_detected_o | do_internal_sof) begin
       frame_d = frame_q + 1;
     end
   end
@@ -429,7 +434,7 @@ module usbdev_usbif  #(
     .usb_pullup_en_i       (connect_en_i),
     .rx_idle_det_i         (rx_idle_det),
     .rx_j_det_i            (rx_j_det),
-    .sof_valid_i           (sof_valid_o),
+    .sof_detected_i        (sof_detected_o),
     .resume_link_active_i  (resume_link_active_i),
     .link_disconnect_o     (link_disconnect_o),
     .link_powered_o        (link_powered_o),

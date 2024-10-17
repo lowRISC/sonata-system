@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Copyright Luke Valenty (TinyFPGA project, https://github.com/tinyfpga/TinyFPGA-Bootloader).
@@ -28,7 +28,6 @@ module usb_fs_nb_out_pe #(
   input  logic                   clk_48mhz_i,
   input  logic                   rst_ni,
   input  logic                   link_reset_i,
-  input  logic                   link_active_i,
   input  logic [6:0]             dev_addr_i,
 
   ////////////////////////
@@ -289,6 +288,7 @@ module usb_fs_nb_out_pe #(
           // Non-isochronous OUT transactions end here
           if (out_ep_stall_i[out_ep_index]) begin
             tx_pid_o = {UsbPidStall}; // STALL
+            rollback_data = 1'b1; // Packet not accepted
           end else if (nak_out_transaction | out_ep_full_i[out_ep_index]) begin
             tx_pid_o = {UsbPidNak}; // NAK -- the endpoint could not accept the data at the moment
             rollback_data = 1'b1;
@@ -332,11 +332,6 @@ module usb_fs_nb_out_pe #(
       timeout_cntdown_q <= timeout_cntdown_d;
     end
   end
-
-  // TODO(#18940): Use the link state to prevent the FSM from responding to
-  // packets until software is ready.
-  logic unused_link_active_i;
-  assign unused_link_active_i = ^link_active_i;
 
   always_ff @(posedge clk_48mhz_i or negedge rst_ni) begin
     if (!rst_ni) begin

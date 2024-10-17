@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -31,13 +31,14 @@ package uart_env_pkg;
   typedef enum int {
     TxWatermark = 0,
     RxWatermark = 1,
-    TxEmpty     = 2,
+    TxDone      = 2,
     RxOverflow  = 3,
     RxFrameErr  = 4,
     RxBreakErr  = 5,
     RxTimeout   = 6,
     RxParityErr = 7,
-    NumUartIntr = 8
+    TxEmpty     = 8,
+    NumUartIntr = 9
   } uart_intr_e;
 
   // get the number of bytes that triggers watermark interrupt

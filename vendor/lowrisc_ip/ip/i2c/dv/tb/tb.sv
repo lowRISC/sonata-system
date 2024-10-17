@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,7 +18,7 @@ module tb;
   wire intr_rx_threshold;
   wire intr_acq_threshold;
   wire intr_rx_overflow;
-  wire intr_nak;
+  wire intr_controller_halt;
   wire intr_scl_interference;
   wire intr_sda_interference;
   wire intr_stretch_timeout;
@@ -26,7 +26,7 @@ module tb;
   wire intr_cmd_complete;
   wire intr_tx_stretch;
   wire intr_tx_threshold;
-  wire intr_acq_full;
+  wire intr_acq_stretch;
   wire intr_unexp_stop;
   wire intr_host_timeout;
   wire [NUM_MAX_INTERRUPTS-1:0] interrupts;
@@ -50,6 +50,7 @@ module tb;
     .sda_io(sda)
   );
 
+  // TODO: Remove this unused interface.
   i2c_dv_if i2c_dv_if(
     .clk(clk),
     .rst_n(rst_n)
@@ -58,8 +59,6 @@ module tb;
   `ifndef I2C_HIER
     `define I2C_HIER tb.dut.i2c_core
   `endif
-
-  assign i2c_dv_if.i2c_state = `I2C_HIER.u_i2c_fsm.state_q;
 
   // Model PAD behavior
   i2c_port_conv i2c_port_conv (
@@ -101,7 +100,7 @@ module tb;
     .intr_rx_threshold_o     (intr_rx_threshold     ),
     .intr_acq_threshold_o    (intr_acq_threshold    ),
     .intr_rx_overflow_o      (intr_rx_overflow      ),
-    .intr_nak_o              (intr_nak              ),
+    .intr_controller_halt_o  (intr_controller_halt  ),
     .intr_scl_interference_o (intr_scl_interference ),
     .intr_sda_interference_o (intr_sda_interference ),
     .intr_stretch_timeout_o  (intr_stretch_timeout  ),
@@ -109,7 +108,7 @@ module tb;
     .intr_cmd_complete_o     (intr_cmd_complete     ),
     .intr_tx_stretch_o       (intr_tx_stretch       ),
     .intr_tx_threshold_o     (intr_tx_threshold     ),
-    .intr_acq_full_o         (intr_acq_full         ),
+    .intr_acq_stretch_o      (intr_acq_stretch      ),
     .intr_unexp_stop_o       (intr_unexp_stop       ),
     .intr_host_timeout_o     (intr_host_timeout     )
   );
@@ -119,7 +118,7 @@ module tb;
   assign interrupts[RxThreshold]    = intr_rx_threshold;
   assign interrupts[AcqThreshold]   = intr_acq_threshold;
   assign interrupts[RxOverflow]     = intr_rx_overflow;
-  assign interrupts[Nak]            = intr_nak;
+  assign interrupts[ControllerHalt] = intr_controller_halt;
   assign interrupts[SclInference]   = intr_scl_interference;
   assign interrupts[SdaInference]   = intr_sda_interference;
   assign interrupts[StretchTimeout] = intr_stretch_timeout;
@@ -127,7 +126,7 @@ module tb;
   assign interrupts[CmdComplete]    = intr_cmd_complete;
   assign interrupts[TxStretch]      = intr_tx_stretch;
   assign interrupts[TxThreshold]    = intr_tx_threshold;
-  assign interrupts[AcqFull]        = intr_acq_full;
+  assign interrupts[AcqStretch]     = intr_acq_stretch;
   assign interrupts[UnexpStop]      = intr_unexp_stop;
   assign interrupts[HostTimeout]    = intr_host_timeout;
 

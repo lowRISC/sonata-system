@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -20,6 +20,7 @@ class uart_loopback_vseq extends uart_tx_rx_vseq;
 
   task body();
     for (int i = 1; i <= num_trans; i++) begin
+      if (cfg.stop_transaction_generators()) break;
       `DV_CHECK_RANDOMIZE_FATAL(this)
       uart_init();
 
@@ -48,8 +49,8 @@ class uart_loopback_vseq extends uart_tx_rx_vseq;
     spinwait_txidle();
     spinwait_rxidle();
     csr_rd_check(.ptr(ral.rdata), .compare_value(tx_byte));
-    // clear TxEmpty interrupt
-    csr_wr(.ptr(ral.intr_state), .value(1 << TxEmpty));
+    // clear TxDone interrupt
+    csr_wr(.ptr(ral.intr_state), .value(1 << TxDone));
     // check status is default value
     csr_rd_check(.ptr(ral.status), .compare_value(ral.status.get_reset()));
 

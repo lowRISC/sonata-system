@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 <%!
@@ -357,6 +357,9 @@ reg_block_path, reg, mr, reg_idx)">\
                  int unsigned n_bits = ${reg_width},
                  int          has_coverage = UVM_NO_COVERAGE);
       super.new(name, n_bits, has_coverage);
+% if reg.writes_ignore_errors:
+      writes_ignore_errors = 1'b1;
+% endif
     endfunction : new
 
     virtual function void build(csr_excl_item csr_excl = null);

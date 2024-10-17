@@ -1,4 +1,4 @@
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -63,6 +63,17 @@ py_binary(
     deps = [
         requirement("hjson"),
         requirement("pycryptodome"),
+    ],
+)
+
+py_binary(
+    name = "gen-otp-immutable-rom-ext-json",
+    srcs = ["gen-otp-immutable-rom-ext-json.py"],
+    imports = ["."],
+    deps = [
+        requirement("hjson"),
+        requirement("pycryptodome"),
+        requirement("pyelftools"),
     ],
 )
 

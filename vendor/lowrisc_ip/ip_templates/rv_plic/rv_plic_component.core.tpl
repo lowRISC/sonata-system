@@ -1,5 +1,5 @@
 CAPI=2:
-# Copyright lowRISC contributors.
+# Copyright lowRISC contributors (OpenTitan project).
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 name: "lowrisc:ip:${module_instance_name}_component:0.1"
@@ -9,8 +9,10 @@ filesets:
   files_rtl:
     depend:
       - lowrisc:prim:assert
+      - lowrisc:prim:alert
       - lowrisc:prim:max_tree
       - lowrisc:prim:flop_2sync
+      - lowrisc:prim:reg_we_check
     files:
       - rtl/${module_instance_name}_gateway.sv
       - rtl/${module_instance_name}_target.sv
