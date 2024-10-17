@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -18,39 +18,37 @@ class usbdev_enable_vseq extends usbdev_base_vseq;
     super.pre_start();
   endtask
 
-  task body();
-    // Expected data content of packet
-    byte unsigned exp_data[];
-    uvm_reg_data_t rd_data;
-
-    ral.usbctrl.enable.set(1'b1);  // Set usbdev control register enable bit.
-    ral.usbctrl.device_address.set(0);
-    csr_update(ral.usbctrl);
-
-    configure_out_trans(); // register configurations for OUT Trans.
-
-    // Enable pkt_received interrupt
-    ral.intr_enable.pkt_received.set(1'b1);
-    csr_update(ral.intr_enable);
-
-    call_token_seq(PidTypeOutToken);
-    cfg.clk_rst_vif.wait_clks(10);
-    call_data_seq(PidTypeData0, .randomize_length(1'b0), .num_of_bytes(8));
-    get_response(m_response_item);
-    $cast(m_usb20_item, m_response_item);
-    get_out_response_from_device(m_usb20_item, PidTypeAck);
-
-    recover_orig_data(m_data_pkt.data, exp_data);
-    // Check that the USB device received a packet with the expected properties.
-    check_pkt_received(endp, 0, out_buffer_id, exp_data);
+  // Sense the pins, checking against expectations.
+  task sense_pins(bit exp_dp, bit exp_dn, bit exp_vbus);
+    uvm_reg_data_t sense;
+    // Check that both of the lines are low.
+    csr_rd(.ptr(ral.phy_pins_sense), .value(sense));
+    `DV_CHECK_EQ(get_field_val(ral.phy_pins_sense.rx_dp_i, sense), exp_dp, "DP not as expected")
+    `DV_CHECK_EQ(get_field_val(ral.phy_pins_sense.rx_dn_i, sense), exp_dn, "DN not as expected")
+    // Also, just to be thorough, VBUS should be high.
+    `DV_CHECK_EQ(get_field_val(ral.phy_pins_sense.pwr_sense, sense), exp_vbus,
+                               "VBUS not as expected")
   endtask
 
-  // TODO: Presently the act of sending a data packet, destructively modifies it!
-  // Restore the data packet to its original state. This just bit-reverses each byte
-  // within the input array.
-  function void recover_orig_data(input byte unsigned in[], output byte unsigned out[]);
-    out = {<<8{in}};  // Reverse the order of the bytes
-    out = {<<{out}};  // Bit-reverse everything
-  endfunction
+  task body();
+    uvm_reg_data_t enabled;
+
+    // First ensure that the driver has asserted VBUS.
+    set_vbus_state(1);
+
+    // Check that connection has not been requested and that the DUT is _not_ connected.
+    csr_rd(.ptr(ral.usbctrl.enable), .value(enabled));
+    `DV_CHECK_EQ(enabled, 0, "DUT connect has been unexpectedly requested")
+    sense_pins(.exp_dp(0), .exp_dn(0), .exp_vbus(1));
+    // ...okay, so we may reasonably infer that neither pull up is asserted.
+
+    // Now request connection.
+    ral.usbctrl.enable.set(1'b1);
+    csr_update(ral.usbctrl);
+    loopback_delay();
+
+    // Try the pins again.
+    sense_pins(.exp_dp(1), .exp_dn(0), .exp_vbus(1));
+  endtask
 
 endclass

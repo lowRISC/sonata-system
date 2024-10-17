@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -15,6 +15,7 @@ package i2c_env_pkg;
   import cip_base_pkg::*;
   import i2c_reg_pkg::*;
   import i2c_ral_pkg::*;
+  import i2c_pkg::*;
 
   // macro includes
   `include "dv_macros.svh"
@@ -25,7 +26,7 @@ package i2c_env_pkg;
     RxThreshold    = 1,
     AcqThreshold   = 2,
     RxOverflow     = 3,
-    Nak            = 4,
+    ControllerHalt = 4,
     SclInference   = 5,
     SdaInference   = 6,
     StretchTimeout = 7,
@@ -33,7 +34,7 @@ package i2c_env_pkg;
     CmdComplete    = 9,
     TxStretch      = 10,
     TxThreshold    = 11,
-    AcqFull        = 12,
+    AcqStretch     = 12,
     UnexpStop      = 13,
     HostTimeout    = 14,
     NumI2cIntr     = 15
@@ -69,6 +70,11 @@ package i2c_env_pkg;
     FastPlus
   } speed_mode_e;
 
+  typedef uvm_tlm_analysis_fifo #(i2c_item) i2c_analysis_fifo;
+
+  typedef i2c_item i2c_transfer_q[$];
+  typedef i2c_transfer_q i2c_transaction;
+
   parameter uint I2C_FMT_FIFO_DEPTH = i2c_reg_pkg::FifoDepth;
   parameter uint I2C_RX_FIFO_DEPTH  = i2c_reg_pkg::FifoDepth;
   parameter uint I2C_TX_FIFO_DEPTH  = i2c_reg_pkg::FifoDepth;
@@ -78,22 +84,20 @@ package i2c_env_pkg;
   parameter uint NUM_ALERTS = i2c_reg_pkg::NumAlerts;
   parameter string LIST_OF_ALERTS[] = {"fatal_fault"};
 
-  function automatic i2c_item acq2item(bit[9:0] data);
-    i2c_item item;
-    `uvm_create_obj(i2c_item, item);
+  function automatic i2c_acqdata_item acq2item(bit [bus_params_pkg::BUS_DW-1:0] data);
+    i2c_acqdata_item item;
+    `uvm_create_obj(i2c_acqdata_item, item);
 
-    item.wdata = data[7:0];
-    if (data[9:8] == 2'b11) begin
-      item.rstart = 1;
-    end else begin
-      item.start = data[8];
-      item.stop = data[9];
-    end
-    if (item.start || item.rcont) begin
-      item.read = data[0];
-    end
+    // abyte+signal use the lower 11 bits of the ACQDATA register
+    // Check unused upper bits are zero
+    `DV_CHECK_EQ(data >> 11, '0, , , $sformatf("%m"))
+
+    // Decode ACQFIFO item
+    item.abyte = data[7:0];
+    item.signal = i2c_acq_byte_id_e'(data[10:8]);
+
     return item;
-  endfunction // acq2item
+  endfunction: acq2item
 
   // Print write data with 16 byte aligned.
   function automatic void print_host_wr_data(bit [7:0] data[$]);
@@ -120,6 +124,7 @@ package i2c_env_pkg;
   `include "i2c_env_cfg.sv"
   `include "i2c_env_cov.sv"
   `include "i2c_virtual_sequencer.sv"
+  `include "i2c_reference_model.sv"
   `include "i2c_scoreboard.sv"
   `include "i2c_env.sv"
   `include "i2c_vseq_list.sv"

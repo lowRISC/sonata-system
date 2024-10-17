@@ -6,7 +6,7 @@ After reset, the initialization of the I2C HWIP primarily consists of four steps
 1. Timing parameter initialization
 1. FIFO reset and configuration
 1. Interrupt configuration
-1. Enable I2C Host or Target functionality
+1. Enable I2C Controller or Target functionality
 
 ### Timing Parameter Tuning Algorithm
 
@@ -40,8 +40,8 @@ The implementation requires `THIGH` to be at least this large to guarantee that 
 Based on the inputs, the timing parameters may be chosen using the following algorithm:
 1. The physical timing parameters t<sub>HD,STA</sub>, t<sub>SU,STA</sub>, t<sub>HD.DAT</sub>, t<sub>SU,DAT</sub>, t<sub>BUF</sub>, and t<sub>STO</sub>, t<sub>HIGH</sub>, and t<sub>LOW</sub> all have minimum allowed values which depend on the choice of speed mode (Standard-mode, Fast-mode or Fast-mode Plus).
 Using the speed mode input, look up the appropriate minimum value (in ns) for each parameter (i.e. t<sub>HD,STA,min</sub>, t<sub>SU,STA,min</sub>, etc)
-1. For each of these eight parameters, obtain an integer minimum by dividing the physical minimum parameter by the clock frequency and rounding up to the next highest integer:
-$$ \textrm{THIGH_MIN}=(\lceil{t\_{HIGH,min}/t\_{clk}}\rceil,4)\_{max} $$
+1. For each of these eight parameters, obtain an integer minimum by dividing the physical minimum parameter by the clock period and rounding up to the next highest integer:
+$$ \textrm{THIGH_MIN}=\max(\lceil{t\_{HIGH,min}/t\_{clk}}\rceil,4) $$
 $$ \textrm{TLOW_MIN}=\lceil{t\_{LOW,min}/t\_{clk}}\rceil $$
 $$ \textrm{THD_STA_MIN}= \lceil{t\_{HD,STA,min}/t\_{clk}}\rceil $$
 $$ \textrm{TSU_STA_MIN}= \lceil{t\_{SU,STA,min}/t\_{clk}}\rceil $$
@@ -77,7 +77,7 @@ $$ \textrm{TIMING0.TLOW}=\textrm{TLOW_MIN} $$
 $$ \textrm{TIMING0.THIGH}=\max(\textrm{PERIOD}-\textrm{T_R} - \textrm{TIMING0.TLOW} -\textrm{T_F}, \textrm{THIGH_MIN}) $$
 
 We are aware of two issues with timing calculations.
-First, the fall time (T_F) is counted twice in host mode as is tracked in [issue #18958](https://github.com/lowRISC/opentitan/issues/18958).
+First, the fall time (T_F) is counted twice in controller mode as is tracked in [issue #18958](https://github.com/lowRISC/opentitan/issues/18958).
 Second, the high time (THIGH) is 3 cycles longer when no clock stretching is detected as tracked in [issue #18962](https://github.com/lowRISC/opentitan/issues/18962).
 Due to these two discrepancies and the tendency of the above equations to create an underestimate of the eventual clock frequency, we recommend that the internal clock is driven at least 50x higher than the line speed.
 

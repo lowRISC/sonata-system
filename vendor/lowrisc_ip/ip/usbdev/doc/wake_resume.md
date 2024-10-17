@@ -4,6 +4,7 @@
 
 This document outlines a recipe for going in and out of low power modes for suspending and resuming, respectively.
 It assumes the design uses the `usbdev_aon_wake` and `pinmux` modules to handle critical signals in low-power mode like `top_earlgrey`.
+
 The `pinmux` module ensures the D+ and D- pins are high-Z / input only.
 The `usbdev_aon_wake` module maintains the pull-up state, monitors the D+ and D- pins for events to leave the suspended state, and provides the wake-up signal.
 
@@ -28,6 +29,8 @@ Note that this procedure to hand control over to `usbdev_aon_wake` does not appl
      It begins monitoring for events that trigger waking / resuming / resetting.
 3. Software prepares for deep sleep.
    - It saves the current "device state" in the AON retention RAM, including the current configuration and device address (if any).
+   - In order to restore open data pipes to their current state upon return from a sleep state, the software must also capture the current
+     state of all relevant Data Toggle bits by reading from the [`in_data_toggle`](registers.md#in_data_toggle) and [`out_data_toggle`](registers.md#out_data_toggle) registers.
    - The `usbdev_linkstate` module is still powered and monitoring events, and it can resume at any time.
      Note that if a resume event does occur before the point of no return, software need only set [`wake_control.wake_ack`](../data/usbdev.hjson#wake_control) to restore control to `usbdev`.
    - Software also does any other tasks for preparing for deep sleep, such as enabling USB events to wake the chip.
@@ -57,3 +60,10 @@ Note that this procedure to hand control over to `usbdev_aon_wake` does not appl
    - The `usbdev_linkstate` module transitions from `LinkPowered` to `LinkResuming` state.
 8. The upstream hub stops signaling K to resume.
    - The `usbdev_linkstate` module transitions from `LinkResuming` to `LinkActiveNoSOF` state, and USB is active once again.
+9. In order to restore all data pipes to their pre-sleep state and resume communication with the USB host, the Data Toggle bits must be restored by setting them to the values captured when suspending.
+   - Writing to the [`in_data_toggle`](registers.md#in_data_toggle) and [`out_data_toggle`](registers.md#out_data_toggle) registers prevents subsequent packets being ignored as retransmission attempts.
+
+
+## Operation without Sleep / Lower Power modes
+
+If the USB device is to be deployed without support for sleep/low power modes, or without a requirement to maintain the state of the USB during such a state, then there is no requirement for the external `usbdev_aon_wake` module to be present. It is a simple matter to tie the `usb_aon_wake_detect_active_i` signal low, along with the three status indication signals (`usb_aon_bus_reset_i`, `usb_aon_sense_lost_i` and `usb_aon_bus_not_idle_i`) that would normally indicate to software the reason for waking from a sleep/low power state.

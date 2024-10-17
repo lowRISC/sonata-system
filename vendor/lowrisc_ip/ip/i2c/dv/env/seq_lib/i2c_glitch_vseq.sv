@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -20,31 +20,15 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
   uint scl_period;
 
   // Variable used to detect start internally
-  string start_detected_path = "tb.dut.i2c_core.u_i2c_fsm.start_det";
+  string start_detected_path = "tb.dut.i2c_core.u_i2c_bus_monitor.start_det";
   // Variable used to detect Stop internally
-  string stop_detected_path = "tb.dut.i2c_core.u_i2c_fsm.stop_det";
+  string stop_detected_path = "tb.dut.i2c_core.u_i2c_bus_monitor.stop_det";
   // Internal FSM variable
-  string fsm_state_path = "tb.dut.i2c_core.u_i2c_fsm.state_q";
+  string fsm_state_path = "tb.dut.i2c_core.u_i2c_target_fsm.state_q";
 
   // State definitions
   typedef enum logic [5:0] {
     Idle,
-    ///////////////////////
-    // Host function states
-    ///////////////////////
-    Active, PopFmtFifo,
-    // Host function starts a transaction
-    SetupStart, HoldStart, ClockStart,
-    // Host function stops a transaction
-    SetupStop, HoldStop, ClockStop,
-    // Host function transmits a bit to the external target
-    ClockLow, ClockPulse, HoldBit,
-    // Host function recevies an ack from the external target
-    ClockLowAck, ClockPulseAck, HoldDevAck,
-    // Host function reads a bit from the external target
-    ReadClockLow, ReadClockPulse, ReadHoldBit,
-    // Host function transmits an ack to the external target
-    HostClockLowAck, HostClockPulseAck, HostHoldBitAck,
 
     /////////////////////////
     // Target function states
@@ -63,9 +47,9 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     // Target function sends ack to external host
     AcquireAckWait, AcquireAckSetup, AcquireAckPulse, AcquireAckHold,
     // Target function clock stretch handling.
-    StretchAddr,
+    StretchAddrAck, StretchAddrAckSetup, StretchAddr,
     StretchTx, StretchTxSetup,
-    StretchAcqFull
+    StretchAcqFull, StretchAcqSetup
   } state_e;
 
   // initialize the states in which glitch is to be introduced
@@ -73,11 +57,16 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
   // WaitForStop -> Idle and WaitForStop -> AcquireStart
   // TransmitAckPulse -> Idle and TransmitAckPulse -> AcquireStart
   // AcquireByte -> Idle and AcquireByte -> AcquireStart
+  // StretchAcqSetup, StretchAddrAck, and StretchAddrAckSetup are also invalid start states, as a
+  // control symbol is impossible in these states.
   state_e read_states[]  = '{TransmitWait, TransmitSetup, TransmitPulse, TransmitHold, TransmitAck,
                             TransmitAckPulse, StretchTx, StretchTxSetup};
   state_e write_states[] = '{AcquireAckWait, AcquireAckSetup, AcquireAckPulse, AcquireAckHold,
                              StretchAcqFull};
   state_e addr_states[]  = '{StretchAddr, AddrAckWait, AddrAckSetup, AddrAckPulse, AddrAckHold};
+  // AddrAckSetup is here because SCL and SDA can change simultaneously,
+  // leading to failures after the modeled CDC random insertion delay.
+  state_e scl_high_states[]  = '{TransmitPulse, AcquireAckPulse, AddrAckSetup, AddrAckPulse};
 
   // Common steps for DUT initialization
   virtual task setup();
@@ -151,16 +140,17 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     // Start sequence and inject glitch once the required state is observed
     m_i2c_target_seq.start(p_sequencer.i2c_sequencer_h);
     // Check ACQ FIFO after sequence is completed
-    // Check Rstart in case of AcquireStart
-    if (state_int == AcquireStart) begin
+    // Read Start address condition
+    if (state_int != Idle) begin
+      // Check Rstart in case bus wasn't idle
       csr_rd(.ptr(ral.acqdata), .value(data));
       `uvm_info(`gfn, $sformatf("acq_data = %0h", data), UVM_MEDIUM)
       `DV_CHECK_EQ_FATAL(data[9:8], 2'b11, "RStart condition not detected")
+    end else begin
+      csr_rd(.ptr(ral.acqdata), .value(data));
+      `uvm_info(`gfn, $sformatf("acq_data = %0h", data), UVM_MEDIUM)
+      `DV_CHECK_EQ_FATAL(data[9:8], 2'b01, "Start condition not detected")
     end
-    // Read Start address condition
-    csr_rd(.ptr(ral.acqdata), .value(data));
-    `uvm_info(`gfn, $sformatf("acq_data = %0h", data), UVM_MEDIUM)
-    `DV_CHECK_EQ_FATAL(data[9:8], 2'b01, "Start condition not detected")
     `DV_CHECK_EQ_FATAL(data[7:1], addr, $sformatf("Incorrect address detected;Expected %0h", addr))
     `DV_CHECK_EQ_FATAL(data[0], 1'b0, "Incorrect RW bit detected")
     // Read Write data
@@ -181,23 +171,23 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     bit state_detected = 0;
     // Wait for the required state to be observed
     for(int i = 0; i < wait_timeout; i++) begin
-        int temp;
-        state_e state_int;
-        `DV_CHECK_FATAL(uvm_hdl_read(state_path, temp), "Failed to read fsm_state")
-        state_int = state_e'(temp);
-        `uvm_info(`gfn, $sformatf("observed State: %s", state_int.name()), UVM_HIGH)
-        if (state_int == state_expected) begin
-          state_detected = 1;
-          break;
-        end else begin
-          cfg.clk_rst_vif.wait_clks(1);
-        end
-      end
-      if (!state_detected) begin
-        `uvm_error(`gfn, $sformatf("timed out waiting for state: %s", state_expected.name()))
+      int temp;
+      state_e state_int;
+      `DV_CHECK_FATAL(uvm_hdl_read(state_path, temp), "Failed to read fsm_state")
+      state_int = state_e'(temp);
+      `uvm_info(`gfn, $sformatf("observed State: %s", state_int.name()), UVM_HIGH)
+      if (state_int == state_expected) begin
+        state_detected = 1;
+        break;
       end else begin
-        `uvm_info(`gfn, $sformatf("observed State: %s", state_expected.name()), UVM_MEDIUM)
+        cfg.clk_rst_vif.wait_clks(1);
       end
+    end
+    if (!state_detected) begin
+      `uvm_error(`gfn, $sformatf("timed out waiting for state: %s", state_expected.name()))
+    end else begin
+      `uvm_info(`gfn, $sformatf("observed State: %s", state_expected.name()), UVM_MEDIUM)
+    end
   endtask
 
   // Task to introduce glitch by forcing internal signal
@@ -211,7 +201,10 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     uint timeout,
     state_e state_desired = AcquireStart);
     int res;
-      // Introduce glitch by forcing internal signal
+    state_e state_start;
+    `DV_CHECK_FATAL(uvm_hdl_read(fsm_state_path, res), "Failed to read fsm_state")
+    state_start = state_e'(res);
+    // Introduce glitch by forcing internal signal
     `DV_CHECK_FATAL(uvm_hdl_force(var_path, 1'b1), "Failed to force variable")
     cfg.m_i2c_agent_cfg.driver_rst = 1;
     // Reset agent
@@ -222,6 +215,13 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     `DV_CHECK_EQ_FATAL(state_e'(res), state_desired,
       $sformatf("FSM did not transition to %s state", state_desired.name()))
     cfg.m_i2c_agent_cfg.driver_rst = 0;
+    if (is_scl_high_state(state_start)) begin
+      // Need to set SCL low to prevent detection of a stop
+      cfg.m_i2c_agent_cfg.vif.scl_o = 1'b0;
+      cfg.clk_rst_vif.wait_clks(1);
+    end
+    // Wait for the DUT to stop driving SDA (1 cycle latency)
+    cfg.clk_rst_vif.wait_clks(1);
     `uvm_info(`gfn, "Stop SCL from driver", UVM_MEDIUM)
     // Stop driving SCL from driver
     cfg.m_i2c_agent_cfg.host_scl_stop = 1;
@@ -313,8 +313,10 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
       endcase
       // Add data items to transaction enter StretchAddr state
       if (addr_states[i] == StretchAddr) begin
-        // one transaction for start address and another for stop condition
-        repeat(I2C_ACQ_FIFO_DEPTH - 2) begin
+        // one entry each for the last byte to ACK and STOP + one free
+        // If there isn't another free slot, the DUT will stretch on the last
+        // byte instead.
+        repeat(I2C_ACQ_FIFO_DEPTH - 3) begin
           `uvm_create_obj(i2c_item, req)
           append_data(req, m_i2c_target_seq.req_q);
         end
@@ -350,7 +352,19 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
       begin
         bit acq_fifo_empty;
         csr_rd(.ptr(ral.status.acqempty), .value(acq_fifo_empty));
-        `DV_CHECK_EQ_FATAL(acq_fifo_empty, 1'b0, "ACQ FIFO is not empty for address glitch")
+        if (addr_states[i] == StretchAddr) begin
+          `DV_CHECK_EQ_FATAL(acq_fifo_empty, 1'b0, "ACQ FIFO is empty for StretchAddr glitch")
+        end else if ((addr_states[i] == AddrAckHold) && (thd_dat == 1)) begin
+          // If thd_dat is only 1 in this state, the write to the ACQ FIFO
+          // will happen immediately.
+          `DV_CHECK_EQ_FATAL(acq_fifo_empty, 1'b0, "ACQ FIFO is empty for addressed glitch")
+        end else if (target_state == Idle) begin
+          // The ACQ FIFO always has room for the Stop, which should get
+          // written.
+          `DV_CHECK_EQ_FATAL(acq_fifo_empty, 1'b0, "ACQ FIFO is empty for address stop glitch")
+        end else begin
+          `DV_CHECK_EQ_FATAL(acq_fifo_empty, 1'b1, "ACQ FIFO is not empty for address start glitch")
+        end
       end
       `uvm_info(`gfn, $sformatf("Start target smoke after glitch in %s ", addr_states[i].name()),
         UVM_MEDIUM)
@@ -440,7 +454,7 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     i2c_target_base_seq m_i2c_target_seq;
     // Create sequence object
     `uvm_create_obj(i2c_target_base_seq, m_i2c_target_seq)
-    // Inject glitch in address states
+    // Inject glitch in read states
     foreach(read_states[i]) begin
       bit sequence_done = 0;
       `uvm_info(`gfn,
@@ -508,5 +522,12 @@ class i2c_glitch_vseq extends i2c_target_smoke_vseq;
     end
     clear_fifo();
   endtask
+
+  function bit is_scl_high_state(state_e state);
+    foreach (scl_high_states[i]) begin
+      if (state == scl_high_states[i]) return 1;
+    end
+    return 0;
+  endfunction
 
 endclass : i2c_glitch_vseq

@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 {
@@ -29,6 +29,7 @@
                 // Common CIP test lists
                 "{proj_root}/hw/dv/tools/dvsim/tests/csr_tests.hjson",
                 "{proj_root}/hw/dv/tools/dvsim/tests/mem_tests.hjson",
+                "{proj_root}/hw/dv/tools/dvsim/tests/alert_test.hjson",
                 "{proj_root}/hw/dv/tools/dvsim/tests/intr_test.hjson",
                 "{proj_root}/hw/dv/tools/dvsim/tests/tl_access_tests.hjson",
                 "{proj_root}/hw/dv/tools/dvsim/tests/sec_cm_tests.hjson",
@@ -40,54 +41,319 @@
   // Default iterations for all tests - each test entry can override this.
   reseed: 50
 
+  // Add usbdev specific exclusion files.
+  vcs_cov_excl_files: ["{proj_root}/hw/ip/usbdev/dv/cov/usbdev_unr_excl.el"]
+
   // Default UVM test and seq class name.
   uvm_test: usbdev_base_test
   uvm_test_seq: usbdev_base_vseq
 
-  // TODO: temporary fix for CSR tests - USB link reset interrupt is sticky - clearing it
-  // has no effect. Update "csr_test_mode" to add +do_clear_all_interrupts=0 switch to
-  // prevent the intr checks from being run.
-  run_modes: [
-    {
-      name: csr_tests_mode
-      run_opts: ["+do_clear_all_interrupts=0"]
-    }
-  ]
-
   // List of test specifications.
   tests: [
     {
-      name: usbdev_smoke
-      uvm_test_seq: usbdev_smoke_vseq
+      name: usbdev_aon_wake_disconnect
+      uvm_test_seq: usbdev_aon_wake_vseq
+      // Transitional link states and `link_resume` interrupts are not predictable with the
+      // functional model because this sequence changes the bus configuration whilst the
+      // AON/Wake module is controlling the bus.
+      run_opts: [
+        "+do_vbus_disconnects=1",
+        "+en_scb_rdchk_linkstate=0"
+        "+en_scb_rdchk_link_resume=0"
+      ]
     }
-
+    {
+      name: usbdev_aon_wake_reset
+      uvm_test_seq: usbdev_aon_wake_vseq
+      // Transitional link states cannot be predicted with the model presently.
+      run_opts: [
+        "+do_reset_signaling=1",
+        "+en_scb_rdchk_linkstate=0"
+      ]
+    }
+    {
+      name: usbdev_aon_wake_resume
+      uvm_test_seq: usbdev_aon_wake_vseq
+      // Transitional link states and `link_resume` interrupts are not predictable with the
+      // functional model because this sequence changes the bus configuration whilst the
+      // AON/Wake module is controlling the bus.
+      run_opts: [
+        "+do_resume_signaling=1",
+        "+en_scb_rdchk_linkstate=0",
+        "+en_scb_rdchk_link_resume=0"
+      ]
+    }
     {
       name: usbdev_av_buffer
       uvm_test_seq: usbdev_av_buffer_vseq
+    }
+    {
+      name: usbdev_av_empty
+      uvm_test_seq: usbdev_av_empty_vseq
+      // Limited need for randomization; two FIFOs.
+      reseed: 5
+    }
+    {
+      name: usbdev_av_overflow
+      uvm_test_seq: usbdev_av_overflow_vseq
+      // Limited need for randomization; two FIFOs.
+      reseed: 5
+    }
+    {
+      name: usbdev_bitstuff_err
+      uvm_test_seq: usbdev_bitstuff_err_vseq
+    }
+    {
+      name: usbdev_data_toggle_clear
+      uvm_test_seq: usbdev_data_toggle_clear_vseq
+    }
+    {
+      name: usbdev_data_toggle_restore
+      uvm_test_seq: usbdev_data_toggle_restore_vseq
+      // Sequences lets IN transactions time out and since the model has no
+      // concept of elapsed time, it cannot be used to predict the resulting
+      // `link_in_err` assertion.
+      run_opts: ["+en_scb_rdchk_link_in_err=0"]
+    }
+    {
+      name: usbdev_device_address
+      uvm_test_seq: usbdev_device_address_vseq
+    }
+    {
+      name: usbdev_device_timeout
+      uvm_test_seq: usbdev_device_timeout_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake.
+      run_opts: ["+en_scb_rdchk_configin=0","+en_scb_rdchk_link_in_err=0"]
+    }
+    {
+      name: usbdev_timeout_missing_host_handshake
+      uvm_test_seq: usbdev_device_timeout_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake.
+      run_opts: ["+en_scb_rdchk_configin=0","+en_scb_rdchk_link_in_err=0"]
+    }
+    {
+      name: usbdev_disable_endpoint
+      uvm_test_seq: usbdev_disable_endpoint_vseq
+    }
+    {
+      name: usbdev_disconnected
+      uvm_test_seq: usbdev_disconnected_vseq
+    }
+    {
+      name: usbdev_dpi_config_host
+      uvm_test_seq: usbdev_dpi_config_host_vseq
+      // Limited use of randomization presently
+      reseed: 1
     }
     {
       name: usbdev_enable
       uvm_test_seq: usbdev_enable_vseq
     }
     {
+      name: usbdev_endpoint_access
+      uvm_test_seq: usbdev_endpoint_access_vseq
+    }
+    {
+      name: usbdev_endpoint_types
+      uvm_test_seq: usbdev_endpoint_types_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake. (Isochronous IN traffic.)
+      run_opts: ["+en_scb_rdchk_configin=0"]
+      // Short sequence, many possible endpoint configurations.
+      reseed: 200
+    }
+    {
       name: usbdev_fifo_rst
       uvm_test_seq: usbdev_fifo_rst_vseq
+    }
+    {
+      name: usbdev_freq_hiclk
+      uvm_test_seq: usbdev_freq_phase_delta_vseq
+      // Run the host slower than the usbdev.
+      // Check that with this small offset, packet reception works without any frequency tracking.
+      run_opts: ["+host_freq_delta=-18500"]
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_freq_hiclk_max
+      uvm_test_seq: usbdev_freq_phase_delta_vseq
+      // Run the host slower than the usbdev, at the minimum permissible frequency cf 48MHz.
+      //
+      // Packet reception shall initially be expected to fail, but the SOF reception should be
+      // good enough to track the host frequency by modifying the DUT oscillator.
+      run_opts: [
+        "+cdc_instrumentation_enabled=0",
+        "+host_drifting=1",
+        "+host_freq_delta=-120000",
+        "+osc_tracking=1",
+        "+reset_recovery=1",
+        "+usb_freq_delta=+120000"
+      ]
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_freq_loclk
+      uvm_test_seq: usbdev_freq_phase_delta_vseq
+      // Run the host faster than the usbdev.
+      // Check that with this small offset, packet reception works without any frequency tracking.
+      run_opts: ["+host_freq_delta=+18500"]
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_freq_loclk_max
+      uvm_test_seq: usbdev_freq_phase_delta_vseq
+      // Run the host faster than the usbdev, at the maximum permissible frequency cf 48MHz.
+      //
+      // Packet reception shall initially be expected to fail, but the SOF reception should be
+      // good enough to track the host frequency by modifying the DUT oscillator.
+      run_opts: [
+        "+cdc_instrumentation_enabled=0",
+        "+osc_tracking=1",
+        "+host_drifting=1",
+        "+host_freq_delta=+120000",
+        "+reset_recovery=1",
+        "+usb_freq_delta=-120000"
+      ]
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_freq_phase
+      uvm_test_seq: usbdev_freq_phase_delta_vseq
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_host_lost
+      uvm_test_seq: usbdev_host_lost_vseq
+      // No need for randomization.
+      reseed: 1
+    }
+    {
+      name: usbdev_invalid_data1_data0_toggle_test
+      uvm_test_seq: usbdev_link_out_err_vseq
+      // No need for randomization.
+      reseed: 1
+    }
+    {
+      name: usbdev_invalid_sync
+      uvm_test_seq: usbdev_bad_traffic_vseq
+      run_opts: ["+wt_bad_syncs=1"]
+    }
+    {
+      name: usbdev_in_iso
+      uvm_test_seq: usbdev_in_iso_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake.
+      run_opts: ["+en_scb_rdchk_configin=0"]
+    }
+    {
+      name: usbdev_in_stall
+      uvm_test_seq: usbdev_in_stall_vseq
     }
     {
       name: usbdev_in_trans
       uvm_test_seq: usbdev_in_trans_vseq
     }
     {
+      name: usbdev_iso_retraction
+      uvm_test_seq: usbdev_iso_retraction_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake.
+      run_opts: ["+en_scb_rdchk_configin=0"]
+    }
+    {
+      name: usbdev_link_in_err
+      uvm_test_seq: usbdev_link_in_err_vseq
+    }
+    {
+      name: usbdev_link_out_err
+      uvm_test_seq: usbdev_link_out_err_vseq
+      // No need for randomization.
+      reseed: 1
+    }
+    {
+      name: usbdev_link_reset
+      uvm_test_seq: usbdev_link_reset_vseq
+      // No need for randomization.
+      reseed: 1
+    }
+    {
+      name: usbdev_link_resume
+      uvm_test_seq: usbdev_link_resume_vseq
+    }
+    {
+      name: usbdev_link_suspend
+      uvm_test_seq: usbdev_link_suspend_vseq
+    }
+    {
+      name: usbdev_low_speed_traffic
+      uvm_test_seq: usbdev_low_speed_traffic_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake (Isochronous IN traffic).
+      run_opts: ["+en_scb_rdchk_configin=0"]
+    }
+    {
+      name: usbdev_max_inter_pkt_delay
+      uvm_test_seq: usbdev_streaming_vseq
+      run_opts: ["+setup_data_delay=26", "+out_data_delay=26"]
+    }
+    {
+      name: usbdev_max_length_in_transaction
+      uvm_test_seq: usbdev_in_rand_trans_vseq
+      run_opts: ["+num_of_bytes=64"]
+    }
+    {
       name: usbdev_max_length_out_transaction
       uvm_test_seq: usbdev_max_length_out_transaction_vseq
+    }
+    {
+      name: usbdev_max_non_iso_usb_traffic
+      uvm_test_seq: usbdev_max_non_iso_usb_traffic_vseq
+      // More important than Isochronous traffic.
+      reseed: 25
+    }
+    {
+      name: usbdev_max_usb_traffic
+      uvm_test_seq: usbdev_max_usb_traffic_vseq
+      // Model has no concept of elapsed time, and cannot change state in the
+      // absence of a missing USB host controller handshake (Isochronous IN traffic).
+      run_opts: ["+en_scb_rdchk_configin=0"]
+      // Isochronous transfers are rarely used.
+      reseed: 15
+    }
+    {
+      name: usbdev_min_inter_pkt_delay
+      uvm_test_seq: usbdev_streaming_vseq
+      run_opts: ["+setup_data_delay=8", "+out_data_delay=8"]
+    }
+    {
+      name: usbdev_min_length_in_transaction
+      uvm_test_seq: usbdev_in_rand_trans_vseq
+      run_opts: ["+num_of_bytes=0"]
     }
     {
       name: usbdev_min_length_out_transaction
       uvm_test_seq: usbdev_min_length_out_transaction_vseq
     }
     {
+      name: usbdev_nak_to_out_trans_when_avbuffer_empty_rxfifo_full
+      uvm_test_seq: usbdev_link_out_err_vseq
+      // No need for randomization.
+      reseed: 1
+    }
+    {
       name: usbdev_nak_trans
       uvm_test_seq: usbdev_nak_trans_vseq
+    }
+    {
+      name: usbdev_out_iso
+      uvm_test_seq: usbdev_out_iso_vseq
     }
     {
       name: usbdev_out_stall
@@ -98,6 +364,54 @@
       uvm_test_seq: usbdev_out_trans_nak_vseq
     }
     {
+      name: usbdev_pending_in_trans
+      uvm_test_seq: usbdev_pending_in_trans_vseq
+    }
+    {
+      name: usbdev_phy_config_eop_single_bit_handling
+      uvm_test_seq: usbdev_phy_config_eop_single_bit_handling_vseq
+      reseed: 1
+    }
+    {
+      name: usbdev_phy_config_pinflip
+      uvm_test_seq: usbdev_phy_config_pinflip_vseq
+      run_opts: ["+pin_flip=1"]
+    }
+    {
+      name: usbdev_phy_config_rand_bus_type
+      uvm_test_seq: usbdev_phy_config_rand_bus_type_vseq
+      reseed: 5
+    }
+    {
+      name: usbdev_phy_config_rx_dp_dn
+      uvm_test_seq: usbdev_smoke_vseq
+      reseed: 1
+      run_opts: ["+en_diff_rcvr=0"]
+    }
+    {
+      name: usbdev_phy_config_tx_osc_test_mode
+      uvm_test_seq: usbdev_phy_config_tx_osc_test_mode_vseq
+      reseed: 1
+    }
+    {
+      name: usbdev_phy_config_tx_use_d_se0
+      uvm_test_seq: usbdev_smoke_vseq
+      reseed: 1
+      run_opts: ["+tx_use_d_se0=1"]
+    }
+    {
+      name: usbdev_phy_config_usb_ref_disable
+      uvm_test_seq: usbdev_phy_config_usb_ref_disable_vseq
+    }
+    {
+      name: usbdev_phy_pins_sense
+      uvm_test_seq: usbdev_phy_pins_sense_vseq
+    }
+    {
+      name: usbdev_pkt_buffer
+      uvm_test_seq: usbdev_pkt_buffer_vseq
+    }
+    {
       name: usbdev_pkt_received
       uvm_test_seq: usbdev_pkt_received_vseq
     }
@@ -106,20 +420,153 @@
       uvm_test_seq: usbdev_pkt_sent_vseq
     }
     {
-      name: usbdev_random_length_out_trans
+      name: usbdev_random_length_in_transaction
+      uvm_test_seq: usbdev_in_rand_trans_vseq
+    }
+    {
+      name: usbdev_random_length_out_transaction
       uvm_test_seq: usbdev_random_length_out_transaction_vseq
+    }
+    {
+      name: usbdev_rand_bus_disconnects
+      uvm_test_seq: usbdev_bus_rand_vseq
+      // Model cannot be used to predict transitional LinkState reliably because
+      // of CDC and filtering propagation delays and asynchronous process reading
+      // `usbstat` register.
+      run_opts: ["+do_vbus_disconnects=1","+en_scb_rdchk_linkstate=0"]
+      // Long simulation times
+      reseed: 10
+    }
+    {
+      name: usbdev_rand_bus_resets
+      uvm_test_seq: usbdev_bus_rand_vseq
+      run_opts: ["+do_reset_signaling=1"]
+      // Long simulation times
+      reseed: 10
+    }
+    {
+      name: usbdev_rand_suspends
+      uvm_test_seq: usbdev_bus_rand_vseq
+      // Monitor does not always manage to sample the Resume Signaling and inform the scoreboard
+      // as quickly as the DUT detects it and reports it via an already-issued CSR read; thus the
+      // `usbstat.link_stat` change may sometimes be observed before its prediction.
+      run_opts: ["+do_resume_signaling=1","+en_scb_rdchk_linkstate=0"]
+      // Long simulation times
+      reseed: 10
+    }
+    {
+      name: usbdev_resume_link_active
+      uvm_test_seq: usbdev_resume_link_active_vseq
+      reseed: 20
+    }
+    {
+      name: usbdev_rx_crc_err
+      uvm_test_seq: usbdev_rx_crc_err_vseq
+    }
+    {
+      name: usbdev_rx_full
+      uvm_test_seq: usbdev_rx_full_vseq
+    }
+    {
+      name: usbdev_rx_pid_err
+      uvm_test_seq: usbdev_rx_pid_err_vseq
+      // Limited need for randomization; only two PIDs used.
+      reseed: 5
+    }
+    {
+      name: usbdev_setup_priority
+      uvm_test_seq: usbdev_setup_priority_vseq
+      // Simple sequence, limited need of randomization.
+      reseed: 5
+    }
+    {
+      name: usbdev_setup_priority_over_stall_response
+      uvm_test_seq: usbdev_setup_priority_over_stall_response_vseq
+      // Simple sequence, limited need of randomization.
+      reseed: 5
+    }
+    {
+      name: usbdev_setup_stage
+      uvm_test_seq: usbdev_setup_stage_vseq
     }
     {
       name: usbdev_setup_trans_ignored
       uvm_test_seq: usbdev_setup_trans_ignored_vseq
     }
     {
-      name: usbdev_phy_pins_sense
-      uvm_test_seq: usbdev_phy_pins_sense_vseq
+      name: usbdev_smoke
+      uvm_test_seq: usbdev_smoke_vseq
     }
     {
-      name: usbdev_in_stall
-      uvm_test_seq: usbdev_in_stall_vseq
+      name: usbdev_spurious_pids_ignored
+      uvm_test_seq: usbdev_bad_traffic_vseq
+      run_opts: ["+wt_spurious_pids=1"]
+    }
+    {
+      name: usbdev_stall_priority_over_nak
+      uvm_test_seq: usbdev_stall_priority_over_nak_vseq
+    }
+    {
+      name: usbdev_stall_trans
+      uvm_test_seq: usbdev_stall_trans_vseq
+    }
+    {
+      name: usbdev_streaming_out
+      uvm_test_seq: usbdev_streaming_vseq
+    }
+    {
+      name: usbdev_stream_len_max
+      uvm_test_seq: usbdev_stream_len_max_vseq
+    }
+    {
+      name: usbdev_stress_all_with_rand_reset
+      reseed: 10
+    }
+    {
+      name: usbdev_stress_usb_traffic
+      // Bad traffic sequence derives from usbdev_bus_rand_vseq and incorporates both fault
+      // injection and randomized bus stimuli.
+      uvm_test_seq: usbdev_bad_traffic_vseq
+      // Model cannot be used to predict transitional LinkState reliably because
+      // of CDC and filtering propagation delays and asynchronous process reading
+      // `usbstat` register.
+      run_opts: ["+do_resume_signaling=1",
+                 "+do_reset_signaling=1",
+                 "+do_vbus_disconnects=1",
+                 "+wt_bad_syncs=1",
+                 "+wt_bad_pids=1",
+                 "+wt_spurious_pids=1",
+                 "+wt_bad_crc5=1",
+                 "+wt_bad_crc16=1",
+                 "+wt_bitstuff_errs=1",
+                 "+en_scb_rdchk_linkstate=0"]
+      // Very long simulation times
+      reseed: 5
+    }
+    {
+      name: usbdev_stream_len_max
+      uvm_test_seq: usbdev_stream_len_max_vseq
+    }
+    {
+      name: usbdev_tx_rx_disruption
+      uvm_test_seq: usbdev_tx_rx_disruption_vseq
+      // Monitor and model cannot be used to predict with absolute certainty when a PID/CRC error
+      // will be reported when truncating a packet transmission to the DUT because `usb_fs_rx` can
+      // sample the SE0 state of a spontaneous Bus Reset and complete the PID even though not all
+      // of the PID bits were transmitted. The CRC can simply be a false positive match,
+      // particularly the CRC5 of a token packet.
+      // We also cannot readily predict whether we shall raise a `link_in_err` by issuing a bus
+      // reset during an IN DATA packet.
+      // Reliable prediction of reported bit stuffing violations would require examination of the
+      // OUT traffic to the device prior to the instant of a Bus Reset or VBUS Disconnection.
+      // These notifications are just informative in any case.
+      run_opts: [
+        "+en_scb_rdchk_rx_pid_err=0",
+        "+en_scb_rdchk_rx_crc_err=0",
+        "+en_scb_rdchk_link_in_err=0",
+        "+en_scb_rdchk_rx_bitstuff_err=0"
+      ]
+      reseed: 500
     }
   ]
 
@@ -128,6 +575,10 @@
     {
       name: smoke
       tests: ["usbdev_smoke"]
+    }
+    {
+      name: stress
+      tests: ["usbdev_stress_usb_traffic"]
     }
   ]
 }

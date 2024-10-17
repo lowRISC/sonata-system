@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 ${gencmd}
@@ -168,6 +168,37 @@ module chip_${top["name"]}_${target["name"]} #(
 % for attr in pad_attr:
       ${attr}${" " if loop.last else ","} // MIO Pad ${len(pad_attr) - loop.index - 1}
 % endfor
+    },
+    // Pad scan roles
+    dio_scan_role: {
+<%
+  scan_roles = []
+  for sig in list(reversed(top["pinmux"]["ios"])):
+    if sig["connection"] != "muxed":
+      if (len(sig['pad']) > 0) and (target["name"] != "cw305"):
+        scan_string = lib.Name.from_snake_case('dio_pad_' + sig['pad'] + '_scan_role')
+        scan_roles.append((f'scan_role_pkg::{scan_string.as_camel_case()}', sig['name']))
+      else:
+        scan_roles.append(('NoScan', sig['name']))
+%>\
+% for scan_role, name in list(scan_roles):
+      ${scan_role}${"" if loop.last else ","} // DIO ${name}
+% endfor
+    },
+    mio_scan_role: {
+<%
+  scan_roles = []
+  for pad in list(reversed(pinout["pads"])):
+    if pad["connection"] == "muxed":
+      if target["name"] != "cw305":
+        scan_string = lib.Name.from_snake_case('mio_pad_' + pad['name'] + '_scan_role')
+        scan_roles.append(f'scan_role_pkg::{scan_string.as_camel_case()}')
+      else:
+        scan_roles.append('NoScan')
+%>\
+% for scan_role in list(scan_roles):
+      ${scan_role}${"" if loop.last else ","}
+% endfor
     }
   };
 
@@ -182,13 +213,15 @@ module chip_${top["name"]}_${target["name"]} #(
   wire ${port};
   % endfor
 
+  logic [3:0] mux_iob_sel;
+
   pad_attr_t [pinmux_reg_pkg::NMioPads-1:0] mio_attr;
   pad_attr_t [pinmux_reg_pkg::NDioPads-1:0] dio_attr;
   logic [pinmux_reg_pkg::NMioPads-1:0] mio_out;
   logic [pinmux_reg_pkg::NMioPads-1:0] mio_oe;
   logic [pinmux_reg_pkg::NMioPads-1:0] mio_in;
   logic [pinmux_reg_pkg::NMioPads-1:0] mio_in_raw;
-  logic [24-1:0]                       dio_in_raw;
+  logic [${len(dedicated_pads)}-1:0]                       dio_in_raw;
   logic [pinmux_reg_pkg::NDioPads-1:0] dio_out;
   logic [pinmux_reg_pkg::NDioPads-1:0] dio_oe;
   logic [pinmux_reg_pkg::NDioPads-1:0] dio_in;
@@ -310,6 +343,7 @@ module chip_${top["name"]}_${target["name"]} #(
     .clk_scan_i   ( 1'b0                  ),
     .scanmode_i   ( prim_mubi_pkg::MuBi4False ),
   % endif
+    .mux_iob_sel_i ( mux_iob_sel ),
     .dio_in_raw_o ( dio_in_raw ),
     // Chip IOs
     .dio_pad_io ({
@@ -576,10 +610,12 @@ module chip_${top["name"]}_${target["name"]} #(
   // conversion from ast structure to memory centric structures
   assign ram_1p_cfg = '{
     ram_cfg: '{
+                test:   ast_ram_1p_cfg.test,
                 cfg_en: ast_ram_1p_cfg.marg_en,
                 cfg:    ast_ram_1p_cfg.marg
               },
     rf_cfg:  '{
+                test:   ast_rf_cfg.test,
                 cfg_en: ast_rf_cfg.marg_en,
                 cfg:    ast_rf_cfg.marg
               }
@@ -587,10 +623,12 @@ module chip_${top["name"]}_${target["name"]} #(
 
   assign usb_ram_1p_cfg = '{
     ram_cfg: '{
+                test:   ast_ram_1p_cfg.test,
                 cfg_en: ast_ram_1p_cfg.marg_en,
                 cfg:    ast_ram_1p_cfg.marg
               },
     rf_cfg:  '{
+                test:   ast_rf_cfg.test,
                 cfg_en: ast_rf_cfg.marg_en,
                 cfg:    ast_rf_cfg.marg
               }
@@ -600,10 +638,12 @@ module chip_${top["name"]}_${target["name"]} #(
   // assign spi_ram_2p_cfg = {10'h000, ram_2p_cfg_i.a_ram_lcfg, ram_2p_cfg_i.b_ram_lcfg};
   assign spi_ram_2p_cfg = '{
     a_ram_lcfg: '{
+                   test:   ast_ram_2p_lcfg.test_a,
                    cfg_en: ast_ram_2p_lcfg.marg_en_a,
                    cfg:    ast_ram_2p_lcfg.marg_a
                  },
     b_ram_lcfg: '{
+                   test:   ast_ram_2p_lcfg.test_b,
                    cfg_en: ast_ram_2p_lcfg.marg_en_b,
                    cfg:    ast_ram_2p_lcfg.marg_b
                  },
@@ -611,8 +651,9 @@ module chip_${top["name"]}_${target["name"]} #(
   };
 
   assign rom_cfg = '{
+    test:   ast_rom_cfg.test,
     cfg_en: ast_rom_cfg.marg_en,
-    cfg: ast_rom_cfg.marg
+    cfg:    ast_rom_cfg.marg
   };
 
   // unused cfg bits
@@ -841,6 +882,7 @@ module chip_${top["name"]}_${target["name"]} #(
     // pinmux related
     .padmux2ast_i          ( pad2ast    ),
     .ast2padmux_o          ( ast2pinmux ),
+    .mux_iob_sel_o         ( mux_iob_sel ),
     .ext_freq_is_96m_i     ( hi_speed_sel ),
     .all_clk_byp_req_i     ( all_clk_byp_req  ),
     .all_clk_byp_ack_o     ( all_clk_byp_ack  ),
@@ -870,14 +912,6 @@ module chip_${top["name"]}_${target["name"]} #(
   // Manual Pad / Signal Tie-offs //
   //////////////////////////////////
 
-  assign manual_out_ast_misc = 1'b0;
-  assign manual_oe_ast_misc = 1'b0;
-  always_comb begin
-    // constantly enable pull-down
-    manual_attr_ast_misc = '0;
-    manual_attr_ast_misc.pull_select = 1'b0;
-    manual_attr_ast_misc.pull_en = 1'b1;
-  end
   assign manual_out_por_n = 1'b0;
   assign manual_oe_por_n = 1'b0;
 
@@ -896,12 +930,17 @@ module chip_${top["name"]}_${target["name"]} #(
   assign manual_oe_otp_ext_volt = 1'b0;
 
   // Enable schmitt trigger on POR for better signal integrity.
-  assign manual_attr_por_n = '{schmitt_en: 1'b1, default: '0};
-  // These pad attributes currently tied off permanently (these are all input-only pads).
-  assign manual_attr_cc1 = '0;
-  assign manual_attr_cc2 = '0;
-  assign manual_attr_flash_test_mode0 = '0;
-  assign manual_attr_flash_test_mode1 = '0;
+  assign manual_attr_por_n = '{schmitt_en: 1'b1, pull_en: 1'b1, pull_select: 1'b1, default: '0};
+
+  // These pad attributes are controlled through sensor_ctrl.  Update the description of
+  // `MANUAL_PAD_ATTR` in `sensor_ctrl.hjson` when you change or extend the mapping below.
+  prim_pad_wrapper_pkg::pad_attr_t [3:0] sensor_ctrl_manual_pad_attr;
+  assign manual_attr_cc1 = sensor_ctrl_manual_pad_attr[0];
+  assign manual_attr_cc2 = sensor_ctrl_manual_pad_attr[1];
+  assign manual_attr_flash_test_mode0 = sensor_ctrl_manual_pad_attr[2];
+  assign manual_attr_flash_test_mode1 = sensor_ctrl_manual_pad_attr[3];
+
+  // These pad attributes are currently tied off permanently (these are supply pads).
   assign manual_attr_flash_test_volt = '0;
   assign manual_attr_otp_ext_volt = '0;
 
@@ -963,6 +1002,9 @@ module chip_${top["name"]}_${target["name"]} #(
     .PinmuxAonTargetCfg(PinmuxTargetCfg)
 % else:
     .PinmuxAonTargetCfg(PinmuxTargetCfg),
+    .I2c0InputDelayCycles(1),
+    .I2c1InputDelayCycles(1),
+    .I2c2InputDelayCycles(1),
     .SecAesAllowForcingMasks(1'b1),
     .SecRomCtrlDisableScrambling(SecRomCtrlDisableScrambling)
 % endif
@@ -1039,6 +1081,7 @@ module chip_${top["name"]}_${target["name"]} #(
     // Pad attributes
     .mio_attr_o                   ( mio_attr                   ),
     .dio_attr_o                   ( dio_attr                   ),
+    .sensor_ctrl_manual_pad_attr_o( sensor_ctrl_manual_pad_attr),
 
     // Memory attributes
     .ram_1p_cfg_i                 ( ram_1p_cfg                 ),
@@ -1104,17 +1147,12 @@ module chip_${top["name"]}_${target["name"]} #(
 % if target["name"] in ["cw310", "cw340"]:
     .SecAesMasking(1'b1),
     .SecAesSBoxImpl(aes_pkg::SBoxImplDom),
-    .SecAesStartTriggerDelay(320),
+    .SecAesStartTriggerDelay(0),
     .SecAesAllowForcingMasks(1'b1),
-    .KmacEnMasking(0),
-    .KmacSwKeyMasked(1),
-    .SecKmacCmdDelay(320),
-    .SecKmacIdleAcceptSwMsg(1'b1),
-    .KeymgrKmacEnMasking(0),
     .CsrngSBoxImpl(aes_pkg::SBoxImplLut),
     .OtbnRegFile(otbn_pkg::RegFileFPGA),
-    .SecOtbnMuteUrnd(1'b1),
-    .SecOtbnSkipUrndReseedAtStart(1'b1),
+    .SecOtbnMuteUrnd(1'b0),
+    .SecOtbnSkipUrndReseedAtStart(1'b0),
     .OtpCtrlMemInitFile(OtpCtrlMemInitFile),
     .RvCoreIbexPipeLine(1),
     .SramCtrlRetAonInstrExec(0),
@@ -1142,6 +1180,17 @@ module chip_${top["name"]}_${target["name"]} #(
     .OtbnStub(1'b1),
     .OtpCtrlMemInitFile(OtpCtrlMemInitFile),
     .RvCoreIbexPipeLine(1),
+% endif
+% if target["name"] == "cw340":
+    .KmacEnMasking(1),
+    .KmacSwKeyMasked(1),
+    .KeymgrKmacEnMasking(1),
+% elif target["name"] == "cw310":
+    .KmacEnMasking(0),
+    .KmacSwKeyMasked(1),
+    .KeymgrKmacEnMasking(0),
+    .SecKmacCmdDelay(0),
+    .SecKmacIdleAcceptSwMsg(1'b0),
 % endif
     .RomCtrlBootRomInitFile(BootRomInitFile),
     .RvCoreIbexRegFile(ibex_pkg::RegFileFPGA),

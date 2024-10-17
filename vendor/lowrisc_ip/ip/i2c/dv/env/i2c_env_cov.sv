@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -43,7 +43,7 @@ covergroup i2c_interrupts_cg with function sample(
   cp_tx_threshold     : coverpoint intr_state[11] iff (intr_enable[11]);
   //          target mode interrupt: raised if ACQ FIFO becomes full. This is a level status
   //                                 interrupt.
-  cp_acq_full         : coverpoint intr_state[12] iff (intr_enable[12]);
+  cp_acq_stretch      : coverpoint intr_state[12] iff (intr_enable[12]);
   //          target mode interrupt: raised if STOP is received without a preceding NACK during an
   //                                 external host read.
   cp_unexp_stop       : coverpoint intr_state[13] iff (intr_enable[13]);
@@ -63,7 +63,7 @@ covergroup i2c_interrupts_cg with function sample(
   cp_cmd_complete_test     : coverpoint intr_state[ 9] iff (intr_test[ 9]){ ignore_bins dis = {0}; }
   cp_tx_stretch_test       : coverpoint intr_state[10] iff (intr_test[10]){ ignore_bins dis = {0}; }
   cp_tx_threshold_test     : coverpoint intr_state[11] iff (intr_test[11]){ ignore_bins dis = {0}; }
-  cp_acq_full_test         : coverpoint intr_state[12] iff (intr_test[12]){ ignore_bins dis = {0}; }
+  cp_acq_stretch_test      : coverpoint intr_state[12] iff (intr_test[12]){ ignore_bins dis = {0}; }
   cp_unexp_stop_test       : coverpoint intr_state[13] iff (intr_test[13]){ ignore_bins dis = {0}; }
   cp_host_timeout_test     : coverpoint intr_state[14] iff (intr_test[14]){ ignore_bins dis = {0}; }
 endgroup
@@ -320,10 +320,14 @@ covergroup i2c_scl_stretch_cg(bit[15:0] FIFO_SIZE) with function sample(
   bit intr_stretch_timeout,
   bit host_timeout_ctrl_en,
   bit intr_tx_stretch,
-  bit intr_acq_full,
+  bit intr_acq_stretch,
   uint acq_fifo_size,
   uint tx_fifo_size
 );
+  /////////////////////////////////////////
+  // CLOCK STRETCHING : DUT -> HOST_MODE //
+  /////////////////////////////////////////
+
   // Stretch detected if cio_scl_en_o is not asserted but still cio_scl_i low which indicates
   // target device is stretching the clock, if the number of cycles SCL is stretched exceeds
   // a timeout value intr_stretch_timeout is raised
@@ -333,8 +337,12 @@ covergroup i2c_scl_stretch_cg(bit[15:0] FIFO_SIZE) with function sample(
     ignore_bins unused = {0};
   }
 
+  ///////////////////////////////////////////
+  // CLOCK STRETCHING : DUT -> TARGET_MODE //
+  ///////////////////////////////////////////
+
   // Target mode SCL stretch due to three scenarios
-  // 1. ACQ full, can be an Address or Write data byte, both indicated by intr_acq_full
+  // 1. ACQ full, can be an Address or Write data byte, both indicated by intr_acq_stretch
   // 2. During Read transaction, if TX FIFO is empty and ACQ FIFO has read transaction, indicated
   //    by intr_tx_stretch
   // 3. For a Read transaction, if ACQ FIFO has more than one entry, indicated by intr_tx_stretch
@@ -346,7 +354,7 @@ covergroup i2c_scl_stretch_cg(bit[15:0] FIFO_SIZE) with function sample(
     bins empty = {0};
     bins not_empty = {[1:FIFO_SIZE-1]};
   }
-  cp_target_scl_stretch_addr_write: coverpoint acq_fifo_size iff (intr_acq_full && !host_mode) {
+  cp_target_scl_stretch_addr_write: coverpoint acq_fifo_size iff (intr_acq_stretch && !host_mode) {
     bins addr_write_byte_stretch = {FIFO_SIZE-1};
   }
   cp_target_scl_stretch_read : cross cp_acq_fifo_size, cp_tx_fifo_size
@@ -363,7 +371,7 @@ class i2c_env_cov extends cip_base_env_cov #(.CFG_T(i2c_env_cfg));
   i2c_fifo_reset_cg fifo_reset_cg;
   i2c_fifo_level_cg fmt_fifo_level_cg;
   i2c_fifo_level_cg rx_fifo_level_cg;
-  i2c_operating_mode_cg openting_mode_cg;
+  i2c_operating_mode_cg operating_mode_cg;
   i2c_status_cg status_cg;
   i2c_scl_sda_override_cg scl_sda_override_cg;
   i2c_fmt_fifo_cg fmt_fifo_cg;
@@ -391,7 +399,7 @@ class i2c_env_cov extends cip_base_env_cov #(.CFG_T(i2c_env_cfg));
     rx_fifo_level_cg  = new(I2C_RX_FIFO_DEPTH);
     interrupts_cg = new();
     fifo_reset_cg = new();
-    openting_mode_cg = new();
+    operating_mode_cg = new();
     status_cg = new();
     scl_sda_override_cg = new();
     fmt_fifo_cg = new();

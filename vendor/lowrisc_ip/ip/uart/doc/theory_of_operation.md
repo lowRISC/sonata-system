@@ -53,7 +53,7 @@ TX pin on positive edges of the baud clock.
 If TX is not enabled, written DATA into FIFO will be stacked up and sent out
 when TX is enabled.
 
-When the FIFO becomes empty as part of transmission, a TX FIFO empty interrupt will be raised.
+When the FIFO becomes empty as part of transmission, a TX FIFO done interrupt will be raised when the final byte has finished transmitting.
 This is separate from the TX FIFO water mark interrupt.
 
 
@@ -154,10 +154,10 @@ $$ {{baud} < {{40 * f\_{pclk}} \over {2^{$bits(NCO)+4}}}} \qquad OR \qquad
 {{f\_{pclk}} > {{{2^{$bits(NCO)+4}} * {baud}} \over {40}}} $$
 
 Using rounded frequencies and common baud rates, this implies that
-care is needed for 9600 baud and below if the system clock is under
-250MHz, with 4800 baud and below if the system clock is under 125MHz,
-2400 baud and below if the system clock us under 63MHz, and 1200 baud
-and below if the system clock is under 32MHz.
+care is needed for 9600 baud and below if the system clock is over
+250MHz, with 4800 baud and below if the system clock is over 125MHz,
+2400 baud and below if the system clock is over 62MHz, and 1200 baud
+and below if the system clock is over 31MHz.
 
 
 ### Interrupts
@@ -165,16 +165,17 @@ and below if the system clock is under 32MHz.
 UART module has a few interrupts including general data flow interrupts
 and unexpected event interrupts.
 
-#### tx_watermark / rx_watermark
+#### tx_watermark / tx_empty / rx_watermark
 If the TX FIFO level becomes smaller than the TX water mark level (configurable via [`FIFO_CTRL.RXILVL`](registers.md#fifo_ctrl) and [`FIFO_CTRL.TXILVL`](registers.md#fifo_ctrl)), the `tx_watermark` interrupt is raised to inform SW.
+If the TX FIFO is empty, the `tx_empty` interrupt is raised to inform SW.
 If the RX FIFO level becomes greater than or equal to RX water mark level (configurable via [`FIFO_CTRL.RXILVL`](registers.md#fifo_ctrl) and [`FIFO_CTRL.TXILVL`](registers.md#fifo_ctrl)), the `rx_watermark` interrupt is raised to inform SW.
 
-Note that the watermark interrupts are level-based status interrupts.
+Note that the watermark interrupts and the empty interrupt are level-based status interrupts.
 They will stay asserted for as long as the FIFO levels are in violation of the configured level and cannot be cleared by writing to the status register.
-This also means that the `tx_watermark` starts off in an asserted state (resets high).
+This also means that `tx_watermark` and `tx_empty` start off in an asserted state (reset high).
 
-#### tx_empty
-If TX FIFO becomes empty as part of transmit, the interrupt `tx_empty` is asserted.
+#### tx_done
+If TX FIFO becomes empty as part of transmit, the interrupt `tx_done` is asserted once the final byte has been transmitted.
 The transmitted contents may be garbage at this point as old FIFO contents will likely be transmitted.
 
 #### rx_overflow

@@ -1,4 +1,4 @@
-// Copyright lowRISC contributors.
+// Copyright lowRISC contributors (OpenTitan project).
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -40,8 +40,11 @@ class i2c_seq_cfg extends uvm_object;
   uint i2c_prob_sda_interference = 30;
   uint i2c_prob_scl_interference = 70;
 
-  // bits to control fifos access
-  // set en_rx_overflow to ensure ensure rx_overflow irq is triggered
+  // The follow control bits are related to fifo accesses
+
+  // This bit makes the tb adjust its expectation based upon 1 data
+  // byte being dropped due to overflowing the RXFIFO. If set, the stimulus
+  // should ensure this exact overflow condition will occur.
   bit en_rx_overflow             = 1'b0;
   // set en_rx_threshold to ensure rx_threshold irq is triggered
   bit en_rx_threshold            = 1'b0;
@@ -104,9 +107,9 @@ class i2c_seq_cfg extends uvm_object;
   `define I2C_GET_MIN_PARAM(NAME_, PARAM_NAME_) \
       function uint get_``NAME_``_min(speed_mode_e speed_mode, uint clk_period_ps); \
         case (speed_mode) inside \
-          Standard : return (1000* PARAM_NAME_``_MINSTANDARD/clk_period_ps); \
-          Fast     : return (1000* PARAM_NAME_``_MINFAST/clk_period_ps); \
-          FastPlus : return (1000* PARAM_NAME_``_MINFASTPLUS/clk_period_ps); \
+          Standard : return ((1000* PARAM_NAME_``_MINSTANDARD + clk_period_ps - 1)/clk_period_ps); \
+          Fast     : return ((1000* PARAM_NAME_``_MINFAST + clk_period_ps - 1)/clk_period_ps); \
+          FastPlus : return ((1000* PARAM_NAME_``_MINFASTPLUS + clk_period_ps - 1)/clk_period_ps); \
         endcase \
       endfunction
   `endif
@@ -118,9 +121,9 @@ class i2c_seq_cfg extends uvm_object;
   `define I2C_GET_MAX_PARAM(NAME_, PARAM_NAME_) \
       function uint get_``NAME_``_max(speed_mode_e speed_mode, uint clk_period_ps); \
         case (speed_mode) inside \
-          Standard : return (1000* PARAM_NAME_``_MAXSTANDARD/clk_period_ps); \
-          Fast     : return (1000* PARAM_NAME_``_MAXFAST/clk_period_ps); \
-          FastPlus : return (1000* PARAM_NAME_``_MAXFASTPLUS/clk_period_ps); \
+          Standard : return ((1000* PARAM_NAME_``_MAXSTANDARD + clk_period_ps - 1)/clk_period_ps); \
+          Fast     : return ((1000* PARAM_NAME_``_MAXFAST + clk_period_ps - 1)/clk_period_ps); \
+          FastPlus : return ((1000* PARAM_NAME_``_MAXFASTPLUS + clk_period_ps - 1)/clk_period_ps); \
         endcase \
       endfunction
   `endif

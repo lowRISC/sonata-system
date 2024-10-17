@@ -26,12 +26,13 @@ Referring to the [Comportable guideline for peripheral device functionality](htt
 |:-----------------|:-------|:---------------------------------------------------------------------------------------------------------------|
 | tx_watermark     | Status | raised if the transmit FIFO is past the high-water mark.                                                       |
 | rx_watermark     | Status | raised if the receive FIFO is past the high-water mark.                                                        |
-| tx_empty         | Event  | raised if the transmit FIFO has emptied and no transmit is ongoing.                                            |
+| tx_done          | Event  | raised if the transmit FIFO has emptied and no transmit is ongoing.                                            |
 | rx_overflow      | Event  | raised if the receive FIFO has overflowed.                                                                     |
 | rx_frame_err     | Event  | raised if a framing error has been detected on receive.                                                        |
 | rx_break_err     | Event  | raised if break condition has been detected on receive.                                                        |
 | rx_timeout       | Event  | raised if RX FIFO has characters remaining in the FIFO without being retrieved for the programmed time period. |
 | rx_parity_err    | Event  | raised if the receiver has detected a parity error.                                                            |
+| tx_empty         | Status | raised if the transmit FIFO is empty.                                                                          |
 
 ## Security Alerts
 
