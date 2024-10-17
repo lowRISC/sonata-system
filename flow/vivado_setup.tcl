@@ -14,3 +14,22 @@
 # Note: `file_type` must be set before `used_in_synthesis`.
 set_property file_type Tcl [get_files impl_timing.xdc]
 set_property used_in_synthesis false [get_files impl_timing.xdc]
+
+# Setup hook scripts, to be called at various stages during the build process
+# See Xilinx UG 894 ("Using Tcl Scripting") for documentation.
+#
+# fusesoc-generated workroot containing the Vivado project file
+set workroot [pwd]
+# Register custom hooks - must also be added to .core file
+# set_property STEPS.SYNTH_DESIGN.TCL.PRE     "${workroot}/vivado_hook_synth_design_pre.tcl"     [get_runs synth_1]
+# set_property STEPS.SYNTH_DESIGN.TCL.POST    "${workroot}/vivado_hook_synth_design_post.tcl"    [get_runs synth_1]
+set_property STEPS.OPT_DESIGN.TCL.PRE       "${workroot}/vivado_hook_opt_design_pre.tcl"       [get_runs impl_1]
+set_property STEPS.OPT_DESIGN.TCL.POST      "${workroot}/vivado_hook_opt_design_post.tcl"      [get_runs impl_1]
+# set_property STEPS.PLACE_DESIGN.TCL.PRE     "${workroot}/vivado_hook_place_design_pre.tcl"     [get_runs impl_1]
+# set_property STEPS.PLACE_DESIGN.TCL.POST    "${workroot}/vivado_hook_place_design_post.tcl"    [get_runs impl_1]
+# set_property STEPS.PHYS_OPT_DESIGN.TCL.PRE  "${workroot}/vivado_hook_phys_opt_design_pre.tcl"  [get_runs impl_1]
+# set_property STEPS.PHYS_OPT_DESIGN.TCL.POST "${workroot}/vivado_hook_phys_opt_design_post.tcl" [get_runs impl_1]
+set_property STEPS.ROUTE_DESIGN.TCL.PRE     "${workroot}/vivado_hook_route_design_pre.tcl"     [get_runs impl_1]
+set_property STEPS.ROUTE_DESIGN.TCL.POST    "${workroot}/vivado_hook_route_design_post.tcl"    [get_runs impl_1]
+# set_property STEPS.WRITE_BITSTREAM.TCL.PRE  "${workroot}/vivado_hook_write_bitstream_pre.tcl"  [get_runs impl_1]
+# set_property STEPS.WRITE_BITSTREAM.TCL.POST "${workroot}/vivado_hook_write_bitstream_post.tcl" [get_runs impl_1]
