@@ -34,10 +34,7 @@
         then false
         else true;
 
-      pkgs = import nixpkgs {
-        inherit system;
-      };
-
+      pkgs = import nixpkgs {inherit system;};
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
       inherit (pkgs.lib) fileset getExe;
@@ -182,10 +179,9 @@
           sonata-documentation
           ;
         inherit (software) sonata-system-software cheriot-rtos-test-suite;
+        inherit (bitstream) bitstream-build bitstream-load;
         test-simulator = tests.simulator;
         sonata-simulator-lint = lint.sonata-simulator;
-        bitstream-build = bitstream.build;
-        bitstream-load = bitstream.load;
       };
       apps = builtins.listToAttrs (map (program: {
         inherit (program) name;

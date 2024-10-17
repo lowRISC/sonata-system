@@ -20,7 +20,7 @@
     ];
   };
 in {
-  build = pkgs.writeShellApplication {
+  bitstream-build = pkgs.writeShellApplication {
     name = "bitstream-build";
     runtimeInputs = [pythonEnv];
     runtimeEnv = {inherit FLAKE_GIT_COMMIT FLAKE_GIT_DIRTY;};
@@ -31,7 +31,7 @@ in {
     '';
   };
 
-  load = pkgs.writeShellApplication {
+  bitstream-load = pkgs.writeShellApplication {
     name = "bitstream-load";
     runtimeInputs = [pythonEnv pkgs.openfpgaloader];
     text = ''
