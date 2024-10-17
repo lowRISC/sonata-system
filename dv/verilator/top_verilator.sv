@@ -38,11 +38,17 @@ module top_verilator (input logic clk_i, rst_ni);
   wire sda0_out = sda0_oe ? sda0_o : 1'b1;
   wire sda1_out = sda1_oe ? sda1_o : 1'b1;
 
+  // Clocks and data from the I2C DPI models.
+  wire scl0_dpi;
+  wire scl1_dpi;
+  wire sda0_dpi;
+  wire sda1_dpi;
+
   // Input clocks and data from the I2C buses.
-  wire scl0_in;
-  wire scl1_in;
-  wire sda0_in;
-  wire sda1_in;
+  wire scl0_in = scl0_out & scl0_dpi;
+  wire scl1_in = scl1_out & scl1_dpi;
+  wire sda0_in = sda0_out & sda0_dpi;
+  wire sda1_in = sda1_out & sda1_dpi;
 
   wire unused_ = uart_aux_tx;
 
@@ -410,8 +416,8 @@ module top_verilator (input logic clk_i, rst_ni);
     // The connected signal names are from the perspective of the controller.
     .scl_i    (scl0_out),
     .sda_i    (sda0_out),
-    .scl_o    (scl0_in),
-    .sda_o    (sda0_in),
+    .scl_o    (scl0_dpi),
+    .sda_o    (sda0_dpi),
     // Out-Of-Band data.
     .oob_in   (1'b0),
     .oob_out  ()  // not used
@@ -425,8 +431,8 @@ module top_verilator (input logic clk_i, rst_ni);
     // The connected signal names are from the perspective of the controller.
     .scl_i    (scl1_out),
     .sda_i    (sda1_out),
-    .scl_o    (scl1_in),
-    .sda_o    (sda1_in),
+    .scl_o    (scl1_dpi),
+    .sda_o    (sda1_dpi),
     // Out-Of-Band data.
     .oob_in   (1'b0),
     .oob_out  ()  // not used
