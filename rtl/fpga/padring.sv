@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module padring #(
-  InputNumber = 0,
-  OutputNumber = 0,
-  InoutNumber = 0
+  parameter int unsigned InputNumber = 1,
+  parameter int unsigned OutputNumber = 1,
+  parameter int unsigned InoutNumber = 1
 ) (
   //input  logic in_from_pad_i[InputNumber];
   //output logic in_to_pad_o  [InputNumber];

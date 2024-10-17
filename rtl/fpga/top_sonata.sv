@@ -435,14 +435,14 @@ module top_sonata
   end
 
   // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
-  logic[1:0] unused__rph_g7_ce1__rph_g8_ce0;
+  wire logic[1:0] unused__rph_g7_ce1__rph_g8_ce0;
   // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
-  logic[2:0] unused__rph_g16_ce2__rph_g17__rph_g18;
+  wire logic[2:0] unused__rph_g16_ce2__rph_g17__rph_g18;
   // ah_tmpio10, ah_tmpio14 connected in manual GPIO.
-  logic unused__ah_tmpio10;
+  wire logic unused__ah_tmpio10;
   // TODO connect ah_tmpio{14,15,17} through XDC
-  logic[1:0] unused__ah_tmpio14__ah_tmpio15;
-  logic unused__ah_tmpio17;
+  wire logic[1:0] unused__ah_tmpio14__ah_tmpio15;
+  wire logic unused__ah_tmpio17;
 
   padring #(
     .InputNumber(IN_PIN_NUM),
