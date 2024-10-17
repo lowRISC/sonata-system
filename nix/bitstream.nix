@@ -11,21 +11,46 @@
 }: let
   inherit (pkgs.lib) fileset;
 
-  sonataFpgaFileset = fileset.toSource {
+  fpgaFiles = fileset.unions [
+    sonataGatewareFiles
+    (fileset.fileFilter (file: file.hasExt "xdc") ../data)
+    ../flow
+  ];
+
+  fpgaFileset = fileset.toSource {
+    root = ../.;
+    fileset = fpgaFiles;
+  };
+
+  bootloaderDependancies =
+    fileset.difference
+    (fileset.unions [
+      ../sw/cheri
+      ../sw/common
+    ])
+    (fileset.unions [
+      ../sw/cheri/tests
+      ../sw/cheri/checks
+      ../sw/cheri/error_leds
+      ../sw/cheri/sim_boot_stub
+      ../sw/cheri/README.md
+    ]);
+in {
+  # The only files we expect the fpga build depends.
+  fpgaDependanciesFileset = fileset.toSource {
     root = ../.;
     fileset = fileset.unions [
-      sonataGatewareFiles
-      (fileset.fileFilter (file: file.hasExt "xdc") ../data)
-      ../flow
+      fpgaFiles
+      bootloaderDependancies
     ];
   };
-in {
+
   bitstream-build = pkgs.writeShellApplication {
     name = "bitstream-build";
     runtimeInputs = [pythonEnv];
     runtimeEnv = {inherit FLAKE_GIT_COMMIT FLAKE_GIT_DIRTY;};
     text = ''
-      fusesoc --cores-root=${sonataFpgaFileset} \
+      fusesoc --cores-root=${fpgaFileset} \
         run --target=synth --build lowrisc:sonata:system \
         --SRAMInitFile=${sonata-system-software}/share/boot_loader.vmem
     '';

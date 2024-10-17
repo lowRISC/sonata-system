@@ -172,6 +172,7 @@
           ])
           ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
       };
+      filesets = {inherit (bitstream) fpgaDependanciesFileset;};
       packages = {
         inherit
           sonata-simulator
