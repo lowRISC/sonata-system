@@ -19,6 +19,12 @@ if(NOT DEFINED CHERIOT_RTOS_SDK)
   set(CHERIOT_RTOS_SDK "${cheriot_rtos_SOURCE_DIR}/sdk")
 endif()
 
+FetchContent_Declare(REISFMT
+  GIT_REPOSITORY    https://github.com/engdoreis/reisfmt
+  GIT_TAG           c624a03b48e6b17a0d6fe5c8630597eeefca9125
+)
+FetchContent_Populate(REISFMT)
+
 project(sonata_system_cheriot_sw LANGUAGES C CXX ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

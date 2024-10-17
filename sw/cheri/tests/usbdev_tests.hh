@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 #include "../../common/defs.h"
-#include "../common/console-utils.hh"
+#include "../common/console.hh"
 #include "../common/sonata-devices.hh"
 #include "../common/timer-utils.hh"
 #include "../common/uart-utils.hh"
@@ -98,7 +98,7 @@ static int usbdev_configure_test(Capability<volatile OpenTitanUsbdev> usbdev) {
 /**
  * Run the whole suite of USB device tests.
  */
-void usbdev_tests(CapRoot root, UartPtr console) {
+void usbdev_tests(CapRoot root, Log &log) {
   // Create a bounded capability to the USB Device
   UsbdevPtr usbdev = usbdev_ptr(root);
 
@@ -107,18 +107,14 @@ void usbdev_tests(CapRoot root, UartPtr console) {
 
   // Execute the specified number of iterations of each test
   for (size_t i = 0; i < USBDEV_TEST_ITERATIONS; i++) {
-    write_str(console, "\n\nrunning usbdev_test: ");
-    write_hex8b(console, i);
-    write_str(console, "\\");
-    write_hex8b(console, USBDEV_TEST_ITERATIONS - 1);
-    write_str(console, "\r\n\x1b[35m(needs User USB connected to a Type-A USB host port)");
-    write_str(console, "\x1b[0m\r\n  ");
+    log.println("\n\nrunning usbdev_test: {} \\ {}", i, USBDEV_TEST_ITERATIONS - 1);
+    log.println("\x1b[35m(needs User USB connected to a Type-A USB host port)\x1b[0m");
 
     int failures = 0;
-    write_str(console, "Running USBDEV configure test... ");
+    log.print("Running USBDEV configure test... ");
     failures = usbdev_configure_test(usbdev);
-    write_test_result(console, failures);
+    write_test_result(log, failures);
 
-    check_result(console, failures == 0);
+    check_result(log, failures == 0);
   }
 }
