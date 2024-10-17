@@ -1,16 +1,16 @@
 diff --git a/rtl/usbdev.sv b/rtl/usbdev.sv
-index 41d7ce3..ec8a150 100644
+index 27bb9cb..f03194d 100644
 --- a/rtl/usbdev.sv
 +++ b/rtl/usbdev.sv
 @@ -768,9 +768,11 @@ module usbdev
-       .we_o        (sw_mem_a_write),
-       .addr_o      (sw_mem_a_addr),
-       .wdata_o     (sw_mem_a_wdata),
-+      .wdata_cap_o (),
-       .wmask_o     (),           // Not used
-       .intg_error_o(),
-       .rdata_i     (sw_mem_a_rdata),
-+      .rdata_cap_i (1'b0),
-       .rvalid_i    (sw_mem_a_rvalid),
-       .rerror_i    (sw_mem_a_rerror)
-     );
+       .we_o                       (sw_mem_a_write),
+       .addr_o                     (sw_mem_a_addr),
+       .wdata_o                    (sw_mem_a_wdata),
++      .wdata_cap_o                (),
+       .wmask_o                    (),           // Not used
+       .intg_error_o               (),
+       .rdata_i                    (sw_mem_a_rdata),
++      .rdata_cap_i                (1'b0),
+       .rvalid_i                   (sw_mem_a_rvalid),
+       .rerror_i                   (sw_mem_a_rerror),
+       .compound_txn_in_progress_o (),

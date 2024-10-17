@@ -1,8 +1,8 @@
 diff --git a/data/i2c.hjson b/data/i2c.hjson
-index 57eaca7..5a97e19 100644
+index bc70488..df1b45a 100644
 --- a/data/i2c.hjson
 +++ b/data/i2c.hjson
-@@ -118,7 +118,7 @@
+@@ -123,7 +123,7 @@
              The maximum supported value is 2^12-1, although much lower values are recommended to keep area requirements reasonable.
              ''',
        type: "int",
@@ -11,17 +11,17 @@ index 57eaca7..5a97e19 100644
      }
      { name: "AcqFifoDepth",
        desc: '''
-@@ -126,7 +126,7 @@
+@@ -131,7 +131,7 @@
              The maximum supported value is 2^12-1, although much lower values are recommended to keep area requirements reasonable.
              ''',
        type: int
 -      default: "268",
 +      default: "8",
      }
-   ],
-   features: [
+     { name:    "InputDelayCycles",
+       type:    "int",
 diff --git a/rtl/i2c_reg_pkg.sv b/rtl/i2c_reg_pkg.sv
-index 74cc862..cfb965f 100644
+index 384e0b5..8c9fe4a 100644
 --- a/rtl/i2c_reg_pkg.sv
 +++ b/rtl/i2c_reg_pkg.sv
 @@ -7,8 +7,8 @@
