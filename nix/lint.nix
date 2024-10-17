@@ -4,12 +4,12 @@
 {
   pkgs,
   pythonEnv,
-  sonataSimulatorFileset,
+  sonataSimulatorSource,
   FLAKE_GIT_COMMIT,
   FLAKE_GIT_DIRTY,
   ...
 }: let
-  inherit (pkgs.lib) fileset getExe;
+  inherit (pkgs.lib) getExe;
 
   lint-python = pkgs.writeShellApplication {
     name = "lint-python";
@@ -43,7 +43,7 @@
 
   lint-sonata-simulator = pkgs.stdenvNoCC.mkDerivation {
     name = "sonata-simulator-lint";
-    src = sonataSimulatorFileset;
+    src = sonataSimulatorSource;
     buildInputs = with pkgs; [libelf zlib];
     nativeBuildInputs = [pkgs.verilator pythonEnv];
     inherit FLAKE_GIT_COMMIT FLAKE_GIT_DIRTY;
