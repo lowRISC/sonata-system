@@ -6,7 +6,7 @@
 
 #pragma once
 
-#define CPU_TIMER_HZ (30'000'000)
+#define CPU_TIMER_HZ (40'000'000)
 #define BAUD_RATE (921'600)
 
 #define SRAM_ADDRESS (0x0010'0000)
