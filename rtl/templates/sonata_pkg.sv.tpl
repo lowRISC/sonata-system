@@ -29,8 +29,8 @@ package sonata_pkg;
   localparam int unsigned ${pin.idx_param} = ${inout_pin_index};
   % endfor
 
-  typedef logic sonata_in_pins_t[IN_PIN_NUM];
-  typedef logic sonata_out_pins_t[OUT_PIN_NUM];
-  typedef logic sonata_inout_pins_t[INOUT_PIN_NUM];
+  typedef logic [   IN_PIN_NUM-1:0] sonata_in_pins_t;
+  typedef logic [  OUT_PIN_NUM-1:0] sonata_out_pins_t;
+  typedef logic [INOUT_PIN_NUM-1:0] sonata_inout_pins_t;
 
 endpackage : sonata_pkg
