@@ -10,6 +10,7 @@ set(CHECKS
   revocation_test.cc
   rgbled_test.cc
   usbdev_check.cc
+  pinmux_check.cc
 )
 
 foreach(CHECK ${CHECKS})
