@@ -266,11 +266,13 @@ block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 27}]
 ## Arduino Shield
 [[pins]]
 name = "ah_tmpio0"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 0}]
+block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 0},
+             {block = "uart", instance = 3, io = "rx"}]
 
 [[pins]]
 name = "ah_tmpio1"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 1}]
+block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 1},
+             {block = "uart", instance = 3, io = "tx"}]
 
 [[pins]]
 name = "ah_tmpio2"
