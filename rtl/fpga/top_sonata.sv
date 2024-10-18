@@ -429,11 +429,33 @@ module top_sonata
     .rst_hr_no  (rst_hr_n)
   );
 
-  // Output Buffers
+  // Input Pins
+  assign in_from_pins[IN_PIN_MB8        ] = mb8;
+  assign in_from_pins[IN_PIN_MB3        ] = mb3;
+  assign in_from_pins[IN_PIN_ETHMAC_CIPO] = ethmac_cipo;
+  assign in_from_pins[IN_PIN_APPSPI_D1  ] = appspi_d1;
+  assign in_from_pins[IN_PIN_RS232_RX   ] = rs232_rx;
+  assign in_from_pins[IN_PIN_SER1_RX    ] = ser1_rx;
+  assign in_from_pins[IN_PIN_SER0_RX    ] = ser0_rx;
+
+  // Output Pins
   for (genvar idx = 0; idx < OUT_PIN_NUM; ++idx) begin
     assign output_pins[idx] = out_to_pins_en[idx] ? out_to_pins[idx] : 1'bz;
   end
+  assign mb7         = output_pins[OUT_PIN_MB7        ];
+  assign mb4         = output_pins[OUT_PIN_MB4        ];
+  assign mb2         = output_pins[OUT_PIN_MB2        ];
+  assign ethmac_sclk = output_pins[OUT_PIN_ETHMAC_SCLK];
+  assign ethmac_copi = output_pins[OUT_PIN_ETHMAC_COPI];
+  assign lcd_clk     = output_pins[OUT_PIN_LCD_CLK    ];
+  assign lcd_copi    = output_pins[OUT_PIN_LCD_COPI   ];
+  assign appspi_clk  = output_pins[OUT_PIN_APPSPI_CLK ];
+  assign appspi_d0   = output_pins[OUT_PIN_APPSPI_D0  ];
+  assign rs232_tx    = output_pins[OUT_PIN_RS232_TX   ];
+  assign ser1_tx     = output_pins[OUT_PIN_SER1_TX    ];
+  assign ser0_tx     = output_pins[OUT_PIN_SER0_TX    ];
 
+  // Inout Pins
   localparam int unsigned USED_INOUT_PIN_NUM = INOUT_PIN_NUM-9;
   logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins = {
     inout_to_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
@@ -529,25 +551,4 @@ module top_sonata
       scl0,
     })
   );
-
-  // Breaking out pins
-  assign output_pins[OUT_PIN_SER0_TX]       = ser0_tx;
-  assign in_from_pins[IN_PIN_SER0_RX]       = ser0_rx;
-  assign output_pins[OUT_PIN_SER1_TX]       = ser1_tx;
-  assign in_from_pins[IN_PIN_SER1_RX]       = ser1_rx;
-  assign output_pins[OUT_PIN_RS232_TX]      = rs232_tx;
-  assign in_from_pins[IN_PIN_RS232_RX]      = rs232_rx;
-  assign output_pins[OUT_PIN_APPSPI_D0]     = appspi_d0;
-  assign in_from_pins[IN_PIN_APPSPI_D1]     = appspi_d1;
-  assign output_pins[OUT_PIN_APPSPI_CLK]    = appspi_clk;
-  assign output_pins[OUT_PIN_LCD_COPI]      = lcd_copi;
-  assign output_pins[OUT_PIN_LCD_CLK]       = lcd_clk;
-  assign output_pins[OUT_PIN_ETHMAC_COPI]   = ethmac_copi;
-  assign in_from_pins[IN_PIN_ETHMAC_CIPO]   = ethmac_cipo;
-  assign output_pins[OUT_PIN_ETHMAC_SCLK]   = ethmac_sclk;
-  assign output_pins[OUT_PIN_MB2]           = mb2;
-  assign in_from_pins[IN_PIN_MB3]           = mb3;
-  assign output_pins[OUT_PIN_MB4]           = mb4;
-  assign output_pins[OUT_PIN_MB7]           = mb7;
-  assign in_from_pins[IN_PIN_MB8]           = mb8;
 endmodule : top_sonata
