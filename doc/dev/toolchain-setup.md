@@ -79,3 +79,8 @@ Note the checkout and build will take some time, and the build process may have 
 This should put the binaries in a `bin` subdirectory of your build folder (the `builds/cheriot-llvm` folder you made).
 
 With the CHERIoT/LLVM toolchain built, you can now continue to setup the examples and build them.
+
+### Additional Sonata Software dependencies
+
+To set up a manual environment that can build Sonata Software and CHERIoT RTOS you can follow the [building dependencies section of the RTOS guide](https://github.com/CHERIoT-Platform/cheriot-rtos/blob/main/docs/GettingStarted.md#building-the-dependencies).
+More specifically [install xmake](https://xmake.io/#/getting_started?id=installation).
