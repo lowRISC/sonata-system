@@ -496,15 +496,13 @@ module top_sonata
   } = used_inout_from_pins;
 
   padring #(
-    .InputNumber(IN_PIN_NUM),
-    .OutputNumber(OUT_PIN_NUM),
     .InoutNumber(USED_INOUT_PIN_NUM)
   ) u_padring (
     .inout_to_pins_i   (used_inout_to_pins   ),
     .inout_to_pins_en_i(used_inout_to_pins_en),
     .inout_from_pins_o (used_inout_from_pins ),
     .inout_pins_io({
-      pmod1
+      pmod1,
       pmod0,
       mb6,
       mb5,
@@ -538,7 +536,7 @@ module top_sonata
       rph_g11_sclk,
       rph_g10_copi,
       rph_g9_cipo,
-      rph_g6
+      rph_g6,
       rph_g5,
       rph_g4,
       rph_g3_scl,
@@ -548,7 +546,7 @@ module top_sonata
       sda1,
       scl1,
       sda0,
-      scl0,
+      scl0
     })
   );
 endmodule : top_sonata
