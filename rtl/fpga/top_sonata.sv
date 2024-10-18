@@ -175,6 +175,15 @@ module top_sonata (
   output logic       appspi_d3, // HOLD_N or RESET_N
   output logic       appspi_cs, // Chip select negated
 
+  // MicroSD card slot
+  output logic       microsd_clk,  // SPI mode: SCLK
+  input  logic       microsd_dat0, // SPI mode: CIPO
+//input  logic       microsd_dat1, // SPI mode: NC
+//input  logic       microsd_dat2, // SPI mode: NC
+  output logic       microsd_dat3, // SPI mode: CS_N
+  output logic       microsd_cmd,  // SPI mode: COPI
+  input  logic       microsd_det,  // Card insertion detection
+
   inout  wire [7:0]  hyperram_dq,
   inout  wire        hyperram_rwds,
   output wire        hyperram_ckp,
@@ -342,6 +351,9 @@ module top_sonata (
     .mb8,
     .pmod0,
     .pmod1,
+    .microsd_clk,
+    .microsd_dat0,
+    .microsd_cmd,
     .tl_i(tl_pinmux_h2d),
     .tl_o(tl_pinmux_d2h)
   );
@@ -354,16 +366,17 @@ module top_sonata (
   logic gp_ah_tmpio10, gp_mb1;
 
   // CS outputs to SPI peripherals from controllers.
-  assign appspi_cs   = spi_cs[0][0];
-  assign lcd_cs      = spi_cs[1][0];
-  assign ethmac_cs   = spi_cs[2][0];
-  assign rph_g8_ce0  = spi_cs[3][0];
-  assign rph_g7_ce1  = spi_cs[3][1];
-  assign ah_tmpio10  = spi_cs[3][2];
-  assign rph_g18     = spi_cs[4][0];
-  assign rph_g17     = spi_cs[4][1];
-  assign rph_g16_ce2 = spi_cs[4][2];
-  assign mb1         = spi_cs[4][3];
+  assign appspi_cs    = spi_cs[0][0];
+  assign lcd_cs       = spi_cs[1][0];
+  assign ethmac_cs    = spi_cs[2][0];
+  assign rph_g8_ce0   = spi_cs[3][0];
+  assign rph_g7_ce1   = spi_cs[3][1];
+  assign ah_tmpio10   = spi_cs[3][2];
+  assign microsd_dat3 = spi_cs[3][3];
+  assign rph_g18      = spi_cs[4][0];
+  assign rph_g17      = spi_cs[4][1];
+  assign rph_g16_ce2  = spi_cs[4][2];
+  assign mb1          = spi_cs[4][3];
 
   wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
                              gp_rph_g8_ce0, gp_rph_g7_ce1,
@@ -373,8 +386,7 @@ module top_sonata (
   // Collect the unused CS lines.
   wire unused_spi_cs_ = ^{spi_cs[0][SPI_CS_NUM-1:1],
                           spi_cs[1][SPI_CS_NUM-1:1],
-                          spi_cs[2][SPI_CS_NUM-1:1],
-                          spi_cs[3][SPI_CS_NUM-1]};
+                          spi_cs[2][SPI_CS_NUM-1:1]};
 
   // Enable CHERI by default.
   logic enable_cheri;
@@ -407,7 +419,8 @@ module top_sonata (
 
     // GPIO
     .gp_i           ({
-                      15'b0,
+                      14'b0,
+                      microsd_det, // MicroSD card insertion detection
                       sel_sw_n, // Software selection switches
                       mb9, // mikroBUS Click interrupt
                       user_sw_n, // user switches
@@ -458,6 +471,7 @@ module top_sonata (
     // - 2x Raspberry Pi HAT
     // - Arduino Shield
     // - mikroBUS Click
+    // - MicroSD card slot
     .spi_rx_i       (spi_rx),
     .spi_tx_o       (spi_tx),
     .spi_cs_o       (spi_cs),
