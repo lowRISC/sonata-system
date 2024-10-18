@@ -3,22 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module padring #(
-  parameter int unsigned InputNumber = 1,
-  parameter int unsigned OutputNumber = 1,
   parameter int unsigned InoutNumber = 1
 ) (
-  //input  logic in_from_pad_i[InputNumber];
-  //output logic in_to_pad_o  [InputNumber];
+  input  logic [InoutNumber-1:0] inout_to_pins_i,
+  input  logic [InoutNumber-1:0] inout_to_pins_en_i,
+  output logic [InoutNumber-1:0] inout_from_pins_o,
 
-  //input  logic out_to_pads_i[OutputNumber];
-  //input  logic out_to_pads_i[OutputNumber];
-
-
-  input  logic inout_to_pins_i   [InoutNumber],
-  input  logic inout_to_pins_en_i[InoutNumber],
-  output logic inout_from_pins_o [InoutNumber],
-
-  inout  logic inout_pins_io     [InoutNumber]
+  inout  logic [InoutNumber-1:0] inout_pins_io
 );
   prim_pad_wrapper_pkg::pad_attr_t pad_attr = '{
     default:'0,

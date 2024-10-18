@@ -434,80 +434,101 @@ module top_sonata
     assign output_pins[idx] = out_to_pins_en[idx] ? out_to_pins[idx] : 1'bz;
   end
 
-  // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
-  wire logic[1:0] unused__rph_g7_ce1__rph_g8_ce0;
-  // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
-  wire logic[2:0] unused__rph_g16_ce2__rph_g17__rph_g18;
-  // ah_tmpio10, ah_tmpio14 connected in manual GPIO.
-  wire logic unused__ah_tmpio10;
-  // TODO connect ah_tmpio{14,15,17} through XDC
-  wire logic[1:0] unused__ah_tmpio14__ah_tmpio15;
-  wire logic unused__ah_tmpio17;
+  localparam int unsigned USED_INOUT_PIN_NUM = INOUT_PIN_NUM-9;
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins = {
+    inout_to_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_to_pins[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_to_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_to_pins[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_to_pins[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_to_pins[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  };
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins_en = {
+    inout_to_pins_en[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_to_pins_en[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_to_pins_en[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_to_pins_en[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  };
+  logic [USED_INOUT_PIN_NUM-1:0] used_inout_from_pins;
+  assign {
+    inout_from_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
+    inout_from_pins[INOUT_PIN_AH_TMPIO16],
+    // TODO connect ah_tmpio{14,15,17} through XDC
+    inout_from_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_AH_TMPIO11],
+    // ah_tmpio10 connected in manual GPIO.
+    inout_from_pins[INOUT_PIN_AH_TMPIO9:INOUT_PIN_RPH_G19_CIPO],
+    // rph_g16_ce2, rph_g17, rph_g18 connected in manual GPIO.
+    inout_from_pins[INOUT_PIN_RPH_RXD0:INOUT_PIN_RPH_G9_CIPO],
+    // rph_g7_ce1, rph_g8_ce0 connected in manual GPIO
+    inout_from_pins[INOUT_PIN_RPH_G6:INOUT_PIN_SCL0]
+  } = used_inout_from_pins;
 
   padring #(
     .InputNumber(IN_PIN_NUM),
     .OutputNumber(OUT_PIN_NUM),
-    .InoutNumber(11)//INOUT_PIN_NUM)
+    .InoutNumber(USED_INOUT_PIN_NUM)
   ) u_padring (
-    .inout_to_pins_i   (inout_to_pins   [0:11]),
-    .inout_to_pins_en_i(inout_to_pins_en[0:11]),
-    .inout_from_pins_o (inout_from_pins [0:11]),
+    .inout_to_pins_i   (used_inout_to_pins   ),
+    .inout_to_pins_en_i(used_inout_to_pins_en),
+    .inout_from_pins_o (used_inout_from_pins ),
     .inout_pins_io({
-      scl0,
-      sda0,
-      scl1,
-      sda1,
-      rph_g0,
-      rph_g1,
-      rph_g2_sda,
-      rph_g3_scl,
-      rph_g4,
-      rph_g5,
+      pmod1
+      pmod0,
+      mb6,
+      mb5,
+      ah_tmpio16,
+      ah_tmpio13,
+      ah_tmpio12,
+      ah_tmpio11,
+      ah_tmpio9,
+      ah_tmpio8,
+      ah_tmpio7,
+      ah_tmpio6,
+      ah_tmpio5,
+      ah_tmpio4,
+      ah_tmpio3,
+      ah_tmpio2,
+      ah_tmpio1,
+      ah_tmpio0,
+      rph_g27,
+      rph_g26,
+      rph_g25,
+      rph_g24,
+      rph_g23,
+      rph_g22,
+      rph_g21_sclk,
+      rph_g20_copi,
+      rph_g19_cipo,
+      rph_rxd0,
+      rph_txd0,
+      rph_g13,
+      rph_g12,
+      rph_g11_sclk,
+      rph_g10_copi,
+      rph_g9_cipo,
       rph_g6
+      rph_g5,
+      rph_g4,
+      rph_g3_scl,
+      rph_g2_sda,
+      rph_g1,
+      rph_g0,
+      sda1,
+      scl1,
+      sda0,
+      scl0,
     })
   );
-
-  assign {
-      unused__rph_g7_ce1__rph_g8_ce0,
-      rph_g9_cipo,
-      rph_g10_copi,
-      rph_g11_sclk,
-      rph_g12,
-      rph_g13,
-      rph_txd0,
-      rph_rxd0,
-      unused__rph_g16_ce2__rph_g17__rph_g18,
-      rph_g19_cipo,
-      rph_g20_copi,
-      rph_g21_sclk,
-      rph_g22,
-      rph_g23,
-      rph_g24,
-      rph_g25,
-      rph_g26,
-      rph_g27,
-      ah_tmpio0,
-      ah_tmpio1,
-      ah_tmpio2,
-      ah_tmpio3,
-      ah_tmpio4,
-      ah_tmpio5,
-      ah_tmpio6,
-      ah_tmpio7,
-      ah_tmpio8,
-      ah_tmpio9,
-      unused__ah_tmpio10,
-      ah_tmpio11,
-      ah_tmpio12,
-      ah_tmpio13,
-      unused__ah_tmpio14__ah_tmpio15,
-      ah_tmpio16,
-      unused__ah_tmpio17,
-      mb5,
-      mb6,
-      pmod0,
-      pmod1
-  } = '1;
 
   // Breaking out pins
   assign output_pins[OUT_PIN_SER0_TX]       = ser0_tx;
