@@ -447,11 +447,11 @@ module top_sonata
   padring #(
     .InputNumber(IN_PIN_NUM),
     .OutputNumber(OUT_PIN_NUM),
-    .InoutNumber(INOUT_PIN_NUM)
+    .InoutNumber(11)//INOUT_PIN_NUM)
   ) u_padring (
-    .inout_to_pins_i   (inout_to_pins   ),
-    .inout_to_pins_en_i(inout_to_pins_en),
-    .inout_from_pins_o (inout_from_pins ),
+    .inout_to_pins_i   (inout_to_pins   [0:11]),
+    .inout_to_pins_en_i(inout_to_pins_en[0:11]),
+    .inout_from_pins_o (inout_from_pins [0:11]),
     .inout_pins_io({
       scl0,
       sda0,
@@ -463,7 +463,11 @@ module top_sonata
       rph_g3_scl,
       rph_g4,
       rph_g5,
-      rph_g6,
+      rph_g6
+    })
+  );
+
+  assign {
       unused__rph_g7_ce1__rph_g8_ce0,
       rph_g9_cipo,
       rph_g10_copi,
@@ -503,8 +507,7 @@ module top_sonata
       mb6,
       pmod0,
       pmod1
-    })
-  );
+  } = '1;
 
   // Breaking out pins
   assign output_pins[OUT_PIN_SER0_TX]       = ser0_tx;
