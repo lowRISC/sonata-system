@@ -3,7 +3,7 @@
 
 #pragma once
 #include "../../common/defs.h"
-#include "../common/console-utils.hh"
+#include "../common/console.hh"
 #include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 #include "../common/rpi-hat-eeprom.hh"
@@ -312,14 +312,10 @@ int i2c_as6212_temperature_sense_test(I2cPtr i2c) {
 /**
  * Run the whole suite of I2C tests.
  */
-void i2c_tests(CapRoot root, UartPtr console) {
+void i2c_tests(CapRoot root, Log& log) {
   // Execute the specified number of iterations of each test.
   for (size_t i = 0; i < I2C_TEST_ITERATIONS; i++) {
-    write_str(console, "\r\nrunning i2c_test: ");
-    write_hex8b(console, i);
-    write_str(console, "\\");
-    write_hex8b(console, I2C_TEST_ITERATIONS - 1);
-    write_str(console, "\r\n");
+    log.println("\r\nrunning i2c_test: {} \\ {}", i, I2C_TEST_ITERATIONS - 1);
 
     bool test_failed = false;
     int failures     = 0;
@@ -329,27 +325,27 @@ void i2c_tests(CapRoot root, UartPtr console) {
       I2cPtr i2c0 = i2c_ptr(root, 0);
       I2cPtr i2c1 = i2c_ptr(root, 1);
 
-      write_str(console, "  Running RPI HAT ID EEPROM test... ");
+      log.print("  Running RPI HAT ID EEPROM test... ");
       failures = i2c_rpi_hat_id_eeprom_test(i2c0);
       test_failed |= (failures > 0);
-      write_test_result(console, failures);
+      write_test_result(log, failures);
 
-      write_str(console, "  Running RPI HAT ID WHO_AM_I test... ");
+      log.print("  Running RPI HAT ID WHO_AM_I test... ");
       failures = i2c_rpi_hat_imu_whoami_test(i2c1);
       test_failed |= (failures > 0);
-      write_test_result(console, failures);
+      write_test_result(log, failures);
     }
 
     if (I2C_AS6212_AVAILABLE) {
       // Retrieve bounded capabilities for I2C controller 1
       I2cPtr i2c1 = i2c_ptr(root, 1);
 
-      write_str(console, "  Running AS6212 Temperature test... ");
+      log.print("  Running AS6212 Temperature test... ");
       failures = i2c_as6212_temperature_sense_test(i2c1);
       test_failed |= (failures > 0);
-      write_test_result(console, failures);
+      write_test_result(log, failures);
     }
 
-    check_result(console, !test_failed);
+    check_result(log, !test_failed);
   }
 }

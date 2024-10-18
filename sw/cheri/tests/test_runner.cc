@@ -9,6 +9,7 @@
 
 // clang-format off
 #include "../../common/defs.h"
+#include "../common/console.hh"
 #include "uart_tests.hh"
 #include "hyperram_tests.hh"
 #include "plic_tests.hh"
@@ -28,14 +29,16 @@
 extern "C" void entry_point(void *rwRoot) {
   CapRoot root{rwRoot};
 
-  auto console = uart_ptr(root);
+  auto uart0 = uart_ptr(root);
+  uart0->init(BAUD_RATE);
+  WriteUart uart{uart0};
+  Log log(uart);
 
-  console->init(BAUD_RATE);
-  uart_tests(root, console);
-  i2c_tests(root, console);
-  spi_tests(root, console);
-  hyperram_tests(root, console);
-  usbdev_tests(root, console);
-  plic_tests(root, console);
-  finish_running(console, "All tests finished");
+  uart_tests(root, log);
+  i2c_tests(root, log);
+  spi_tests(root, log);
+  hyperram_tests(root, log);
+  usbdev_tests(root, log);
+  plic_tests(root, log);
+  finish_running(log, "All tests finished");
 }
