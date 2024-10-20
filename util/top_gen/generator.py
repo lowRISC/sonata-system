@@ -343,10 +343,7 @@ def generate_top(config: TopConfig) -> None:
     output_block_ios.sort(key=legacy_ordering)
 
     template_variables = {
-        "gpio_num": config.get_block("gpio").instances,
-        "uart_num": config.get_block("uart").instances,
-        "i2c_num": config.get_block("i2c").instances,
-        "spi_num": config.get_block("spi").instances,
+        "config": config,
         "in_pins": list(filter(PinFlat.is_input, pins)),
         "out_pins": list(filter(PinFlat.is_output, pins)),
         "inout_pins": list(filter(PinFlat.is_inout, pins)),
