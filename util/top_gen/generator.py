@@ -137,15 +137,6 @@ class CombinedInputBlockIo(NamedTuple):
     pins_and_select_values: list[tuple[PinFlat, int]]
 
 
-class PinmuxIoToBlock(NamedTuple):
-    """Describes a pinmux IO going to a block."""
-
-    direction: str
-    width: str
-    name: str
-    instances: int
-
-
 def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
     for block in blocks:
         for instance in range(block.instances):
@@ -292,31 +283,20 @@ def combined_input_block_ios_iter(
         )
 
 
-def pinmux_ios_to_blocks_iter(config: TopConfig) -> Iterator[PinmuxIoToBlock]:
-    for block in config.blocks:
-        instances = block.instances
-        for io in block.ios:
-            name = f"{block.name}_{io.name}"
-            width = "" if io.length is None else f"[{io.length - 1}:0] "
-            match io.type:
-                case Direction.OUTPUT:
-                    yield PinmuxIoToBlock(
-                        "input ", width, name + "_i", instances
-                    )
-                case Direction.INPUT:
-                    yield PinmuxIoToBlock(
-                        "output", width, name + "_o", instances
-                    )
-                case Direction.INOUT:
-                    yield PinmuxIoToBlock(
-                        "input ", width, name + "_i", instances
-                    )
-                    yield PinmuxIoToBlock(
-                        "input ", width, name + "_en_i", instances
-                    )
-                    yield PinmuxIoToBlock(
-                        "output", width, name + "_o", instances
-                    )
+def block_port_definitions(block: Block) -> Iterator[str]:
+    instances_param = f"{block.name.upper()}_NUM"
+    for io in block.ios:
+        name = f"{block.name}_{io.name}"
+        width = "" if io.length is None else f"[{io.length - 1}:0] "
+        match io.type:
+            case Direction.OUTPUT:
+                yield f"input  {width}{name}_i[{instances_param}]"
+            case Direction.INPUT:
+                yield f"output {width}{name}_o[{instances_param}]"
+            case Direction.INOUT:
+                yield f"input  {width}{name}_i   [{instances_param}]"
+                yield f"output {width}{name}_o   [{instances_param}]"
+                yield f"input  {width}{name}_en_i[{instances_param}]"
 
 
 def generate_top(config: TopConfig) -> None:
@@ -344,10 +324,10 @@ def generate_top(config: TopConfig) -> None:
 
     template_variables = {
         "config": config,
+        "block_port_definitions": block_port_definitions,
         "in_pins": list(filter(PinFlat.is_input, pins)),
         "out_pins": list(filter(PinFlat.is_output, pins)),
         "inout_pins": list(filter(PinFlat.is_inout, pins)),
-        "block_ios": list(pinmux_ios_to_blocks_iter(config)),
         "output_pins": list(output_pins_iter(pins, block_ios)),
         "output_block_ios": output_block_ios,
         "combined_input_block_ios": list(
@@ -368,9 +348,9 @@ def generate_top(config: TopConfig) -> None:
             "sw/cheri/common/platform-pinmux.hh",
         ),
     ):
-        print("Generating from template: " + template_file)
+        print("Generating from template:", template_file)
         content = Template(filename=template_file).render(**template_variables)
-        Path(output_file).write_text(content)
+        Path(output_file).write_text(str(content))
 
     try:
         subprocess.run(["sh", "util/generate_xbar.sh"], check=True)

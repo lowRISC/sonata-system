@@ -12,21 +12,27 @@ module pinmux
   input logic clk_i,
   input logic rst_ni,
 
-  // List of block IOs.
-  input  logic uart_tx_i[5],
-  output logic uart_rx_o[5],
-  input  logic i2c_scl_i[2],
-  input  logic i2c_scl_en_i[2],
-  output logic i2c_scl_o[2],
-  input  logic i2c_sda_i[2],
-  input  logic i2c_sda_en_i[2],
-  output logic i2c_sda_o[2],
-  input  logic spi_sck_i[5],
-  input  logic spi_tx_i[5],
-  output logic spi_rx_o[5],
-  input  logic [31:0] gpio_ios_i[3],
-  input  logic [31:0] gpio_ios_en_i[3],
-  output logic [31:0] gpio_ios_o[3],
+  // UART IOs
+  input  uart_tx_i[UART_NUM],
+  output uart_rx_o[UART_NUM],
+
+  // I2C IOs
+  input  i2c_scl_i   [I2C_NUM],
+  output i2c_scl_o   [I2C_NUM],
+  input  i2c_scl_en_i[I2C_NUM],
+  input  i2c_sda_i   [I2C_NUM],
+  output i2c_sda_o   [I2C_NUM],
+  input  i2c_sda_en_i[I2C_NUM],
+
+  // SPI IOs
+  input  spi_sck_i[SPI_NUM],
+  input  spi_tx_i[SPI_NUM],
+  output spi_rx_o[SPI_NUM],
+
+  // GPIO IOs
+  input  [31:0] gpio_ios_i   [GPIO_NUM],
+  output [31:0] gpio_ios_o   [GPIO_NUM],
+  input  [31:0] gpio_ios_en_i[GPIO_NUM],
 
   // Pin Signals
   input  sonata_in_pins_t  in_from_pins_i,

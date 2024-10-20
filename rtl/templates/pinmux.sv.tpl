@@ -12,11 +12,13 @@ module pinmux
   input logic clk_i,
   input logic rst_ni,
 
-  // List of block IOs.
-  % for label, width, name, instances in block_ios:
-  ${label} logic ${width}${name}[${instances}],
+  % for block in config.blocks:
+  // ${block.name.upper()} IOs
+  % for port_definition in block_port_definitions(block):
+  ${port_definition},
   % endfor
 
+  % endfor
   // Pin Signals
   input  sonata_in_pins_t  in_from_pins_i,
   output sonata_out_pins_t out_to_pins_o,
