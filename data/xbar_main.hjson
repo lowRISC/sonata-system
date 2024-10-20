@@ -156,7 +156,7 @@
         size_byte: "0x00010000",
       }],
     },
-    % for i in range(uart_num):
+    % for i in range(config.uart.instances):
     { name:  "uart${i}", // UART ${i} for serial I/O
       type:  "device",
       clock: "clk_sys_i",
@@ -171,7 +171,7 @@
       pipeline: true,
     },
     % endfor
-    % for i in range(i2c_num):
+    % for i in range(config.i2c.instances):
     { name:  "i2c${i}", // I2C bus ${i}
       type:  "device",
       clock: "clk_sys_i",
@@ -186,7 +186,7 @@
       pipeline: true,
     },
     % endfor
-    % for i in range(spi_num):
+    % for i in range(config.spi.instances):
     { name:  "spi${i}", // Serial peripheral interface ${i}
       type:  "device",
       clock: "clk_sys_i",
@@ -236,13 +236,13 @@
       "hw_rev",
       "xadc",
       "timer",
-      % for i in range(uart_num):
+      % for i in range(config.uart.instances):
       "uart${i}",
       % endfor
-      % for i in range(i2c_num):
+      % for i in range(config.i2c.instances):
       "i2c${i}",
       % endfor
-      % for i in range(spi_num):
+      % for i in range(config.spi.instances):
       "spi${i}",
       % endfor
       "usbdev",

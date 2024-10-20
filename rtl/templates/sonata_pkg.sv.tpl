@@ -6,10 +6,9 @@
 
 package sonata_pkg;
 
-  localparam int unsigned GPIO_NUM = ${gpio_num};
-  localparam int unsigned UART_NUM = ${uart_num};
-  localparam int unsigned I2C_NUM  = ${i2c_num};
-  localparam int unsigned SPI_NUM  = ${spi_num};
+  % for block in config.blocks:
+  localparam int unsigned ${block.name.upper()}_NUM = ${block.instances};
+  % endfor
 
   localparam int unsigned SPI_CS_NUM = 4;
 

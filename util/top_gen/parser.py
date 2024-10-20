@@ -104,21 +104,31 @@ class TopConfig(BaseModel, frozen=True):
     @staticmethod
     def check_blocks(blocks: list[Block]) -> list[Block]:
         block_names = {block.name for block in blocks}
-        expected_block_names = {"gpio", "i2c", "spi", "uart"}
+        # These blocks are required by the mako templates
+        required_blocks = {"i2c", "spi", "uart"}
 
-        if block_names != expected_block_names:
+        # if block_names is not a superset of required blocks
+        if block_names <= required_blocks:
             raise ValueError(
-                "There must be a configuration for each block in "
-                f"{expected_block_names} and only these blocks."
+                "There must be a configuration for each of the required "
+                f"blocks: {required_blocks}."
             )
         return blocks
 
-    def get_block(self, name: str) -> Block:
-        try:
-            return next(block for block in self.blocks if block.name == name)
-        except StopIteration:
-            print(f"A '{name}' block could not be found.")
-            exit(3)
+    def _get_block(self, name: str) -> Block:
+        return next(block for block in self.blocks if block.name == name)
+
+    @property
+    def uart(self) -> Block:
+        return self._get_block("uart")
+
+    @property
+    def i2c(self) -> Block:
+        return self._get_block("i2c")
+
+    @property
+    def spi(self) -> Block:
+        return self._get_block("spi")
 
     def get_pin(self, name: str) -> Pin:
         try:
