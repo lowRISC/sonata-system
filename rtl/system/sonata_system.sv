@@ -972,16 +972,17 @@ module sonata_system
   //   2: Raspberry Pi HAT
   //   3: mikroBUS Click
   //   4: RS-232
-  logic uart_tx[UART_NUM];
   logic uart_rx[UART_NUM];
+  logic uart_tx[UART_NUM];
+  logic uart_tx_en[UART_NUM];
   for (genvar i = 0; i < UART_NUM; i++) begin : gen_uart_blocks
     uart u_uart (
       .clk_i                (clk_sys_i),
       .rst_ni               (rst_sys_ni),
 
-      .cio_rx_i             (uart_rx[i]),
-      .cio_tx_o             (uart_tx[i]),
-      .cio_tx_en_o          (),
+      .cio_rx_i             (uart_rx   [i]),
+      .cio_tx_o             (uart_tx   [i]),
+      .cio_tx_en_o          (uart_tx_en[i]),
 
       // Inter-module signals.
       .tl_i                 (tl_uart_h2d[i]),
@@ -1223,21 +1224,28 @@ module sonata_system
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
 
-    .uart_tx_i(uart_tx),
     .uart_rx_o(uart_rx),
+    .uart_tx_i(uart_tx),
+    .uart_tx_en_i(uart_tx_en),
+
+    .i2c_scl_o(i2c_scl_d2h),
     .i2c_scl_i(i2c_scl_h2d),
     .i2c_scl_en_i(i2c_scl_en_h2d),
-    .i2c_scl_o(i2c_scl_d2h),
+    .i2c_sda_o(i2c_sda_d2h),
     .i2c_sda_i(i2c_sda_h2d),
     .i2c_sda_en_i(i2c_sda_en_h2d),
-    .i2c_sda_o(i2c_sda_d2h),
-    .spi_sck_i(spi_sck),
-    .spi_tx_i(spi_tx),
+
     .spi_rx_o(spi_rx),
+    .spi_tx_i(spi_tx),
+    .spi_tx_en_i('{default: 'b1}),
+    .spi_sck_i(spi_sck),
+    .spi_sck_en_i('{default: 'b1}),
     .spi_cs_i(spi_cs),
+    .spi_cs_en_i('{default: 'b1}),
+
+    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
     .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
     .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
-    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
 
     .in_from_pins_i,
     .out_to_pins_o,

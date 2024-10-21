@@ -13,26 +13,30 @@ module pinmux
   input logic rst_ni,
 
   // UART IOs
-  input  uart_tx_i[UART_NUM],
   output uart_rx_o[UART_NUM],
+  input  uart_tx_i   [UART_NUM],
+  input  uart_tx_en_i[UART_NUM],
 
   // I2C IOs
-  input  i2c_scl_i   [I2C_NUM],
   output i2c_scl_o   [I2C_NUM],
+  input  i2c_scl_i   [I2C_NUM],
   input  i2c_scl_en_i[I2C_NUM],
-  input  i2c_sda_i   [I2C_NUM],
   output i2c_sda_o   [I2C_NUM],
+  input  i2c_sda_i   [I2C_NUM],
   input  i2c_sda_en_i[I2C_NUM],
 
   // SPI IOs
-  input  spi_sck_i[SPI_NUM],
-  input  spi_tx_i[SPI_NUM],
   output spi_rx_o[SPI_NUM],
-  input  [3:0] spi_cs_i[SPI_NUM],
+  input  spi_tx_i   [SPI_NUM],
+  input  spi_tx_en_i[SPI_NUM],
+  input  spi_sck_i   [SPI_NUM],
+  input  spi_sck_en_i[SPI_NUM],
+  input  [3:0] spi_cs_i   [SPI_NUM],
+  input  [3:0] spi_cs_en_i[SPI_NUM],
 
   // GPIO IOs
-  input  [31:0] gpio_ios_i   [GPIO_NUM],
   output [31:0] gpio_ios_o   [GPIO_NUM],
+  input  [31:0] gpio_ios_i   [GPIO_NUM],
   input  [31:0] gpio_ios_en_i[GPIO_NUM],
 
   // Pin Signals
@@ -138,7 +142,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      uart_tx_en_i[0]
     }),
     .sel_i(ser0_tx_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_SER0_TX])
@@ -186,7 +190,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      uart_tx_en_i[1]
     }),
     .sel_i(ser1_tx_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_SER1_TX])
@@ -234,7 +238,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      uart_tx_en_i[4]
     }),
     .sel_i(rs232_tx_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_RS232_TX])
@@ -474,7 +478,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_tx_en_i[0]
     }),
     .sel_i(appspi_d0_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_APPSPI_D0])
@@ -522,7 +526,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_sck_en_i[0]
     }),
     .sel_i(appspi_clk_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_APPSPI_CLK])
@@ -570,7 +574,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_cs_en_i[0][0]
     }),
     .sel_i(appspi_cs_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_APPSPI_CS])
@@ -618,7 +622,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_tx_en_i[1]
     }),
     .sel_i(lcd_copi_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_LCD_COPI])
@@ -666,7 +670,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_sck_en_i[1]
     }),
     .sel_i(lcd_clk_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_LCD_CLK])
@@ -714,7 +718,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_cs_en_i[1][0]
     }),
     .sel_i(lcd_cs_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_LCD_CS])
@@ -762,7 +766,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_tx_en_i[2]
     }),
     .sel_i(ethmac_copi_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_ETHMAC_COPI])
@@ -810,7 +814,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_sck_en_i[2]
     }),
     .sel_i(ethmac_sclk_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_ETHMAC_SCLK])
@@ -858,7 +862,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_cs_en_i[2][0]
     }),
     .sel_i(ethmac_cs_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_ETHMAC_CS])
@@ -1251,7 +1255,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[3][1],
       gpio_ios_en_i[0][7]
     }),
     .sel_i(rph_g7_ce1_sel),
@@ -1301,7 +1305,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[3][0],
       gpio_ios_en_i[0][8]
     }),
     .sel_i(rph_g8_ce0_sel),
@@ -1399,7 +1403,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_tx_en_i[3],
       gpio_ios_en_i[0][10]
     }),
     .sel_i(rph_g10_copi_sel),
@@ -1449,7 +1453,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_sck_en_i[3],
       gpio_ios_en_i[0][11]
     }),
     .sel_i(rph_g11_sclk_sel),
@@ -1595,7 +1599,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      uart_tx_en_i[2],
       gpio_ios_en_i[0][14]
     }),
     .sel_i(rph_txd0_sel),
@@ -1693,7 +1697,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[4][2],
       gpio_ios_en_i[0][16]
     }),
     .sel_i(rph_g16_ce2_sel),
@@ -1743,7 +1747,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[4][1],
       gpio_ios_en_i[0][17]
     }),
     .sel_i(rph_g17_sel),
@@ -1793,7 +1797,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[4][0],
       gpio_ios_en_i[0][18]
     }),
     .sel_i(rph_g18_sel),
@@ -1891,7 +1895,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_tx_en_i[4],
       gpio_ios_en_i[0][20]
     }),
     .sel_i(rph_g20_copi_sel),
@@ -1941,7 +1945,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_sck_en_i[4],
       gpio_ios_en_i[0][21]
     }),
     .sel_i(rph_g21_sclk_sel),
@@ -2328,7 +2332,7 @@ module pinmux
     .in_i({
       1'b0,
       gpio_ios_en_i[1][1],
-      1'b1
+      uart_tx_en_i[3]
     }),
     .sel_i(ah_tmpio1_sel),
     .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO1])
@@ -2761,7 +2765,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_cs_en_i[3][2],
       gpio_ios_en_i[1][10]
     }),
     .sel_i(ah_tmpio10_sel),
@@ -2811,7 +2815,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_tx_en_i[3],
       gpio_ios_en_i[1][11]
     }),
     .sel_i(ah_tmpio11_sel),
@@ -2909,7 +2913,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1,
+      spi_sck_en_i[3],
       gpio_ios_en_i[1][13]
     }),
     .sel_i(ah_tmpio13_sel),
@@ -3150,7 +3154,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_cs_en_i[4][3]
     }),
     .sel_i(mb1_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MB1])
@@ -3198,7 +3202,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_sck_en_i[4]
     }),
     .sel_i(mb2_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MB2])
@@ -3246,7 +3250,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_tx_en_i[4]
     }),
     .sel_i(mb4_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MB4])
@@ -3390,7 +3394,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      uart_tx_en_i[3]
     }),
     .sel_i(mb7_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MB7])
@@ -4226,7 +4230,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_sck_en_i[3]
     }),
     .sel_i(microsd_clk_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MICROSD_CLK])
@@ -4274,7 +4278,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_tx_en_i[3]
     }),
     .sel_i(microsd_cmd_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MICROSD_CMD])
@@ -4322,7 +4326,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      1'b1
+      spi_cs_en_i[3][3]
     }),
     .sel_i(microsd_dat3_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MICROSD_DAT3])
