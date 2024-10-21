@@ -173,8 +173,6 @@ module top_verilator (input logic clk_i, rst_ni);
     end
   end
 
-  logic [SPI_CS_NUM-1:0] spi_cs[SPI_NUM];
-
   sonata_in_pins_t in_from_pins;
   sonata_out_pins_t out_to_pins;
   sonata_inout_pins_t inout_from_pins, inout_to_pins, inout_to_pins_en;
@@ -229,17 +227,17 @@ module top_verilator (input logic clk_i, rst_ni);
   logic gp_ah_tmpio10, gp_mb1;
 
   // CS outputs to SPI peripherals from controllers.
-  assign appspi_cs    = spi_cs[0][0];
-  assign lcd_cs       = spi_cs[1][0];
-  assign ethmac_cs    = spi_cs[2][0];
-  assign rph_g8_ce0   = spi_cs[3][0];
-  assign rph_g7_ce1   = spi_cs[3][1];
-  assign ah_tmpio10   = spi_cs[3][2];
-  assign microsd_dat3 = spi_cs[3][3];
-  assign rph_g18      = spi_cs[4][0];
-  assign rph_g17      = spi_cs[4][1];
-  assign rph_g16_ce2  = spi_cs[4][2];
-  assign mb1          = spi_cs[4][3];
+  assign appspi_cs    = out_to_pins[OUT_PIN_APPSPI_CS];
+  assign lcd_cs       = out_to_pins[OUT_PIN_LCD_CS];
+  assign ethmac_cs    = out_to_pins[OUT_PIN_ETHMAC_CS];
+  assign rph_g8_ce0   = inout_to_pins[INOUT_PIN_RPH_G8_CE0];
+  assign rph_g7_ce1   = inout_to_pins[INOUT_PIN_RPH_G7_CE1];
+  assign ah_tmpio10   = inout_to_pins[INOUT_PIN_AH_TMPIO10];
+  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
+  assign rph_g18      = inout_to_pins[INOUT_PIN_RPH_G18];
+  assign rph_g17      = inout_to_pins[INOUT_PIN_RPH_G17];
+  assign rph_g16_ce2  = inout_to_pins[INOUT_PIN_RPH_G16_CE2];
+  assign mb1          = out_to_pins[OUT_PIN_MB1];
 
   wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
                              gp_rph_g8_ce0, gp_rph_g7_ce1, gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2,
@@ -308,7 +306,6 @@ module top_verilator (input logic clk_i, rst_ni);
     .ard_an_n_i     (0),
 
     // SPI hosts
-    .spi_cs_o       (spi_cs),
     .spi_eth_irq_ni(1'b1),
 
     // CHERI signals
