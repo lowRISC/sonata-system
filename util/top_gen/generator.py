@@ -289,13 +289,14 @@ def block_port_definitions(block: Block) -> Iterator[str]:
         name = f"{block.name}_{io.name}"
         width = "" if io.length is None else f"[{io.length - 1}:0] "
         match io.type:
-            case Direction.OUTPUT:
-                yield f"input  {width}{name}_i[{instances_param}]"
             case Direction.INPUT:
                 yield f"output {width}{name}_o[{instances_param}]"
-            case Direction.INOUT:
+            case Direction.OUTPUT:
                 yield f"input  {width}{name}_i   [{instances_param}]"
+                yield f"input  {width}{name}_en_i[{instances_param}]"
+            case Direction.INOUT:
                 yield f"output {width}{name}_o   [{instances_param}]"
+                yield f"input  {width}{name}_i   [{instances_param}]"
                 yield f"input  {width}{name}_en_i[{instances_param}]"
 
 

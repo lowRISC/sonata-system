@@ -2,8 +2,8 @@
 name = "uart"
 instances = 5
 ios = [
-  { name = "tx", type = "output" },
   { name = "rx", type = "input", default = 1 },
+  { name = "tx", type = "output" },
 ]
 
 [[blocks]]
@@ -18,9 +18,9 @@ ios = [
 name = "spi"
 instances = 5
 ios = [
-  { name = "sck", type = "output" },
-  { name = "tx", type = "output" },
   { name = "rx", type = "input", default = 0 },
+  { name = "tx", type = "output" },
+  { name = "sck", type = "output" },
   { name = "cs", type = "output", length = 4 },
 ]
 

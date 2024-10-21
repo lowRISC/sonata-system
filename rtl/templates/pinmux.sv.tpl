@@ -126,7 +126,7 @@ module pinmux
     .in_i({
       1'b0,
       % for idx, bio in enumerate(possible_block_outputs):
-      ${f"{bio.uid.block}_{bio.uid.io}_en_i[{bio.uid.instance}]{bio.io_idx_str}" if bio.is_inout else "1'b1"}${',' if idx < (num_options - 2) else ''}
+      ${bio.uid.block}_${bio.uid.io}_en_i[${bio.uid.instance}]${bio.io_idx_str}${',' if idx < (num_options - 2) else ''}
       % endfor
     }),
     .sel_i(${pin.name}_sel),
