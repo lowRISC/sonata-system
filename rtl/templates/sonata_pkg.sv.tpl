@@ -6,12 +6,22 @@
 
 package sonata_pkg;
 
+  // Number of Instances
   % for block in config.blocks:
   localparam int unsigned ${block.name.upper()}_NUM = ${block.instances};
   % endfor
 
+  // Width of block IO arrays
+  % for block in config.blocks:
+  % for b_io in block.ios:
+  % if b_io.length is not None:
+  localparam int unsigned ${f"{block.name}_{b_io.name}_WIDTH".upper()} = ${b_io.length};
+  % endif
+  % endfor
+  % endfor
   localparam int unsigned SPI_CS_NUM = 4;
 
+  // Number of input, output, and inout pins
   localparam int unsigned IN_PIN_NUM = ${len(in_pins)};
   localparam int unsigned OUT_PIN_NUM = ${len(out_pins)};
   localparam int unsigned INOUT_PIN_NUM = ${len(inout_pins)};

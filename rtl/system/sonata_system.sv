@@ -9,7 +9,6 @@ module sonata_system
   import sonata_pkg::*;
 #(
   parameter int unsigned ArdAniWidth   = 6,
-  parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = "",
@@ -32,9 +31,9 @@ module sonata_system
   input logic                      rst_hr_ni,
 
   // General purpose input and output
-  input  logic [WordWidth-1:0]     gp_i,
-  output logic [WordWidth-1:0]     gp_o,
-  output logic [WordWidth-1:0]     gp_o_en,
+  input  logic [GPIO_IOS_WIDTH-1:0] gp_i,
+  output logic [GPIO_IOS_WIDTH-1:0] gp_o,
+  output logic [GPIO_IOS_WIDTH-1:0] gp_o_en,
 
   output logic [PwmWidth-1:0]      pwm_o,
 
@@ -860,18 +859,18 @@ module sonata_system
   // 1: Raspberry Pi HAT
   // 2: Arduino Shield
   // 3: Pmod
-  logic [WordWidth-1:0] gpio_from_pins     [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_to_pins       [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_from_pins     [GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins       [GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
 
   assign gpio_from_pins[0] = gp_i;
   assign gp_o              = gpio_to_pins       [0];
   assign gp_o_en           = gpio_to_pins_enable[0];
 
   gpio_array #(
-    .GpiWidth     ( WordWidth    ),
-    .GpoWidth     ( WordWidth    ),
-    .NumInstances ( GPIO_NUM + 1 )
+    .GpiWidth     ( GPIO_IOS_WIDTH ),
+    .GpoWidth     ( GPIO_IOS_WIDTH ),
+    .NumInstances ( GPIO_NUM + 1   )
   ) u_gpio (
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
