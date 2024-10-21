@@ -19,7 +19,6 @@ package sonata_pkg;
   % endif
   % endfor
   % endfor
-  localparam int unsigned SPI_CS_NUM = 4;
 
   // Number of input, output, and inout pins
   localparam int unsigned IN_PIN_NUM = ${len(in_pins)};

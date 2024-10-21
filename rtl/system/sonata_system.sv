@@ -43,7 +43,6 @@ module sonata_system
   input  wire  [ArdAniWidth-1:0]   ard_an_p_i,
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
-  output logic [SPI_CS_NUM-1:0]    spi_cs_o[SPI_NUM],
   input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
   // User JTAG
@@ -1079,11 +1078,14 @@ module sonata_system
   // - 2x Raspberry Pi HAT
   // - Arduino Shield
   // - mikroBUS Click
-  logic spi_sck[SPI_NUM];
-  logic spi_tx[SPI_NUM];
-  logic spi_rx[SPI_NUM];
+  logic                    spi_sck[SPI_NUM];
+  logic                    spi_tx[SPI_NUM];
+  logic                    spi_rx[SPI_NUM];
+  logic [SPI_CS_WIDTH-1:0] spi_cs[SPI_NUM];
   for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
-    spi u_spi (
+    spi #(
+      .CSWidth(SPI_CS_WIDTH)
+    ) u_spi (
       .clk_i               (clk_sys_i),
       .rst_ni              (rst_sys_ni),
 
@@ -1101,7 +1103,7 @@ module sonata_system
       // SPI signals.
       .spi_copi_o          (spi_tx [i]),
       .spi_cipo_i          (spi_rx [i]),
-      .spi_cs_o            (spi_cs_o [i]),
+      .spi_cs_o            (spi_cs [i]),
       .spi_clk_o           (spi_sck[i])
     );
   end : gen_spi_hosts
@@ -1232,6 +1234,7 @@ module sonata_system
     .spi_sck_i(spi_sck),
     .spi_tx_i(spi_tx),
     .spi_rx_o(spi_rx),
+    .spi_cs_i(spi_cs),
     .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
     .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
     .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
