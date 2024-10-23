@@ -315,12 +315,24 @@ set_property -dict { PACKAGE_PIN   J2  IOSTANDARD   LVCMOS18 } [get_ports { hype
 set_property IOB TRUE [get_cells -hier -filter {NAME =~ */hbmc_ctrl_inst/cs_n_reg}]
 set_property IOB TRUE [get_cells -hier -filter {NAME =~ */hbmc_ctrl_inst/reset_n_reg}]
 
-## Voltage and bistream
+## Voltage and bitstream
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
-# Primitives
+## Clock-Domain Crossing (CDC) primitives.
+# Set DONT_TOUCH on CDC primitives to prevent pin or boundary changes that
+# could make it difficult to find and apply timing exceptions to them or
+# perform CDC/RDC analysis on them later.
+# May be able to be downgraded to KEEP_HIERARCHY, but play it safe for now.
 set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
 set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async}]
 set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async_simple}]
+# Set ASYNC_REG on the flops our flop-based CDC synchronisers to get
+# special place&route to reduce the MTBF from metastability, to prevent
+# dangerous optimisations, and to infer D-pin timing exceptions.
+# See the ASYNC_REG sections of UG901 or UG912 for details.
+set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
+set sync_clk_in [get_pins -of $sync_cells -filter {REF_PIN_NAME == clk_i}]
+set sync_flops [all_fanout -flat -only_cells -endpoints_only $sync_clk_in]
+set_property ASYNC_REG TRUE $sync_flops
