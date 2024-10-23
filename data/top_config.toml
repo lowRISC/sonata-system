@@ -385,14 +385,98 @@ block_ios = [{block = "uart", instance = 3, io = "rx"}]
 
 ## PMODs
 [[pins]]
-name = "pmod0"
-length = 8
-block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 0}]
+name = "pmod0_0"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 0},  # can be used as SPI CS
+ ]
 
 [[pins]]
-name = "pmod1"
-length = 8
-block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 8}]
+name = "pmod0_1"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 1},
+  {block = "spi", instance = 3, io = "tx"},
+  {block = "uart", instance = 2, io = "tx"},
+]
+
+[[pins]]
+name = "pmod0_2"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 2},
+  {block = "i2c", instance = 0, io = "scl"},
+  {block = "spi", instance = 3, io = "rx"},
+  {block = "uart", instance = 2, io = "rx"},
+]
+
+[[pins]]
+name = "pmod0_3"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 3},
+  {block = "i2c", instance = 0, io = "sda"},
+  {block = "spi", instance = 3, io = "sck"},
+]
+
+[[pins]]
+name = "pmod0_4"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 4}]
+
+[[pins]]
+name = "pmod0_5"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 5}]
+
+[[pins]]
+name = "pmod0_6"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 6}]
+
+[[pins]]
+name = "pmod0_7"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 7}]
+
+[[pins]]
+name = "pmod1_0"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 8},  # can be used as SPI CS
+]
+
+[[pins]]
+name = "pmod1_1"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 9},
+  {block = "spi", instance = 4, io = "tx"},
+  {block = "uart", instance = 3, io = "tx"},
+]
+
+[[pins]]
+name = "pmod1_2"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 10},
+  {block = "i2c", instance = 1, io = "scl"},
+  {block = "spi", instance = 4, io = "rx"},
+  {block = "uart", instance = 3, io = "rx"},
+]
+
+[[pins]]
+name = "pmod1_3"
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 11},
+  {block = "i2c", instance = 1, io = "sda"},
+  {block = "spi", instance = 4, io = "sck"},
+]
+
+[[pins]]
+name = "pmod1_4"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 12}]
+
+[[pins]]
+name = "pmod1_5"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 13}]
+
+[[pins]]
+name = "pmod1_6"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 14}]
+
+[[pins]]
+name = "pmod1_7"
+block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 15}]
 
 ## MicroSD card slot
 [[pins]]
