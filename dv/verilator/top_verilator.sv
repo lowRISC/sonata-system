@@ -219,9 +219,23 @@ module top_verilator (input logic clk_i, rst_ni);
 
   logic [8:0] unused_gp_o;
 
+  // Loopback functionality used to verify the operation of the pinmux and GPIO pins;
+  // these signals are re-timed through a single register stage simply to prevent Verilator
+  // warnings about circular combinational logic which assesses circularity at the net level
+  // (i.e. `in_from_pins` and `out_to_pins`) rather than the bit level.
+  reg [3:0] loopback_q;
+  always @(posedge clk_i) begin
+    loopback_q <= {inout_to_pins[INOUT_PIN_AH_TMPIO8],
+                   inout_to_pins[INOUT_PIN_AH_TMPIO1],
+                   out_to_pins[OUT_PIN_MB7],   // mikroBUS Click TX -> RX; UART loopback.
+                   out_to_pins[OUT_PIN_MB4]};  // mikroBUS Click COPI -> CIPO; SPI loopback.
+  end
+  assign {inout_from_pins[INOUT_PIN_AH_TMPIO9],
+          inout_from_pins[INOUT_PIN_AH_TMPIO0],
+          in_from_pins[IN_PIN_MB8],
+          in_from_pins[IN_PIN_MB3]} = loopback_q;
+
   // Instantiating the Sonata System.
-  // TODO instantiate this with only two UARTs and no SPI when bus is
-  // parameterized.
   sonata_system #(
     .PwmWidth        (  1              ),
     .CheriErrWidth   ( CheriErrWidth   ),
