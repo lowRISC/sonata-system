@@ -69,6 +69,8 @@ create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_appspi [get_port appspi_clk] ;# Flash SPI clk
 create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_ethmac [get_port ethmac_sclk] ;# Ethernet SPI clk
+create_generated_clock -source $clk_hr90p_source_pin -divide_by 1 \
+                       -name clk_exthr [get_port hyperram_ckp] ;# HyperRAM clk
 
 ## Virtual clocks based on generated clocks.
 # Defined here (after generated clocks) to avoid code constant duplication
@@ -627,8 +629,36 @@ set_output_delay -clock clk_ethmac -min [expr {$sclk_ns/2.0 - (8 * 1.1)}] [get_p
 #   (CK half-period min - output max-dly to valid + output max-dly to valid) or
 #   (CK half-period min - output min-dly to valid + output min-dly to valid)
 #
-# TODO: add 'real' constraints here and remove false_paths so we know
-#       if something has not been instantiated/inferred correctly.
+# Currently using set_false_path on HyperRAM signals in exceptions section.
+# Specify zero-value I/O delays here in order to associate each port
+# with a clock for the purpose of CDC checking.
+#
+# TODO: add 'real' (non-zero) constraints below and remove set_false_path's
+#       so we know if something has not been instantiated/inferred correctly.
+set_output_delay -clock clk_hr90p -max 0 [get_ports hyperram_ckp]
+set_output_delay -clock clk_hr90p -min 0 [get_ports hyperram_ckp]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_ckn]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_ckn]
+#
+set_input_delay -clock clk_exthr -max 0 [get_ports {hyperram_dq[*]}]
+set_input_delay -clock clk_exthr -min 0 [get_ports {hyperram_dq[*]}]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports {hyperram_dq[*]}]
+set_output_delay -clock clk_exthr -min 0 [get_ports {hyperram_dq[*]}]
+#
+set_input_delay -clock clk_exthr -max 0 [get_ports hyperram_rwds]
+set_input_delay -clock clk_exthr -min 0 [get_ports hyperram_rwds]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_rwds]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_rwds]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_cs]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_cs]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_nrst]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_nrst]
+
 
 ### Clock Groups and Clock False Paths ###
 # JTAG tck is completely asynchronous to FPGA mainClk and derivatives
