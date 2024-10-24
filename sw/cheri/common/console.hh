@@ -39,3 +39,23 @@ using Log = reisfmt::Fmt<WriteUart>;
   }
   set_console_mode(log, CC_RESET);
 }
+
+// Dump out a sequence of bytes as hexadecimal and ASCII text.
+[[maybe_unused]] static void dump_bytes(Log& log, const uint8_t* buf, size_t blkBytes) {
+  for (size_t off = 0u; off < blkBytes; ++off) {
+    log.print("{:02x}", buf[off]);
+    if ((off & 0xfu) == 0xfu) {
+      log.print(" : ");
+      for (size_t aoff = (off & ~0xfu); aoff <= off; aoff++) {
+        char text[2];
+        text[0] = buf[aoff];
+        if (!isprint(text[0])) text[0] = '.';
+        text[1] = '\0';
+        log.print(text);
+      }
+      log.println("");
+    } else {
+      log.print(" ");
+    }
+  }
+}
