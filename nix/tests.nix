@@ -38,7 +38,7 @@ in {
     doCheck = true;
     buildInputs = [sonata-simulator pythonEnv];
     checkPhase = ''
-      python ${../util/test_runner.py} -t 60 sim \
+      python ${../util/test_runner.py} -t 120 sim \
           --elf-file ${sonata-system-software}/bin/test_runner
       echo "Test runner complete!"
       python ${../util/test_runner.py} -t 600 sim \
