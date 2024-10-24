@@ -69,6 +69,8 @@ create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_appspi [get_port appspi_clk] ;# Flash SPI clk
 create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_ethmac [get_port ethmac_sclk] ;# Ethernet SPI clk
+create_generated_clock -source $clk_hr90p_source_pin -divide_by 1 \
+                       -name clk_exthr [get_port hyperram_ckp] ;# HyperRAM clk
 
 ## Virtual clocks based on generated clocks.
 # Defined here (after generated clocks) to avoid code constant duplication
@@ -627,8 +629,36 @@ set_output_delay -clock clk_ethmac -min [expr {$sclk_ns/2.0 - (8 * 1.1)}] [get_p
 #   (CK half-period min - output max-dly to valid + output max-dly to valid) or
 #   (CK half-period min - output min-dly to valid + output min-dly to valid)
 #
-# TODO: add 'real' constraints here and remove false_paths so we know
-#       if something has not been instantiated/inferred correctly.
+# Currently using set_false_path on HyperRAM signals in exceptions section.
+# Specify zero-value I/O delays here in order to associate each port
+# with a clock for the purpose of CDC checking.
+#
+# TODO: add 'real' (non-zero) constraints below and remove set_false_path's
+#       so we know if something has not been instantiated/inferred correctly.
+set_output_delay -clock clk_hr90p -max 0 [get_ports hyperram_ckp]
+set_output_delay -clock clk_hr90p -min 0 [get_ports hyperram_ckp]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_ckn]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_ckn]
+#
+set_input_delay -clock clk_exthr -max 0 [get_ports {hyperram_dq[*]}]
+set_input_delay -clock clk_exthr -min 0 [get_ports {hyperram_dq[*]}]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports {hyperram_dq[*]}]
+set_output_delay -clock clk_exthr -min 0 [get_ports {hyperram_dq[*]}]
+#
+set_input_delay -clock clk_exthr -max 0 [get_ports hyperram_rwds]
+set_input_delay -clock clk_exthr -min 0 [get_ports hyperram_rwds]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_rwds]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_rwds]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_cs]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_cs]
+#
+set_output_delay -clock clk_exthr -max 0 [get_ports hyperram_nrst]
+set_output_delay -clock clk_exthr -min 0 [get_ports hyperram_nrst]
+
 
 ### Clock Groups and Clock False Paths ###
 # JTAG tck is completely asynchronous to FPGA mainClk and derivatives
@@ -687,16 +717,8 @@ set_false_path -to [get_ports hyperram_cs]
 set_false_path -to [get_ports hyperram_nrst]
 
 ## prim_flop_2sync
-# Set false_path timing exceptions on 2-stage synchroniser inputs.
-# Target the inputs because the flops inside are clocked by the destination.
-#
-# Reliant on the hierarchical pin names of the synchronisers remaining
-# unchanged during synthesis due to use of DONT_TOUCH or KEEP_HIERARCHY.
-set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
-set sync_pins [get_pins -filter {REF_PIN_NAME =~ d_i*} -of $sync_cells]
-# Filter out any that do not have a real timing path (fail to find leaf cell).
-set sync_endpoints [filter [all_fanout -endpoints_only -flat $sync_pins] IS_LEAF]
-set_false_path -to $sync_endpoints
+# Explicit false_path not needed so long as ASYNC_REG property is correctly
+# set on the underlying flops earlier in the flow.
 
 ## prim_fifo_async and prim_fifo_async_simple
 # Set false_path timing exceptions on asynchronous fifo outputs.
@@ -704,8 +726,8 @@ set_false_path -to $sync_endpoints
 # clock domain (but made safe to read from the destination clock domain
 # thanks to the gray-coded read/write pointers and surrounding logic).
 #
-# Reliant on the hierarchical pin names of the async fifos remaining
-# unchanged during synthesis due to use of DONT_TOUCH or KEEP_HIERARCHY.
+# Reliant on the hierarchical pin names used here remaining unchanged during
+# synthesis by setting DONT_TOUCH or KEEP_HIERARCHY earlier in the flow.
 set async_fifo_cells [get_cells -hier -regexp -filter {ORIG_REF_NAME =~ {prim_fifo_async(_simple)?}}]
 set async_fifo_pins [get_pins -filter {REF_PIN_NAME =~ rdata_o*} -of $async_fifo_cells]
 set async_fifo_startpoints [all_fanin -startpoints_only -flat $async_fifo_pins]
@@ -717,6 +739,9 @@ set_false_path -from $async_fifo_startpoints -through $async_fifo_pins
 
 ## Reset async-assert sync-deassert CDC - async path to synchroniser reset pins
 # Use max_delay rather than false_path to avoid big skew between clock domains.
+#
+# Reliant on the hierarchical pin names used here remaining unchanged during
+# synthesis by setting DONT_TOUCH or KEEP_HIERARCHY earlier in the flow.
 set rst_sync_cells [get_cells u_rst_sync/* -filter {ORIG_REF_NAME == prim_flop_2sync}]
 set rst_sync_pins [get_pins -filter {REF_PIN_NAME =~ rst_ni} -of $rst_sync_cells]
 # Filter out any that do not have a real timing path (fail to find leaf cell).
