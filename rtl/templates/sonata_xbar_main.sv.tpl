@@ -89,15 +89,15 @@ module sonata_xbar_main (
     .tl_xadc_i        (tl_xadc_i),
     .tl_timer_o       (tl_timer_o),
     .tl_timer_i       (tl_timer_i),
-    % for i in range(uart_num):
+    % for i in range(config.uart.instances):
     .tl_uart${i}_o       (tl_uart_o[${i}]),
     .tl_uart${i}_i       (tl_uart_i[${i}]),
     % endfor
-    % for i in range(i2c_num):
+    % for i in range(config.i2c.instances):
     .tl_i2c${i}_o        (tl_i2c_o[${i}]),
     .tl_i2c${i}_i        (tl_i2c_i[${i}]),
     % endfor
-    % for i in range(spi_num):
+    % for i in range(config.spi.instances):
     .tl_spi${i}_o        (tl_spi_o[${i}]),
     .tl_spi${i}_i        (tl_spi_i[${i}]),
     % endfor

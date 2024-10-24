@@ -9,7 +9,6 @@ module sonata_system
   import sonata_pkg::*;
 #(
   parameter int unsigned ArdAniWidth   = 6,
-  parameter int unsigned WordWidth     = 32,
   parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = "",
@@ -32,9 +31,9 @@ module sonata_system
   input logic                      rst_hr_ni,
 
   // General purpose input and output
-  input  logic [WordWidth-1:0]     gp_i,
-  output logic [WordWidth-1:0]     gp_o,
-  output logic [WordWidth-1:0]     gp_o_en,
+  input  logic [GPIO_IOS_WIDTH-1:0] gp_i,
+  output logic [GPIO_IOS_WIDTH-1:0] gp_o,
+  output logic [GPIO_IOS_WIDTH-1:0] gp_o_en,
 
   output logic [PwmWidth-1:0]      pwm_o,
 
@@ -44,7 +43,6 @@ module sonata_system
   input  wire  [ArdAniWidth-1:0]   ard_an_p_i,
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
-  output logic [SPI_CS_NUM-1:0]    spi_cs_o[SPI_NUM],
   input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
 
   // User JTAG
@@ -860,18 +858,18 @@ module sonata_system
   // 1: Raspberry Pi HAT
   // 2: Arduino Shield
   // 3: Pmod
-  logic [WordWidth-1:0] gpio_from_pins     [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_to_pins       [GPIO_NUM + 1];
-  logic [WordWidth-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_from_pins     [GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins       [GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
 
   assign gpio_from_pins[0] = gp_i;
   assign gp_o              = gpio_to_pins       [0];
   assign gp_o_en           = gpio_to_pins_enable[0];
 
   gpio_array #(
-    .GpiWidth     ( WordWidth    ),
-    .GpoWidth     ( WordWidth    ),
-    .NumInstances ( GPIO_NUM + 1 )
+    .GpiWidth     ( GPIO_IOS_WIDTH ),
+    .GpoWidth     ( GPIO_IOS_WIDTH ),
+    .NumInstances ( GPIO_NUM + 1   )
   ) u_gpio (
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
@@ -974,16 +972,17 @@ module sonata_system
   //   2: Raspberry Pi HAT
   //   3: mikroBUS Click
   //   4: RS-232
-  logic uart_tx[UART_NUM];
   logic uart_rx[UART_NUM];
+  logic uart_tx[UART_NUM];
+  logic uart_tx_en[UART_NUM];
   for (genvar i = 0; i < UART_NUM; i++) begin : gen_uart_blocks
     uart u_uart (
       .clk_i                (clk_sys_i),
       .rst_ni               (rst_sys_ni),
 
-      .cio_rx_i             (uart_rx[i]),
-      .cio_tx_o             (uart_tx[i]),
-      .cio_tx_en_o          (),
+      .cio_rx_i             (uart_rx   [i]),
+      .cio_tx_o             (uart_tx   [i]),
+      .cio_tx_en_o          (uart_tx_en[i]),
 
       // Inter-module signals.
       .tl_i                 (tl_uart_h2d[i]),
@@ -1080,11 +1079,14 @@ module sonata_system
   // - 2x Raspberry Pi HAT
   // - Arduino Shield
   // - mikroBUS Click
-  logic spi_sck[SPI_NUM];
-  logic spi_tx[SPI_NUM];
-  logic spi_rx[SPI_NUM];
+  logic                    spi_sck[SPI_NUM];
+  logic                    spi_tx[SPI_NUM];
+  logic                    spi_rx[SPI_NUM];
+  logic [SPI_CS_WIDTH-1:0] spi_cs[SPI_NUM];
   for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
-    spi u_spi (
+    spi #(
+      .CSWidth(SPI_CS_WIDTH)
+    ) u_spi (
       .clk_i               (clk_sys_i),
       .rst_ni              (rst_sys_ni),
 
@@ -1102,7 +1104,7 @@ module sonata_system
       // SPI signals.
       .spi_copi_o          (spi_tx [i]),
       .spi_cipo_i          (spi_rx [i]),
-      .spi_cs_o            (spi_cs_o [i]),
+      .spi_cs_o            (spi_cs [i]),
       .spi_clk_o           (spi_sck[i])
     );
   end : gen_spi_hosts
@@ -1222,20 +1224,28 @@ module sonata_system
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
 
-    .uart_tx_i(uart_tx),
     .uart_rx_o(uart_rx),
+    .uart_tx_i(uart_tx),
+    .uart_tx_en_i(uart_tx_en),
+
+    .i2c_scl_o(i2c_scl_d2h),
     .i2c_scl_i(i2c_scl_h2d),
     .i2c_scl_en_i(i2c_scl_en_h2d),
-    .i2c_scl_o(i2c_scl_d2h),
+    .i2c_sda_o(i2c_sda_d2h),
     .i2c_sda_i(i2c_sda_h2d),
     .i2c_sda_en_i(i2c_sda_en_h2d),
-    .i2c_sda_o(i2c_sda_d2h),
-    .spi_sck_i(spi_sck),
-    .spi_tx_i(spi_tx),
+
     .spi_rx_o(spi_rx),
+    .spi_tx_i(spi_tx),
+    .spi_tx_en_i('{default: 'b1}),
+    .spi_sck_i(spi_sck),
+    .spi_sck_en_i('{default: 'b1}),
+    .spi_cs_i(spi_cs),
+    .spi_cs_en_i('{default: 'b1}),
+
+    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
     .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
     .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
-    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
 
     .in_from_pins_i,
     .out_to_pins_o,

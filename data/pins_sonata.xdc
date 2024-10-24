@@ -144,7 +144,7 @@ set_property -dict { PACKAGE_PIN U9 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [g
 ## Reset (connected to GPO)
 set_property -dict { PACKAGE_PIN P2  IOSTANDARD LVCMOS33 } [get_ports mb0]
 ## SPI chip select
-set_property -dict { PACKAGE_PIN R1  IOSTANDARD LVCMOS33 } [get_ports mb1]
+set_property -dict { PACKAGE_PIN R1  IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports mb1]
 ## SPI SCLK
 set_property -dict { PACKAGE_PIN T1  IOSTANDARD LVCMOS33 } [get_ports mb2]
 ## SPI CIPO
@@ -174,18 +174,18 @@ set_property -dict { PACKAGE_PIN V11 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [
 set_property -dict { PACKAGE_PIN T10 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g20_copi]
 set_property -dict { PACKAGE_PIN V14 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g19_cipo]
 ## SPI1 CE0
-set_property -dict { PACKAGE_PIN P18 IOSTANDARD LVCMOS33 } [get_ports rph_g18]
+set_property -dict { PACKAGE_PIN P18 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g18]
 ## SPI1 CE1
-set_property -dict { PACKAGE_PIN M14 IOSTANDARD LVCMOS33 } [get_ports rph_g17]
-set_property -dict { PACKAGE_PIN T9  IOSTANDARD LVCMOS33 } [get_ports rph_g16_ce2]
+set_property -dict { PACKAGE_PIN M14 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g17]
+set_property -dict { PACKAGE_PIN T9  IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g16_ce2]
 
 ## GPIO/SPI0 bus
 set_property -dict { PACKAGE_PIN P17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g11_sclk]
 set_property -dict { PACKAGE_PIN V16 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g10_copi]
 set_property -dict { PACKAGE_PIN V17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g9_cipo]
-set_property -dict { PACKAGE_PIN V15 IOSTANDARD LVCMOS33 } [get_ports rph_g8_ce0]
+set_property -dict { PACKAGE_PIN V15 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g8_ce0]
 ## In schematic v0.8 and below, this pin is called rpg_g8_ce1.
-set_property -dict { PACKAGE_PIN R11 IOSTANDARD LVCMOS33 } [get_ports rph_g7_ce1]
+set_property -dict { PACKAGE_PIN R11 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g7_ce1]
 
 ## GPIO/I2C bus
 set_property -dict { PACKAGE_PIN L13 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports rph_g2_sda]
