@@ -27,13 +27,14 @@ in {
   sonata-system-software = pkgs.stdenv.mkDerivation rec {
     name = "sonata-system-software";
     src = fileset.toSource {
-      root = ../sw;
+      root = ../.;
       fileset = fileset.unions [
         ../sw/cheri
         ../sw/common
+        ../vendor/display_drivers/st7735
       ];
     };
-    sourceRoot = "${src.name}/cheri";
+    sourceRoot = "${src.name}/sw/cheri";
     nativeBuildInputs = cheriotPkgs ++ (with pkgs; [cmake]);
     cmakeFlags = [
       "-DFETCHCONTENT_SOURCE_DIR_CHERIOT_RTOS=${cheriotRtosSource}"
