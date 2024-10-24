@@ -269,7 +269,7 @@ void hyperram_tests(CapRoot root, Log &log) {
 
   for (size_t i = 0; i < HYPERRAM_TEST_ITERATIONS; i++) {
     log.println("\nrunning hyperram_test: {} \\ {}", i, HYPERRAM_TEST_ITERATIONS - 1);
-    log.println("HYPERRAM_TEST_SIZE: 0x{:08x}", HYPERRAM_TEST_SIZE);
+    log.println("HYPERRAM_TEST_SIZE: {:#08x}", HYPERRAM_TEST_SIZE);
 
     bool test_failed = false;
     int failures     = 0;
