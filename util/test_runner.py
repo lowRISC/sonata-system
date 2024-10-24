@@ -256,7 +256,6 @@ def watch_output(config: Config) -> None:
         if FAILED_MESSAGE in line:
             return_code.put(ReturnCode.TESTS_FAILED)
             break
-        time.sleep(TICK_SECONDS)
 
 
 def watchdog(config: Config) -> None:
