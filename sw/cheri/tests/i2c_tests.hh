@@ -197,7 +197,9 @@ int i2c_rpi_hat_id_eeprom_test(I2cPtr i2c) {
 
   // Send two 0x0000 byte addresses and skip the STOP condition.
   const uint8_t addr[] = {0, 0};
-  i2c->blocking_write(RpiHatIdEepromAddr, addr, sizeof(addr), true);
+  if (!i2c->blocking_write(RpiHatIdEepromAddr, addr, sizeof(addr), true)) {
+    return ++failures;  // If we can't write, then the read will block.
+  }
 
   // Fill a read buffer with dummy data so that we see changes.
   constexpr uint8_t DummyReadVal = 0x3D;
@@ -247,7 +249,9 @@ int i2c_rpi_hat_imu_whoami_test(I2cPtr i2c) {
 
   // Send the address and skip the STOP condition.
   const uint8_t addr[] = {RpiHatWhoAmIRegAddr};
-  i2c->blocking_write(RpiHatAccelGyroWhoAmIAddr, addr, sizeof(addr), true);
+  if (!i2c->blocking_write(RpiHatAccelGyroWhoAmIAddr, addr, sizeof(addr), true)) {
+    return ++failures;  // If we can't write, then the read will block.
+  }
 
   // Read from the `WHO_AM_I` register of the Accelerometer & Gyroscope,
   // and check it matches the expected value.
@@ -257,7 +261,9 @@ int i2c_rpi_hat_imu_whoami_test(I2cPtr i2c) {
   }
 
   // Send one 0x0F byte address and skip the STOP condition.
-  i2c->blocking_write(RpiHatIdMagneticWhoAmIAddr, addr, sizeof(addr), true);
+  if (!i2c->blocking_write(RpiHatIdMagneticWhoAmIAddr, addr, sizeof(addr), true)) {
+    return ++failures;  // If we can't write, then the read will block.
+  }
 
   // Read from the `WHO_AM_I` register of the Magnetic Sensor, and check
   // it matches the expected value.
@@ -287,7 +293,9 @@ int i2c_as6212_temperature_sense_test(I2cPtr i2c) {
 
   // Read from the config register, and check the dummy data was modified.
   uint8_t addr[] = {As6212ConfigRegAddr};
-  i2c->blocking_write(As6212Addr, addr, sizeof(addr), false);
+  if (!i2c->blocking_write(As6212Addr, addr, sizeof(addr), false)) {
+    return ++failures;  // If we can't write, then the read will block.
+  }
   uint8_t data[2] = {0xF0, 0x0F};
   if (!i2c->blocking_read(As6212Addr, data, 2U) || data[0] == 0xF0) {
     failures++;
@@ -295,7 +303,9 @@ int i2c_as6212_temperature_sense_test(I2cPtr i2c) {
 
   // Read from the temperature register
   addr[0] = As6212TempRegAddr;
-  i2c->blocking_write(As6212Addr, addr, sizeof(addr), false);
+  if (!i2c->blocking_write(As6212Addr, addr, sizeof(addr), false)) {
+    return ++failures;  // If we can't write, then the read will block.
+  }
   if (!i2c->blocking_read(As6212Addr, data, 2U)) {
     failures++;
   }
