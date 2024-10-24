@@ -343,7 +343,7 @@ def generate_top(config: TopConfig) -> None:
         ),
         ("rtl/templates/sonata_pkg.sv.tpl", "rtl/system/sonata_pkg.sv"),
         ("rtl/templates/pinmux.sv.tpl", "rtl/system/pinmux.sv"),
-        ("doc/ip/pinmux.md.tpl", "doc/ip/pinmux.md"),
+        ("util/templates/pinmux.md.tpl", "doc/ip/pinmux/README.md"),
         (
             "sw/cheri/common/platform-pinmux.hh.tpl",
             "sw/cheri/common/platform-pinmux.hh",

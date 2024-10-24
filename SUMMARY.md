@@ -23,7 +23,7 @@
     - [PWM](doc/ip/pwm.md)
     - [HyperRAM](doc/ip/ram.md)
     - [ADC](doc/ip/adc.md)
-    - [Pinmux](doc/ip/pinmux.md)
+    - [Pinmux](doc/ip/pinmux/README.md)
     - [Revoker](doc/ip/revoker.md)
     - [System info](doc/ip/system_info.md)
     - [Timer](doc/ip/timer.md)
