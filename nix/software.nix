@@ -19,9 +19,9 @@
   reisfmtSource = pkgs.fetchFromGitHub {
     owner = "engdoreis";
     repo = "reisfmt";
-    rev = "c624a03b48e6b17a0d6fe5c8630597eeefca9125";
+    rev = "d1cd03d39c7ba16d2b577f24094f49e4d7e0777f";
     fetchSubmodules = true;
-    hash = "sha256-KXRJbo2geqf9T3RiEca+CD6kdgv+/lbjp8SiumZMp9k=";
+    hash = "sha256-znN95tUpbQGGUjlcMMVbE84Hrs5eCUd2sub/vUOrO1I=";
   };
 in {
   sonata-system-software = pkgs.stdenv.mkDerivation rec {
