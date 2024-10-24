@@ -22,7 +22,7 @@ in {
         exit 2
       fi
       echo "Sonata system test suite"
-      ${../util/test_runner.py} -t 30 fpga "$1" \
+      ${../util/test_runner.py} -t 60 fpga "$1" \
         --elf-file ${sonata-system-software}/bin/test_runner \
         --tcl-file ${../util/sonata-openocd-cfg.tcl}
     '';
