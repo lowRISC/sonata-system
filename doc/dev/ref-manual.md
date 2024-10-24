@@ -65,7 +65,7 @@ For all registers in this section, the functionality is mapped onto the least si
 [PWM]: ../ip/pwm.md
 [HyperRAM]: ../ip/ram.md
 [ADC]: ../ip/adc.md
-[Pinmux]: ../ip/pinmux.md
+[Pinmux]: ../ip/pinmux/README.md
 [System info]: ../ip/system_info.md
 [Hardware revoker]: ../ip/revoker.md
 [Timer]: ../ip/timer.md
