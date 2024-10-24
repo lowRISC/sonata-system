@@ -90,7 +90,6 @@ struct PlicTest {
     };
     static constexpr std::array<i2c_irq, 15> i2cMap = {{
         {OpenTitanI2cInterrupt::ReceiveOverflow, true},
-        {OpenTitanI2cInterrupt::Nak, true},
         {OpenTitanI2cInterrupt::SclInterference, true},
         {OpenTitanI2cInterrupt::SdaInterference, true},
         {OpenTitanI2cInterrupt::StretchTimeout, true},
@@ -99,6 +98,7 @@ struct PlicTest {
         {OpenTitanI2cInterrupt::UnexpectedStop, true},
         {OpenTitanI2cInterrupt::HostTimeout, true},
 
+        {OpenTitanI2cInterrupt::ControllerHalt, false},
         {OpenTitanI2cInterrupt::TransmitStretch, false},
         {OpenTitanI2cInterrupt::AcquiredFull, false},
         {OpenTitanI2cInterrupt::TransmitThreshold, false},
