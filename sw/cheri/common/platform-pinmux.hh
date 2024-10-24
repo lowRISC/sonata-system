@@ -134,6 +134,8 @@ class SonataPinmux : private utils::NoCopyNoMove {
     Pmod1Io8               = 0x04d,  // pmod1_5,      i.e. PMOD1.8
     Pmod1Io9               = 0x04e,  // pmod1_6,      i.e. PMOD1.9
     Pmod1Io10              = 0x04f,  // pmod1_7,      i.e. PMOD1.10
+    MicroSdClock           = 0x050,  // microsd_clk   i.e. SD1.CLK
+    MicroSdCommand         = 0x051,  // microsd_cmd   i.e. SD1.CMD
   };
 
   /**
@@ -300,6 +302,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
   static constexpr uint8_t block_input_options(BlockInput block_input) {
     switch (block_input) {
       case BlockInput::SpiReceive3:
+        return 4;
       case BlockInput::SpiReceive4:
         return 3;
       default:
