@@ -24,6 +24,7 @@
     - [HyperRAM](doc/ip/ram.md)
     - [ADC](doc/ip/adc.md)
     - [Pinmux](doc/ip/pinmux/README.md)
+      - [Sonata Pinmappings](doc/ip/pinmux/pin-mappings.md)
     - [Revoker](doc/ip/revoker.md)
     - [System info](doc/ip/system_info.md)
     - [Timer](doc/ip/timer.md)
