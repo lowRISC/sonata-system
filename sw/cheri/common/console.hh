@@ -10,8 +10,6 @@
 #include "../../common/defs.h"
 #include <platform-uart.hh>
 
-#include "console.hh"
-
 #define CC_BOLD "1"
 #define CC_RED "31"
 #define CC_GREEN "32"
