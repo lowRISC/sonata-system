@@ -4,6 +4,7 @@
 
 #ifndef __DV_DPI_I2CDPI_I2CDPI_H_
 #define __DV_DPI_I2CDPI_I2CDPI_H_
+#include <assert.h>
 #include <map>
 #include "i2cdevice.hh"
 
@@ -36,6 +37,8 @@ public:
 
   // Add a device to this bus.
   void add_device(i2cdevice *dev) {
+    assert(dev);
+    logText(" - adding device at address 0x%02x\n", dev->getAddress());
     (void)devs.insert(std::pair<i2caddr_t, i2cdevice *>(dev->getAddress(), dev));
   }
 

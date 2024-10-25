@@ -23,28 +23,40 @@ module top_verilator (input logic clk_i, rst_ni);
   logic uart_aux_rx, uart_aux_tx;
   assign uart_aux_rx = 1'b1;
 
-  logic scl0_o, scl0_oe;
-  logic sda0_o, sda0_oe;
+  logic scl_rpi0_o, scl_rpi0_oe;
+  logic sda_rpi0_o, sda_rpi0_oe;
+
+  logic scl_rpi1_o, scl_rpi1_oe;
+  logic sda_rpi1_o, sda_rpi1_oe;
 
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
   // Output clocks and data to the I2C buses.
-  wire scl0_out = scl0_oe ? scl0_o : 1'b1;
+  wire scl_rpi0_out = scl_rpi0_oe ? scl_rpi0_o : 1'b1;
+  wire sda_rpi0_out = sda_rpi0_oe ? sda_rpi0_o : 1'b1;
+
+  wire scl_rpi1_out = scl_rpi1_oe ? scl_rpi1_o : 1'b1;
+  wire sda_rpi1_out = sda_rpi1_oe ? sda_rpi1_o : 1'b1;
+
   wire scl1_out = scl1_oe ? scl1_o : 1'b1;
-  wire sda0_out = sda0_oe ? sda0_o : 1'b1;
   wire sda1_out = sda1_oe ? sda1_o : 1'b1;
 
   // Clocks and data from the I2C DPI models.
-  wire scl0_dpi;
-  wire scl1_dpi;
-  wire sda0_dpi;
-  wire sda1_dpi;
+  wire scl_rpi0_dpi, sda_rpi0_dpi;
+  wire scl_rpi1_dpi, sda_rpi1_dpi;
+  wire scl1_dpi, sda1_dpi;
 
-  // Input clocks and data from the I2C buses.
-  wire scl0_in = scl0_out & scl0_dpi;
+  // Input clocks and data from the I2C buses; these signals must reflect the physical I2C bus,
+  // ie. they carry both the outbound and the inbound activity, because otherwise the controller
+  // will perceive a mismatch between its own transmissions and the inputs as bus contention.
+  wire scl_rpi0_in = scl_rpi0_out & scl_rpi0_dpi;
+  wire sda_rpi0_in = sda_rpi0_out & sda_rpi0_dpi;
+
+  wire scl_rpi1_in = scl_rpi1_out & scl_rpi1_dpi;
+  wire sda_rpi1_in = sda_rpi1_out & sda_rpi1_dpi;
+
   wire scl1_in = scl1_out & scl1_dpi;
-  wire sda0_in = sda0_out & sda0_dpi;
   wire sda1_in = sda1_out & sda1_dpi;
 
   wire unused_ = uart_aux_tx;
@@ -174,27 +186,40 @@ module top_verilator (input logic clk_i, rst_ni);
   assign appspi_clk  = out_to_pins[OUT_PIN_APPSPI_CLK];
   assign lcd_clk     = out_to_pins[OUT_PIN_LCD_CLK];
 
-  assign {scl0_o,  scl0_oe} = {inout_to_pins[INOUT_PIN_SCL0], inout_to_pins_en[INOUT_PIN_SCL0]};
-  assign {scl1_o,  scl1_oe} = {inout_to_pins[INOUT_PIN_SCL1], inout_to_pins_en[INOUT_PIN_SCL1]};
-  assign {sda0_o,  sda0_oe} = {inout_to_pins[INOUT_PIN_SDA0], inout_to_pins_en[INOUT_PIN_SDA0]};
-  assign {sda1_o,  sda1_oe} = {inout_to_pins[INOUT_PIN_SDA1], inout_to_pins_en[INOUT_PIN_SDA1]};
+  // Output I2C traffic to the RPi HAT ID EEPROM.
+  assign {scl_rpi0_o, scl_rpi0_oe} = {inout_to_pins[INOUT_PIN_RPH_G1],
+                                   inout_to_pins_en[INOUT_PIN_RPH_G1]};
+  assign {sda_rpi0_o, sda_rpi0_oe} = {inout_to_pins[INOUT_PIN_RPH_G0],
+                                   inout_to_pins_en[INOUT_PIN_RPH_G0]};
+  // Output I2C traffic to the secondary I2C bus on the Raspberry Pi HAT (shared with GPIO2/3).
+  assign {scl_rpi1_o, scl_rpi1_oe} = {inout_to_pins[INOUT_PIN_RPH_G3_SCL],
+                                   inout_to_pins_en[INOUT_PIN_RPH_G3_SCL]};
+  assign {sda_rpi1_o, sda_rpi1_oe} = {inout_to_pins[INOUT_PIN_RPH_G2_SDA],
+                                   inout_to_pins_en[INOUT_PIN_RPH_G2_SDA]};
+
+  assign {scl1_o, scl1_oe} = {inout_to_pins[INOUT_PIN_SCL1], inout_to_pins_en[INOUT_PIN_SCL1]};
+  assign {sda1_o, sda1_oe} = {inout_to_pins[INOUT_PIN_SDA1], inout_to_pins_en[INOUT_PIN_SDA1]};
 
   assign in_from_pins[IN_PIN_APPSPI_D1] = appspi_d1;
   assign in_from_pins[IN_PIN_SER0_RX]   = uart_sys_rx;
   assign in_from_pins[IN_PIN_SER1_RX]   = uart_aux_rx;
 
-  assign inout_from_pins[INOUT_PIN_SCL0] = scl0_in;
-  assign inout_from_pins[INOUT_PIN_SDA0] = sda0_in;
+  // SCL0/SDA0 pins are presently not connected to any I2C models; just pulled up on the PCB.
+  // - there is no model on either the QWIIC0 connector or the Arduino Shield.
+  assign inout_from_pins[INOUT_PIN_SCL0] = 1'b1;
+  assign inout_from_pins[INOUT_PIN_SDA0] = 1'b1;
+  // SCL1/SDA1 has a device model on the QWIIC1 connector.
   assign inout_from_pins[INOUT_PIN_SCL1] = scl1_in;
   assign inout_from_pins[INOUT_PIN_SDA1] = sda1_in;
-
-  // These unused inputs must be pulled high.
-  assign {inout_from_pins[INOUT_PIN_RPH_G0],
-          inout_from_pins[INOUT_PIN_RPH_G1],
-          inout_from_pins[INOUT_PIN_RPH_G2_SDA],
-          inout_from_pins[INOUT_PIN_RPH_G3_SCL],
-          inout_from_pins[INOUT_PIN_MB5],
-          inout_from_pins[INOUT_PIN_MB6]} = {6{1'b1}};  // SCL/SDA are shared with other pins.
+  // RPi HAT ID bus has a device model.
+  assign inout_from_pins[INOUT_PIN_RPH_G0] = sda_rpi0_in;
+  assign inout_from_pins[INOUT_PIN_RPH_G1] = scl_rpi0_in;
+  // RPi HAT secondary I2C bus also has a device model (Sense HAT).
+  assign inout_from_pins[INOUT_PIN_RPH_G2_SDA] = sda_rpi1_in;
+  assign inout_from_pins[INOUT_PIN_RPH_G3_SCL] = scl_rpi1_in;
+  // There is no device model on the mikroBUS Click I2C bus.
+  assign inout_from_pins[INOUT_PIN_MB5] = 1'b1;
+  assign inout_from_pins[INOUT_PIN_MB6] = 1'b1;
 
   // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
   // by the `gp_o` port presently.
@@ -333,25 +358,41 @@ module top_verilator (input logic clk_i, rst_ni);
     .inout_to_pins_en_o (inout_to_pins_en)
   );
 
-  // I2C 0 DPI
+  // I2C HAT ID DPI - this I2C bus is to the ID EEPROM of a Raspberry Pi HAT.
   i2cdpi #(
-    .ID   ("i2c0")
-  ) u_i2c0dpi (
+    .ID   ("i2c_rpi0")
+  ) u_i2c_rpi0_dpi (
     .rst_ni   (rst_ni),
     // The connected signal names are from the perspective of the controller.
-    .scl_i    (scl0_out),
-    .sda_i    (sda0_out),
-    .scl_o    (scl0_dpi),
-    .sda_o    (sda0_dpi),
+    .scl_i    (scl_rpi0_out),
+    .sda_i    (sda_rpi0_out),
+    .scl_o    (scl_rpi0_dpi),
+    .sda_o    (sda_rpi0_dpi),
     // Out-Of-Band data.
     .oob_in   (1'b0),
     .oob_out  ()  // not used
   );
 
-  // I2C 1 DPI
+  // I2C GPIO2/3 - this I2c bus is also present on the Raspberry Pi HATs,
+  // and is used on the Raspberry Pi Sense HAT, for example.
+  i2cdpi #(
+    .ID   ("i2c_rpi1")
+  ) u_i2c_rpi1_dpi (
+    .rst_ni   (rst_ni),
+    // The connected signal names are from the perspective of the controller.
+    .scl_i    (scl_rpi1_out),
+    .sda_i    (sda_rpi1_out),
+    .scl_o    (scl_rpi1_dpi),
+    .sda_o    (sda_rpi1_dpi),
+    // Out-Of-Band data.
+    .oob_in   (1'b0),
+    .oob_out  ()  // not used
+  );
+
+  // I2C QWIIC1
   i2cdpi #(
     .ID   ("i2c1")
-  ) u_i2c1dpi (
+  ) u_i2c1_dpi (
     .rst_ni   (rst_ni),
     // The connected signal names are from the perspective of the controller.
     .scl_i    (scl1_out),
