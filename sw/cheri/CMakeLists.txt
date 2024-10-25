@@ -21,7 +21,7 @@ endif()
 
 FetchContent_Declare(REISFMT
   GIT_REPOSITORY    https://github.com/engdoreis/reisfmt
-  GIT_TAG           d1cd03d39c7ba16d2b577f24094f49e4d7e0777f
+  GIT_TAG           38d3311f01c14bd184278b8fbf49d096367cd479
 )
 FetchContent_Populate(REISFMT)
 
