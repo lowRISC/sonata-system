@@ -87,6 +87,7 @@ uint32_t i2cdpi::decode(bool scl, bool sda, uint32_t oobIn, uint32_t &oobOut) {
             sendAck = true;
           } else {
             // No target/device at the given address.
+            logText("No target/device at address 0x%0x\n", addr);
             sendAck = false;
           }
           // Start counting the transmitted bits of this new byte.
@@ -118,6 +119,7 @@ uint32_t i2cdpi::decode(bool scl, bool sda, uint32_t oobIn, uint32_t &oobOut) {
       if (!prev_scl && scl) {
         // ACK/NAK response from the controller.
         bool ack = !sda;
+        assert(currDevice);
         if (ack && !currDevice->readByte(oobIn, currByte, oobOut)) {
           currByte = 0xffu;
         }
@@ -151,27 +153,29 @@ uint32_t i2cdpi::decode(bool scl, bool sda, uint32_t oobIn, uint32_t &oobOut) {
         }
         state = I2C_Addr;
         numBits = 0u;
-      } else if (reading) {
-        // Emit the MS bit not yet completed; bytes are transferred Most Significant Bit first.
-        sda_out = (currByte & 0x80u) != 0u;
-        // When the operation is a read, we must launch the data during the interval for which
-        // SCL is deasserted; this avoids transitions during the interval for which SCL is asserted.
-        if (prev_scl && !scl) {
-          // Shift read byte; ensure SDA returns high.
-          currByte = (currByte << 1) | 1u;
-          if (++numBits >= 8u) {
-            state = I2C_SentData;
+      } else if (currDevice) {
+        if (reading) {
+          // Emit the MS bit not yet completed; bytes are transferred Most Significant Bit first.
+          sda_out = (currByte & 0x80u) != 0u;
+          // When the operation is a read, we must launch the data during the interval for which
+          // SCL is deasserted; this avoids transitions during the interval for which SCL is asserted.
+          if (prev_scl && !scl) {
+            // Shift read byte; ensure SDA returns high.
+            currByte = (currByte << 1) | 1u;
+            if (++numBits >= 8u) {
+              state = I2C_SentData;
+            }
           }
-        }
-      } else {
-        // When the operation is a write, the data will be stable throughout the interval for which
-        // SCL is asserted; sample it on the rising edge.
-        if (!prev_scl && scl) {
-          currByte = (currByte << 1) | (sda ? 1u : 0u);
-          if (++numBits >= 8u) {
-            sendAck = currDevice->writeByte(currByte, oobIn);
-            numBits = 0u;
-            state = I2C_GotData;
+        } else {
+          // When the operation is a write, the data will be stable throughout the interval for which
+          // SCL is asserted; sample it on the rising edge.
+          if (!prev_scl && scl) {
+            currByte = (currByte << 1) | (sda ? 1u : 0u);
+            if (++numBits >= 8u) {
+              sendAck = currDevice->writeByte(currByte, oobIn);
+              numBits = 0u;
+              state = I2C_GotData;
+            }
           }
         }
       }
@@ -206,14 +210,14 @@ void *i2cdpi_create(const char *id) {
   i2cdpi *i2c = new i2cdpi();
   assert(i2c);
   // Create the appropriate devices for this bus.
-  if (!strcmp(id, "i2c0")) {
+  if (!strcmp(id, "i2c_rpi0")) {
     // RPI Sense HAT ID EEPROM
     const i2caddr_t id_addr = 0x50u;
     i2cdevice *id_device = new i2c_hat_id(id_addr);
     assert(id_device);
     i2c->add_device(id_device);
-    i2c->logText("I2C0 created\n", id);
-  } else if (!strcmp(id, "i2c1")) {
+    i2c->logText("%s created\n", id);
+  } else if (!strcmp(id, "i2c_rpi1")) {
     // RPI Sense HAT IMU; this presents at two separate I2C addresses.
     const i2caddr_t imu_accgyr_addr = 0x6au;  // Accelerometer/gyroscope.
     i2cdevice *imu_accgyr_device = new i2c_lsm9ds1(imu_accgyr_addr);
@@ -223,12 +227,14 @@ void *i2cdpi_create(const char *id) {
     assert(imu_mag_device);
     i2c->add_device(imu_accgyr_device);
     i2c->add_device(imu_mag_device);
+    i2c->logText("%s created\n", id);
+  } else if (!strcmp(id, "i2c1")) {
     // Digital Temperature Sensor.
-    const i2caddr_t dst_addr = 0x48u;
-    i2cdevice *dst_device = new i2c_as621x(dst_addr);
-    assert(dst_device);
-    i2c->add_device(dst_device);
-    i2c->logText("I2C1 created\n", id);
+    const i2caddr_t dts_addr = 0x48u;
+    i2cdevice *dts_device = new i2c_as621x(dts_addr);
+    assert(dts_device);
+    i2c->add_device(dts_device);
+    i2c->logText("%s created\n", id);
   } else {
     i2c->logText("Info: I2C bus '%s' is unpopulated\n", id);
   }
