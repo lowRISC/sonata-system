@@ -362,24 +362,6 @@ block_ios = [
   {block = "gpio", instance = 1, io = "ios", io_index = 13},
 ]
 
-[[pins]]
-name = "ah_tmpio14"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 14}]
-
-[[pins]]
-name = "ah_tmpio15"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 15}]
-
-[[pins]]
-# Arduino Shield reset
-name = "ah_tmpio16"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 16}]
-
-[[pins]]
-name = "ah_tmpio17"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 17}]
-# TODO connect up AH_AN0-5 to ADC
-
 # mikroBUS Click
 # mb0 is reset and already connected to a general purpose output.
 [[pins]]
