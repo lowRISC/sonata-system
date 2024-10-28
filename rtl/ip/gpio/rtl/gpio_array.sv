@@ -36,7 +36,7 @@ module gpio_array #(
     assign device_selector = (device_addr_i[RegAddr-1:AddrBitsPerInstance]== i) ?
                              device_req_i : 1'b0;
 
-    gpio #(
+    gpio_core #(
       .GpiWidth  ( GpiWidth            ),
       .GpoWidth  ( GpoWidth            ),
       .AddrWidth ( AddrWidth           ),
