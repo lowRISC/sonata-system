@@ -59,7 +59,8 @@ module sram #(
   // TL-UL device adapters
   tlul_adapter_sram #(
     .SramAw           ( SramAw ),
-    .EnableRspIntgGen ( 0      )
+    .EnableRspIntgGen ( 0      ),
+    .Outstanding      ( 2      )
   ) sram_a_device_adapter (
     .clk_i,
     .rst_ni,
@@ -96,7 +97,8 @@ module sram #(
 
   tlul_adapter_sram #(
     .SramAw           ( SramAw ),
-    .EnableRspIntgGen ( 0      )
+    .EnableRspIntgGen ( 0      ),
+    .Outstanding      ( 2      )
   ) sram_b_device_adapter (
     .clk_i,
     .rst_ni,
