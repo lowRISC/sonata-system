@@ -5,6 +5,9 @@ ios = [
   { name = "rx", type = "input", default = 1 },
   { name = "tx", type = "output" },
 ]
+memory_start = 0x80100000
+memory_size  = 0x00001000
+xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
 
 [[blocks]]
 name = "i2c"
@@ -13,6 +16,9 @@ ios = [
   { name = "scl", type = "inout", combine = "and" },
   { name = "sda", type = "inout", combine = "and" },
 ]
+memory_start = 0x80200000
+memory_size  = 0x00001000
+xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
 
 [[blocks]]
 name = "spi"
@@ -23,6 +29,8 @@ ios = [
   { name = "sck", type = "output" },
   { name = "cs", type = "output", length = 4 },
 ]
+memory_start = 0x80300000
+memory_size  = 0x00001000
 
 [[blocks]]
 name = "gpio"
@@ -35,6 +43,8 @@ ios = [
     length = 32
   },
 ]
+memory_start = 0x80000000
+memory_size  = 0x00000040
 
 # UARTS
 [[pins]]
