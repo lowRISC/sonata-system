@@ -162,11 +162,28 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
   hyperram.address()                  = HYPERRAM_ADDRESS;
   hyperram.bounds()                   = HYPERRAM_BOUNDS;
 
+  CHERI::Capability<uint32_t> sysinfo = root.cast<uint32_t>();
+  sysinfo.address()                   = SYSTEM_INFO_ADDRESS;
+  sysinfo.bounds()                    = SYSTEM_INFO_BOUNDS;
+
+  uint32_t git_hash_0 = sysinfo[0];
+  uint32_t git_hash_1 = sysinfo[1];
+  uint32_t git_dirty  = sysinfo[2];
+
   spi->init(false, false, true, 0);
   uart->init(BAUD_RATE);
 
   SpiFlash spi_flash(spi);
   spi_flash.reset();
+
+  write_str(uart, prefix);
+  write_str(uart, "Sonata system git SHA: ");
+  write_hex(uart, git_hash_0);
+  write_hex(uart, git_hash_1);
+  if (git_dirty) {
+    write_str(uart, " (dirty)");
+  }
+  write_str(uart, "\r\n");
 
   uint8_t software_slot = read_selected_software_slot(gpio);
   write_str(uart, prefix);
