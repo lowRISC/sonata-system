@@ -8,150 +8,6 @@
 #include "../common/timer-utils.hh"
 
 /**
- * Sets the value of some GPIO output pin. This change will only be visible
- * if the pin has its corresponding `output_enable` bit set to 1, so that the
- * pin is in output mode.
- */
-inline void set_gpio_output(Capability<volatile SonataGpioFull> gpio, GpioPin pin, bool value) {
-  const uint32_t bit_mask    = (1 << pin.bit);
-  const uint32_t write_value = ((value ? 1 : 0) << pin.bit);
-  const uint8_t instance     = static_cast<uint8_t>(pin.instance);
-  uint32_t output            = gpio->instances[instance].output;
-  output &= ~bit_mask;
-  output |= write_value;
-  gpio->instances[instance].output = output;
-}
-
-/**
- * Sets the output enable value of some GPIO pin. Setting this to 1 places the
- * pin in output mode, and to 0 places it in input mode.
- */
-inline void set_gpio_output_enable(Capability<volatile SonataGpioFull> gpio, GpioPin pin, bool value) {
-  const uint32_t bit_mask    = (1 << pin.bit);
-  const uint32_t write_value = ((value ? 1 : 0) << pin.bit);
-  const uint8_t instance     = static_cast<uint8_t>(pin.instance);
-  uint32_t output_enable     = gpio->instances[instance].output_enable;
-  output_enable &= ~bit_mask;
-  output_enable |= write_value;
-  gpio->instances[instance].output_enable = output_enable;
-}
-
-/**
- * Get the value of some GPIO input pin. This will only be visible if the pin
- * has its corresponding `output_enable` bit set to 0, so that the pin is in
- * input mode.
- */
-inline bool get_gpio_input(Capability<volatile SonataGpioFull> gpio, GpioPin pin) {
-  const uint32_t bit_mask = (1 << pin.bit);
-  const uint8_t instance  = static_cast<uint8_t>(pin.instance);
-  return (gpio->instances[instance].input & bit_mask) > 0;
-}
-
-/**
- * Tests that the given UART appears to be working as expected, by sending and
- * receiving some data using the given UART block. To pass, this test expects
- * the Tx and the Rx of the specified UART to be manually connected on the
- * board, so that data that is written can be read back by the board.
- *
- * @param read_timeout_msec The timeout in milliseconds provided to read each
- * individual byte sent over UART. Any timeout causes immediate failure.
- * @param test_length The number of random bytes to try sending over UART.
- *
- * Returns true if the test passed, or false if it failed.
- */
-static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uint32_t read_timeout_msec,
-                                   uint32_t test_length) {
-  constexpr uint8_t UartStatusRegTxIdle = (1 << 2);
-  constexpr uint8_t UartStatusRegRxIdle = (1 << 4);
-
-  // Re-initialise the UART and clear its FIFOs.
-  uart->init();
-  uart->fifos_clear();
-  uart->parity();
-  reset_mcycle();
-
-  // Wait for the UART TX FIFO to be empty and all bits to be transmitted,
-  // and the RX to be idle.
-  while ((uart->status & UartStatusRegTxIdle) == 0 || (uart->status & UartStatusRegRxIdle) == 0) {
-    asm volatile("");
-  }
-  uart->fifos_clear();
-
-  // Send and receive a test message, character by character
-  for (uint32_t i = 0; i < test_length; ++i) {
-    const uint8_t test_byte = prng();
-    uart->blocking_write(test_byte);
-
-    // Try to read the character back within the given timeout.
-    const uint32_t start_mcycle   = get_mcycle();
-    const uint32_t cycles         = read_timeout_msec * CyclesPerMillisecond;
-    const uint32_t timeout_mcycle = start_mcycle + cycles;
-    while (!uart->can_read() && get_mcycle() < timeout_mcycle) {
-      asm volatile("");
-    }
-    if (!uart->can_read() || uart->blocking_read() != test_byte) {
-      // On timeout or an incorrect read, fail immediately.
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Tests that the given GPIO pins appear to be working as expected, by sending
- * and receiving some data using the specified output and input GPIO pins. To
- * pass, this test expects that the specified input and output GPIO pins are
- * manually connected on the board, so that GPIO output can be written and
- * read back by the board.
- *
- * @param wait_msec The time in milliseconds to wait for the GPIO write signal
- * to be transmitted before reading.
- * @param test_length The number of individual write/reads to test on the given
- * GPIO connection.
- *
- * Returns true if the test passed, or false if it failed.
- */
-static bool gpio_write_read_test(Capability<volatile SonataGpioFull> gpio, GpioPin output_pin, GpioPin input_pin,
-                                 uint32_t wait_msec, uint32_t test_length) {
-  bool gpio_high = false;
-  for (uint32_t i = 0; i < test_length; i++) {
-    // For each test iteration, invert the GPIO signal
-    gpio_high = !gpio_high;
-
-    // Write this inverted signal on the configured output GPIO
-    set_gpio_output(gpio, output_pin, gpio_high);
-
-    // Wait a short time for the transmission
-    const uint32_t cycles     = wait_msec * CyclesPerMillisecond;
-    const uint32_t end_mcycle = get_mcycle() + cycles;
-    while (get_mcycle() < end_mcycle) {
-      asm volatile("");
-    }
-
-    // Read the GPIO value back
-    if (get_gpio_input(gpio, input_pin) != gpio_high) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * Resets an I2C controller to acknowledge and disable any Controller Halt
- * events. When the I2C device is disconnected from Pinmux and tested,
- * the controller will continue to halt as it will not be able to see
- * changes it makes. As such, we disable the I2C block and clear its
- * controller events, to get it back into a normal state.
- */
-static void reset_i2c_controller(I2cPtr i2c) {
-  i2c->control = i2c->control & ~(i2c->ControlEnableHost | i2c->ControlEnableTarget);
-  if (i2c->interrupt_is_asserted(OpenTitanI2cInterrupt::ControllerHalt)) {
-    i2c->reset_controller_events();
-  }
-}
-
-/**
  * Tests that the given I2C block is working as expected, by sending and
  * receiving some data via I2C to read the JEDEC/Manufacturer ID of a connected
  * BH1745 sensor device, and checking it against known values. This test expects
@@ -231,7 +87,7 @@ static bool i2c_read_pmod_colour_id_test(I2cPtr i2c, Log &log) {
  *
  * Returns true if the test passed, or false if it failed.
  */
-static bool spi_n25q256a_read_jedec_id(SpiPtr spi, Capability<volatile SonataGpioFull> gpio, GpioPin spi_cs_pin) {
+static bool spi_n25q256a_read_jedec_id(SpiPtr spi, SonataGpioFull *gpio, GpioPin spi_cs_pin) {
   constexpr uint8_t CmdReadJEDECId     = 0x9f;
   constexpr uint8_t ExpectedJedecId[3] = {0x20, 0xBA, 0x19};
 
@@ -268,7 +124,7 @@ static bool execute_uart_test(const Test &test, ds::xoroshiro::P32R8 &prng, Uart
 /**
  * Execute a GPIO write/read test using the pins specified in the test.
  */
-static bool execute_gpio_test(const Test &test, ds::xoroshiro::P32R8 &prng, Capability<volatile SonataGpioFull> gpio) {
+static bool execute_gpio_test(const Test &test, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio) {
   set_gpio_output_enable(gpio, test.gpio_data.output_pin, true);
   set_gpio_output_enable(gpio, test.gpio_data.input_pin, false);
   bool result = gpio_write_read_test(gpio, test.gpio_data.output_pin, test.gpio_data.input_pin,
@@ -298,7 +154,7 @@ static bool execute_i2c_pmod_colour_test(const Test &test, I2cPtr i2cs[2], Log &
  * Execute a SPI N25Q256A ID read test using the SPI and CS pin specified in
  * the test.
  */
-static bool execute_spi_test(const Test &test, Capability<volatile SonataGpioFull> gpio, SpiPtr spis[2]) {
+static bool execute_spi_test(const Test &test, SonataGpioFull *gpio, SpiPtr spis[2]) {
   SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi) - 3];
   set_gpio_output_enable(gpio, test.spi_data.cs_pin, true);
   bool result = spi_n25q256a_read_jedec_id(tested_spi, gpio, test.spi_data.cs_pin);
@@ -308,20 +164,18 @@ static bool execute_spi_test(const Test &test, Capability<volatile SonataGpioFul
 /**
  * Checks whether Sonata's joystick is currently pressed down or not.
  */
-static inline bool joystick_pressed(Capability<volatile SonataGpioFull> gpio) {
+static inline bool joystick_pressed(SonataGpioFull *gpio) {
   constexpr uint8_t SonataJoystickPressed = (1 << 2);
-  constexpr uint8_t instance              = static_cast<uint8_t>(GpioInstance::General);
-  return gpio->instances[instance].input & SonataJoystickPressed;
+  return gpio->general->input & SonataJoystickPressed;
 }
 
 /**
  * Checks whether Sonata's joystick is currently being held in any direction
  * (does not include being pressed down) or not.
  */
-static inline bool joystick_moved(Capability<volatile SonataGpioFull> gpio) {
+static inline bool joystick_moved(SonataGpioFull *gpio) {
   constexpr uint8_t SonataJoystickMoveMask = 0b11011;
-  constexpr uint8_t instance               = static_cast<uint8_t>(GpioInstance::General);
-  return (gpio->instances[instance].input & SonataJoystickMoveMask) > 0;
+  return (gpio->general->input & SonataJoystickMoveMask) > 0;
 }
 
 /**
@@ -336,9 +190,8 @@ static inline bool joystick_moved(Capability<volatile SonataGpioFull> gpio) {
  * Returns true if the test passed (i.e. got the expected result), and false
  * otherwise.
  */
-bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::P32R8 &prng,
-                  Capability<volatile SonataGpioFull> gpio, UartPtr uarts[4], SpiPtr spis[2], I2cPtr i2cs[2],
-                  SonataPinmux *pinmux) {
+bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
+                  UartPtr uarts[4], SpiPtr spis[2], I2cPtr i2cs[2], SonataPinmux *pinmux) {
   // If manual intervention is required, print out the test instruction and wait
   // for the user to press the joystick to signal that they are ready.
   if (test.manual_required) {
@@ -408,7 +261,7 @@ bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::
  *
  * Returns true if the user wishes to retry, and false otherwise.
  */
-bool ask_retry_last_test(Log &log, Capability<volatile SonataGpioFull> gpio) {
+bool ask_retry_last_test(Log &log, SonataGpioFull *gpio) {
   log.print("{}\x1b[36mPrevious test failed. Move the joystick to retry, or press it to continue.\033[0m", prefix);
 
   // Wait for the joystick to be resting first, so that we don't count any accidental user inputs
@@ -450,9 +303,8 @@ bool ask_retry_last_test(Log &log, Capability<volatile SonataGpioFull> gpio) {
  * Returns true if every test passed (i.e. got the expected result), and false
  * otherwise. Will return true even if there were retries.
  */
-bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng,
-                      Capability<volatile SonataGpioFull> gpio, UartPtr uarts[4], SpiPtr spis[2], I2cPtr i2cs[2],
-                      SonataPinmux *pinmux) {
+bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
+                      UartPtr uarts[4], SpiPtr spis[2], I2cPtr i2cs[2], SonataPinmux *pinmux) {
   log.println("");
   log.println("{}Starting check.", prefix);
   log.println("");

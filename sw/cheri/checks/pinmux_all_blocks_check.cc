@@ -49,9 +49,19 @@ using namespace CHERI;
   };
   I2cPtr i2cs[2] = {i2c_ptr(root, 0), i2c_ptr(root, 1)};
 
-  Capability<volatile SonataGpioFull> gpio = root.cast<volatile SonataGpioFull>();
-  gpio.address()                           = GPIO_ADDRESS;
-  gpio.bounds()                            = GPIO_FULL_BOUNDS;
+  SonataGpioFull gpio_full;
+  gpio_full.general           = root.cast<volatile SonataGpioGeneral>();
+  gpio_full.general.address() = GPIO_ADDRESS;
+  gpio_full.general.bounds()  = GPIO_BOUNDS;
+  gpio_full.rpi               = root.cast<volatile SonataGpioRaspberryPiHat>();
+  gpio_full.rpi.address()     = GPIO_ADDRESS + GPIO_RANGE;
+  gpio_full.rpi.bounds()      = GPIO_BOUNDS;
+  gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
+  gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
+  gpio_full.arduino.bounds()  = GPIO_BOUNDS;
+  gpio_full.pmod              = root.cast<volatile SonataGpioPmod>();
+  gpio_full.pmod.address()    = GPIO_ADDRESS + GPIO_RANGE * 3;
+  gpio_full.pmod.bounds()     = GPIO_BOUNDS;
 
   Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
   pinmux.address()                    = PINMUX_ADDRESS;
@@ -112,7 +122,7 @@ using namespace CHERI;
               {
                   {GpioInstance::Pmod, 1},  // PMOD0_2
                   {GpioInstance::Pmod, 2},  // PMOD0_3
-                  GpioWaitMsec,
+                  GpioWaitUsec,
                   GpioTestLength,
               },
           .expected_result = true,
@@ -129,7 +139,7 @@ using namespace CHERI;
               {
                   {GpioInstance::Pmod, 1},  // PMOD0_2
                   {GpioInstance::Pmod, 2},  // PMOD0_3
-                  GpioWaitMsec,
+                  GpioWaitUsec,
                   GpioTestLength,
               },
           .expected_result = false,
@@ -145,7 +155,7 @@ using namespace CHERI;
           .uart_data =
               {
                   UartTest::UartNum::Uart2,
-                  UartTimeoutMsec,
+                  UartTimeoutUsec,
                   UartTestBytes,
               },
           .expected_result = true,
@@ -161,7 +171,7 @@ using namespace CHERI;
           .uart_data =
               {
                   UartTest::UartNum::Uart2,
-                  UartTimeoutMsec,
+                  UartTimeoutUsec,
                   UartTestBytes,
               },
           .expected_result = false,
@@ -222,7 +232,7 @@ using namespace CHERI;
 
   // Execute the pinmux testplan
   const uint8_t NumTests = ARRAYSIZE(pinmux_testplan);
-  execute_testplan(pinmux_testplan, NumTests, log, prng, gpio, uarts, spis, i2cs, &Pinmux);
+  execute_testplan(pinmux_testplan, NumTests, log, prng, &gpio_full, uarts, spis, i2cs, &Pinmux);
 
   // Infinite loop to stop execution returning
   while (true) {
