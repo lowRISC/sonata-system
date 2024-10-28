@@ -52,6 +52,9 @@ class Block(BaseModel, frozen=True):
     name: str
     instances: int
     ios: list[BlockIo]
+    memory_start: int
+    memory_size: int
+    xbar: dict[str, str] = {}
 
     @field_validator("instances")
     @staticmethod

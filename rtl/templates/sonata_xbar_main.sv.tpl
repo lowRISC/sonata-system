@@ -6,7 +6,9 @@
 // rtl/bus/sonata_xbar_main.sv is automatically generated from rtl/templates/sonata_xbar_main.sv.tpl
 // Please edit the template and run util/top_gen.py if you want to make changes.
 
-module sonata_xbar_main (
+module sonata_xbar_main
+  import sonata_pkg::*;
+(
   input clk_sys_i,
   input clk_usb_i,
   input rst_sys_ni,
@@ -41,12 +43,12 @@ module sonata_xbar_main (
   input  tlul_pkg::tl_d2h_t tl_xadc_i,
   output tlul_pkg::tl_h2d_t tl_timer_o,
   input  tlul_pkg::tl_d2h_t tl_timer_i,
-  output tlul_pkg::tl_h2d_t tl_uart_o[sonata_pkg::UART_NUM],
-  input  tlul_pkg::tl_d2h_t tl_uart_i[sonata_pkg::UART_NUM],
-  output tlul_pkg::tl_h2d_t tl_i2c_o [sonata_pkg::I2C_NUM],
-  input  tlul_pkg::tl_d2h_t tl_i2c_i [sonata_pkg::I2C_NUM],
-  output tlul_pkg::tl_h2d_t tl_spi_o [sonata_pkg::SPI_NUM],
-  input  tlul_pkg::tl_d2h_t tl_spi_i [sonata_pkg::SPI_NUM],
+  % for block in config.blocks:
+  % if not block.name == "gpio":
+  output tlul_pkg::tl_h2d_t tl_${block.name}_o[${block.name.upper()}_NUM],
+  input  tlul_pkg::tl_d2h_t tl_${block.name}_i[${block.name.upper()}_NUM],
+  % endif
+  % endfor
   output tlul_pkg::tl_h2d_t tl_usbdev_o,
   input  tlul_pkg::tl_d2h_t tl_usbdev_i,
   output tlul_pkg::tl_h2d_t tl_rv_plic_o,
@@ -89,17 +91,13 @@ module sonata_xbar_main (
     .tl_xadc_i        (tl_xadc_i),
     .tl_timer_o       (tl_timer_o),
     .tl_timer_i       (tl_timer_i),
-    % for i in range(config.uart.instances):
-    .tl_uart${i}_o       (tl_uart_o[${i}]),
-    .tl_uart${i}_i       (tl_uart_i[${i}]),
+    % for block in config.blocks:
+    % if not block.name == "gpio":
+    % for i in range(block.instances):
+    .tl_${block.name}${i}_o        (tl_${block.name}_o[${i}]),
+    .tl_${block.name}${i}_i        (tl_${block.name}_i[${i}]),
     % endfor
-    % for i in range(config.i2c.instances):
-    .tl_i2c${i}_o        (tl_i2c_o[${i}]),
-    .tl_i2c${i}_i        (tl_i2c_i[${i}]),
-    % endfor
-    % for i in range(config.spi.instances):
-    .tl_spi${i}_o        (tl_spi_o[${i}]),
-    .tl_spi${i}_i        (tl_spi_i[${i}]),
+    % endif
     % endfor
     .tl_usbdev_o      (tl_usbdev_o),
     .tl_usbdev_i      (tl_usbdev_i),
