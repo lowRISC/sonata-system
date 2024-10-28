@@ -55,12 +55,12 @@ void block_until_uart_tx_done(Capability<volatile OpenTitanUart> uart) {
   block_until_uart_tx_done(uart);
 
   // Pinmux Serial 0 TX (used by console UART) to OFF.
-  Pinmux.output_pin_select(SonataPinmux::OutputPin::Serial0Transmit, PINMUX_SER0_TX_DISABLED);
+  Pinmux.output_pin_select(SonataPinmux::OutputPin::ser0_tx, PINMUX_SER0_TX_DISABLED);
   LOG("You should NOT see this message, as we just used pinmux to disable UART0 output.\r\n");
   block_until_uart_tx_done(uart);
 
   // Pinmux Serial 0 TX (used by console UART) to UART0_TX.
-  Pinmux.output_pin_select(SonataPinmux::OutputPin::Serial0Transmit, PINMUX_SER0_TX_UART0_TX);
+  Pinmux.output_pin_select(SonataPinmux::OutputPin::ser0_tx, PINMUX_SER0_TX_UART0_TX);
   LOG("You should see this message, as UART0 has just been re-enabled.\r\n");
 
   LOG("Check completed.\r\n");
