@@ -77,33 +77,33 @@ using namespace CHERI;
   // initializers, as that requires `memcpy` to exist which we do not have.
   // Likewise, arrays with multiple pins/inputs must be individually set, or
   // we will get errors with `memcpy`.
-  OutputPinAssignment pmod_test_gpio_on_pins[]     = {{SonataPinmux::OutputPin::Pmod0Io2, 1}};
-  BlockInputAssignment pmod_test_gpio_on_inputs[]  = {{SonataPinmux::BlockInput::PmodGpio2, 1}};
-  OutputPinAssignment pmod_test_gpio_off_pins[]    = {{SonataPinmux::OutputPin::Pmod0Io2, 0}};
-  BlockInputAssignment pmod_test_gpio_off_inputs[] = {{SonataPinmux::BlockInput::PmodGpio2, 0}};
+  OutputPinAssignment pmod_test_gpio_on_pins[]     = {{SonataPinmux::OutputPin::pmod0_1, 1}};
+  BlockInputAssignment pmod_test_gpio_on_inputs[]  = {{SonataPinmux::BlockInput::gpio_2_ios_2, 1}};
+  OutputPinAssignment pmod_test_gpio_off_pins[]    = {{SonataPinmux::OutputPin::pmod0_1, 0}};
+  BlockInputAssignment pmod_test_gpio_off_inputs[] = {{SonataPinmux::BlockInput::gpio_2_ios_2, 0}};
 
-  OutputPinAssignment pmod_test_uart_on_pins[]     = {{SonataPinmux::OutputPin::Pmod0Io2, 3}};
-  BlockInputAssignment pmod_test_uart_on_inputs[]  = {{SonataPinmux::BlockInput::UartReceive2, 2}};
-  OutputPinAssignment pmod_test_uart_off_pins[]    = {{SonataPinmux::OutputPin::Pmod0Io2, 0}};
-  BlockInputAssignment pmod_test_uart_off_inputs[] = {{SonataPinmux::BlockInput::UartReceive2, 0}};
+  OutputPinAssignment pmod_test_uart_on_pins[]     = {{SonataPinmux::OutputPin::pmod0_1, 3}};
+  BlockInputAssignment pmod_test_uart_on_inputs[]  = {{SonataPinmux::BlockInput::uart_2_rx, 2}};
+  OutputPinAssignment pmod_test_uart_off_pins[]    = {{SonataPinmux::OutputPin::pmod0_1, 0}};
+  BlockInputAssignment pmod_test_uart_off_inputs[] = {{SonataPinmux::BlockInput::uart_2_rx, 0}};
 
   OutputPinAssignment pmod_test_i2c_on_pins[2];
-  pmod_test_i2c_on_pins[0] = {SonataPinmux::OutputPin::Pmod0Io3, 2};  // Mux to I2C SDA
-  pmod_test_i2c_on_pins[1] = {SonataPinmux::OutputPin::Pmod0Io4, 2};  // Mux to I2C SCL
+  pmod_test_i2c_on_pins[0] = {SonataPinmux::OutputPin::pmod0_2, 2};  // Mux to I2C SDA
+  pmod_test_i2c_on_pins[1] = {SonataPinmux::OutputPin::pmod0_3, 2};  // Mux to I2C SCL
   OutputPinAssignment pmod_test_i2c_off_pins[2];
-  pmod_test_i2c_off_pins[0] = {SonataPinmux::OutputPin::Pmod0Io3, 0};
-  pmod_test_i2c_off_pins[1] = {SonataPinmux::OutputPin::Pmod0Io4, 0};
+  pmod_test_i2c_off_pins[0] = {SonataPinmux::OutputPin::pmod0_2, 0};
+  pmod_test_i2c_off_pins[1] = {SonataPinmux::OutputPin::pmod0_3, 0};
 
   OutputPinAssignment pmod_test_spi_on_pins[3];
-  pmod_test_spi_on_pins[0]                       = {SonataPinmux::OutputPin::Pmod0Io1, 1};  // Mux to GPIO for CS
-  pmod_test_spi_on_pins[1]                       = {SonataPinmux::OutputPin::Pmod0Io2, 2};  // Mux to SPI COPI
-  pmod_test_spi_on_pins[2]                       = {SonataPinmux::OutputPin::Pmod0Io4, 3};  // Mux to SPI SCK
-  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::SpiReceive3, 3}};
+  pmod_test_spi_on_pins[0]                       = {SonataPinmux::OutputPin::pmod0_0, 1};  // Mux to GPIO for CS
+  pmod_test_spi_on_pins[1]                       = {SonataPinmux::OutputPin::pmod0_1, 2};  // Mux to SPI COPI
+  pmod_test_spi_on_pins[2]                       = {SonataPinmux::OutputPin::pmod0_3, 3};  // Mux to SPI SCK
+  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::spi_3_rx, 3}};
   OutputPinAssignment pmod_test_spi_off_pins[3];
-  pmod_test_spi_off_pins[0]                       = {SonataPinmux::OutputPin::Pmod0Io1, 0};
-  pmod_test_spi_off_pins[1]                       = {SonataPinmux::OutputPin::Pmod0Io2, 0};
-  pmod_test_spi_off_pins[2]                       = {SonataPinmux::OutputPin::Pmod0Io4, 0};
-  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::SpiReceive3, 0}};
+  pmod_test_spi_off_pins[0]                       = {SonataPinmux::OutputPin::pmod0_0, 0};
+  pmod_test_spi_off_pins[1]                       = {SonataPinmux::OutputPin::pmod0_1, 0};
+  pmod_test_spi_off_pins[2]                       = {SonataPinmux::OutputPin::pmod0_3, 0};
+  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::spi_3_rx, 0}};
 
   // The pinmux testplan to execute. This testplan runs through testing GPIO, UART, I2C and SPI
   // all on the same PMOD pins, with users manually changing out the connected devices between
