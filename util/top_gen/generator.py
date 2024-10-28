@@ -366,6 +366,10 @@ def generate_top(config: TopConfig) -> None:
         ("rtl/templates/sonata_pkg.sv.tpl", "rtl/system/sonata_pkg.sv"),
         ("rtl/templates/pinmux.sv.tpl", "rtl/system/pinmux.sv"),
         ("doc/ip/pinmux.md.tpl", "doc/ip/pinmux.md"),
+        (
+            "sw/cheri/common/platform-pinmux.hh.tpl",
+            "sw/cheri/common/platform-pinmux.hh",
+        ),
     ):
         print("Generating from template: " + template_file)
         content = Template(filename=template_file).render(**template_variables)
@@ -373,5 +377,9 @@ def generate_top(config: TopConfig) -> None:
 
     try:
         subprocess.run(["sh", "util/generate_xbar.sh"], check=True)
+        subprocess.run(
+            ["clang-format", "sw/cheri/common/platform-pinmux.hh", "-i"],
+            check=True,
+        )
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
