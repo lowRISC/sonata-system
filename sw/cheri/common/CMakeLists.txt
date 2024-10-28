@@ -5,3 +5,7 @@
 set(NAME common)
 add_library(${NAME} OBJECT hyperram_exec_test.S boot.S default-handlers.cc)
 target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})
+
+set(NAME block_tests)
+add_library(${NAME} OBJECT block_tests.cc)
+target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES})

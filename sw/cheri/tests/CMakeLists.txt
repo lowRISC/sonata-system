@@ -10,7 +10,7 @@ foreach(TEST ${TESTS})
 
   add_executable(${NAME} ${TEST})
   target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
-  target_link_libraries(${NAME} common)
+  target_link_libraries(${NAME} common block_tests)
 
   install(TARGETS ${NAME})
 endforeach()

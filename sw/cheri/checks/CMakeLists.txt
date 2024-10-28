@@ -60,7 +60,7 @@ install(TARGETS ${NAME})
 SET (NAME pinmux_all_blocks)
 add_executable(${NAME} pinmux_all_blocks_check.cc pinmux_checker.cc)
 target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
-target_link_libraries(${NAME} common)
+target_link_libraries(${NAME} common block_tests)
 
 add_custom_command(
   TARGET ${NAME} POST_BUILD
