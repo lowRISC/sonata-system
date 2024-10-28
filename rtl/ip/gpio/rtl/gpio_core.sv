@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module gpio #(
+module gpio_core #(
   parameter int unsigned GpiWidth  = 8,
   parameter int unsigned GpoWidth  = 16,
   parameter int unsigned AddrWidth = 32,

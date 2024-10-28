@@ -16,6 +16,7 @@ filesets:
       - lowrisc:ip:xbar_main
       - lowrisc:ip:xbar_ifetch
       - lowrisc:ip:spi
+      - lowrisc:ip:gpio
       - lowrisc:ip:rgbled_ctrl
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
@@ -32,8 +33,6 @@ filesets:
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
       - rtl/system/debounce_step.sv
-      - rtl/system/gpio.sv
-      - rtl/system/gpio_array.sv
       - rtl/system/pinmux.sv
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
