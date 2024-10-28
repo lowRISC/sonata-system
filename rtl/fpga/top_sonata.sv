@@ -104,7 +104,6 @@ module top_sonata
   inout  logic       ah_tmpio7,
   inout  logic       ah_tmpio8,
   inout  logic       ah_tmpio9,
-  inout  logic       ah_tmpio16,
 
   // Arduino shield SPI bus
   inout  logic       ah_tmpio10, // Chip select
@@ -451,39 +450,17 @@ module top_sonata
   assign ser0_tx      = output_pins[OUT_PIN_SER0_TX     ];
 
   // Inout Pins
-  localparam int unsigned USED_INOUT_PIN_NUM = INOUT_PIN_NUM-3;
-  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins = {
-    inout_to_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
-    inout_to_pins[INOUT_PIN_AH_TMPIO16],
-    // TODO connect ah_tmpio{14,15,17} through XDC
-    inout_to_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_SCL0]
-  };
-  logic [USED_INOUT_PIN_NUM-1:0] used_inout_to_pins_en = {
-    inout_to_pins_en[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
-    inout_to_pins_en[INOUT_PIN_AH_TMPIO16],
-    // TODO connect ah_tmpio{14,15,17} through XDC
-    inout_to_pins_en[INOUT_PIN_AH_TMPIO13:INOUT_PIN_SCL0]
-  };
-  logic [USED_INOUT_PIN_NUM-1:0] used_inout_from_pins;
-  assign {
-    inout_from_pins[INOUT_PIN_PMOD1_7:INOUT_PIN_MB5],
-    inout_from_pins[INOUT_PIN_AH_TMPIO16],
-    // TODO connect ah_tmpio{14,15,17} through XDC
-    inout_from_pins[INOUT_PIN_AH_TMPIO13:INOUT_PIN_SCL0]
-  } = used_inout_from_pins;
-
   padring #(
-    .InoutNumber(USED_INOUT_PIN_NUM)
+    .InoutNumber(INOUT_PIN_NUM)
   ) u_padring (
-    .inout_to_pins_i   (used_inout_to_pins   ),
-    .inout_to_pins_en_i(used_inout_to_pins_en),
-    .inout_from_pins_o (used_inout_from_pins ),
+    .inout_to_pins_i   (inout_to_pins   ),
+    .inout_to_pins_en_i(inout_to_pins_en),
+    .inout_from_pins_o (inout_from_pins ),
     .inout_pins_io({
       pmod1,
       pmod0,
       mb6,
       mb5,
-      ah_tmpio16,
       ah_tmpio13,
       ah_tmpio12,
       ah_tmpio11,
