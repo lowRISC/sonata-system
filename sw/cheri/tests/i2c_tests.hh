@@ -193,7 +193,7 @@ int i2c_rpi_hat_id_eeprom_test(I2cPtr i2c) {
   // Setup the i2c bus, configuring it in host mode with speed of 100.
   i2c->reset_fifos();
   i2c->host_mode_set();
-  i2c->speed_set(100);
+  i2c->speed_set(1000);
 
   // Send two 0x0000 byte addresses and skip the STOP condition.
   const uint8_t addr[] = {0, 0};
