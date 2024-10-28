@@ -13,6 +13,7 @@
 #define CC_BOLD "1"
 #define CC_RED "31"
 #define CC_GREEN "32"
+#define CC_PURPLE "35"
 #define CC_RESET "0"
 
 struct WriteUart {

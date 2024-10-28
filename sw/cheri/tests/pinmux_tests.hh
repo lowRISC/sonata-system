@@ -57,6 +57,10 @@ static constexpr uint8_t PmxToDisabled = 0;
 static int spi_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash spi_flash) {
   int failures = 0;
 
+  // Configure the SPI to be MSB-first.
+  spi->wait_idle();
+  spi->init(false, false, true, 0);
+
   // Read the JEDEC ID from Flash
   uint8_t jedec_id[3] = {0};
   spi_flash.read_jedec_id(jedec_id);
@@ -378,9 +382,10 @@ void pinmux_tests(CapRoot root, Log &log) {
 
   // Execute the specified number of iterations of each test.
   for (size_t i = 0; i < PINMUX_TEST_ITERATIONS; i++) {
-    log.println("running pinmux_test: {} \\ {}", i, PINMUX_TEST_ITERATIONS - 1);
-    log.println("\x1b[35m(may need manual pin connections to pass)");
-    log.println("\x1b[0m\r\n");
+    log.println("\r\nrunning pinmux_test: {} \\ {}", i, PINMUX_TEST_ITERATIONS - 1);
+    set_console_mode(log, CC_PURPLE);
+    log.println("(may need manual pin connections to pass)");
+    set_console_mode(log, CC_RESET);
 
     bool test_failed = false;
     int failures     = 0;
