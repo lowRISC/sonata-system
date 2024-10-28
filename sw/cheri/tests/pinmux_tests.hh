@@ -40,13 +40,15 @@ using namespace CHERI;
 #define GPIO_FULL_BOUNDS (0x0000'0040)
 
 // Testing parameters
-static constexpr uint32_t UartTimeoutMsec = 10;
+static constexpr uint32_t UartTimeoutUsec = 24;  // with 921,600 bps, this is > 25 bit times.
 static constexpr uint32_t UartTestBytes   = 100;
-static constexpr uint32_t GpioWaitMsec    = 1;
+static constexpr uint32_t GpioWaitUsec    = 20;  // short wire bridge between FGPA pins.
 static constexpr uint32_t GpioTestLength  = 10;
 
-static constexpr uint8_t PmxToDisabled         = 0;
-static constexpr uint32_t CyclesPerMillisecond = CPU_TIMER_HZ / 1'000;
+static constexpr uint8_t PmxToDisabled = 0;
+// CPU clock cycles per microsecond, rounding up because this is going to be a fairly small
+// integral number and the clock frequency may not be an integral number of MHz.
+static constexpr uint32_t CyclesPerMicrosecond = (CPU_TIMER_HZ + 999'999) / 1'000'000;
 
 // Short definitions for the full range of Sonata's GPIO
 struct SonataGpioInstance {
@@ -109,13 +111,13 @@ static inline bool get_gpio_input(Capability<volatile SonataGpioFull> gpio, Gpio
  * the Tx and the Rx of the specified UART to be manually connected on the
  * board, so that data that is written can be read back by the board.
  *
- * @param read_timeout_msec The timeout in milliseconds provided to read each
+ * @param read_timeout_usec The timeout in microseconds provided to read each
  * individual byte sent over UART. Any timeout causes immediate failure.
  * @param test_length The number of random bytes to try sending over UART.
  *
  * Returns true if the test passed, or false if it failed.
  */
-static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uint32_t read_timeout_msec,
+static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uint32_t read_timeout_usec,
                                    uint32_t test_length) {
   constexpr uint8_t UartStatusRegTxIdle = (1 << 2);
   constexpr uint8_t UartStatusRegRxIdle = (1 << 4);
@@ -126,10 +128,17 @@ static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uin
   uart->parity();
   reset_mcycle();
 
-  // Wait for the UART TX FIFO to be empty and all bits to be transmitted,
-  // and the RX to be idle.
+  // Wait with timeout for the UART TX FIFO to be empty and all bits to be transmitted,
+  // and the RX to be idle; if the Rx input is low continually then the UART block may remain
+  // active attempting to receive apparent traffic.
+  const uint32_t start_mcycle   = get_mcycle();
+  const uint32_t cycles         = read_timeout_usec * CyclesPerMicrosecond;
+  const uint32_t timeout_mcycle = start_mcycle + cycles;
   while ((uart->status & UartStatusRegTxIdle) == 0 || (uart->status & UartStatusRegRxIdle) == 0) {
-    asm("");
+    // Has the timeout occurred yet?
+    if (timeout_mcycle < get_mcycle()) {
+      return false;
+    }
   }
   uart->fifos_clear();
 
@@ -140,7 +149,7 @@ static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uin
 
     // Try to read the character back within the given timeout.
     const uint32_t start_mcycle   = get_mcycle();
-    const uint32_t cycles         = read_timeout_msec * CyclesPerMillisecond;
+    const uint32_t cycles         = read_timeout_usec * CyclesPerMicrosecond;
     const uint32_t timeout_mcycle = start_mcycle + cycles;
     while (!uart->can_read() && get_mcycle() < timeout_mcycle) {
       asm("");
@@ -161,7 +170,7 @@ static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uin
  * manually connected on the board, so that GPIO output can be written and
  * read back by the board.
  *
- * @param wait_msec The time in milliseconds to wait for the GPIO write signal
+ * @param wait_usec The time in microseconds to wait for the GPIO write signal
  * to be transmitted before reading.
  * @param test_length The number of individual write/reads to test on the given
  * GPIO connection.
@@ -169,7 +178,7 @@ static bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uin
  * Returns true if the test passed, or false if it failed.
  */
 static bool gpio_write_read_test(Capability<volatile SonataGpioFull> gpio, GpioPin output_pin, GpioPin input_pin,
-                                 uint32_t wait_msec, uint32_t test_length) {
+                                 uint32_t wait_usec, uint32_t test_length) {
   bool gpio_high = false;
   for (uint32_t i = 0; i < test_length; i++) {
     // For each test iteration, invert the GPIO signal
@@ -179,7 +188,7 @@ static bool gpio_write_read_test(Capability<volatile SonataGpioFull> gpio, GpioP
     set_gpio_output(gpio, output_pin, gpio_high);
 
     // Wait a short time for the transmission
-    const uint32_t cycles     = wait_msec * CyclesPerMillisecond;
+    const uint32_t cycles     = wait_usec * CyclesPerMicrosecond;
     const uint32_t end_mcycle = get_mcycle() + cycles;
     while (get_mcycle() < end_mcycle) {
       asm("");
@@ -242,22 +251,22 @@ static int pinmux_uart_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Ua
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToMb8)) failures++;
 
   // Check that messages are sent and received via UART3
-  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
 
   // Disable UART3 TX through pinmux, and check the test now fails (no TX sent)
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::MikroBusUartTransmit, PmxToDisabled)) failures++;
-  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
 
   // Re-enable UART3 TX and disable UART3 RX through pinmux, and check that the test
   // still fails (no RX received)
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::MikroBusUartTransmit, PmxMikroBusUartTransmitToUartTx3))
     failures++;
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxToDisabled)) failures++;
-  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
 
   // Re-enable UART3 RX and check the test now passes again
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToMb8)) failures++;
-  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
 
   return failures;
 }
@@ -403,17 +412,17 @@ static int pinmux_gpio_test(SonataPinmux *pinmux, Capability<volatile SonataGpio
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxArduinoGpio9ToAhTmpio9)) failures++;
 
   // Check that reading & writing from/to GPIO works as expected.
-  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
   // Disable the GPIO via pinmux, and check that the test now fails.
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD8, PmxToDisabled)) failures++;
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxToDisabled)) failures++;
-  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
   // Re-enable the GPIO via pinmux, and check that the test passes once more
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD8, PmxArduinoD8ToGpios_1_8)) failures++;
   if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio9, PmxArduinoGpio9ToAhTmpio9)) failures++;
-  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
   return failures;
 }
@@ -447,28 +456,28 @@ static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Uar
   set_gpio_output_enable(gpio, GpioPinInput, false);
 
   // Mux UART3 over Arduino Shield D0 (RX) & D1 (TX)
-  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToUartTx3)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
 
   // Test that UART3 works over the muxed Arduino Shield D0 & D1 pins,
   // and that GPIO does not work, as these pins are not muxed for GPIO.
-  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
-  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
   // Mux GPIO over Arduino Shield D0 (GPIO input) & D1 (GPIO output)
-  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio0, PmxArduinoGpio0ToAhTmpio0)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToGpio_1_1)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::ArduinoShieldGpio0, PmxArduinoGpio0ToAhTmpio0)) failures++;
 
   // Test that UART3 no longer works (no longer muxed over D0 & D1),
   // and that our muxed GPIO now works.
-  if (uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
-  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
+  if (!gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
-  // Mux back to UART3 again, and thest that UART again passes and GPIO fails.
-  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
+  // Mux back to UART3 again, and test that UART again passes and GPIO fails.
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::ArduinoShieldD1, PmxArduinoD1ToUartTx3)) failures++;
-  if (!uart_send_receive_test(prng, uart3, UartTimeoutMsec, UartTestBytes)) failures++;
-  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitMsec, GpioTestLength)) failures++;
+  if (!pinmux->block_input_select(SonataPinmux::BlockInput::UartReceive3, PmxUartReceive3ToAhTmpio0)) failures++;
+  if (!uart_send_receive_test(prng, uart3, UartTimeoutUsec, UartTestBytes)) failures++;
+  if (gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength)) failures++;
 
   return failures;
 }
