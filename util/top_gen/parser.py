@@ -103,36 +103,6 @@ class TopConfig(BaseModel, frozen=True):
             raise ValueError("All pins must have unique names.")
         return pins
 
-    @field_validator("blocks")
-    @staticmethod
-    def check_blocks(blocks: list[Block]) -> list[Block]:
-        block_names = {block.name for block in blocks}
-        # These blocks are required by the mako templates
-        required_blocks = {"i2c", "spi", "uart"}
-
-        # if block_names is not a superset of required blocks
-        if block_names <= required_blocks:
-            raise ValueError(
-                "There must be a configuration for each of the required "
-                f"blocks: {required_blocks}."
-            )
-        return blocks
-
-    def _get_block(self, name: str) -> Block:
-        return next(block for block in self.blocks if block.name == name)
-
-    @property
-    def uart(self) -> Block:
-        return self._get_block("uart")
-
-    @property
-    def i2c(self) -> Block:
-        return self._get_block("i2c")
-
-    @property
-    def spi(self) -> Block:
-        return self._get_block("spi")
-
     def get_pin(self, name: str) -> Pin:
         try:
             return next(pin for pin in self.pins if pin.name == name)
