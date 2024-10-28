@@ -371,4 +371,7 @@ def generate_top(config: TopConfig) -> None:
         content = Template(filename=template_file).render(**template_variables)
         Path(output_file).write_text(content)
 
-    subprocess.call(["sh", "util/generate_xbar.sh"])
+    try:
+        subprocess.run(["sh", "util/generate_xbar.sh"], check=True)
+    except subprocess.CalledProcessError as err:
+        exit(err.returncode)
