@@ -121,14 +121,13 @@ module sonata_system
   } bus_host_e;
 
   typedef enum int {
-    Gpio,
     Pwm,
     Timer,
     RevTags,
     HwRev
   } bus_device_e;
 
-  localparam int NrDevices = 5;
+  localparam int NrDevices = 4;
   localparam int NrHosts = 2;
 
   // Signals for hardware revoker
@@ -223,7 +222,6 @@ module sonata_system
   logic                     device_err   [NrDevices];
 
   // Generate requests from read and write enables.
-  assign device_req[Gpio]     = device_re[Gpio]     | device_we[Gpio];
   assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
   assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
   assign device_req[HwRev]    = device_re[HwRev]    | device_we[HwRev];
@@ -265,7 +263,6 @@ module sonata_system
   end
 
   // Tie-off unused error signals.
-  assign device_err[Gpio]     = 1'b0;
   assign device_err[Pwm]      = 1'b0;
   assign device_err[HwRev]    = 1'b0;
 
@@ -580,34 +577,6 @@ module sonata_system
 
   tlul_adapter_reg #(
     .AccessLatency    ( 1 )
-  ) gpio_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_gpio_h2d),
-    .tl_o         (tl_gpio_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[Gpio]),
-    .we_o         (device_we[Gpio]),
-    .addr_o       (device_addr[Gpio][RegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[Gpio]),
-    .be_o         (device_be[Gpio]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[Gpio]),
-    .error_i      (device_err[Gpio])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[Gpio][BusAddrWidth-1:RegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
-    .AccessLatency    ( 1 )
   ) pwm_device_adapter (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
@@ -866,7 +835,7 @@ module sonata_system
   assign gp_o              = gpio_to_pins       [0];
   assign gp_o_en           = gpio_to_pins_enable[0];
 
-  gpio_array #(
+  gpio #(
     .GpiWidth     ( GPIO_IOS_WIDTH ),
     .GpoWidth     ( GPIO_IOS_WIDTH ),
     .NumInstances ( GPIO_NUM + 1   )
@@ -874,14 +843,8 @@ module sonata_system
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
 
-    // Bus interface.
-    .device_req_i    (device_req[Gpio]),
-    .device_addr_i   (device_addr[Gpio]),
-    .device_we_i     (device_we[Gpio]),
-    .device_be_i     (device_be[Gpio]),
-    .device_wdata_i  (device_wdata[Gpio]),
-    .device_rvalid_o (device_rvalid[Gpio]),
-    .device_rdata_o  (device_rdata[Gpio]),
+    .tl_i         (tl_gpio_h2d),
+    .tl_o         (tl_gpio_d2h),
 
     .gp_i(gpio_from_pins),
     .gp_o(gpio_to_pins),

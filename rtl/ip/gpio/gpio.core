@@ -6,9 +6,13 @@ name: "lowrisc:ip:gpio:0.1"
 description: "GPIO"
 filesets:
   files_rtl:
+    depend:
+      - lowrisc:prim:mubi
+      - lowrisc:tlul:adapter_reg
     files:
       - rtl/gpio_core.sv
       - rtl/gpio_array.sv
+      - rtl/gpio.sv
     file_type: systemVerilogSource
 
 targets:
