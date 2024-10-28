@@ -41,7 +41,10 @@ make -C ./build/lowrisc_sonata_system_0/synth-vivado build-gui
 ```
 
 Check the following:
- - No timing failures (positive or 0 wns)
+ - No timing failures (positive or 0 wns). If there is a timing failure run a
+   detailed timing report ('Report Timing Summary' under 'Open Implemented
+   Design') to double check. Vivado has been observed reporting timing failures
+   that disappear in a detailed timing report.
  - Synthesis and implementation errors (see known errors below)
  - Critical warnings (see known critical warnings below)
 
