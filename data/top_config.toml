@@ -1,4 +1,18 @@
 [[blocks]]
+name = "gpio"
+instances = 3 # 1 RPi, 1 Ard, 1 Pmod
+ios = [
+  {
+    name = "ios",
+    type = "inout",
+    combine = "mux",
+    length = 32
+  },
+]
+memory_start = 0x80000000
+memory_size  = 0x00000040
+
+[[blocks]]
 name = "uart"
 instances = 5
 ios = [
@@ -31,20 +45,6 @@ ios = [
 ]
 memory_start = 0x80300000
 memory_size  = 0x00001000
-
-[[blocks]]
-name = "gpio"
-instances = 3 # 1 RPi, 1 Ard, 1 Pmod
-ios = [
-  {
-    name = "ios",
-    type = "inout",
-    combine = "mux",
-    length = 32
-  },
-]
-memory_start = 0x80000000
-memory_size  = 0x00000040
 
 # UARTS
 [[pins]]

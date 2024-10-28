@@ -12,6 +12,11 @@ module pinmux
   input logic clk_i,
   input logic rst_ni,
 
+  // GPIO IOs
+  output [31:0] gpio_ios_o   [GPIO_NUM],
+  input  [31:0] gpio_ios_i   [GPIO_NUM],
+  input  [31:0] gpio_ios_en_i[GPIO_NUM],
+
   // UART IOs
   output uart_rx_o[UART_NUM],
   input  uart_tx_i   [UART_NUM],
@@ -33,11 +38,6 @@ module pinmux
   input  spi_sck_en_i[SPI_NUM],
   input  [3:0] spi_cs_i   [SPI_NUM],
   input  [3:0] spi_cs_en_i[SPI_NUM],
-
-  // GPIO IOs
-  output [31:0] gpio_ios_o   [GPIO_NUM],
-  input  [31:0] gpio_ios_i   [GPIO_NUM],
-  input  [31:0] gpio_ios_en_i[GPIO_NUM],
 
   // Pin Signals
   input  sonata_in_pins_t  in_from_pins_i,
