@@ -116,22 +116,22 @@ class SonataPinmux : private utils::NoCopyNoMove {
     mb6          = 0x03e,
     mb7          = 0x03f,
     mb10         = 0x040,
-    pmod0_0      = 0x041,
-    pmod0_1      = 0x042,
-    pmod0_2      = 0x043,
-    pmod0_3      = 0x044,
-    pmod0_4      = 0x045,
-    pmod0_5      = 0x046,
-    pmod0_6      = 0x047,
-    pmod0_7      = 0x048,
-    pmod1_0      = 0x049,
-    pmod1_1      = 0x04a,
-    pmod1_2      = 0x04b,
-    pmod1_3      = 0x04c,
-    pmod1_4      = 0x04d,
-    pmod1_5      = 0x04e,
-    pmod1_6      = 0x04f,
-    pmod1_7      = 0x050,
+    pmod0_1      = 0x041,
+    pmod0_2      = 0x042,
+    pmod0_3      = 0x043,
+    pmod0_4      = 0x044,
+    pmod0_5      = 0x045,
+    pmod0_6      = 0x046,
+    pmod0_7      = 0x047,
+    pmod0_8      = 0x048,
+    pmod1_1      = 0x049,
+    pmod1_2      = 0x04a,
+    pmod1_3      = 0x04b,
+    pmod1_4      = 0x04c,
+    pmod1_5      = 0x04d,
+    pmod1_6      = 0x04e,
+    pmod1_7      = 0x04f,
+    pmod1_8      = 0x050,
     microsd_clk  = 0x051,
     microsd_cmd  = 0x052,
     microsd_dat3 = 0x053,
@@ -274,10 +274,10 @@ class SonataPinmux : private utils::NoCopyNoMove {
    */
   static constexpr uint8_t output_pin_options(OutputPin output_pin) {
     switch (output_pin) {
-      case OutputPin::pmod0_1:
-      case OutputPin::pmod0_3:
-      case OutputPin::pmod1_1:
-      case OutputPin::pmod1_3:
+      case OutputPin::pmod0_2:
+      case OutputPin::pmod0_4:
+      case OutputPin::pmod1_2:
+      case OutputPin::pmod1_4:
         return 4;
       case OutputPin::rph_g0:
       case OutputPin::rph_g1:
@@ -297,10 +297,10 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::ah_tmpio10:
       case OutputPin::ah_tmpio11:
       case OutputPin::ah_tmpio13:
-      case OutputPin::pmod0_0:
-      case OutputPin::pmod0_2:
-      case OutputPin::pmod1_0:
-      case OutputPin::pmod1_2:
+      case OutputPin::pmod0_1:
+      case OutputPin::pmod0_3:
+      case OutputPin::pmod1_1:
+      case OutputPin::pmod1_3:
         return 3;
       default:
         return 2;
