@@ -8,24 +8,28 @@ For the input this module provides a raw value as well as a debounced value.
 Debouncing is useful to avoid counting a single button press multiple times.
 For more information on contact bounce, see [this Wikipedia page](https://en.wikipedia.org/wiki/Switch#Contact_bounce).
 
-| Offset | Register                |
-|--------|-------------------------|
-| 0x0000 | Output                  |
-| 0x0004 | Input                   |
-| 0x0008 | Debounced input         |
-| 0x000C | Output enable           |
-| 0x0010 | R-Pi output             |
-| 0x0014 | R-Pi input              |
-| 0x0018 | R-pi debounced input    |
-| 0x001C | R-pi output enable      |
-| 0x0020 | Arduino output          |
-| 0x0024 | Arduino input           |
-| 0x0028 | Arduino debounced input |
-| 0x002C | Arduino output enable   |
-| 0x0030 | PMOD output             |
-| 0x0034 | PMOD input              |
-| 0x0038 | PMOD debounced input    |
-| 0x003C | PMOD output enable      |
+| Offset | Register                 |
+|--------|--------------------------|
+| 0x0000 | Output                   |
+| 0x0004 | Input                    |
+| 0x0008 | Debounced input          |
+| 0x000C | Output enable            |
+| 0x0040 | R-Pi output              |
+| 0x0044 | R-Pi input               |
+| 0x0048 | R-pi debounced input     |
+| 0x004C | R-pi output enable       |
+| 0x0080 | Arduino output           |
+| 0x0084 | Arduino input            |
+| 0x0088 | Arduino debounced input  |
+| 0x008C | Arduino output enable    |
+| 0x00C0 | PMOD0 output             |
+| 0x00C4 | PMOD0 input              |
+| 0x00C8 | PMOD0 debounced input    |
+| 0x00CC | PMOD0 output enable      |
+| 0x0100 | PMOD1 output             |
+| 0x0104 | PMOD1 input              |
+| 0x0108 | PMOD1 debounced input    |
+| 0x010C | PMOD1 output enable      |
 
 ## Output
 
