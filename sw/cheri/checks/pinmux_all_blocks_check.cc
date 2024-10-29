@@ -178,7 +178,7 @@ using namespace CHERI;
       },
       {
           .type             = TestType::I2cPmodColourReadId,
-          .name             = "PMOD0_1 & PMOD0_2 I2C Muxed      ",
+          .name             = "PMOD0_3 & PMOD0_4 I2C Muxed      ",
           .manual_required  = true,
           .instruction      = "Remove the wire connecting PMOD0 Pins 2 & 3. Connect the PMOD Colour to PMOD0.",
           .output_pins      = pmod_test_i2c_on_pins,
@@ -190,7 +190,7 @@ using namespace CHERI;
       },
       {
           .type             = TestType::I2cPmodColourReadId,
-          .name             = "PMOD0_1 & PMOD0_2 I2C Not Muxed  ",
+          .name             = "PMOD0_3 & PMOD0_4 I2C Not Muxed  ",
           .manual_required  = false,
           .output_pins      = pmod_test_i2c_off_pins,
           .num_output_pins  = ARRAYSIZE(pmod_test_i2c_off_pins),
