@@ -297,7 +297,9 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::ah_tmpio10:
       case OutputPin::ah_tmpio11:
       case OutputPin::ah_tmpio13:
+      case OutputPin::pmod0_0:
       case OutputPin::pmod0_2:
+      case OutputPin::pmod1_0:
       case OutputPin::pmod1_2:
         return 3;
       default:
@@ -322,9 +324,10 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case BlockInput::spi_3_rx:
         return 5;
       case BlockInput::uart_3_rx:
-      case BlockInput::spi_4_rx:
         return 4;
       case BlockInput::uart_2_rx:
+      case BlockInput::spi_2_rx:
+      case BlockInput::spi_4_rx:
         return 3;
       default:
         return 2;

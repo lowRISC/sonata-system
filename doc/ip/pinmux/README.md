@@ -77,18 +77,18 @@ The default value for all of these selectors is `'b10`.
 | 0x03e | `mb6` | 0, `i2c[1].scl` |
 | 0x03f | `mb7` | 0, `uart[3].tx` |
 | 0x040 | `mb10` | 0, `pwm[0].ios[0]` |
-| 0x041 | `pmod0_0` | 0, `gpio[2].ios[0]` |
-| 0x042 | `pmod0_1` | 0, `gpio[2].ios[1]`, `spi[3].tx`, `uart[2].tx` |
+| 0x041 | `pmod0_0` | 0, `gpio[2].ios[0]`, `spi[2].cs[0]` |
+| 0x042 | `pmod0_1` | 0, `gpio[2].ios[1]`, `spi[2].tx`, `uart[2].tx` |
 | 0x043 | `pmod0_2` | 0, `gpio[2].ios[2]`, `i2c[0].scl` |
-| 0x044 | `pmod0_3` | 0, `gpio[2].ios[3]`, `i2c[0].sda`, `spi[3].sck` |
+| 0x044 | `pmod0_3` | 0, `gpio[2].ios[3]`, `i2c[0].sda`, `spi[2].sck` |
 | 0x045 | `pmod0_4` | 0, `gpio[2].ios[4]` |
 | 0x046 | `pmod0_5` | 0, `gpio[2].ios[5]` |
 | 0x047 | `pmod0_6` | 0, `gpio[2].ios[6]` |
 | 0x048 | `pmod0_7` | 0, `gpio[2].ios[7]` |
-| 0x049 | `pmod1_0` | 0, `gpio[2].ios[8]` |
-| 0x04a | `pmod1_1` | 0, `gpio[2].ios[9]`, `spi[4].tx`, `uart[3].tx` |
+| 0x049 | `pmod1_0` | 0, `gpio[2].ios[8]`, `spi[3].cs[0]` |
+| 0x04a | `pmod1_1` | 0, `gpio[2].ios[9]`, `spi[3].tx`, `uart[3].tx` |
 | 0x04b | `pmod1_2` | 0, `gpio[2].ios[10]`, `i2c[1].scl` |
-| 0x04c | `pmod1_3` | 0, `gpio[2].ios[11]`, `i2c[1].sda`, `spi[4].sck` |
+| 0x04c | `pmod1_3` | 0, `gpio[2].ios[11]`, `i2c[1].sda`, `spi[3].sck` |
 | 0x04d | `pmod1_4` | 0, `gpio[2].ios[12]` |
 | 0x04e | `pmod1_5` | 0, `gpio[2].ios[13]` |
 | 0x04f | `pmod1_6` | 0, `gpio[2].ios[14]` |
@@ -108,9 +108,9 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x804 | `uart[4].rx` | 1, `rs232_rx` |
 | 0x805 | `spi[0].rx` | 0, `appspi_d1` |
 | 0x806 | `spi[1].rx` | 0, 0 |
-| 0x807 | `spi[2].rx` | 0, `ethmac_cipo` |
-| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod0_2`, `microsd_dat0` |
-| 0x809 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3`, `pmod1_2` |
+| 0x807 | `spi[2].rx` | 0, `ethmac_cipo`, `pmod0_2` |
+| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod1_2`, `microsd_dat0` |
+| 0x809 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3` |
 | 0x80a | `gpio[0].ios[0]` | 0, `rph_g0` |
 | 0x80b | `gpio[1].ios[0]` | 0, `ah_tmpio0` |
 | 0x80c | `gpio[2].ios[0]` | 0, `pmod0_0` |
