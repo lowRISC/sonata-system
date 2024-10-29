@@ -123,12 +123,14 @@ static int pinmux_uart_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Ua
 static int pinmux_spi_flash_test(SonataPinmux *pinmux, Capability<volatile SonataSpi> spi, SpiFlash spi_flash) {
   constexpr uint8_t PmxSpiFlashDataToSpiTx0   = 1;
   constexpr uint8_t PmxSpiFlashClockToSpiClk0 = 1;
+  constexpr uint8_t PmxSpiFlashCsToSpiCs0     = 1;
 
   int failures = 0;
 
   // Ensure the SPI Flash pins are enabled using Pinmux
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_d0, PmxSpiFlashDataToSpiTx0)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_clk, PmxSpiFlashClockToSpiClk0)) failures++;
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_cs, PmxSpiFlashCsToSpiCs0)) failures++;
 
   // Configure the SPI to be MSB-first.
   spi->wait_idle();
@@ -140,6 +142,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, Capability<volatile Sonat
 
   // Disable the SPI Flash pins through pinmux
   spi->wait_idle();
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_cs, PmxToDisabled)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_d0, PmxToDisabled)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_clk, PmxToDisabled)) failures++;
   spi_flash.reset();
@@ -151,9 +154,26 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, Capability<volatile Sonat
   spi->wait_idle();
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_d0, PmxSpiFlashDataToSpiTx0)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_clk, PmxSpiFlashClockToSpiClk0)) failures++;
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_cs, PmxSpiFlashCsToSpiCs0)) failures++;
   spi_flash.reset();
 
   // Run the JEDEC ID Test one more time; it should pass.
+  failures += spi_jedec_id_test(spi, spi_flash);
+
+  // Disable specifically the Chip Select through Pinmux.
+  spi->wait_idle();
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_cs, PmxToDisabled)) failures++;
+  spi_flash.reset();
+
+  // Run the JEDEC ID Test again; we expect it to fail.
+  if (spi_jedec_id_test(spi, spi_flash) == 0) failures++;
+
+  // Re-enable the Chip Select through Pinmux.
+  spi->wait_idle();
+  if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_cs, PmxSpiFlashCsToSpiCs0)) failures++;
+  spi_flash.reset();
+
+  // Run the JEDEC ID Test again; it should pass.
   failures += spi_jedec_id_test(spi, spi_flash);
 
   return failures;
