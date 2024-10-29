@@ -33,6 +33,7 @@ class BlockIoFlat(BaseModel, frozen=True):
 
     default_value: int
     direction: Direction
+    only_instance: bool = False
     combine: BlockIoCombine | None = None
 
     @property
@@ -54,7 +55,10 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def doc_name(self) -> str:
         uid = self.uid
-        return f"{uid.block}[{uid.instance}].{uid.io}{self.io_idx_str}"
+        if self.only_instance:
+            return f"{uid.block}_{uid.io}{self.io_idx_str}"
+        else:
+            return f"{uid.block}[{uid.instance}].{uid.io}{self.io_idx_str}"
 
 
 @dataclass(frozen=True)
@@ -150,6 +154,7 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
                         ),
                         default_value=io.default,
                         direction=io.type,
+                        only_instance=(block.instances == 1),
                         combine=io.combine,
                     )
                 else:
@@ -163,6 +168,7 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
                             ),
                             default_value=io.default,
                             direction=io.type,
+                            only_instance=(block.instances == 1),
                             combine=io.combine,
                         )
 
