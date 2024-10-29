@@ -9,7 +9,6 @@ module sonata_system
   import sonata_pkg::*;
 #(
   parameter int unsigned ArdAniWidth   = 6,
-  parameter int unsigned PwmWidth      = 12,
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = "",
   parameter int unsigned SysClkFreq    = 30_000_000,
@@ -34,8 +33,6 @@ module sonata_system
   input  logic [GPIO_IOS_WIDTH-1:0] gp_i,
   output logic [GPIO_IOS_WIDTH-1:0] gp_o,
   output logic [GPIO_IOS_WIDTH-1:0] gp_o_en,
-
-  output logic [PwmWidth-1:0]      pwm_o,
 
   // Arduino shield analog(ue) inputs:
   // Digital version of inputs, then p & n true analog(ue) inputs
@@ -341,8 +338,8 @@ module sonata_system
     .tl_rev_tag_i     (tl_rev_tag_d2h),
     .tl_gpio_o        (tl_gpio_h2d),
     .tl_gpio_i        (tl_gpio_d2h),
-    .tl_pwm_o         (tl_pwm_h2d),
-    .tl_pwm_i         (tl_pwm_d2h),
+    .tl_pwm_o         ('{tl_pwm_h2d}),
+    .tl_pwm_i         ('{tl_pwm_d2h}),
     .tl_system_info_o (tl_system_info_h2d),
     .tl_system_info_i (tl_system_info_d2h),
     .tl_pinmux_o      (tl_pinmux_h2d),
@@ -912,8 +909,9 @@ module sonata_system
   end : gen_i2c_hosts
 
   // Pulse width modulator.
+  logic [PWM_IOS_WIDTH-1:0] pwm_modulated;
   pwm_wrapper #(
-    .PwmWidth   ( PwmWidth   ),
+    .PwmWidth   ( PWM_IOS_WIDTH ),
     .PwmCtrSize ( PwmCtrSize )
   ) u_pwm (
     .clk_i           (clk_sys_i),
@@ -927,7 +925,7 @@ module sonata_system
     .device_rvalid_o (device_rvalid[Pwm]),
     .device_rdata_o  (device_rdata[Pwm]),
 
-    .pwm_o
+    .pwm_o (pwm_modulated)
   );
 
   // UARTs
@@ -1186,6 +1184,9 @@ module sonata_system
   pinmux u_pinmux (
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
+
+    .pwm_ios_i('{pwm_modulated}),
+    .pwm_ios_en_i('{'b1}),
 
     .uart_rx_o(uart_rx),
     .uart_tx_i(uart_tx),

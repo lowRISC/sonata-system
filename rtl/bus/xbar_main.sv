@@ -13,13 +13,13 @@
 //     -> hyperram
 //     -> rev_tag
 //     -> gpio
-//     -> pwm
 //     -> pinmux
 //     -> system_info
 //     -> rgbled_ctrl
 //     -> hw_rev
 //     -> xadc
 //     -> timer
+//     -> pwm0
 //     -> uart0
 //     -> uart1
 //     -> uart2
@@ -60,8 +60,6 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_rev_tag_i,
   output tlul_pkg::tl_h2d_t tl_gpio_o,
   input  tlul_pkg::tl_d2h_t tl_gpio_i,
-  output tlul_pkg::tl_h2d_t tl_pwm_o,
-  input  tlul_pkg::tl_d2h_t tl_pwm_i,
   output tlul_pkg::tl_h2d_t tl_pinmux_o,
   input  tlul_pkg::tl_d2h_t tl_pinmux_i,
   output tlul_pkg::tl_h2d_t tl_rgbled_ctrl_o,
@@ -74,6 +72,8 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_system_info_i,
   output tlul_pkg::tl_h2d_t tl_timer_o,
   input  tlul_pkg::tl_d2h_t tl_timer_i,
+  output tlul_pkg::tl_h2d_t tl_pwm0_o,
+  input  tlul_pkg::tl_d2h_t tl_pwm0_i,
   output tlul_pkg::tl_h2d_t tl_uart0_o,
   input  tlul_pkg::tl_d2h_t tl_uart0_i,
   output tlul_pkg::tl_h2d_t tl_uart1_o,
@@ -150,26 +150,26 @@ module xbar_main (
   assign tl_gpio_o = tl_s1n_27_ds_h2d[3];
   assign tl_s1n_27_ds_d2h[3] = tl_gpio_i;
 
-  assign tl_pwm_o = tl_s1n_27_ds_h2d[4];
-  assign tl_s1n_27_ds_d2h[4] = tl_pwm_i;
+  assign tl_pinmux_o = tl_s1n_27_ds_h2d[4];
+  assign tl_s1n_27_ds_d2h[4] = tl_pinmux_i;
 
-  assign tl_pinmux_o = tl_s1n_27_ds_h2d[5];
-  assign tl_s1n_27_ds_d2h[5] = tl_pinmux_i;
+  assign tl_system_info_o = tl_s1n_27_ds_h2d[5];
+  assign tl_s1n_27_ds_d2h[5] = tl_system_info_i;
 
-  assign tl_system_info_o = tl_s1n_27_ds_h2d[6];
-  assign tl_s1n_27_ds_d2h[6] = tl_system_info_i;
+  assign tl_rgbled_ctrl_o = tl_s1n_27_ds_h2d[6];
+  assign tl_s1n_27_ds_d2h[6] = tl_rgbled_ctrl_i;
 
-  assign tl_rgbled_ctrl_o = tl_s1n_27_ds_h2d[7];
-  assign tl_s1n_27_ds_d2h[7] = tl_rgbled_ctrl_i;
+  assign tl_hw_rev_o = tl_s1n_27_ds_h2d[7];
+  assign tl_s1n_27_ds_d2h[7] = tl_hw_rev_i;
 
-  assign tl_hw_rev_o = tl_s1n_27_ds_h2d[8];
-  assign tl_s1n_27_ds_d2h[8] = tl_hw_rev_i;
+  assign tl_xadc_o = tl_s1n_27_ds_h2d[8];
+  assign tl_s1n_27_ds_d2h[8] = tl_xadc_i;
 
-  assign tl_xadc_o = tl_s1n_27_ds_h2d[9];
-  assign tl_s1n_27_ds_d2h[9] = tl_xadc_i;
+  assign tl_timer_o = tl_s1n_27_ds_h2d[9];
+  assign tl_s1n_27_ds_d2h[9] = tl_timer_i;
 
-  assign tl_timer_o = tl_s1n_27_ds_h2d[10];
-  assign tl_s1n_27_ds_d2h[10] = tl_timer_i;
+  assign tl_pwm0_o = tl_s1n_27_ds_h2d[10];
+  assign tl_s1n_27_ds_d2h[10] = tl_pwm0_i;
 
   assign tl_uart0_o = tl_s1n_27_ds_h2d[11];
   assign tl_s1n_27_ds_d2h[11] = tl_uart0_i;
@@ -245,31 +245,31 @@ module xbar_main (
       dev_sel_s1n_27 = 5'd3;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_PWM)) == ADDR_SPACE_PWM) begin
+                  ~(ADDR_MASK_PINMUX)) == ADDR_SPACE_PINMUX) begin
       dev_sel_s1n_27 = 5'd4;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_PINMUX)) == ADDR_SPACE_PINMUX) begin
+                  ~(ADDR_MASK_SYSTEM_INFO)) == ADDR_SPACE_SYSTEM_INFO) begin
       dev_sel_s1n_27 = 5'd5;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_SYSTEM_INFO)) == ADDR_SPACE_SYSTEM_INFO) begin
+                  ~(ADDR_MASK_RGBLED_CTRL)) == ADDR_SPACE_RGBLED_CTRL) begin
       dev_sel_s1n_27 = 5'd6;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_RGBLED_CTRL)) == ADDR_SPACE_RGBLED_CTRL) begin
+                  ~(ADDR_MASK_HW_REV)) == ADDR_SPACE_HW_REV) begin
       dev_sel_s1n_27 = 5'd7;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_HW_REV)) == ADDR_SPACE_HW_REV) begin
+                  ~(ADDR_MASK_XADC)) == ADDR_SPACE_XADC) begin
       dev_sel_s1n_27 = 5'd8;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_XADC)) == ADDR_SPACE_XADC) begin
+                  ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
       dev_sel_s1n_27 = 5'd9;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
-                  ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
+                  ~(ADDR_MASK_PWM0)) == ADDR_SPACE_PWM0) begin
       dev_sel_s1n_27 = 5'd10;
 
     end else if ((tl_s1n_27_us_h2d.a_address &
@@ -335,10 +335,10 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqPass  (25'hfc0547),
-    .DRspPass  (25'hfc0547),
-    .DReqDepth (100'h1000000111111101010111000),
-    .DRspDepth (100'h1000000111111101010111000),
+    .DReqPass  (25'hfc02a7),
+    .DRspPass  (25'hfc02a7),
+    .DReqDepth (100'h1000000111111110101011000),
+    .DRspDepth (100'h1000000111111110101011000),
     .N         (25)
   ) u_s1n_27 (
     .clk_i        (clk_sys_i),
