@@ -1039,9 +1039,9 @@ module sonata_system
   // - 2x Raspberry Pi HAT
   // - Arduino Shield
   // - mikroBUS Click
-  logic                    spi_sck[SPI_NUM];
-  logic                    spi_tx[SPI_NUM];
-  logic                    spi_rx[SPI_NUM];
+  logic                    spi_sclk[SPI_NUM];
+  logic                    spi_copi[SPI_NUM];
+  logic                    spi_cipo[SPI_NUM];
   logic [SPI_CS_WIDTH-1:0] spi_cs[SPI_NUM];
   for (genvar i = 0; i < SPI_NUM; i++) begin : gen_spi_hosts
     spi #(
@@ -1062,10 +1062,10 @@ module sonata_system
       .intr_complete_o     (spi_interrupts[i][4]),
 
       // SPI signals.
-      .spi_copi_o          (spi_tx [i]),
-      .spi_cipo_i          (spi_rx [i]),
+      .spi_copi_o          (spi_copi [i]),
+      .spi_cipo_i          (spi_cipo [i]),
       .spi_cs_o            (spi_cs [i]),
-      .spi_clk_o           (spi_sck[i])
+      .spi_clk_o           (spi_sclk[i])
     );
   end : gen_spi_hosts
 
@@ -1205,11 +1205,11 @@ module sonata_system
     .i2c_sda_i(i2c_sda_h2d),
     .i2c_sda_en_i(i2c_sda_en_h2d),
 
-    .spi_rx_o(spi_rx),
-    .spi_tx_i(spi_tx),
-    .spi_tx_en_i('{default: 'b1}),
-    .spi_sck_i(spi_sck),
-    .spi_sck_en_i('{default: 'b1}),
+    .spi_cipo_o(spi_cipo),
+    .spi_copi_i(spi_copi),
+    .spi_copi_en_i('{default: 'b1}),
+    .spi_sclk_i(spi_sclk),
+    .spi_sclk_en_i('{default: 'b1}),
     .spi_cs_i(spi_cs),
     .spi_cs_en_i('{default: '1}), // All continuously enabled.
 
