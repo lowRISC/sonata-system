@@ -1,6 +1,6 @@
 digraph {
   rankdir=LR;
-  ranksep=8;
+  ranksep=10;
 
   subgraph blocks {
     color = none;
@@ -61,23 +61,35 @@ digraph {
       |<gpo_0-7>gpo_0-7\
       |<gpi_0-7>gpi_0-7\
       |<gpi_8-12>gpi_8-12\
-      |<gpi_13>gpi_13\
+      |<gpi_13-15>gpi_13-15\
+      |<gpi_16>gpi_16\
     "]
 
     gpio_rph [label = "gpio_rph|<gpio_0-27>gpio_0-27"]
     gpio_ah [label = "gpio_ah|<gpio_0-13>gpio_0-13"]
-    gpio_mb [label = "gpio_mb|<gpio_0-10>gpio_0-10"]
 
     gpio_pmod0 [label = "gpio_pmod0|<gpio_0-7>gpio_0-7"]
     gpio_pmodc [label = "gpio_pmodc|<gpio_0-5>gpio_0-5"]
     gpio_pmod1 [label = "gpio_pmod1|<gpio_0-7>gpio_0-7"]
 
-    pwm [label = "pwm|<0>0|<1>1|<2>2|<3>3|<4>4|<5>5"]
+    pwm [label = "pwm|<0>0|<1>1|<2>2|<3>3|<4>4|<5>5|<6>6"]
   }
 
   subgraph nets {
     color = none;
     node [shape=none];
+    usr [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr>
+          <td port="led_0-7">usrled0-7</td><td>gpo</td>
+          <td rowspan="4">user leds, switches<br/>and joystick</td>
+        </tr>
+        <tr><td port="sw_0-7">usrsw0-7</td><td>gpi</td></tr>
+        <tr><td port="navsw_0-4">navsw0-4</td><td>gpi</td></tr>
+        <tr><td port="selsw_0-2">selsw0-2</td><td>gpi</td></tr>
+      </table>
+    >];
+
     usb [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
@@ -141,20 +153,6 @@ digraph {
       </table>
     >];
 
-    lcd [label=<
-      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-        <tr>
-          <td port="copi">lcd_copi</td><td>copi</td>
-          <td rowspan="6">lcd</td>
-        </tr>
-        <tr><td port="clk">lcd_clk</td><td>sclk</td></tr>
-        <tr><td port="cs">lcd_cs</td><td>cs</td></tr>
-        <tr><td port="rst">lcd_rst</td><td>gpo</td></tr>
-        <tr><td port="dc">lcd_dc</td><td>gpo</td></tr>
-        <tr><td port="backlight">lcd_backlight</td><td>gpo</td></tr>
-      </table>
-    >];
-
     /*
     We don't have a SPI device block in sonata system.
     ah_icsp [label=<
@@ -174,86 +172,64 @@ digraph {
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
           <td port="cmd">microsd_cmd</td><td>copi</td>
-          <td rowspan="5">MicroSD card</td>
+          <td rowspan="7">MicroSD card</td>
         </tr>
-        <tr><td port="dat0">microsd_dat0</td><td>cipo</td></tr>
         <tr><td port="clk">microsd_clk</td><td>sclk</td></tr>
+        <tr><td port="dat0">microsd_dat0</td><td>cipo</td></tr>
+        <tr><td port="dat1">microsd_dat1</td><td>cipo</td></tr>
+        <tr><td port="dat2">microsd_dat2</td><td>cipo</td></tr>
         <tr><td port="dat3">microsd_dat3</td><td>cs</td></tr>
         <tr><td port="det">microsd_det</td><td>gpi</td></tr>
       </table>
     >];
 
-    usr [label=<
+    lcd [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
-          <td port="led_0-7">usrled0-7</td><td>gpo</td>
-          <td rowspan="3">user leds, switches<br/>and joystick</td>
+          <td port="copi">lcd_copi</td><td>copi</td>
+          <td rowspan="6">lcd</td>
         </tr>
-        <tr><td port="sw_0-7">usrsw0-7</td><td>gpi</td></tr>
-        <tr><td port="navsw_0-4">navsw0-4</td><td>gpi</td></tr>
+        <tr><td port="clk">lcd_clk</td><td>sclk</td></tr>
+        <tr><td port="cs">lcd_cs</td><td>cs</td></tr>
+        <tr><td port="rst">lcd_rst</td><td>gpo</td></tr>
+        <tr><td port="dc">lcd_dc</td><td>gpo</td></tr>
+        <tr><td port="backlight">lcd_backlight</td><td>gpo</td></tr>
       </table>
     >];
 
-    pmod1 [label=<
+    rph [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
-          <td port="1">pmod1_1</td><td>gpio, cs</td>
-          <td rowspan="8">Pmod 1<br/>types 1A, 2A, 3A or 6A</td>
+          <td port="g0">rph_g0</td><td>gpio, sda</td>
+          <td rowspan="28">Raspberry Pi HAT</td>
         </tr>
-        <tr><td port="2">pmod1_2</td><td>gpio, copi, pwm, tx</td></tr>
-        <tr><td port="3">pmod1_3</td><td>gpio, cipo, sda, rx</td></tr>
-        <tr><td port="4">pmod1_4</td><td>gpio, sclk, scl</td></tr>
-        <tr><td port="5">pmod1_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod1_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod1_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod1_8</td><td>gpio, cs</td></tr>
-      </table>
-    >];
-    pmodc [label=<
-      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-        <tr>
-          <td port="1">pmodc_1</td><td>gpio</td>
-          <td rowspan="6">Pmod C</td>
-        </tr>
-        <tr><td port="2">pmodc_2</td><td>gpio</td></tr>
-        <tr><td port="3">pmodc_3</td><td>gpio</td></tr>
-        <tr><td port="4">pmodc_4</td><td>gpio</td></tr>
-        <tr><td port="5">pmodc_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmodc_6</td><td>gpio</td></tr>
-      </table>
-    >];
-    pmod0 [label=<
-      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-        <tr>
-          <td port="1">pmod0_1</td><td>gpio, cs</td>
-          <td rowspan="8">Pmod 0<br/>types 1A, 2A, 3A or 6A</td>
-        </tr>
-        <tr><td port="2">pmod0_2</td><td>gpio, copi, pwm, tx</td></tr>
-        <tr><td port="3">pmod0_3</td><td>gpio, cipo, sda, rx</td></tr>
-        <tr><td port="4">pmod0_4</td><td>gpio, sclk, scl</td></tr>
-        <tr><td port="5">pmod0_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod0_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod0_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod0_8</td><td>gpio, cs</td></tr>
-      </table>
-    >];
-
-    mb [label=<
-      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-        <tr>
-          <td port="0">mb0</td><td>gpio</td>
-          <td rowspan="11">mikroBUS Click</td>
-        </tr>
-        <tr><td port="1" >mb1 </td><td>gpio, cs</td></tr>
-        <tr><td port="2" >mb2 </td><td>gpio, sclk</td></tr>
-        <tr><td port="3" >mb3 </td><td>gpio, cipo</td></tr>
-        <tr><td port="4" >mb4 </td><td>gpio, copi</td></tr>
-        <tr><td port="5" >mb5 </td><td>gpio, sda</td></tr>
-        <tr><td port="6" >mb6 </td><td>gpio, scl</td></tr>
-        <tr><td port="7" >mb7 </td><td>gpio, tx</td></tr>
-        <tr><td port="8" >mb8 </td><td>gpio, rx</td></tr>
-        <tr><td port="9" >mb9 </td><td>gpio</td></tr>
-        <tr><td port="10">mb10</td><td>gpio, pwm</td></tr>
+        <tr><td port="g1"           >rph_g1</td><td>gpio, scl</td></tr>
+        <tr><td port="g2_sda"       >rph_g2_sda</td><td>gpio, sda</td></tr>
+        <tr><td port="g3_scl"       >rph_g3_scl</td><td>gpio, scl</td></tr>
+        <tr><td port="g4"           >rph_g4</td><td>gpio</td></tr>
+        <tr><td port="g5"           >rph_g5</td><td>gpio</td></tr>
+        <tr><td port="g6"           >rph_g6</td><td>gpio</td></tr>
+        <tr><td port="g7_spi0_ce0"  >rph_g7_spi0_ce0</td><td>gpio, cs</td></tr>
+        <tr><td port="g8_spi0_ce1"  >rph_g8_spi0_ce1</td><td>gpio, cs</td></tr>
+        <tr><td port="g9_spi0_cipo" >rph_g9_spi0_cipo</td><td>gpio, cipo</td></tr>
+        <tr><td port="g10_spi0_copi">rph_g10_spi0_copi</td><td>gpio, copi</td></tr>
+        <tr><td port="g11_spi0_sclk">rph_g11_spi0_sclk</td><td>gpio, sclk</td></tr>
+        <tr><td port="g12">rph_g12</td><td>gpio, pwm</td></tr>
+        <tr><td port="g13">rph_g13</td><td>gpio, pwm</td></tr>
+        <tr><td port="txd0">rph_txd0</td><td>gpio, tx</td></tr>
+        <tr><td port="rxd0">rph_rxd0</td><td>gpio, rx</td></tr>
+        <tr><td port="g16_spi1_ce2">rph_g16_spi1_ce2</td><td>gpio, cs</td></tr>
+        <tr><td port="g17_spi1_ce1">rph_g17_spi1_ce1</td><td>gpio, cs</td></tr>
+        <tr><td port="g18_spi1_ce0">rph_g18_spi1_ce0</td><td>gpio, cs, pwm</td></tr>
+        <tr><td port="g19_spi1_cipo">rph_g19_spi1_cipo</td><td>gpio, cipo, pwm</td></tr>
+        <tr><td port="g20_spi1_copi">rph_g20_spi1_copi</td><td>gpio, copi, pwm</td></tr>
+        <tr><td port="g21_spi1_sclk">rph_g21_spi1_sclk</td><td>gpio, sclk, pwm</td></tr>
+        <tr><td port="g22">rph_g22</td><td>gpio</td></tr>
+        <tr><td port="g23">rph_g23</td><td>gpio</td></tr>
+        <tr><td port="g24">rph_g24</td><td>gpio</td></tr>
+        <tr><td port="g25">rph_g25</td><td>gpio</td></tr>
+        <tr><td port="g26">rph_g26</td><td>gpio</td></tr>
+        <tr><td port="g27">rph_g27</td><td>gpio</td></tr>
       </table>
     >];
 
@@ -280,39 +256,68 @@ digraph {
       </table>
     >];
 
-    rph [label=<
+    mb [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
-          <td port="g0">rph_g0</td><td>gpio, sda</td>
-          <td rowspan="28">Raspberry Pi HAT</td>
+          <td port="0">mb0</td><td></td>
+          <td rowspan="11">mikroBUS Click</td>
         </tr>
-        <tr><td port="g1"           >rph_g1</td><td>gpio, scl</td></tr>
-        <tr><td port="g2_sda"       >rph_g2_sda</td><td>gpio, sda</td></tr>
-        <tr><td port="g3_scl"       >rph_g3_scl</td><td>gpio, scl</td></tr>
-        <tr><td port="g4"           >rph_g4</td><td>gpio</td></tr>
-        <tr><td port="g5"           >rph_g5</td><td>gpio</td></tr>
-        <tr><td port="g6"           >rph_g6</td><td>gpio</td></tr>
-        <tr><td port="g7_spi0_ce0"  >rph_g7_spi0_ce0</td><td>gpio, cs</td></tr>
-        <tr><td port="g8_spi0_ce1"  >rph_g8_spi0_ce1</td><td>gpio, cs</td></tr>
-        <tr><td port="g9_spi0_cipo" >rph_g9_spi0_cipo</td><td>gpio, cipo</td></tr>
-        <tr><td port="g10_spi0_copi">rph_g10_spi0_copi</td><td>gpio, copi</td></tr>
-        <tr><td port="g11_spi0_sclk">rph_g11_spi0_sclk</td><td>gpio, sclk</td></tr>
-        <tr><td port="g12">rph_g12</td><td>gpio, pwm</td></tr>
-        <tr><td port="g13">rph_g13</td><td>gpio, pwm</td></tr>
-        <tr><td port="txd0">rph_txd0</td><td>gpio, tx</td></tr>
-        <tr><td port="rxd0">rph_rxd0</td><td>gpio, rx</td></tr>
-        <tr><td port="g16">rph_g16</td><td>gpio</td></tr>
-        <tr><td port="g17">rph_g17</td><td>gpio</td></tr>
-        <tr><td port="g18_spi1_ce0">rph_g18_spi1_ce0</td><td>gpio, cs, pwm</td></tr>
-        <tr><td port="g19_spi1_cipo">rph_g19_spi1_cipo</td><td>gpio, cipo, pwm</td></tr>
-        <tr><td port="g20_spi1_copi">rph_g20_spi1_copi</td><td>gpio, copi, pwm</td></tr>
-        <tr><td port="g21_spi1_sclk">rph_g21_spi1_sclk</td><td>gpio, sclk, pwm</td></tr>
-        <tr><td port="g22">rph_g22</td><td>gpio</td></tr>
-        <tr><td port="g23">rph_g23</td><td>gpio</td></tr>
-        <tr><td port="g24">rph_g24</td><td>gpio</td></tr>
-        <tr><td port="g25">rph_g25</td><td>gpio</td></tr>
-        <tr><td port="g26">rph_g26</td><td>gpio</td></tr>
-        <tr><td port="g27">rph_g27</td><td>gpio</td></tr>
+        <tr><td port="1" >mb1 </td><td>cs</td></tr>
+        <tr><td port="2" >mb2 </td><td>sclk</td></tr>
+        <tr><td port="3" >mb3 </td><td>cipo</td></tr>
+        <tr><td port="4" >mb4 </td><td>copi</td></tr>
+        <tr><td port="5" >mb5 </td><td>sda</td></tr>
+        <tr><td port="6" >mb6 </td><td>scl</td></tr>
+        <tr><td port="7" >mb7 </td><td>tx</td></tr>
+        <tr><td port="8" >mb8 </td><td>rx</td></tr>
+        <tr><td port="9" >mb9 </td></tr>
+        <tr><td port="10">mb10</td><td>pwm</td></tr>
+      </table>
+    >];
+
+    pmod0 [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr>
+          <td port="1">pmod0_1</td><td>gpio, cs</td>
+          <td rowspan="8">Pmod 0<br/>types 1A, 2A, 3A or 6A</td>
+        </tr>
+        <tr><td port="2">pmod0_2</td><td>gpio, copi, pwm, tx</td></tr>
+        <tr><td port="3">pmod0_3</td><td>gpio, cipo, scl, rx</td></tr>
+        <tr><td port="4">pmod0_4</td><td>gpio, sclk, sda</td></tr>
+        <tr><td port="5">pmod0_5</td><td>gpio</td></tr>
+        <tr><td port="6">pmod0_6</td><td>gpio, pwm</td></tr>
+        <tr><td port="7">pmod0_7</td><td>gpio, cs</td></tr>
+        <tr><td port="8">pmod0_8</td><td>gpio, cs</td></tr>
+      </table>
+    >];
+
+    pmod1 [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr>
+          <td port="1">pmod1_1</td><td>gpio, cs</td>
+          <td rowspan="8">Pmod 1<br/>types 1A, 2A, 3A or 6A</td>
+        </tr>
+        <tr><td port="2">pmod1_2</td><td>gpio, copi, pwm, tx</td></tr>
+        <tr><td port="3">pmod1_3</td><td>gpio, cipo, scl, rx</td></tr>
+        <tr><td port="4">pmod1_4</td><td>gpio, sclk, sca</td></tr>
+        <tr><td port="5">pmod1_5</td><td>gpio</td></tr>
+        <tr><td port="6">pmod1_6</td><td>gpio, pwm</td></tr>
+        <tr><td port="7">pmod1_7</td><td>gpio, cs</td></tr>
+        <tr><td port="8">pmod1_8</td><td>gpio, cs</td></tr>
+      </table>
+    >];
+
+    pmodc [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr>
+          <td port="1">pmodc_1</td><td>gpio</td>
+          <td rowspan="6">Pmod C</td>
+        </tr>
+        <tr><td port="2">pmodc_2</td><td>gpio</td></tr>
+        <tr><td port="3">pmodc_3</td><td>gpio</td></tr>
+        <tr><td port="4">pmodc_4</td><td>gpio</td></tr>
+        <tr><td port="5">pmodc_5</td><td>gpio</td></tr>
+        <tr><td port="6">pmodc_6</td><td>gpio</td></tr>
       </table>
     >];
   }
@@ -354,8 +359,8 @@ digraph {
   i2c_0:sda -> rph:g0;
   i2c_0:scl -> rph:g1;
 
-  i2c_0:sda -> pmod0:3;
-  i2c_0:scl -> pmod0:4;
+  i2c_0:sda -> pmod0:4;
+  i2c_0:scl -> pmod0:3;
 
   i2c_1:sda -> qwiic:sda1;
   i2c_1:scl -> qwiic:scl1;
@@ -366,8 +371,8 @@ digraph {
   i2c_1:sda -> rph:g2_sda;
   i2c_1:scl -> rph:g3_scl;
 
-  i2c_1:sda -> pmod1:3;
-  i2c_1:scl -> pmod1:4;
+  i2c_1:sda -> pmod1:4;
+  i2c_1:scl -> pmod1:3;
 
   // SPI
   edge [dir=forward color=dodgerblue];
@@ -424,6 +429,8 @@ digraph {
   spi_3:cipo -> rph:g19_spi1_cipo [dir=back];
   spi_3:sclk -> rph:g21_spi1_sclk;
   spi_3:cs_0 -> rph:g18_spi1_ce0;
+  spi_3:cs_1 -> rph:g17_spi1_ce1;
+  spi_3:cs_2 -> rph:g16_spi1_ce2;
 
   spi_3:copi -> mb:4;
   spi_3:cipo -> mb:3 [dir=back];
@@ -438,7 +445,8 @@ digraph {
   pwm:2 -> pmod0:6;
   pwm:3 -> pmod1:2;
   pwm:4 -> pmod1:6;
-  pwm:5 -> lcd:backlight;
+
+  pwm:6 -> lcd:backlight;
 
   pwm:0 -> ah:tmpio3;
   pwm:1 -> ah:tmpio5;
@@ -461,36 +469,10 @@ digraph {
   edge [dir=back color=grey];
   gpio_board:"gpi_0-7" -> usr:"sw_0-7"
   gpio_board:"gpi_8-12" -> usr:"navsw_0-4"
-  gpio_board:"gpi_13" -> microsd:det
+  gpio_board:"gpi_13-15" -> usr:"selsw_0-2"
+  gpio_board:"gpi_16" -> microsd:det
 
   edge [dir=both color=grey];
-  gpio_mb:"gpio_0-10" -> mb:0;
-  gpio_mb:"gpio_0-10" -> mb:1;
-  gpio_mb:"gpio_0-10" -> mb:2;
-  gpio_mb:"gpio_0-10" -> mb:3;
-  gpio_mb:"gpio_0-10" -> mb:4;
-  gpio_mb:"gpio_0-10" -> mb:5;
-  gpio_mb:"gpio_0-10" -> mb:6;
-  gpio_mb:"gpio_0-10" -> mb:7;
-  gpio_mb:"gpio_0-10" -> mb:8;
-  gpio_mb:"gpio_0-10" -> mb:9;
-  gpio_mb:"gpio_0-10" -> mb:10;
-
-  gpio_ah:"gpio_0-13" -> ah:tmpio0;
-  gpio_ah:"gpio_0-13" -> ah:tmpio1;
-  gpio_ah:"gpio_0-13" -> ah:tmpio2;
-  gpio_ah:"gpio_0-13" -> ah:tmpio3;
-  gpio_ah:"gpio_0-13" -> ah:tmpio4;
-  gpio_ah:"gpio_0-13" -> ah:tmpio5;
-  gpio_ah:"gpio_0-13" -> ah:tmpio6;
-  gpio_ah:"gpio_0-13" -> ah:tmpio7;
-  gpio_ah:"gpio_0-13" -> ah:tmpio8;
-  gpio_ah:"gpio_0-13" -> ah:tmpio9;
-  gpio_ah:"gpio_0-13" -> ah:tmpio10;
-  gpio_ah:"gpio_0-13" -> ah:tmpio11;
-  gpio_ah:"gpio_0-13" -> ah:tmpio12;
-  gpio_ah:"gpio_0-13" -> ah:tmpio13;
-
   gpio_rph:"gpio_0-27" -> rph:g0;
   gpio_rph:"gpio_0-27" -> rph:g1;
   gpio_rph:"gpio_0-27" -> rph:g2_sda;
@@ -507,8 +489,8 @@ digraph {
   gpio_rph:"gpio_0-27" -> rph:g13;
   gpio_rph:"gpio_0-27" -> rph:txd0;
   gpio_rph:"gpio_0-27" -> rph:rxd0;
-  gpio_rph:"gpio_0-27" -> rph:g16;
-  gpio_rph:"gpio_0-27" -> rph:g17;
+  gpio_rph:"gpio_0-27" -> rph:g16_spi1_ce2;
+  gpio_rph:"gpio_0-27" -> rph:g17_spi1_ce1;
   gpio_rph:"gpio_0-27" -> rph:g18_spi1_ce0;
   gpio_rph:"gpio_0-27" -> rph:g19_spi1_cipo;
   gpio_rph:"gpio_0-27" -> rph:g20_spi1_copi;
@@ -519,6 +501,21 @@ digraph {
   gpio_rph:"gpio_0-27" -> rph:g25;
   gpio_rph:"gpio_0-27" -> rph:g26;
   gpio_rph:"gpio_0-27" -> rph:g27;
+
+  gpio_ah:"gpio_0-13" -> ah:tmpio0;
+  gpio_ah:"gpio_0-13" -> ah:tmpio1;
+  gpio_ah:"gpio_0-13" -> ah:tmpio2;
+  gpio_ah:"gpio_0-13" -> ah:tmpio3;
+  gpio_ah:"gpio_0-13" -> ah:tmpio4;
+  gpio_ah:"gpio_0-13" -> ah:tmpio5;
+  gpio_ah:"gpio_0-13" -> ah:tmpio6;
+  gpio_ah:"gpio_0-13" -> ah:tmpio7;
+  gpio_ah:"gpio_0-13" -> ah:tmpio8;
+  gpio_ah:"gpio_0-13" -> ah:tmpio9;
+  gpio_ah:"gpio_0-13" -> ah:tmpio10;
+  gpio_ah:"gpio_0-13" -> ah:tmpio11;
+  gpio_ah:"gpio_0-13" -> ah:tmpio12;
+  gpio_ah:"gpio_0-13" -> ah:tmpio13;
 
   gpio_pmod0:"gpio_0-7" -> pmod0:1;
   gpio_pmod0:"gpio_0-7" -> pmod0:2;
