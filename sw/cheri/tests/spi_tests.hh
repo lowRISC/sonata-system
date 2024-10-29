@@ -192,7 +192,7 @@ int spi_read_flash_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash sp
   spi_flash.read_jedec_id(jedec_id);
 
   // Check that the retrieved ID matches our expected value
-  for (size_t index = 0; index < 3; index++) {
+  for (size_t index = 0; index < sizeof(jedec_id); index++) {
     if (jedec_id[index] != ExpectedSpiFlashJedecId[index]) {
       failures++;
     }
