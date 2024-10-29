@@ -268,7 +268,6 @@ module top_sonata
   logic [8:0] unused_gp_o;
 
   sonata_system #(
-    .PwmWidth        (  1             ),
     .CheriErrWidth   (  9             ),
     .SRAMInitFile    ( SRAMInitFile   ),
     .SysClkFreq      ( SysClkFreq     ),
@@ -316,9 +315,6 @@ module top_sonata
     .ard_an_di_i    (ard_an_di),
     .ard_an_p_i     (ard_an_p),
     .ard_an_n_i     (ard_an_n),
-
-    // PWM
-    .pwm_o({mb10}),
 
     // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
@@ -432,6 +428,7 @@ module top_sonata
   assign microsd_dat3 = output_pins[OUT_PIN_MICROSD_DAT3];
   assign microsd_cmd  = output_pins[OUT_PIN_MICROSD_CMD ];
   assign microsd_clk  = output_pins[OUT_PIN_MICROSD_CLK ];
+  assign mb10         = 1'b0;
   assign mb7          = output_pins[OUT_PIN_MB7         ];
   assign mb4          = output_pins[OUT_PIN_MB4         ];
   assign mb2          = output_pins[OUT_PIN_MB2         ];

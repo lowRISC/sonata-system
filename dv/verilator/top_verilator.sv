@@ -263,7 +263,6 @@ module top_verilator (input logic clk_i, rst_ni);
 
   // Instantiating the Sonata System.
   sonata_system #(
-    .PwmWidth        (  1              ),
     .CheriErrWidth   ( CheriErrWidth   ),
     .SysClkFreq      ( SysClkFreq      ),
     .HRClkFreq       ( HRClkFreq       ),
@@ -298,7 +297,6 @@ module top_verilator (input logic clk_i, rst_ni);
                      }),
 
     .gp_o_en      ( ),
-    .pwm_o        ( ),
 
     // Arduino Shield Analog(ue)
     .ard_an_di_i    (0),

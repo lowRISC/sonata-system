@@ -8,12 +8,14 @@ package sonata_pkg;
 
   // Number of Instances
   localparam int unsigned GPIO_NUM = 3;
+  localparam int unsigned PWM_NUM = 1;
   localparam int unsigned UART_NUM = 5;
   localparam int unsigned I2C_NUM = 2;
   localparam int unsigned SPI_NUM = 5;
 
   // Width of block IO arrays
   localparam int unsigned GPIO_IOS_WIDTH = 32;
+  localparam int unsigned PWM_IOS_WIDTH = 6;
   localparam int unsigned SPI_CS_WIDTH = 4;
 
   // Number of input, output, and inout pins

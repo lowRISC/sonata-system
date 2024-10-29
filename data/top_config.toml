@@ -13,6 +13,14 @@ memory_start = 0x80000000
 memory_size  = 0x00000040
 
 [[blocks]]
+name = "pwm"
+instances = 1
+ios = [{ name = "ios", type = "output", length = 6 }]
+memory_start = 0x80001000
+memory_size  = 0x00001000
+xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
+
+[[blocks]]
 name = "uart"
 instances = 5
 ios = [
