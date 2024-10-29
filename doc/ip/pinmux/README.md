@@ -77,22 +77,22 @@ The default value for all of these selectors is `'b10`.
 | 0x03e | `mb6` | 0, `i2c[1].scl` |
 | 0x03f | `mb7` | 0, `uart[3].tx` |
 | 0x040 | `mb10` | 0, `pwm[0].ios[0]` |
-| 0x041 | `pmod0_0` | 0, `gpio[2].ios[0]`, `spi[2].cs[0]` |
-| 0x042 | `pmod0_1` | 0, `gpio[2].ios[1]`, `spi[2].tx`, `uart[2].tx` |
-| 0x043 | `pmod0_2` | 0, `gpio[2].ios[2]`, `i2c[0].scl` |
-| 0x044 | `pmod0_3` | 0, `gpio[2].ios[3]`, `i2c[0].sda`, `spi[2].sck` |
-| 0x045 | `pmod0_4` | 0, `gpio[2].ios[4]` |
-| 0x046 | `pmod0_5` | 0, `gpio[2].ios[5]` |
-| 0x047 | `pmod0_6` | 0, `gpio[2].ios[6]` |
-| 0x048 | `pmod0_7` | 0, `gpio[2].ios[7]` |
-| 0x049 | `pmod1_0` | 0, `gpio[2].ios[8]`, `spi[3].cs[0]` |
-| 0x04a | `pmod1_1` | 0, `gpio[2].ios[9]`, `spi[3].tx`, `uart[3].tx` |
-| 0x04b | `pmod1_2` | 0, `gpio[2].ios[10]`, `i2c[1].scl` |
-| 0x04c | `pmod1_3` | 0, `gpio[2].ios[11]`, `i2c[1].sda`, `spi[3].sck` |
-| 0x04d | `pmod1_4` | 0, `gpio[2].ios[12]` |
-| 0x04e | `pmod1_5` | 0, `gpio[2].ios[13]` |
-| 0x04f | `pmod1_6` | 0, `gpio[2].ios[14]` |
-| 0x050 | `pmod1_7` | 0, `gpio[2].ios[15]` |
+| 0x041 | `pmod0_1` | 0, `gpio[2].ios[0]`, `spi[2].cs[0]` |
+| 0x042 | `pmod0_2` | 0, `gpio[2].ios[1]`, `spi[2].tx`, `uart[2].tx` |
+| 0x043 | `pmod0_3` | 0, `gpio[2].ios[2]`, `i2c[0].scl` |
+| 0x044 | `pmod0_4` | 0, `gpio[2].ios[3]`, `i2c[0].sda`, `spi[2].sck` |
+| 0x045 | `pmod0_5` | 0, `gpio[2].ios[4]` |
+| 0x046 | `pmod0_6` | 0, `gpio[2].ios[5]` |
+| 0x047 | `pmod0_7` | 0, `gpio[2].ios[6]` |
+| 0x048 | `pmod0_8` | 0, `gpio[2].ios[7]` |
+| 0x049 | `pmod1_1` | 0, `gpio[2].ios[8]`, `spi[3].cs[0]` |
+| 0x04a | `pmod1_2` | 0, `gpio[2].ios[9]`, `spi[3].tx`, `uart[3].tx` |
+| 0x04b | `pmod1_3` | 0, `gpio[2].ios[10]`, `i2c[1].scl` |
+| 0x04c | `pmod1_4` | 0, `gpio[2].ios[11]`, `i2c[1].sda`, `spi[3].sck` |
+| 0x04d | `pmod1_5` | 0, `gpio[2].ios[12]` |
+| 0x04e | `pmod1_6` | 0, `gpio[2].ios[13]` |
+| 0x04f | `pmod1_7` | 0, `gpio[2].ios[14]` |
+| 0x050 | `pmod1_8` | 0, `gpio[2].ios[15]` |
 | 0x051 | `microsd_clk` | 0, `spi[3].sck` |
 | 0x052 | `microsd_cmd` | 0, `spi[3].tx` |
 | 0x053 | `microsd_dat3` | 0, `spi[3].cs[3]` |
@@ -103,62 +103,62 @@ Besides the output pin selectors, there are also selectors for which pin should 
 |---------|-------------|---------------------|
 | 0x800 | `uart[0].rx` | 1, `ser0_rx` |
 | 0x801 | `uart[1].rx` | 1, `ser1_rx` |
-| 0x802 | `uart[2].rx` | 1, `rph_rxd0`, `pmod0_2` |
-| 0x803 | `uart[3].rx` | 1, `ah_tmpio0`, `mb8`, `pmod1_2` |
+| 0x802 | `uart[2].rx` | 1, `rph_rxd0`, `pmod0_3` |
+| 0x803 | `uart[3].rx` | 1, `ah_tmpio0`, `mb8`, `pmod1_3` |
 | 0x804 | `uart[4].rx` | 1, `rs232_rx` |
 | 0x805 | `spi[0].rx` | 0, `appspi_d1` |
 | 0x806 | `spi[1].rx` | 0, 0 |
-| 0x807 | `spi[2].rx` | 0, `ethmac_cipo`, `pmod0_2` |
-| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod1_2`, `microsd_dat0` |
+| 0x807 | `spi[2].rx` | 0, `ethmac_cipo`, `pmod0_3` |
+| 0x808 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod1_3`, `microsd_dat0` |
 | 0x809 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3` |
 | 0x80a | `gpio[0].ios[0]` | 0, `rph_g0` |
 | 0x80b | `gpio[1].ios[0]` | 0, `ah_tmpio0` |
-| 0x80c | `gpio[2].ios[0]` | 0, `pmod0_0` |
+| 0x80c | `gpio[2].ios[0]` | 0, `pmod0_1` |
 | 0x80d | `gpio[0].ios[1]` | 0, `rph_g1` |
 | 0x80e | `gpio[1].ios[1]` | 0, `ah_tmpio1` |
-| 0x80f | `gpio[2].ios[1]` | 0, `pmod0_1` |
+| 0x80f | `gpio[2].ios[1]` | 0, `pmod0_2` |
 | 0x810 | `gpio[0].ios[2]` | 0, `rph_g2_sda` |
 | 0x811 | `gpio[1].ios[2]` | 0, `ah_tmpio2` |
-| 0x812 | `gpio[2].ios[2]` | 0, `pmod0_2` |
+| 0x812 | `gpio[2].ios[2]` | 0, `pmod0_3` |
 | 0x813 | `gpio[0].ios[3]` | 0, `rph_g3_scl` |
 | 0x814 | `gpio[1].ios[3]` | 0, `ah_tmpio3` |
-| 0x815 | `gpio[2].ios[3]` | 0, `pmod0_3` |
+| 0x815 | `gpio[2].ios[3]` | 0, `pmod0_4` |
 | 0x816 | `gpio[0].ios[4]` | 0, `rph_g4` |
 | 0x817 | `gpio[1].ios[4]` | 0, `ah_tmpio4` |
-| 0x818 | `gpio[2].ios[4]` | 0, `pmod0_4` |
+| 0x818 | `gpio[2].ios[4]` | 0, `pmod0_5` |
 | 0x819 | `gpio[0].ios[5]` | 0, `rph_g5` |
 | 0x81a | `gpio[1].ios[5]` | 0, `ah_tmpio5` |
-| 0x81b | `gpio[2].ios[5]` | 0, `pmod0_5` |
+| 0x81b | `gpio[2].ios[5]` | 0, `pmod0_6` |
 | 0x81c | `gpio[0].ios[6]` | 0, `rph_g6` |
 | 0x81d | `gpio[1].ios[6]` | 0, `ah_tmpio6` |
-| 0x81e | `gpio[2].ios[6]` | 0, `pmod0_6` |
+| 0x81e | `gpio[2].ios[6]` | 0, `pmod0_7` |
 | 0x81f | `gpio[0].ios[7]` | 0, `rph_g7_ce1` |
 | 0x820 | `gpio[1].ios[7]` | 0, `ah_tmpio7` |
-| 0x821 | `gpio[2].ios[7]` | 0, `pmod0_7` |
+| 0x821 | `gpio[2].ios[7]` | 0, `pmod0_8` |
 | 0x822 | `gpio[0].ios[8]` | 0, `rph_g8_ce0` |
 | 0x823 | `gpio[1].ios[8]` | 0, `ah_tmpio8` |
-| 0x824 | `gpio[2].ios[8]` | 0, `pmod1_0` |
+| 0x824 | `gpio[2].ios[8]` | 0, `pmod1_1` |
 | 0x825 | `gpio[0].ios[9]` | 0, `rph_g9_cipo` |
 | 0x826 | `gpio[1].ios[9]` | 0, `ah_tmpio9` |
-| 0x827 | `gpio[2].ios[9]` | 0, `pmod1_1` |
+| 0x827 | `gpio[2].ios[9]` | 0, `pmod1_2` |
 | 0x828 | `gpio[0].ios[10]` | 0, `rph_g10_copi` |
 | 0x829 | `gpio[1].ios[10]` | 0, `ah_tmpio10` |
-| 0x82a | `gpio[2].ios[10]` | 0, `pmod1_2` |
+| 0x82a | `gpio[2].ios[10]` | 0, `pmod1_3` |
 | 0x82b | `gpio[0].ios[11]` | 0, `rph_g11_sclk` |
 | 0x82c | `gpio[1].ios[11]` | 0, `ah_tmpio11` |
-| 0x82d | `gpio[2].ios[11]` | 0, `pmod1_3` |
+| 0x82d | `gpio[2].ios[11]` | 0, `pmod1_4` |
 | 0x82e | `gpio[0].ios[12]` | 0, `rph_g12` |
 | 0x82f | `gpio[1].ios[12]` | 0, `ah_tmpio12` |
-| 0x830 | `gpio[2].ios[12]` | 0, `pmod1_4` |
+| 0x830 | `gpio[2].ios[12]` | 0, `pmod1_5` |
 | 0x831 | `gpio[0].ios[13]` | 0, `rph_g13` |
 | 0x832 | `gpio[1].ios[13]` | 0, `ah_tmpio13` |
-| 0x833 | `gpio[2].ios[13]` | 0, `pmod1_5` |
+| 0x833 | `gpio[2].ios[13]` | 0, `pmod1_6` |
 | 0x834 | `gpio[0].ios[14]` | 0, `rph_txd0` |
 | 0x835 | `gpio[1].ios[14]` | 0, 0 |
-| 0x836 | `gpio[2].ios[14]` | 0, `pmod1_6` |
+| 0x836 | `gpio[2].ios[14]` | 0, `pmod1_7` |
 | 0x837 | `gpio[0].ios[15]` | 0, `rph_rxd0` |
 | 0x838 | `gpio[1].ios[15]` | 0, 0 |
-| 0x839 | `gpio[2].ios[15]` | 0, `pmod1_7` |
+| 0x839 | `gpio[2].ios[15]` | 0, `pmod1_8` |
 | 0x83a | `gpio[0].ios[16]` | 0, `rph_g16_ce2` |
 | 0x83b | `gpio[1].ios[16]` | 0, 0 |
 | 0x83c | `gpio[2].ios[16]` | 0, 0 |
