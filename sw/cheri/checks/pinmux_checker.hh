@@ -41,10 +41,11 @@ enum class TestType {
 struct UartTest {
   enum class UartNum : uint8_t {
     // Uart0 is used as a console and cannot be tested
-    Uart1 = 1,
-    Uart2 = 2,
-    Uart3 = 3,
-    Uart4 = 4,
+    Uart1,
+    Uart2,
+    Uart3,
+    Uart4,
+    NumUarts,
   } uart;
   uint32_t timeout;
   uint32_t test_length;
@@ -61,8 +62,9 @@ struct GpioTest {
 // The test-specific data required to carry out an I2C BH1745 Read ID test
 struct I2cTest {
   enum class I2cNum : uint8_t {
-    I2c0 = 0,
-    I2c1 = 1,
+    I2c0,
+    I2c1,
+    NumI2c,
   } i2c;
 };
 
@@ -70,8 +72,9 @@ struct I2cTest {
 struct SpiTest {
   enum class SpiNum : uint8_t {
     // Spi0-1 are used for the Flash and LCD and so cannot be tested.
-    Spi2 = 2,
-    Spi3 = 3,
+    Spi2,
+    Spi3,
+    NumSpi,
   } spi;
 };
 
