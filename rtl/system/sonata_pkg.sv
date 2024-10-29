@@ -20,7 +20,7 @@ package sonata_pkg;
 
   // Number of input, output, and inout pins
   localparam int unsigned IN_PIN_NUM = 8;
-  localparam int unsigned OUT_PIN_NUM = 19;
+  localparam int unsigned OUT_PIN_NUM = 20;
   localparam int unsigned INOUT_PIN_NUM = 64;
 
   localparam int unsigned IN_PIN_SER0_RX = 0;
@@ -48,9 +48,10 @@ package sonata_pkg;
   localparam int unsigned OUT_PIN_MB2 = 13;
   localparam int unsigned OUT_PIN_MB4 = 14;
   localparam int unsigned OUT_PIN_MB7 = 15;
-  localparam int unsigned OUT_PIN_MICROSD_CLK = 16;
-  localparam int unsigned OUT_PIN_MICROSD_CMD = 17;
-  localparam int unsigned OUT_PIN_MICROSD_DAT3 = 18;
+  localparam int unsigned OUT_PIN_MB10 = 16;
+  localparam int unsigned OUT_PIN_MICROSD_CLK = 17;
+  localparam int unsigned OUT_PIN_MICROSD_CMD = 18;
+  localparam int unsigned OUT_PIN_MICROSD_DAT3 = 19;
 
   localparam int unsigned INOUT_PIN_SCL0 = 0;
   localparam int unsigned INOUT_PIN_SDA0 = 1;

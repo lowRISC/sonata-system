@@ -414,7 +414,10 @@ block_ios = [{block = "uart", instance = 3, io = "tx"}]
 name = "mb8"
 block_ios = [{block = "uart", instance = 3, io = "rx"}]
 # mb9 is interrupt and already connected to a general purpose input.
-# mb10 is PWM and is already connected to a PWM output.
+
+[[pins]]
+name = "mb10"
+block_ios = [{block = "pwm", instance = 0, io = "ios", io_index = 0}]
 
 ## PMODs
 [[pins]]
