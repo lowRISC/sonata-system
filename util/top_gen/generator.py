@@ -308,21 +308,6 @@ def generate_top(config: TopConfig) -> None:
 
     block_io_to_pins = block_io_to_pin_map(block_ios, pins)
 
-    output_block_ios = list(output_block_ios_iter(block_ios, block_io_to_pins))
-
-    def legacy_ordering(input_pin: OutputBlockIo) -> tuple[int, int, int]:
-        uid = input_pin.block_io.uid
-        io_index = 0 if uid.io_index is None else uid.io_index
-
-        block_ordering = ("uart", "spi", "gpio", "i2c")
-        block_type_idx = next(
-            idx for idx, name in enumerate(block_ordering) if uid.block == name
-        )
-
-        return (block_type_idx, io_index, uid.instance)
-
-    output_block_ios.sort(key=legacy_ordering)
-
     template_variables = {
         "config": config,
         "block_port_definitions": block_port_definitions,
@@ -330,7 +315,9 @@ def generate_top(config: TopConfig) -> None:
         "out_pins": list(filter(PinFlat.is_output, pins)),
         "inout_pins": list(filter(PinFlat.is_inout, pins)),
         "output_pins": list(output_pins_iter(pins, block_ios)),
-        "output_block_ios": output_block_ios,
+        "output_block_ios": list(
+            output_block_ios_iter(block_ios, block_io_to_pins)
+        ),
         "combined_input_block_ios": list(
             combined_input_block_ios_iter(block_ios, block_io_to_pins)
         ),
