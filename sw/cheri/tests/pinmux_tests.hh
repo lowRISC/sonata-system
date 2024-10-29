@@ -62,7 +62,7 @@ static int spi_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash spi_fl
   spi_flash.read_jedec_id(jedec_id);
 
   // Check that the retrieved ID matches our expected value
-  for (size_t index = 0; index < 3; index++) {
+  for (size_t index = 0; index < sizeof(jedec_id); index++) {
     if (jedec_id[index] != ExpectedSpiFlashJedecId[index]) {
       failures++;
     }
@@ -133,6 +133,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, Capability<volatile Sonat
   // Configure the SPI to be MSB-first.
   spi->wait_idle();
   spi->init(false, false, true, 0);
+  spi_flash.reset();
 
   // Run the normal SPI Flash JEDEC ID Test; it should pass.
   failures += spi_jedec_id_test(spi, spi_flash);
@@ -141,14 +142,16 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, Capability<volatile Sonat
   spi->wait_idle();
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_d0, PmxToDisabled)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_clk, PmxToDisabled)) failures++;
+  spi_flash.reset();
 
   // Run the JEDEC ID Test again; we expect it to fail.
   if (spi_jedec_id_test(spi, spi_flash) == 0) failures++;
 
-  // RE-enable the SPI Flash pins through pinmux
+  // Re-enable the SPI Flash pins through pinmux
   spi->wait_idle();
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_d0, PmxSpiFlashDataToSpiTx0)) failures++;
   if (!pinmux->output_pin_select(SonataPinmux::OutputPin::appspi_clk, PmxSpiFlashClockToSpiClk0)) failures++;
+  spi_flash.reset();
 
   // Run the JEDEC ID Test one more time; it should pass.
   failures += spi_jedec_id_test(spi, spi_flash);
