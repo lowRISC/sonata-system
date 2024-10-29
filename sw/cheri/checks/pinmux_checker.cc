@@ -111,7 +111,7 @@ static bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
  * Execute a UART send/receive test using the UART specified in the test.
  */
 static bool execute_uart_test(const Test &test, ds::xoroshiro::P32R8 &prng, UartPtr uarts[4]) {
-  UartPtr tested_uart = uarts[static_cast<uint8_t>(test.uart_data.uart) - 1];
+  UartPtr tested_uart = uarts[static_cast<uint8_t>(test.uart_data.uart)];
   bool result         = uart_send_receive_test(prng, tested_uart, test.uart_data.timeout, test.uart_data.test_length);
   return result == test.expected_result;
 }
@@ -150,7 +150,7 @@ static bool execute_i2c_pmod_colour_test(const Test &test, I2cPtr i2cs[2], Log &
  * the test.
  */
 static bool execute_spi_test(const Test &test, SpiPtr spis[2]) {
-  SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi) - 2];
+  SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi)];
   bool result       = spi_n25q256a_read_jedec_id(tested_spi);
   return result == test.expected_result;
 }
