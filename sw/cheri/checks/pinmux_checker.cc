@@ -98,7 +98,7 @@ static bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
   spi->cs = (spi->cs | 1u);  // Set ¬CS Low
 
   // Check that the retrieved ID matches our expected value
-  for (size_t index = 0; index < 3; index++) {
+  for (size_t index = 0; index < sizeof(jedec_id); index++) {
     if (jedec_id[index] != ExpectedJedecId[index]) {
       return false;
     }
@@ -112,7 +112,7 @@ static bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
  */
 static bool execute_uart_test(const Test &test, ds::xoroshiro::P32R8 &prng, UartPtr uarts[4]) {
   UartPtr tested_uart = uarts[static_cast<uint8_t>(test.uart_data.uart) - 1];
-  bool result         = uart_send_receive_test(prng, tested_uart, 10, 100);
+  bool result         = uart_send_receive_test(prng, tested_uart, test.uart_data.timeout, test.uart_data.test_length);
   return result == test.expected_result;
 }
 
