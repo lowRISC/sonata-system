@@ -59,9 +59,12 @@ using namespace CHERI;
   gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
   gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
   gpio_full.arduino.bounds()  = GPIO_BOUNDS;
-  gpio_full.pmod              = root.cast<volatile SonataGpioPmod>();
-  gpio_full.pmod.address()    = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_full.pmod.bounds()     = GPIO_BOUNDS;
+  gpio_full.pmod0             = root.cast<volatile SonataGpioPmod>();
+  gpio_full.pmod0.address()   = GPIO_ADDRESS + GPIO_RANGE * 3;
+  gpio_full.pmod0.bounds()    = GPIO_BOUNDS;
+  gpio_full.pmod1             = root.cast<volatile SonataGpioPmod>();
+  gpio_full.pmod1.address()   = GPIO_ADDRESS + GPIO_RANGE * 4;
+  gpio_full.pmod1.bounds()    = GPIO_BOUNDS;
 
   Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
   pinmux.address()                    = PINMUX_ADDRESS;
@@ -120,8 +123,8 @@ using namespace CHERI;
           .num_block_inputs = ARRAYSIZE(pmod_test_gpio_on_inputs),
           .gpio_data =
               {
-                  {GpioInstance::Pmod, 1},  // PMOD0_2
-                  {GpioInstance::Pmod, 2},  // PMOD0_3
+                  {GpioInstance::Pmod0, 1},  // PMOD0_2
+                  {GpioInstance::Pmod0, 2},  // PMOD0_3
                   GpioWaitUsec,
                   GpioTestLength,
               },
@@ -137,8 +140,8 @@ using namespace CHERI;
           .num_block_inputs = ARRAYSIZE(pmod_test_gpio_off_inputs),
           .gpio_data =
               {
-                  {GpioInstance::Pmod, 1},  // PMOD0_2
-                  {GpioInstance::Pmod, 2},  // PMOD0_3
+                  {GpioInstance::Pmod0, 1},  // PMOD0_2
+                  {GpioInstance::Pmod0, 2},  // PMOD0_3
                   GpioWaitUsec,
                   GpioTestLength,
               },

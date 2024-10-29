@@ -17,7 +17,8 @@ struct SonataGpioFull {
   Capability<volatile SonataGpioGeneral> general;
   Capability<volatile SonataGpioRaspberryPiHat> rpi;
   Capability<volatile SonataGpioArduinoShield> arduino;
-  Capability<volatile SonataGpioPmod> pmod;
+  Capability<volatile SonataGpioPmod> pmod0;
+  Capability<volatile SonataGpioPmod> pmod1;
 };
 
 // Enum representing possible GPIO instances, and their ordering
@@ -25,7 +26,8 @@ enum class GpioInstance : uint8_t {
   General        = 0,
   RaspberryPiHat = 1,
   ArduinoShield  = 2,
-  Pmod           = 3,
+  Pmod0          = 3,
+  Pmod1          = 4,
 };
 
 // A struct for specifying a specific Gpio Pin using its instance & bit
