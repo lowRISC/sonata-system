@@ -41,16 +41,21 @@ void spidpi::sampleEdge(uint32_t cs, uint32_t copi, uint32_t oobIn) {
 // - the result sets the Out-of-Band output signals (upper bits) and the CIPO data lines (LSBs) if
 //   the device is producing read data.
 uint32_t spidpi::launchEdge(uint32_t cs, uint32_t oobIn) {
+  unsigned cipo = 1;
   // Suppress traffic if CS is high because the current SPI model ignores CS.
-  if (!(cs & 1u) && !outBits) {
-    bool bReading = readByte(oobIn, outByte, oobOut);
-    outBits = bReading ? 8u : 1u;
-  }
+  if (cs & 1u) {
+    outBits = 0u;
+  } else {
+    if (!outBits) {
+      bool bReading = readByte(oobIn, outByte, oobOut);
+      outBits = bReading ? 8u : 1u;
+    }
 
-  // TODO: only one CIPO line supported presently.
-  unsigned cipo = (outByte >> 7);
-  outByte <<= 1;
-  outBits--;
+    // TODO: only one CIPO line supported presently.
+    cipo = (outByte >> 7);
+    outByte <<= 1;
+    outBits--;
+  }
   return (oobOut << 1) | cipo;
 }
 
