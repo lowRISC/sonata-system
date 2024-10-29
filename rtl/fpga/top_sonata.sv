@@ -428,7 +428,7 @@ module top_sonata
   assign microsd_dat3 = output_pins[OUT_PIN_MICROSD_DAT3];
   assign microsd_cmd  = output_pins[OUT_PIN_MICROSD_CMD ];
   assign microsd_clk  = output_pins[OUT_PIN_MICROSD_CLK ];
-  assign mb10         = 1'b0;
+  assign mb10         = output_pins[OUT_PIN_MB10        ];
   assign mb7          = output_pins[OUT_PIN_MB7         ];
   assign mb4          = output_pins[OUT_PIN_MB4         ];
   assign mb2          = output_pins[OUT_PIN_MB2         ];
