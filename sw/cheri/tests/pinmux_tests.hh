@@ -335,9 +335,12 @@ void pinmux_tests(CapRoot root, Log &log) {
   gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
   gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
   gpio_full.arduino.bounds()  = GPIO_BOUNDS;
-  gpio_full.pmod              = root.cast<volatile SonataGpioPmod>();
-  gpio_full.pmod.address()    = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_full.pmod.bounds()     = GPIO_BOUNDS;
+  gpio_full.pmod0             = root.cast<volatile SonataGpioPmod>();
+  gpio_full.pmod0.address()   = GPIO_ADDRESS + GPIO_RANGE * 3;
+  gpio_full.pmod0.bounds()    = GPIO_BOUNDS;
+  gpio_full.pmod1             = root.cast<volatile SonataGpioPmod>();
+  gpio_full.pmod1.address()   = GPIO_ADDRESS + GPIO_RANGE * 4;
+  gpio_full.pmod1.bounds()    = GPIO_BOUNDS;
 
   SpiFlash spi_flash(spi);
 

@@ -24,8 +24,10 @@ void set_gpio_output(SonataGpioFull *gpio, GpioPin pin, bool value) {
       return gpio->rpi->set_output(pin.bit, value);
     case GpioInstance::ArduinoShield:
       return gpio->arduino->set_output(pin.bit, value);
-    case GpioInstance::Pmod:
-      return gpio->pmod->set_output(pin.bit, value);
+    case GpioInstance::Pmod0:
+      return gpio->pmod0->set_output(pin.bit, value);
+    case GpioInstance::Pmod1:
+      return gpio->pmod1->set_output(pin.bit, value);
   }
 }
 
@@ -41,8 +43,10 @@ void set_gpio_output_enable(SonataGpioFull *gpio, GpioPin pin, bool value) {
       return gpio->rpi->set_output_enable(pin.bit, value);
     case GpioInstance::ArduinoShield:
       return gpio->arduino->set_output_enable(pin.bit, value);
-    case GpioInstance::Pmod:
-      return gpio->pmod->set_output_enable(pin.bit, value);
+    case GpioInstance::Pmod0:
+      return gpio->pmod0->set_output_enable(pin.bit, value);
+    case GpioInstance::Pmod1:
+      return gpio->pmod1->set_output_enable(pin.bit, value);
   }
 }
 
@@ -59,8 +63,10 @@ bool get_gpio_input(SonataGpioFull *gpio, GpioPin pin) {
       return gpio->rpi->read_input(pin.bit);
     case GpioInstance::ArduinoShield:
       return gpio->arduino->read_input(pin.bit);
-    case GpioInstance::Pmod:
-      return gpio->pmod->read_input(pin.bit);
+    case GpioInstance::Pmod0:
+      return gpio->pmod0->read_input(pin.bit);
+    case GpioInstance::Pmod1:
+      return gpio->pmod1->read_input(pin.bit);
   }
 }
 
