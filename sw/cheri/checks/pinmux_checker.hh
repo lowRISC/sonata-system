@@ -69,11 +69,10 @@ struct I2cTest {
 // The test-specific data required to carry out a SPI Pmod SF3 Read ID test
 struct SpiTest {
   enum class SpiNum : uint8_t {
-    // Spi0-2 are the Flash, LCD and Ethernet respectively and cannot be tested.
+    // Spi0-1 are used for the Flash and LCD and so cannot be tested.
+    Spi2 = 2,
     Spi3 = 3,
-    Spi4 = 4,
   } spi;
-  GpioPin cs_pin;
 };
 
 // An output pin assignment to be made via Pinmux for a test

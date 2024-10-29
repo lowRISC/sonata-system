@@ -80,14 +80,9 @@ static bool i2c_read_pmod_colour_id_test(I2cPtr i2c, Log &log) {
  * that the SPI pins corresponding to the given SPI block are connected to a
  * device with such memory, e.g. a PMOD SF3.
  *
- * TODO: CS is currently not through pinmux. This is fine to use a GPIO for
- * now, but ideally we would want to actually use CS - when that is changed
- * in the RTL this should be updated to use CS directly instead of taking
- * a GPIO pin to use as CS.
- *
  * Returns true if the test passed, or false if it failed.
  */
-static bool spi_n25q256a_read_jedec_id(SpiPtr spi, SonataGpioFull *gpio, GpioPin spi_cs_pin) {
+static bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
   constexpr uint8_t CmdReadJEDECId     = 0x9f;
   constexpr uint8_t ExpectedJedecId[3] = {0x20, 0xBA, 0x19};
 
@@ -97,10 +92,10 @@ static bool spi_n25q256a_read_jedec_id(SpiPtr spi, SonataGpioFull *gpio, GpioPin
 
   // Read the JEDEC ID from the external flash
   uint8_t jedec_id[3] = {0x12, 0x34, 0x56};  // (Dummy data)
-  set_gpio_output(gpio, spi_cs_pin, false);  // Set ¬CS High
+  spi->cs             = (spi->cs & ~1u);     // Set ¬CS High
   spi->blocking_write(&CmdReadJEDECId, 1);
   spi->blocking_read(jedec_id, 3);
-  set_gpio_output(gpio, spi_cs_pin, true);  // Set ¬CS Low
+  spi->cs = (spi->cs | 1u);  // Set ¬CS Low
 
   // Check that the retrieved ID matches our expected value
   for (size_t index = 0; index < 3; index++) {
@@ -154,10 +149,9 @@ static bool execute_i2c_pmod_colour_test(const Test &test, I2cPtr i2cs[2], Log &
  * Execute a SPI N25Q256A ID read test using the SPI and CS pin specified in
  * the test.
  */
-static bool execute_spi_test(const Test &test, SonataGpioFull *gpio, SpiPtr spis[2]) {
-  SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi) - 3];
-  set_gpio_output_enable(gpio, test.spi_data.cs_pin, true);
-  bool result = spi_n25q256a_read_jedec_id(tested_spi, gpio, test.spi_data.cs_pin);
+static bool execute_spi_test(const Test &test, SpiPtr spis[2]) {
+  SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi) - 2];
+  bool result       = spi_n25q256a_read_jedec_id(tested_spi);
   return result == test.expected_result;
 }
 
@@ -243,7 +237,7 @@ bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::
       passed = execute_i2c_pmod_colour_test(test, i2cs, log);
       break;
     case TestType::SpiPmodSF3ReadId:
-      passed = execute_spi_test(test, gpio, spis);
+      passed = execute_spi_test(test, spis);
       break;
     default:
       log.println("");
