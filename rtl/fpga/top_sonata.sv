@@ -422,8 +422,10 @@ module top_sonata
   assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
 
   // Output Pins
-  // pull output pins low when their output isn't enabled.
-  assign output_pins = out_to_pins_en & out_to_pins;
+  // Pull output pins high when their output isn't enabled.
+  // They are pulled high because SPI CS and UART TX lines
+  // should default to being pulled high.
+  assign output_pins = out_to_pins | ~out_to_pins_en;
 
   assign microsd_dat3 = output_pins[OUT_PIN_MICROSD_DAT3];
   assign microsd_cmd  = output_pins[OUT_PIN_MICROSD_CMD ];
