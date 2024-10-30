@@ -7,7 +7,7 @@
 package sonata_pkg;
 
   // Number of Instances
-  localparam int unsigned GPIO_NUM = 3;
+  localparam int unsigned GPIO_NUM = 4;
   localparam int unsigned PWM_NUM = 1;
   localparam int unsigned UART_NUM = 5;
   localparam int unsigned I2C_NUM = 2;

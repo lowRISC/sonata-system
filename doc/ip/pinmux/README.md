@@ -85,14 +85,14 @@ The default value for all of these selectors is `'b10`.
 | 0x046 | `pmod0_6` | 0, `gpio[2].ios[5]` |
 | 0x047 | `pmod0_7` | 0, `gpio[2].ios[6]` |
 | 0x048 | `pmod0_8` | 0, `gpio[2].ios[7]` |
-| 0x049 | `pmod1_1` | 0, `gpio[2].ios[8]`, `spi[3].cs[0]` |
-| 0x04a | `pmod1_2` | 0, `gpio[2].ios[9]`, `spi[3].tx`, `uart[3].tx` |
-| 0x04b | `pmod1_3` | 0, `gpio[2].ios[10]`, `i2c[1].scl` |
-| 0x04c | `pmod1_4` | 0, `gpio[2].ios[11]`, `i2c[1].sda`, `spi[3].sck` |
-| 0x04d | `pmod1_5` | 0, `gpio[2].ios[12]` |
-| 0x04e | `pmod1_6` | 0, `gpio[2].ios[13]` |
-| 0x04f | `pmod1_7` | 0, `gpio[2].ios[14]` |
-| 0x050 | `pmod1_8` | 0, `gpio[2].ios[15]` |
+| 0x049 | `pmod1_1` | 0, `gpio[3].ios[0]`, `spi[3].cs[0]` |
+| 0x04a | `pmod1_2` | 0, `gpio[3].ios[1]`, `spi[3].tx`, `uart[3].tx` |
+| 0x04b | `pmod1_3` | 0, `gpio[3].ios[2]`, `i2c[1].scl` |
+| 0x04c | `pmod1_4` | 0, `gpio[3].ios[3]`, `i2c[1].sda`, `spi[3].sck` |
+| 0x04d | `pmod1_5` | 0, `gpio[3].ios[4]` |
+| 0x04e | `pmod1_6` | 0, `gpio[3].ios[5]` |
+| 0x04f | `pmod1_7` | 0, `gpio[3].ios[6]` |
+| 0x050 | `pmod1_8` | 0, `gpio[3].ios[7]` |
 | 0x051 | `microsd_clk` | 0, `spi[3].sck` |
 | 0x052 | `microsd_cmd` | 0, `spi[3].tx` |
 | 0x053 | `microsd_dat3` | 0, `spi[3].cs[3]` |
@@ -173,14 +173,14 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x845 | `gpio[2].ios[5]` | 0, `pmod0_6` |
 | 0x846 | `gpio[2].ios[6]` | 0, `pmod0_7` |
 | 0x847 | `gpio[2].ios[7]` | 0, `pmod0_8` |
-| 0x848 | `gpio[2].ios[8]` | 0, `pmod1_1` |
-| 0x849 | `gpio[2].ios[9]` | 0, `pmod1_2` |
-| 0x84a | `gpio[2].ios[10]` | 0, `pmod1_3` |
-| 0x84b | `gpio[2].ios[11]` | 0, `pmod1_4` |
-| 0x84c | `gpio[2].ios[12]` | 0, `pmod1_5` |
-| 0x84d | `gpio[2].ios[13]` | 0, `pmod1_6` |
-| 0x84e | `gpio[2].ios[14]` | 0, `pmod1_7` |
-| 0x84f | `gpio[2].ios[15]` | 0, `pmod1_8` |
+| 0x848 | `gpio[2].ios[8]` | 0, 0 |
+| 0x849 | `gpio[2].ios[9]` | 0, 0 |
+| 0x84a | `gpio[2].ios[10]` | 0, 0 |
+| 0x84b | `gpio[2].ios[11]` | 0, 0 |
+| 0x84c | `gpio[2].ios[12]` | 0, 0 |
+| 0x84d | `gpio[2].ios[13]` | 0, 0 |
+| 0x84e | `gpio[2].ios[14]` | 0, 0 |
+| 0x84f | `gpio[2].ios[15]` | 0, 0 |
 | 0x850 | `gpio[2].ios[16]` | 0, 0 |
 | 0x851 | `gpio[2].ios[17]` | 0, 0 |
 | 0x852 | `gpio[2].ios[18]` | 0, 0 |
@@ -197,16 +197,48 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x85d | `gpio[2].ios[29]` | 0, 0 |
 | 0x85e | `gpio[2].ios[30]` | 0, 0 |
 | 0x85f | `gpio[2].ios[31]` | 0, 0 |
-| 0x860 | `uart[0].rx` | 1, `ser0_rx` |
-| 0x861 | `uart[1].rx` | 1, `ser1_rx` |
-| 0x862 | `uart[2].rx` | 1, `rph_rxd0`, `pmod0_3` |
-| 0x863 | `uart[3].rx` | 1, `ah_tmpio0`, `mb8`, `pmod1_3` |
-| 0x864 | `uart[4].rx` | 1, `rs232_rx` |
-| 0x865 | `spi[0].rx` | 0, `appspi_d1` |
-| 0x866 | `spi[1].rx` | 0, 0 |
-| 0x867 | `spi[2].rx` | 0, `ethmac_cipo`, `pmod0_3` |
-| 0x868 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod1_3`, `microsd_dat0` |
-| 0x869 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3` |
+| 0x860 | `gpio[3].ios[0]` | 0, `pmod1_1` |
+| 0x861 | `gpio[3].ios[1]` | 0, `pmod1_2` |
+| 0x862 | `gpio[3].ios[2]` | 0, `pmod1_3` |
+| 0x863 | `gpio[3].ios[3]` | 0, `pmod1_4` |
+| 0x864 | `gpio[3].ios[4]` | 0, `pmod1_5` |
+| 0x865 | `gpio[3].ios[5]` | 0, `pmod1_6` |
+| 0x866 | `gpio[3].ios[6]` | 0, `pmod1_7` |
+| 0x867 | `gpio[3].ios[7]` | 0, `pmod1_8` |
+| 0x868 | `gpio[3].ios[8]` | 0, 0 |
+| 0x869 | `gpio[3].ios[9]` | 0, 0 |
+| 0x86a | `gpio[3].ios[10]` | 0, 0 |
+| 0x86b | `gpio[3].ios[11]` | 0, 0 |
+| 0x86c | `gpio[3].ios[12]` | 0, 0 |
+| 0x86d | `gpio[3].ios[13]` | 0, 0 |
+| 0x86e | `gpio[3].ios[14]` | 0, 0 |
+| 0x86f | `gpio[3].ios[15]` | 0, 0 |
+| 0x870 | `gpio[3].ios[16]` | 0, 0 |
+| 0x871 | `gpio[3].ios[17]` | 0, 0 |
+| 0x872 | `gpio[3].ios[18]` | 0, 0 |
+| 0x873 | `gpio[3].ios[19]` | 0, 0 |
+| 0x874 | `gpio[3].ios[20]` | 0, 0 |
+| 0x875 | `gpio[3].ios[21]` | 0, 0 |
+| 0x876 | `gpio[3].ios[22]` | 0, 0 |
+| 0x877 | `gpio[3].ios[23]` | 0, 0 |
+| 0x878 | `gpio[3].ios[24]` | 0, 0 |
+| 0x879 | `gpio[3].ios[25]` | 0, 0 |
+| 0x87a | `gpio[3].ios[26]` | 0, 0 |
+| 0x87b | `gpio[3].ios[27]` | 0, 0 |
+| 0x87c | `gpio[3].ios[28]` | 0, 0 |
+| 0x87d | `gpio[3].ios[29]` | 0, 0 |
+| 0x87e | `gpio[3].ios[30]` | 0, 0 |
+| 0x87f | `gpio[3].ios[31]` | 0, 0 |
+| 0x880 | `uart[0].rx` | 1, `ser0_rx` |
+| 0x881 | `uart[1].rx` | 1, `ser1_rx` |
+| 0x882 | `uart[2].rx` | 1, `rph_rxd0`, `pmod0_3` |
+| 0x883 | `uart[3].rx` | 1, `ah_tmpio0`, `mb8`, `pmod1_3` |
+| 0x884 | `uart[4].rx` | 1, `rs232_rx` |
+| 0x885 | `spi[0].rx` | 0, `appspi_d1` |
+| 0x886 | `spi[1].rx` | 0, 0 |
+| 0x887 | `spi[2].rx` | 0, `ethmac_cipo`, `pmod0_3` |
+| 0x888 | `spi[3].rx` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod1_3`, `microsd_dat0` |
+| 0x889 | `spi[4].rx` | 0, `rph_g19_cipo`, `mb3` |
 
 ## Regeneration
 
