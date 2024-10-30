@@ -18,8 +18,8 @@ module pinmux
   input  [31:0] gpio_ios_en_i[GPIO_NUM],
 
   // PWM IOs
-  input  [5:0] pwm_ios_i   [PWM_NUM],
-  input  [5:0] pwm_ios_en_i[PWM_NUM],
+  input  [5:0] pwm_out_i   [PWM_NUM],
+  input  [5:0] pwm_out_en_i[PWM_NUM],
 
   // UART IOs
   output uart_rx_o[UART_NUM],
@@ -3240,7 +3240,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
-      pwm_ios_i[0][0]
+      pwm_out_i[0][0]
     }),
     .sel_i(mb10_sel),
     .out_o(out_to_pins_o[OUT_PIN_MB10])
@@ -3254,7 +3254,7 @@ module pinmux
     .rst_ni,
     .in_i({
       1'b0,
-      pwm_ios_en_i[0][0]
+      pwm_out_en_i[0][0]
     }),
     .sel_i(mb10_sel),
     .out_o(out_to_pins_en_o[OUT_PIN_MB10])

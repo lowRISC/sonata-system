@@ -76,7 +76,7 @@ The default value for all of these selectors is `'b10`.
 | 0x03d | `mb5` | 0, `i2c[1].sda` |
 | 0x03e | `mb6` | 0, `i2c[1].scl` |
 | 0x03f | `mb7` | 0, `uart[3].tx` |
-| 0x040 | `mb10` | 0, `pwm_ios[0]` |
+| 0x040 | `mb10` | 0, `pwm_out[0]` |
 | 0x041 | `pmod0_1` | 0, `gpio[2].ios[0]`, `spi[2].cs[0]` |
 | 0x042 | `pmod0_2` | 0, `gpio[2].ios[1]`, `spi[2].copi`, `uart[2].tx` |
 | 0x043 | `pmod0_3` | 0, `gpio[2].ios[2]`, `i2c[0].scl` |

@@ -15,7 +15,7 @@ package sonata_pkg;
 
   // Width of block IO arrays
   localparam int unsigned GPIO_IOS_WIDTH = 32;
-  localparam int unsigned PWM_IOS_WIDTH = 6;
+  localparam int unsigned PWM_OUT_WIDTH = 6;
   localparam int unsigned SPI_CS_WIDTH = 4;
 
   // Number of input, output, and inout pins
