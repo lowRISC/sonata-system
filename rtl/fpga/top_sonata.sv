@@ -241,10 +241,8 @@ module top_sonata
   assign usrusb_sus = !rx_enable_d2p;
 
   sonata_in_pins_t in_from_pins;
-  sonata_out_pins_t out_to_pins, out_to_pins_en;
+  sonata_out_pins_t out_to_pins;
   sonata_inout_pins_t inout_from_pins, inout_to_pins, inout_to_pins_en;
-
-  wire sonata_out_pins_t   output_pins;
 
   logic cheri_en;
 
@@ -342,7 +340,6 @@ module top_sonata
 
     .in_from_pins_i     (in_from_pins    ),
     .out_to_pins_o      (out_to_pins     ),
-    .out_to_pins_en_o   (out_to_pins_en  ),
     .inout_from_pins_i  (inout_from_pins ),
     .inout_to_pins_o    (inout_to_pins   ),
     .inout_to_pins_en_o (inout_to_pins_en)
@@ -404,32 +401,26 @@ module top_sonata
   assign in_from_pins[IN_PIN_SER1_RX     ] = ser1_rx;
   assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
 
-  // Output Pins
-  // Pull output pins high when their output isn't enabled.
-  // They are pulled high because SPI CS and UART TX lines
-  // should default to being pulled high.
-  assign output_pins = out_to_pins | ~out_to_pins_en;
-
-  assign microsd_dat3 = output_pins[OUT_PIN_MICROSD_DAT3];
-  assign microsd_cmd  = output_pins[OUT_PIN_MICROSD_CMD ];
-  assign microsd_clk  = output_pins[OUT_PIN_MICROSD_CLK ];
-  assign mb10         = output_pins[OUT_PIN_MB10        ];
-  assign mb7          = output_pins[OUT_PIN_MB7         ];
-  assign mb4          = output_pins[OUT_PIN_MB4         ];
-  assign mb2          = output_pins[OUT_PIN_MB2         ];
-  assign mb1          = output_pins[OUT_PIN_MB1         ];
-  assign ethmac_cs    = output_pins[OUT_PIN_ETHMAC_CS   ];
-  assign ethmac_sclk  = output_pins[OUT_PIN_ETHMAC_SCLK ];
-  assign ethmac_copi  = output_pins[OUT_PIN_ETHMAC_COPI ];
-  assign lcd_cs       = output_pins[OUT_PIN_LCD_CS      ];
-  assign lcd_clk      = output_pins[OUT_PIN_LCD_CLK     ];
-  assign lcd_copi     = output_pins[OUT_PIN_LCD_COPI    ];
-  assign appspi_cs    = output_pins[OUT_PIN_APPSPI_CS   ];
-  assign appspi_clk   = output_pins[OUT_PIN_APPSPI_CLK  ];
-  assign appspi_d0    = output_pins[OUT_PIN_APPSPI_D0   ];
-  assign rs232_tx     = output_pins[OUT_PIN_RS232_TX    ];
-  assign ser1_tx      = output_pins[OUT_PIN_SER1_TX     ];
-  assign ser0_tx      = output_pins[OUT_PIN_SER0_TX     ];
+  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
+  assign microsd_cmd  = out_to_pins[OUT_PIN_MICROSD_CMD ];
+  assign microsd_clk  = out_to_pins[OUT_PIN_MICROSD_CLK ];
+  assign mb10         = out_to_pins[OUT_PIN_MB10        ];
+  assign mb7          = out_to_pins[OUT_PIN_MB7         ];
+  assign mb4          = out_to_pins[OUT_PIN_MB4         ];
+  assign mb2          = out_to_pins[OUT_PIN_MB2         ];
+  assign mb1          = out_to_pins[OUT_PIN_MB1         ];
+  assign ethmac_cs    = out_to_pins[OUT_PIN_ETHMAC_CS   ];
+  assign ethmac_sclk  = out_to_pins[OUT_PIN_ETHMAC_SCLK ];
+  assign ethmac_copi  = out_to_pins[OUT_PIN_ETHMAC_COPI ];
+  assign lcd_cs       = out_to_pins[OUT_PIN_LCD_CS      ];
+  assign lcd_clk      = out_to_pins[OUT_PIN_LCD_CLK     ];
+  assign lcd_copi     = out_to_pins[OUT_PIN_LCD_COPI    ];
+  assign appspi_cs    = out_to_pins[OUT_PIN_APPSPI_CS   ];
+  assign appspi_clk   = out_to_pins[OUT_PIN_APPSPI_CLK  ];
+  assign appspi_d0    = out_to_pins[OUT_PIN_APPSPI_D0   ];
+  assign rs232_tx     = out_to_pins[OUT_PIN_RS232_TX    ];
+  assign ser1_tx      = out_to_pins[OUT_PIN_SER1_TX     ];
+  assign ser0_tx      = out_to_pins[OUT_PIN_SER0_TX     ];
 
   // Inout Pins
   padring #(
