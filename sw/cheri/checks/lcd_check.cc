@@ -23,7 +23,13 @@ using namespace CHERI;
 // When running in simulation, eliminate the delays?
 #define SIMULATION 0
 
+// Originally the supplementary LCD signals were driven via GPIO pins.
+#define USE_GPIO 0
+
+#if USE_GPIO
 const int LcdRstPin = 1, LcdDcPin = 2, LcdBlPin = 3;
+#define set_output_bit(a, b, c) gpio->output = (c) ? (gpio->output | (1 << (b))) : (gpio->output & ~(1 << (b)))
+#endif
 
 // LCD properties.
 const uint32_t width  = 128u;
@@ -31,8 +37,6 @@ const uint32_t height = 160u;
 // Logo properties.
 const uint32_t img_width  = 105u;
 const uint32_t img_height = 80u;
-
-#define set_output_bit(a, b, c) gpio->output = (c) ? (gpio->output | (1 << (b))) : (gpio->output & ~(1 << (b)))
 
 // Commonly-used LCD command codes.
 static const uint8_t madctl = ST7735_MADCTL;
@@ -49,8 +53,13 @@ static inline void delay(int delay_ms) {
 
 static inline void set_cs_dc(Capability<volatile SonataSpi> &spi, Capability<volatile SonataGPIO> &gpio, bool cs,
                              bool d) {
+#if USE_GPIO
   set_output_bit(0, LcdDcPin, d);
   spi->cs = cs ? (spi->cs | 1u) : (spi->cs & ~1u);
+#else
+  uint32_t cs_val = cs ? (spi->cs | 1u) : (spi->cs & ~1u);
+  spi->cs         = d ? (cs_val | 4u) : (cs_val & ~4u);
+#endif
 }
 
 static void write_command(Capability<volatile SonataSpi> &spi, Capability<volatile SonataGPIO> &gpio,
@@ -174,14 +183,23 @@ static void run_script(Capability<volatile OpenTitanUart> &uart, Capability<vola
   const uint8_t SpiSpeed = 0u;
   spi->init(false, false, true, SpiSpeed);
 
+#if USE_GPIO
   // Set the initial state of the LCD control pins.
-  set_output_bit(GPIO_OUT, LcdDcPin, 0x0);
-  set_output_bit(GPIO_OUT, LcdBlPin, 0x1);
+  set_output_bit(GPIO_OUT, LcdDcPin, 0x0);  // Command, not Data.
+  set_output_bit(GPIO_OUT, LcdBlPin, 0x1);  // Backlight on.
 
   // Reset LCD.
   set_output_bit(GPIO_OUT, LcdRstPin, 0x0);
   delay(150);
   set_output_bit(GPIO_OUT, LcdRstPin, 0x1);
+#else
+  // Set the initial state of the LCD control pins and start reset.
+  uint32_t cs_val = (spi->cs | 8u) & ~6u;
+  spi->cs         = cs_val;
+  delay(150);
+  // Release the reset.
+  spi->cs = cs_val | 2u;
+#endif
 
   // Send display initialisation commands.
   run_script(uart, spi, gpio, init_script_b);
