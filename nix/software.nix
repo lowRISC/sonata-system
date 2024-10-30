@@ -11,9 +11,9 @@
   cheriotRtosSource = pkgs.fetchFromGitHub {
     owner = "lowRISC";
     repo = "CHERIoT-RTOS";
-    rev = "89fc2a3cb8e9fcaed84ac835ad32a89309523e35";
+    rev = "bf7584e971c553160d266c21e17a38635b349a38";
     fetchSubmodules = true;
-    hash = "sha256-ri1VvryCNGWFatTIuEHqtx91taJ4CiW+5BcQcxPPeWM=";
+    hash = "sha256-3K09j2Haw++AuThVtEP0o6wX0ZWUNzdW7Pk2qPwInb0=";
   };
 
   reisfmtSource = pkgs.fetchFromGitHub {
