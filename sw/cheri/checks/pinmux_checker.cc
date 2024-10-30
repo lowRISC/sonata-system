@@ -159,7 +159,7 @@ static bool execute_spi_test(const Test &test, SpiPtr spis[2]) {
  * Checks whether Sonata's joystick is currently pressed down or not.
  */
 static inline bool joystick_pressed(SonataGpioFull *gpio) {
-  constexpr uint8_t SonataJoystickPressed = (1 << 2);
+  constexpr uint16_t SonataJoystickPressed = (1 << 10);
   return gpio->general->input & SonataJoystickPressed;
 }
 
@@ -168,7 +168,7 @@ static inline bool joystick_pressed(SonataGpioFull *gpio) {
  * (does not include being pressed down) or not.
  */
 static inline bool joystick_moved(SonataGpioFull *gpio) {
-  constexpr uint8_t SonataJoystickMoveMask = 0b11011;
+  constexpr uint16_t SonataJoystickMoveMask = (0b11011) << 8;
   return (gpio->general->input & SonataJoystickMoveMask) > 0;
 }
 
