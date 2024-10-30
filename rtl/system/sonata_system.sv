@@ -1205,7 +1205,7 @@ module sonata_system
     .spi_sck_i(spi_sck),
     .spi_sck_en_i('{default: 'b1}),
     .spi_cs_i(spi_cs),
-    .spi_cs_en_i('{default: 'b1}),
+    .spi_cs_en_i('{default: {SPI_CS_WIDTH{1'b1}}}),
 
     .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
     .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
