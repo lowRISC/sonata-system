@@ -248,24 +248,12 @@ module top_sonata
 
   logic cheri_en;
 
-  // SPI CS outputs from GPIO pins; these are scheduled to be dropped but they are still required
-  // by the `gp_o` port presently.
-  logic gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs;
-  logic gp_rph_g8_ce0, gp_rph_g7_ce1;
-  logic gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2;
-  logic gp_ah_tmpio10, gp_mb1;
-
-  wire unused_gp_spi_cs_ = ^{gp_lcd_cs, gp_appspi_cs, gp_ethmac_cs,
-                             gp_rph_g8_ce0, gp_rph_g7_ce1,
-                             gp_rph_g18, gp_rph_g17, gp_rph_g16_ce2,
-                             gp_ah_tmpio10, gp_mb1};
-
   // Enable CHERI by default.
   logic enable_cheri;
   assign enable_cheri = 1'b1;
 
   logic rgbled_dout;
-  logic [8:0] unused_gp_o;
+  logic [18:0] unused_gp_o;
 
   sonata_system #(
     .CheriErrWidth   (  9             ),
@@ -291,23 +279,18 @@ module top_sonata
     // GPIO
     .gp_i           ({
                       14'b0,
+                      mb9, // mikroBUS Click interrupt
                       microsd_det, // MicroSD card insertion detection
                       sel_sw_n, // Software selection switches
-                      mb9, // mikroBUS Click interrupt
-                      user_sw_n, // user switches
-                      nav_sw_n // joystick
+                      nav_sw_n, // joystick
+                      user_sw_n // user switches
                     }),
     .gp_o           ({
                       unused_gp_o,
                       mb0, // mikroBUS Click reset
-                      gp_mb1, // mikroBUS Click chip select
-                      gp_ah_tmpio10, // Arduino shield chip select
-                      gp_rph_g16_ce2, gp_rph_g17, gp_rph_g18, // R-Pi SPI1 chip selects [2:0]
-                      gp_rph_g7_ce1, gp_rph_g8_ce0, // R-Pi SPI0 chip selects [1:0]
-                      ethmac_rst, gp_ethmac_cs, // Ethernet
-                      gp_appspi_cs, // Flash
-                      usrLed, // User LEDs (8 bits)
-                      lcd_backlight, lcd_dc, lcd_rst, gp_lcd_cs // LCD screen
+                      ethmac_rst, // Ethernet
+                      lcd_backlight, lcd_dc, lcd_rst, // LCD screen
+                      usrLed // User LEDs (8 bits)
                     }),
     .gp_o_en        (),
 
