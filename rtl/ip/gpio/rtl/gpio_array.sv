@@ -7,7 +7,7 @@ module gpio_array #(
   parameter int unsigned GpoWidth     = 16,
   parameter int unsigned AddrWidth    = 32,
   parameter int unsigned DataWidth    = 32,
-  parameter int unsigned RegAddr      = 12,
+  parameter int unsigned RegAddrWidth = 12,
   parameter int unsigned NumInstances =  1
 ) (
   input  logic clk_i,
@@ -33,7 +33,7 @@ module gpio_array #(
 
   for (genvar i = 0; i < NumInstances; i++) begin
     logic device_selector;
-    assign device_selector = (device_addr_i[RegAddr-1:AddrBitsPerInstance]== i) ?
+    assign device_selector = (device_addr_i[RegAddrWidth-1:AddrBitsPerInstance]== i) ?
                              device_req_i : 1'b0;
 
     gpio_core #(

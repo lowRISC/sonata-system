@@ -7,7 +7,7 @@ module gpio #(
   parameter int unsigned GpoWidth     = 16,
   parameter int unsigned AddrWidth    = 32,
   parameter int unsigned DataWidth    = 32,
-  parameter int unsigned RegAddr      = 12,
+  parameter int unsigned RegAddrWidth = 12,
   parameter int unsigned NumInstances =  1
 ) (
   input  logic clk_i,
@@ -20,7 +20,6 @@ module gpio #(
   output logic [GpoWidth-1:0] gp_o[NumInstances],
   output logic [GpoWidth-1:0] gp_o_en[NumInstances]
 );
-  localparam int unsigned RegAddrWidth  = 8;
 
   logic                 device_req;
   logic [AddrWidth-1:0] device_addr;
@@ -40,7 +39,7 @@ module gpio #(
     .GpoWidth     ( GpoWidth     ),
     .AddrWidth    ( AddrWidth    ),
     .DataWidth    ( DataWidth    ),
-    .RegAddr      ( RegAddr      ),
+    .RegAddrWidth ( RegAddrWidth ),
     .NumInstances ( NumInstances )
   ) u_gpio (
     .clk_i,
@@ -60,7 +59,8 @@ module gpio #(
   );
 
   tlul_adapter_reg #(
-    .AccessLatency    ( 1 )
+    .AccessLatency ( 1            ),
+    .RegAw         ( RegAddrWidth )
   ) gpio_device_adapter (
     .clk_i,
     .rst_ni,
