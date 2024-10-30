@@ -7,7 +7,7 @@ include(FetchContent)
 
 FetchContent_Declare(CHERIOT_RTOS
   GIT_REPOSITORY    https://github.com/lowRISC/CHERIoT-RTOS
-  GIT_TAG           89fc2a3cb8e9fcaed84ac835ad32a89309523e35
+  GIT_TAG           bf7584e971c553160d266c21e17a38635b349a38
 )
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
