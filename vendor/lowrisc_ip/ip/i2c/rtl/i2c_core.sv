@@ -48,10 +48,10 @@ module i2c_core import i2c_pkg::*;
   localparam int unsigned MaxFifoDepthW = 12;
 
   // Round-trip delay for outputs to appear on the inputs, not including rise
-  // time. This is the input delay external to this IP, plus the output flop,
-  // plus the 2-flop synchronizer on the input. The total value here
+  // time. This is the input delay external to this IP, plus the output flop.
+  // The total value here
   // represents the minimum allowed high and low times for SCL.
-  localparam int unsigned RoundTripCycles = InputDelayCycles + 2 + 1;
+  localparam int unsigned RoundTripCycles = InputDelayCycles + 1;
 
   logic [12:0] thigh;
   logic [12:0] tlow;
@@ -72,8 +72,6 @@ module i2c_core import i2c_pkg::*;
   logic [30:0] host_nack_handler_timeout;
   logic        host_nack_handler_timeout_en;
 
-  logic scl_sync;
-  logic sda_sync;
   logic scl_out_controller_fsm, sda_out_controller_fsm;
   logic scl_out_target_fsm, sda_out_target_fsm;
   logic scl_out_fsm;
@@ -428,27 +426,6 @@ module i2c_core import i2c_pkg::*;
   assign acq_fifo_rready = (reg2hw.acqdata.abyte.re & reg2hw.acqdata.signal.re) |
                            (target_loopback & (tx_fifo_wready | (acq_type != AcqData)));
 
-  // sync the incoming SCL and SDA signals
-  prim_flop_2sync #(
-    .Width(1),
-    .ResetValue(1'b1)
-  ) u_i2c_sync_scl (
-    .clk_i,
-    .rst_ni,
-    .d_i (scl_i),
-    .q_o (scl_sync)
-  );
-
-  prim_flop_2sync #(
-    .Width(1),
-    .ResetValue(1'b1)
-  ) u_i2c_sync_sda (
-    .clk_i,
-    .rst_ni,
-    .d_i (sda_i),
-    .q_o (sda_sync)
-  );
-
   // Various bus collision events are detected while SCL is high.
   logic sda_fsm, sda_fsm_q;
   logic scl_fsm, scl_fsm_q;
@@ -483,7 +460,7 @@ module i2c_core import i2c_pkg::*;
     end
   end
   assign bus_event_detect = (bus_event_detect_cnt == '0);
-  assign sda_released_but_low = bus_event_detect && scl_sync && (sda_fsm_q != sda_sync);
+  assign sda_released_but_low = bus_event_detect && scl_i && (sda_fsm_q != sda_i);
   // What about unexpected start / stop on the bits that are read?
   assign controller_sda_interference = controller_transmitting && sda_released_but_low;
   assign target_arbitration_lost = target_transmitting && sda_released_but_low;
@@ -496,8 +473,8 @@ module i2c_core import i2c_pkg::*;
     .clk_i,
     .rst_ni,
 
-    .scl_i                          (scl_sync),
-    .sda_i                          (sda_sync),
+    .scl_i                          (scl_i),
+    .sda_i                          (sda_i),
 
     .controller_enable_i            (host_enable),
     .multi_controller_enable_i      (reg2hw.ctrl.multi_controller_monitor_en.q),
@@ -523,9 +500,9 @@ module i2c_core import i2c_pkg::*;
     .clk_i,
     .rst_ni,
 
-    .scl_i                          (scl_sync),
+    .scl_i                          (scl_i),
     .scl_o                          (scl_out_controller_fsm),
-    .sda_i                          (sda_sync),
+    .sda_i                          (sda_i),
     .sda_o                          (sda_out_controller_fsm),
     .bus_free_i                     (bus_free),
     .transmitting_o                 (controller_transmitting),
@@ -579,9 +556,9 @@ module i2c_core import i2c_pkg::*;
     .clk_i,
     .rst_ni,
 
-    .scl_i                          (scl_sync),
+    .scl_i                          (scl_i),
     .scl_o                          (scl_out_target_fsm),
-    .sda_i                          (sda_sync),
+    .sda_i                          (sda_i),
     .sda_o                          (sda_out_target_fsm),
     .start_detect_i                 (start_detect),
     .stop_detect_i                  (stop_detect),
@@ -881,7 +858,7 @@ module i2c_core import i2c_pkg::*;
   // TODO: Decide whether to keep this assertion. It is primarily checking the
   // testbench, not the IP, due to the CDC cycle deletion.
   // Check to make sure scl_i is never a single cycle glitch
-  //  `ASSERT(SclInputGlitch_A, $rose(scl_sync) |-> ##1 scl_sync)
+  //  `ASSERT(SclInputGlitch_A, $rose(scl_i) |-> ##1 scl_i)
 
   `ASSERT_INIT(FifoDepthValid_A, FifoDepth > 0 && FifoDepthW <= MaxFifoDepthW)
   `ASSERT_INIT(AcqFifoDepthValid_A, AcqFifoDepth > 0 && AcqFifoDepthW <= MaxFifoDepthW)
