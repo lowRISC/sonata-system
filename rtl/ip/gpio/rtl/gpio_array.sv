@@ -25,7 +25,7 @@ module gpio_array #(
   output logic [GpoWidth-1:0] gp_o[NumInstances],
   output logic [GpoWidth-1:0] gp_o_en[NumInstances]
 );
-  localparam int unsigned NumBytesPerInstance = 4 * AddrWidth/8;
+  localparam int unsigned NumBytesPerInstance = 16 * DataWidth/8;
   localparam int unsigned AddrBitsPerInstance = $clog2(NumBytesPerInstance);
 
   logic device_read_valids[NumInstances];
