@@ -232,6 +232,14 @@ module top_verilator (input logic clk_i, rst_ni);
   assign rph_g16_ce2  = inout_to_pins[INOUT_PIN_RPH_G16_CE2];
   assign mb1          = out_to_pins[OUT_PIN_MB1];
 
+  logic unused_out_pins = ^{out_to_pins[OUT_PIN_RS232_TX],
+                            out_to_pins[OUT_PIN_ETHMAC_COPI],
+                            out_to_pins[OUT_PIN_ETHMAC_SCLK],
+                            out_to_pins[OUT_PIN_MB2],
+                            out_to_pins[OUT_PIN_MB10],
+                            out_to_pins[OUT_PIN_MICROSD_CMD],
+                            out_to_pins[OUT_PIN_MICROSD_CLK]};
+
   logic [18:0] unused_gp_o;
 
   // Loopback functionality used to verify the operation of the pinmux and GPIO pins;
@@ -249,6 +257,14 @@ module top_verilator (input logic clk_i, rst_ni);
           inout_from_pins[INOUT_PIN_AH_TMPIO0],
           in_from_pins[IN_PIN_MB8],
           in_from_pins[IN_PIN_MB3]} = loopback_q;
+
+  // Switch inputs have pull-ups and switches pull to ground when on, but in `top_sonata`
+  // they are inverted, so 0 here means 'not pressed' or 'off'.
+  wire [4:0] nav_sw_n = '0;
+  wire [7:0] user_sw_n = '0;
+  wire [2:0] sel_sw_n = '0;
+  wire mb9 = 1'b1; // undriven, apt to float high.
+  wire microsd_det = 1'b1; // pulled high to indicate the _absence_ of a microSD card.
 
   // Instantiating the Sonata System.
   sonata_system #(
@@ -271,7 +287,14 @@ module top_verilator (input logic clk_i, rst_ni);
     .clk_hr3x_i     (1'b0),
     .rst_hr_ni      (rst_hr_n),
 
-    .gp_i           (0),
+    .gp_i           ({
+                      14'b0,
+                      mb9, // mikroBUS Click interrupt
+                      microsd_det, // MicroSD card insertion detection
+                      sel_sw_n, // Software selection switches
+                      nav_sw_n, // joystick
+                      user_sw_n // user switches
+                    }),
     .gp_o           ({
                       unused_gp_o,
                       mb0, // mikroBUS Click reset
@@ -331,7 +354,6 @@ module top_verilator (input logic clk_i, rst_ni);
 
     .in_from_pins_i     (in_from_pins    ),
     .out_to_pins_o      (out_to_pins     ),
-    .out_to_pins_en_o   (                ),
     .inout_from_pins_i  (inout_from_pins ),
     .inout_to_pins_o    (inout_to_pins   ),
     .inout_to_pins_en_o (inout_to_pins_en)

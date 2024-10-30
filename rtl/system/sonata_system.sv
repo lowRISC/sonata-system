@@ -83,7 +83,6 @@ module sonata_system
   // Pin Signals
   input  sonata_in_pins_t    in_from_pins_i,
   output sonata_out_pins_t   out_to_pins_o,
-  output sonata_out_pins_t   out_to_pins_en_o,
   input  sonata_inout_pins_t inout_from_pins_i,
   output sonata_inout_pins_t inout_to_pins_o,
   output sonata_inout_pins_t inout_to_pins_en_o
@@ -1181,6 +1180,13 @@ module sonata_system
     .tl_o   (tl_system_info_d2h)
   );
 
+  // Output Pins
+  // Pull output pins high when their output isn't enabled.
+  // They are pulled high because SPI CS and UART TX lines
+  // should default to being pulled high.
+  sonata_out_pins_t out_to_pins_data, out_to_pins_en;
+  assign out_to_pins_o = out_to_pins_data | ~out_to_pins_en;
+
   pinmux u_pinmux (
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
@@ -1205,15 +1211,15 @@ module sonata_system
     .spi_sck_i(spi_sck),
     .spi_sck_en_i('{default: 'b1}),
     .spi_cs_i(spi_cs),
-    .spi_cs_en_i('{default: {SPI_CS_WIDTH{1'b1}}}),
+    .spi_cs_en_i('{default: '1}), // All continuously enabled.
 
     .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
     .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
     .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
 
     .in_from_pins_i,
-    .out_to_pins_o,
-    .out_to_pins_en_o,
+    .out_to_pins_o(out_to_pins_data),
+    .out_to_pins_en_o(out_to_pins_en),
     .inout_from_pins_i,
     .inout_to_pins_o,
     .inout_to_pins_en_o,
