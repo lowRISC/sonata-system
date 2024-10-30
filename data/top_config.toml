@@ -15,7 +15,7 @@ memory_size  = 0x00000040
 [[blocks]]
 name = "pwm"
 instances = 1
-ios = [{ name = "ios", type = "output", length = 6 }]
+ios = [{ name = "out", type = "output", length = 6 }]
 memory_start = 0x80001000
 memory_size  = 0x00001000
 xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
@@ -417,7 +417,7 @@ block_ios = [{block = "uart", instance = 3, io = "rx"}]
 
 [[pins]]
 name = "mb10"
-block_ios = [{block = "pwm", instance = 0, io = "ios", io_index = 0}]
+block_ios = [{block = "pwm", instance = 0, io = "out", io_index = 0}]
 
 ## PMODs
 [[pins]]

@@ -908,9 +908,9 @@ module sonata_system
   end : gen_i2c_hosts
 
   // Pulse width modulator.
-  logic [PWM_IOS_WIDTH-1:0] pwm_modulated;
+  logic [PWM_OUT_WIDTH-1:0] pwm_modulated;
   pwm_wrapper #(
-    .PwmWidth   ( PWM_IOS_WIDTH ),
+    .PwmWidth   ( PWM_OUT_WIDTH ),
     .PwmCtrSize ( PwmCtrSize )
   ) u_pwm (
     .clk_i           (clk_sys_i),
@@ -1191,8 +1191,8 @@ module sonata_system
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
 
-    .pwm_ios_i('{pwm_modulated}),
-    .pwm_ios_en_i('{'b1}),
+    .pwm_out_i('{pwm_modulated}),
+    .pwm_out_en_i('{'b1}),
 
     .uart_rx_o(uart_rx),
     .uart_tx_i(uart_tx),
