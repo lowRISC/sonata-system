@@ -12,7 +12,7 @@
 
 using namespace CHERI;
 
-#define GPIO_VALUE (0x00000FF0)
+#define GPIO_VALUE (0x000000FF)
 
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
@@ -49,10 +49,9 @@ extern "C" uint32_t entry_point(void *rwRoot) {
   while (true) {
     gpioValue ^= GPIO_VALUE;
     for (int i = 0; i < 2000000; i++) {
-      inputValue = *((volatile uint32_t *)gpi);
-      // Shift right to remove joystick, mask to only get 8 switches and shift left to skip LCD controls.
-      switchValue                 = ((inputValue >> 5) & 0xFF) << 4;
-      joystickValue               = (inputValue & 0x1F) << 4;
+      inputValue                  = *((volatile uint32_t *)gpi);
+      switchValue                 = inputValue & 0xFF;
+      joystickValue               = (inputValue >> 8) & 0x1F;
       *((volatile uint32_t *)gpo) = (gpioValue ^ switchValue ^ joystickValue) & GPIO_VALUE;
     }
   }
