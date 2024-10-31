@@ -236,7 +236,6 @@ module top_verilator (input logic clk_i, rst_ni);
                             out_to_pins[OUT_PIN_ETHMAC_COPI],
                             out_to_pins[OUT_PIN_ETHMAC_SCLK],
                             out_to_pins[OUT_PIN_MB2],
-                            out_to_pins[OUT_PIN_MB10],
                             out_to_pins[OUT_PIN_MICROSD_CMD],
                             out_to_pins[OUT_PIN_MICROSD_CLK]};
 
@@ -246,15 +245,17 @@ module top_verilator (input logic clk_i, rst_ni);
   // these signals are re-timed through a single register stage simply to prevent Verilator
   // warnings about circular combinational logic which assesses circularity at the net level
   // (i.e. `in_from_pins` and `out_to_pins`) rather than the bit level.
-  reg [3:0] loopback_q;
+  reg [4:0] loopback_q;
   always @(posedge clk_i) begin
     loopback_q <= {inout_to_pins[INOUT_PIN_AH_TMPIO8],
                    inout_to_pins[INOUT_PIN_AH_TMPIO1],
+                   out_to_pins[OUT_PIN_MB10],  // mikroBUS CLick PWM -> PMOD0.1; PWM loopback
                    out_to_pins[OUT_PIN_MB7],   // mikroBUS Click TX -> RX; UART loopback.
                    out_to_pins[OUT_PIN_MB4]};  // mikroBUS Click COPI -> CIPO; SPI loopback.
   end
   assign {inout_from_pins[INOUT_PIN_AH_TMPIO9],
           inout_from_pins[INOUT_PIN_AH_TMPIO0],
+          inout_from_pins[INOUT_PIN_PMOD0_1],
           in_from_pins[IN_PIN_MB8],
           in_from_pins[IN_PIN_MB3]} = loopback_q;
 
