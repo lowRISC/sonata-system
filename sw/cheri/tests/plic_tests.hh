@@ -10,12 +10,19 @@
 #include <platform-plic.hh>
 #include <platform-uart.hh>
 #include "../../common/defs.h"
-#include "../common/uart-utils.hh"
 #include "../common/asm.hh"
 #include "../common/sonata-devices.hh"
 #include "test_runner.hh"
 
 #include <array>
+
+/**
+ * Configures the number of test iterations to perform.
+ * This can be overriden via a compilation flag.
+ */
+#ifndef PLIC_TEST_ITERATIONS
+#define PLIC_TEST_ITERATIONS (1U)
+#endif
 
 struct PlicTest {
   CapRoot root;
@@ -64,7 +71,7 @@ struct PlicTest {
     uart->interruptState = ~0u;
     uart->interruptTest  = 0u;
 
-    log_->println("testing uart: {}", instance);
+    log_->println("  Testing UART{}:", instance);
     for (size_t i = 0; i < uartMap.size(); ++i) {
       ip_irq_id        = uartMap[i].id;
       is_irq_clearable = uartMap[i].can_clear;
@@ -73,10 +80,12 @@ struct PlicTest {
 
       // This lambda will handle the uart specific register to clear the irq.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
-        auto uart = uart_ptr(plic_test->root, plic_test->instance);
-        plic_test->log(irq, uart->interruptEnable & uart->interruptState);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
-        plic_test->error_count += !(uart->interruptState & plic_test->ip_irq_id);
+        auto uart              = uart_ptr(plic_test->root, plic_test->instance);
+        const bool wrong_irq   = (irq != plic_test->plic_irq_id);
+        const bool wrong_local = !(uart->interruptState & plic_test->ip_irq_id);
+        plic_test->error_count += wrong_irq;
+        plic_test->error_count += wrong_local;
+        plic_test->log(irq, uart->interruptEnable & uart->interruptState, wrong_irq || wrong_local);
         if (plic_test->is_irq_clearable) {
           uart->interruptState = plic_test->ip_irq_id;
         } else {
@@ -126,7 +135,7 @@ struct PlicTest {
     i2c->interruptState  = ~0u;
     i2c->interruptTest   = 0u;
 
-    log_->println("testing i2c: {}", instance);
+    log_->println("  Testing I2C{}:", instance);
     for (size_t i = 0; i < i2cMap.size(); ++i) {
       ip_irq_id        = static_cast<uint32_t>(i2cMap[i].id);
       is_irq_clearable = i2cMap[i].can_clear;
@@ -135,10 +144,12 @@ struct PlicTest {
 
       // Register interrupt handler.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
-        auto i2c = i2c_ptr(plic_test->root, plic_test->instance);
-        plic_test->log(irq, i2c->interruptEnable & i2c->interruptState);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
-        plic_test->error_count += !(i2c->interruptState & (0x1 << plic_test->ip_irq_id));
+        auto i2c               = i2c_ptr(plic_test->root, plic_test->instance);
+        const bool wrong_irq   = (irq != plic_test->plic_irq_id);
+        const bool wrong_local = !(i2c->interruptState & (0x1 << plic_test->ip_irq_id));
+        plic_test->error_count += wrong_irq;
+        plic_test->error_count += wrong_local;
+        plic_test->log(irq, i2c->interruptEnable & i2c->interruptState, wrong_irq || wrong_local);
         if (plic_test->is_irq_clearable) {
           i2c->interruptState = 0x1 << plic_test->ip_irq_id;
         } else {
@@ -178,7 +189,7 @@ struct PlicTest {
     spi->interruptState = ~0u;
     spi->interruptTest  = 0u;
 
-    log_->println("testing spi: {}", instance);
+    log_->println("  Testing SPI{}:", instance);
     for (size_t i = 0; i < spiMap.size(); ++i) {
       ip_irq_id        = spiMap[i].id;
       is_irq_clearable = spiMap[i].can_clear;
@@ -187,10 +198,12 @@ struct PlicTest {
 
       // Register interrupt handler.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
-        auto spi = spi_ptr(plic_test->root, plic_test->instance);
-        plic_test->log(irq, spi->interruptEnable & spi->interruptState);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
-        plic_test->error_count += !(spi->interruptState & plic_test->ip_irq_id);
+        auto spi               = spi_ptr(plic_test->root, plic_test->instance);
+        const bool wrong_irq   = (irq != plic_test->plic_irq_id);
+        const bool wrong_local = !(spi->interruptState & plic_test->ip_irq_id);
+        plic_test->error_count += wrong_irq;
+        plic_test->error_count += wrong_local;
+        plic_test->log(irq, spi->interruptEnable & spi->interruptState, wrong_irq || wrong_local);
         if (plic_test->is_irq_clearable) {
           spi->interruptState = plic_test->ip_irq_id;
         } else {
@@ -243,7 +256,7 @@ struct PlicTest {
     usbdev->interruptState = ~0u;
     usbdev->interruptTest  = 0u;
 
-    log_->println("testing usbdev");
+    log_->println("  Testing USBDEV:");
     for (size_t i = 0; i < usbdevMap.size(); ++i) {
       ip_irq_id        = usbdevMap[i].id;
       is_irq_clearable = usbdevMap[i].can_clear;
@@ -252,10 +265,12 @@ struct PlicTest {
 
       // Register interrupt handler.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
-        auto usbdev = usbdev_ptr(plic_test->root);
-        plic_test->log(irq, usbdev->interruptEnable & usbdev->interruptState);
-        plic_test->error_count += (irq != plic_test->plic_irq_id);
-        plic_test->error_count += !(usbdev->interruptState & plic_test->ip_irq_id);
+        auto usbdev            = usbdev_ptr(plic_test->root);
+        const bool wrong_irq   = (irq != plic_test->plic_irq_id);
+        const bool wrong_local = !(usbdev->interruptState & plic_test->ip_irq_id);
+        plic_test->error_count += wrong_irq;
+        plic_test->error_count += wrong_local;
+        plic_test->log(irq, usbdev->interruptEnable & usbdev->interruptState, wrong_irq || wrong_local);
         if (plic_test->is_irq_clearable) {
           usbdev->interruptState = plic_test->ip_irq_id;
         } else {
@@ -284,9 +299,10 @@ struct PlicTest {
 
   // Log the expected and observed interrupts at both the PLIC and the IP block itself;
   // the `irq_handler` function shall record any mismatches.
-  void log(PLIC::Interrupts fired, uint32_t fired_intr_state) {
-    log_->println("irq fired: {:#x}, expected: {:#x} : IP-local fired: {:#x}, expected: {:#x}",
-                  static_cast<uint32_t>(fired), static_cast<uint32_t>(plic_irq_id), fired_intr_state, exp_intr_state);
+  void log(PLIC::Interrupts fired, uint32_t fired_intr_state, bool failed) {
+    log_->print("  irq fired: {:#x}, expected: {:#x} : IP-local fired: {:#x}, expected: {:#x}... ",
+                static_cast<uint32_t>(fired), static_cast<uint32_t>(plic_irq_id), fired_intr_state, exp_intr_state);
+    write_test_result(*log_, failed);
   }
 
   bool all_interrupts_test(void) {
@@ -333,6 +349,11 @@ void plic_tests(CapRoot root, Log &log) {
   plic_test.root = root;
   plic_test.plic = &plic;
   plic_test.log_ = &log;
-  log.println("running plic_test");
-  check_result(log, plic_test.all_interrupts_test());
+
+  // Execute the specified number of iterations of each test.
+  for (size_t i = 0; i < PLIC_TEST_ITERATIONS; i++) {
+    log.println("\r\nrunning plic_test: {} \\ {}", i, PLIC_TEST_ITERATIONS - 1);
+    plic_test.error_count = 0;
+    check_result(log, plic_test.all_interrupts_test());
+  }
 }
