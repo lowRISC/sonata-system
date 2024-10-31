@@ -43,8 +43,6 @@ struct UartTest {
     // Uart0 is used as a console and cannot be tested
     Uart1,
     Uart2,
-    Uart3,
-    Uart4,
     NumUarts,
   } uart;
   uint32_t timeout;
@@ -71,9 +69,9 @@ struct I2cTest {
 // The test-specific data required to carry out a SPI Pmod SF3 Read ID test
 struct SpiTest {
   enum class SpiNum : uint8_t {
-    // Spi0-1 are used for the Flash and LCD and so cannot be tested.
-    Spi2,
-    Spi3,
+    // The Flash and LCD have unused dedicated SPIs which cannot be tested.
+    Spi0,
+    Spi1,
     NumSpi,
   } spi;
 };
