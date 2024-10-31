@@ -32,8 +32,8 @@ protected:
 private:
   // These are the physical properties of the LCD, not the screen properties from the perspective
   // of the driver software.
-  static constexpr unsigned kWidth  = 160u;
-  static constexpr unsigned kHeight = 128u;
+  static constexpr unsigned kWidth  = 128u;
+  static constexpr unsigned kHeight = 160u;
   typedef uint16_t pixel_t;
 
   // Write the LCD image out to the given file if enough time has elapsed since the most

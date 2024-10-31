@@ -23,7 +23,7 @@
 #define GPIO_ADDRESS (0x8000'0000)
 #define GPIO_RANGE (0x0000'0040)
 
-#define PWM_NUM 6
+#define PWM_NUM 7
 #define PWM_ADDRESS (0x8000'1000)
 #define PWM_BOUNDS (0x0000'0008)
 #define PWM_RANGE (0x0000'0008)

@@ -52,9 +52,9 @@ typedef enum {
 } ST7735_Cmd;
 
 typedef enum {
-  ST77_MADCTL_MX  = 0x01 << 7,  // Column Address Order
-  ST77_MADCTL_MV  = 0x01 << 6,  // Row/Column Exchange
-  ST77_MADCTL_MY  = 0x01 << 5,  // Row Address Order
+  ST77_MADCTL_MY  = 0x01 << 7,  // Row Address Order
+  ST77_MADCTL_MX  = 0x01 << 6,  // Column Address Order
+  ST77_MADCTL_MV  = 0x01 << 5,  // Row/Column Exchange
   ST77_MADCTL_ML  = 0x01 << 4,
   ST77_MADCTL_RGB = 0x01 << 3,
   ST77_MADCTL_MH  = 0x01 << 2
@@ -95,19 +95,31 @@ void spi_lcd::reset() {
 void spi_lcd::outputImage() {
   FILE *out = fopen(imgFilename.c_str(), "wb");
   if (out) {
+    // In practice, because of the way that the LCD is mounted on the Sonata FPGA board,
+    // we usually want to perform a rotation of the image before writing it out.
+    const bool invert_y = true;
     // Present the image from the perspective of the controller writes.
     bool transposed = (madCtl & ST77_MADCTL_MV) != 0;
+    // When transposing what we actually want is a 90 degree rotation.
+    const bool invert_x = !transposed;
     uint32_t w = transposed ? kHeight : kWidth;
     uint32_t h = transposed ? kWidth  : kHeight;
     fprintf(out, "P6 %u %u %u\n", w, h, 0x3fu);
-    unsigned y = 0u;
-    while (y < h) {
+    int y = invert_y ? (int)(h - 1u) : 0;
+    int yd = invert_y ? -1 : 1;
+    unsigned nrows = h;
+    while (nrows-- > 0u) {
       const pixel_t *ppix = transposed ? &frameBuf[0][y] : frameBuf[y];
-      unsigned x = 0;
-      while (x < w) {
+      int xd = transposed ? kWidth : 1;
+      if (invert_x) {
+        ppix += (w - 1) * xd;
+        xd = -xd;
+      }
+      unsigned ncols = w;
+      while (ncols-- > 0u) {
         // Collect pixel.
         pixel_t pix = *ppix;
-        ppix += transposed ? kWidth : 0;
+        ppix += xd;
         // Extract components from 5:6:5 format.
         unsigned r =  pix & 0x1fu;
         unsigned g = (pix >> 5) & 0x3fu;
@@ -116,9 +128,8 @@ void spi_lcd::outputImage() {
         b = (b << 1) | (b >> 4);
         r = (r << 1) | (r >> 4);
         fputc(r, out); fputc(g, out); fputc(b, out);
-        x++;
       }
-      y++;
+      y += yd;
     }
     fclose(out);
 
@@ -139,10 +150,14 @@ void spi_lcd::writeByte(uint8_t inByte, uint32_t oobIn) {
     // We support only the 5:6:5 format presently, so two bytes per pixel.
     cmdComplete = (cmdLen >= 2);
     if (cmdComplete) {
+      // Handle row/column exchange.
       uint16_t colPhysAdr = (madCtl & ST77_MADCTL_MV) ? rowAdr : colAdr;
       uint16_t rowPhysAdr = (madCtl & ST77_MADCTL_MV) ? colAdr : rowAdr;
       // Ensure that we do not write out-of-bounds.
       if (colPhysAdr < kWidth && rowPhysAdr < kHeight) {
+        // Now column and row order.
+        if (madCtl & ST77_MADCTL_MX) colPhysAdr = kWidth - 1u - colPhysAdr;
+        if (madCtl & ST77_MADCTL_MY) rowPhysAdr = kHeight - 1u - rowPhysAdr;
         uint16_t pixCol = ((uint16_t)cmd[0] << 8) | cmd[1];
         frameBuf[rowPhysAdr][colPhysAdr] = pixCol;
       }
