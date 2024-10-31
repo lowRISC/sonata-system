@@ -181,7 +181,7 @@ module pinmux
   % for block_io, default_value, operator, pins_and_select_values in combined_input_block_ios:
   assign ${block_io.uid.block}_${block_io.uid.io}_o[${block_io.uid.instance}] =
     % for idx, (pin, select_value) in enumerate(pins_and_select_values):
-    (${pin.name}_sel == ${select_value} ? ${pin.direction_prefix}from_pins_i[${pin.idx_param}] : ${default_value})${operator if idx < len(pins_and_select_values) - 1 else ';'}
+    (${pin.name}_sel == $bits(${pin.name}_sel)'(${select_value}) ? ${pin.direction_prefix}from_pins_i[${pin.idx_param}] : ${default_value})${operator if idx < len(pins_and_select_values) - 1 else ';'}
     % endfor
   % endfor
 endmodule

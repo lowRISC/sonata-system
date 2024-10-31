@@ -8900,21 +8900,21 @@ module pinmux
 
   // Combining inputs for combinable inouts
   assign i2c_scl_o[0] =
-    (scl0_sel == 2 ? inout_from_pins_i[INOUT_PIN_SCL0] : 1'b1) &
-    (rph_g1_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G1] : 1'b1) &
-    (pmod0_3_sel == 4 ? inout_from_pins_i[INOUT_PIN_PMOD0_3] : 1'b1);
+    (scl0_sel == $bits(scl0_sel)'(2) ? inout_from_pins_i[INOUT_PIN_SCL0] : 1'b1) &
+    (rph_g1_sel == $bits(rph_g1_sel)'(2) ? inout_from_pins_i[INOUT_PIN_RPH_G1] : 1'b1) &
+    (pmod0_3_sel == $bits(pmod0_3_sel)'(4) ? inout_from_pins_i[INOUT_PIN_PMOD0_3] : 1'b1);
   assign i2c_sda_o[0] =
-    (sda0_sel == 2 ? inout_from_pins_i[INOUT_PIN_SDA0] : 1'b1) &
-    (rph_g0_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G0] : 1'b1) &
-    (pmod0_4_sel == 4 ? inout_from_pins_i[INOUT_PIN_PMOD0_4] : 1'b1);
+    (sda0_sel == $bits(sda0_sel)'(2) ? inout_from_pins_i[INOUT_PIN_SDA0] : 1'b1) &
+    (rph_g0_sel == $bits(rph_g0_sel)'(2) ? inout_from_pins_i[INOUT_PIN_RPH_G0] : 1'b1) &
+    (pmod0_4_sel == $bits(pmod0_4_sel)'(4) ? inout_from_pins_i[INOUT_PIN_PMOD0_4] : 1'b1);
   assign i2c_scl_o[1] =
-    (scl1_sel == 2 ? inout_from_pins_i[INOUT_PIN_SCL1] : 1'b1) &
-    (rph_g3_scl_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G3_SCL] : 1'b1) &
-    (mb6_sel == 2 ? inout_from_pins_i[INOUT_PIN_MB6] : 1'b1) &
-    (pmod1_3_sel == 4 ? inout_from_pins_i[INOUT_PIN_PMOD1_3] : 1'b1);
+    (scl1_sel == $bits(scl1_sel)'(2) ? inout_from_pins_i[INOUT_PIN_SCL1] : 1'b1) &
+    (rph_g3_scl_sel == $bits(rph_g3_scl_sel)'(2) ? inout_from_pins_i[INOUT_PIN_RPH_G3_SCL] : 1'b1) &
+    (mb6_sel == $bits(mb6_sel)'(2) ? inout_from_pins_i[INOUT_PIN_MB6] : 1'b1) &
+    (pmod1_3_sel == $bits(pmod1_3_sel)'(4) ? inout_from_pins_i[INOUT_PIN_PMOD1_3] : 1'b1);
   assign i2c_sda_o[1] =
-    (sda1_sel == 2 ? inout_from_pins_i[INOUT_PIN_SDA1] : 1'b1) &
-    (rph_g2_sda_sel == 2 ? inout_from_pins_i[INOUT_PIN_RPH_G2_SDA] : 1'b1) &
-    (mb5_sel == 2 ? inout_from_pins_i[INOUT_PIN_MB5] : 1'b1) &
-    (pmod1_4_sel == 4 ? inout_from_pins_i[INOUT_PIN_PMOD1_4] : 1'b1);
+    (sda1_sel == $bits(sda1_sel)'(2) ? inout_from_pins_i[INOUT_PIN_SDA1] : 1'b1) &
+    (rph_g2_sda_sel == $bits(rph_g2_sda_sel)'(2) ? inout_from_pins_i[INOUT_PIN_RPH_G2_SDA] : 1'b1) &
+    (mb5_sel == $bits(mb5_sel)'(2) ? inout_from_pins_i[INOUT_PIN_MB5] : 1'b1) &
+    (pmod1_4_sel == $bits(pmod1_4_sel)'(4) ? inout_from_pins_i[INOUT_PIN_PMOD1_4] : 1'b1);
 endmodule
