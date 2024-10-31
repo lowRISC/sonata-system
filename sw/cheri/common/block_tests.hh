@@ -14,11 +14,12 @@ using namespace CHERI;
 
 // The full definition of Sonata's GPIO array.
 struct SonataGpioFull {
-  Capability<volatile SonataGpioGeneral> general;
+  Capability<volatile SonataGpioBoard> general;
   Capability<volatile SonataGpioRaspberryPiHat> rpi;
   Capability<volatile SonataGpioArduinoShield> arduino;
-  Capability<volatile SonataGpioPmod> pmod0;
-  Capability<volatile SonataGpioPmod> pmod1;
+  Capability<volatile SonataGpioPmod0> pmod0;
+  Capability<volatile SonataGpioPmod1> pmod1;
+  Capability<volatile SonataGpioPmodC> pmodc;
 };
 
 // Enum representing possible GPIO instances, and their ordering
@@ -28,6 +29,7 @@ enum class GpioInstance : uint8_t {
   ArduinoShield  = 2,
   Pmod0          = 3,
   Pmod1          = 4,
+  PmodC          = 5,
 };
 
 // A struct for specifying a specific Gpio Pin using its instance & bit
@@ -36,6 +38,7 @@ struct GpioPin {
   uint8_t bit;  // 0-31 (though it depends on the size of the GPIO instance)
 };
 
+SonataGpioFull get_full_gpio_ptrs(Capability<void> CapRoot);
 void set_gpio_output(SonataGpioFull *gpio, GpioPin pin, bool value);
 void set_gpio_output_enable(SonataGpioFull *gpio, GpioPin pin, bool value);
 bool get_gpio_input(SonataGpioFull *gpio, GpioPin pin);

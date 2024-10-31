@@ -21,7 +21,7 @@
 #include "platform-pinmux.hh"
 
 typedef CHERI::Capability<void> CapRoot;
-typedef volatile SonataGPIO *GpioPtr;
+typedef volatile SonataGpioBoard *GpioPtr;
 typedef volatile OpenTitanUart *UartPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile OpenTitanI2c *I2cPtr;
@@ -32,9 +32,9 @@ typedef PLIC::SonataPlic *PlicPtr;
 typedef SonataPinmux *PinmuxPtr;
 
 [[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root) {
-  CHERI::Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
-  gpio.address()                              = GPIO_ADDRESS;
-  gpio.bounds()                               = GPIO_BOUNDS;
+  CHERI::Capability<volatile SonataGpioBoard> gpio = root.cast<volatile SonataGpioBoard>();
+  gpio.address()                                   = GPIO_ADDRESS;
+  gpio.bounds()                                    = GPIO_BOUNDS;
   return gpio;
 }
 

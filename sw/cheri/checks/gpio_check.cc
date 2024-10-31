@@ -26,9 +26,9 @@ extern "C" uint32_t entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART
-  Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
-  gpio.address()                       = GPIO_ADDRESS;
-  gpio.bounds()                        = GPIO_BOUNDS;
+  Capability<volatile SonataGpioBoard> gpio = root.cast<volatile SonataGpioBoard>();
+  gpio.address()                            = GPIO_ADDRESS;
+  gpio.bounds()                             = GPIO_BOUNDS;
 
   int count      = 0;
   bool switch_on = true;

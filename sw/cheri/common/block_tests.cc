@@ -12,23 +12,60 @@
 static constexpr uint32_t CyclesPerMicrosecond = (CPU_TIMER_HZ + 999'999) / 1'000'000;
 
 /**
+ * Retrieve a struct containing capabilities to all of Sonata's individual GPIO
+ * devices / MMIO regions. These GPIO capabilities are all bounded appropriately
+ * and kept in separate, isolated capabilities.
+ */
+SonataGpioFull get_full_gpio_ptrs(Capability<void> root) {
+  SonataGpioFull gpio_full;
+  gpio_full.general           = root.cast<volatile SonataGpioBoard>();
+  gpio_full.general.address() = GPIO_ADDRESS;
+  gpio_full.general.bounds()  = GPIO_BOUNDS;
+  gpio_full.rpi               = root.cast<volatile SonataGpioRaspberryPiHat>();
+  gpio_full.rpi.address()     = GPIO_ADDRESS + GPIO_RANGE;
+  gpio_full.rpi.bounds()      = GPIO_BOUNDS;
+  gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
+  gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
+  gpio_full.arduino.bounds()  = GPIO_BOUNDS;
+  gpio_full.pmod0             = root.cast<volatile SonataGpioPmod0>();
+  gpio_full.pmod0.address()   = GPIO_ADDRESS + GPIO_RANGE * 3;
+  gpio_full.pmod0.bounds()    = GPIO_BOUNDS;
+  gpio_full.pmod1             = root.cast<volatile SonataGpioPmod1>();
+  gpio_full.pmod1.address()   = GPIO_ADDRESS + GPIO_RANGE * 4;
+  gpio_full.pmod1.bounds()    = GPIO_BOUNDS;
+  gpio_full.pmodc             = root.cast<volatile SonataGpioPmodC>();
+  gpio_full.pmodc.address()   = GPIO_ADDRESS + GPIO_RANGE * 5;
+  gpio_full.pmodc.bounds()    = GPIO_BOUNDS;
+  return gpio_full;
+}
+
+/**
+ * Get a capability for a specific GPIO instance from the full range of GPIO.
+ */
+Capability<volatile SonataGpioBase> get_gpio_instance(SonataGpioFull *gpio, GpioInstance instance) {
+  switch (instance) {
+    case GpioInstance::General:
+      return gpio->general.cast<volatile SonataGpioBase>();
+    case GpioInstance::RaspberryPiHat:
+      return gpio->rpi.cast<volatile SonataGpioBase>();
+    case GpioInstance::ArduinoShield:
+      return gpio->arduino.cast<volatile SonataGpioBase>();
+    case GpioInstance::Pmod0:
+      return gpio->pmod0.cast<volatile SonataGpioBase>();
+    case GpioInstance::Pmod1:
+      return gpio->pmod1.cast<volatile SonataGpioBase>();
+    case GpioInstance::PmodC:
+      return gpio->pmodc.cast<volatile SonataGpioBase>();
+  }
+}
+
+/**
  * Sets the value of some GPIO output pin. This change will only be visible
  * if the pin has its corresponding `output_enable` bit set to 1, so that the
  * pin is in output mode.
  */
 void set_gpio_output(SonataGpioFull *gpio, GpioPin pin, bool value) {
-  switch (pin.instance) {
-    case GpioInstance::General:
-      return gpio->general->set_output(pin.bit, value);
-    case GpioInstance::RaspberryPiHat:
-      return gpio->rpi->set_output(pin.bit, value);
-    case GpioInstance::ArduinoShield:
-      return gpio->arduino->set_output(pin.bit, value);
-    case GpioInstance::Pmod0:
-      return gpio->pmod0->set_output(pin.bit, value);
-    case GpioInstance::Pmod1:
-      return gpio->pmod1->set_output(pin.bit, value);
-  }
+  get_gpio_instance(gpio, pin.instance)->set_output(pin.bit, value);
 }
 
 /**
@@ -36,18 +73,7 @@ void set_gpio_output(SonataGpioFull *gpio, GpioPin pin, bool value) {
  * pin in output mode, and to 0 places it in input mode.
  */
 void set_gpio_output_enable(SonataGpioFull *gpio, GpioPin pin, bool value) {
-  switch (pin.instance) {
-    case GpioInstance::General:
-      return gpio->general->set_output_enable(pin.bit, value);
-    case GpioInstance::RaspberryPiHat:
-      return gpio->rpi->set_output_enable(pin.bit, value);
-    case GpioInstance::ArduinoShield:
-      return gpio->arduino->set_output_enable(pin.bit, value);
-    case GpioInstance::Pmod0:
-      return gpio->pmod0->set_output_enable(pin.bit, value);
-    case GpioInstance::Pmod1:
-      return gpio->pmod1->set_output_enable(pin.bit, value);
-  }
+  get_gpio_instance(gpio, pin.instance)->set_output_enable(pin.bit, value);
 }
 
 /**
@@ -56,18 +82,7 @@ void set_gpio_output_enable(SonataGpioFull *gpio, GpioPin pin, bool value) {
  * input mode.
  */
 bool get_gpio_input(SonataGpioFull *gpio, GpioPin pin) {
-  switch (pin.instance) {
-    case GpioInstance::General:
-      return gpio->general->read_input(pin.bit);
-    case GpioInstance::RaspberryPiHat:
-      return gpio->rpi->read_input(pin.bit);
-    case GpioInstance::ArduinoShield:
-      return gpio->arduino->read_input(pin.bit);
-    case GpioInstance::Pmod0:
-      return gpio->pmod0->read_input(pin.bit);
-    case GpioInstance::Pmod1:
-      return gpio->pmod1->read_input(pin.bit);
-  }
+  return get_gpio_instance(gpio, pin.instance)->read_input(pin.bit);
 }
 
 /**
