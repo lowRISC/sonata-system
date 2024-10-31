@@ -78,6 +78,7 @@ class Pin(BaseModel, frozen=True):
     length: int | None = None
     """If not None, this is grouping of multiple pins with the given length."""
     block_ios: list[BlockIoUid]
+    no_default_out: bool = False
 
     @model_validator(mode="after")
     def verify_pin(self) -> Self:
