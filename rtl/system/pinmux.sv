@@ -115,7 +115,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ser0_tx_sel <= 2'b10;
     end else begin
       if (reg_we & ser0_tx_sel_addressed) begin
@@ -163,7 +163,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ser1_tx_sel <= 2'b10;
     end else begin
       if (reg_we & ser1_tx_sel_addressed) begin
@@ -211,7 +211,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rs232_tx_sel <= 2'b10;
     end else begin
       if (reg_we & rs232_tx_sel_addressed) begin
@@ -259,7 +259,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       scl0_sel <= 2'b10;
     end else begin
       if (reg_we & scl0_sel_addressed) begin
@@ -307,7 +307,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       sda0_sel <= 2'b10;
     end else begin
       if (reg_we & sda0_sel_addressed) begin
@@ -355,7 +355,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       scl1_sel <= 2'b10;
     end else begin
       if (reg_we & scl1_sel_addressed) begin
@@ -403,7 +403,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       sda1_sel <= 2'b10;
     end else begin
       if (reg_we & sda1_sel_addressed) begin
@@ -451,7 +451,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       appspi_d0_sel <= 2'b10;
     end else begin
       if (reg_we & appspi_d0_sel_addressed) begin
@@ -499,7 +499,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       appspi_clk_sel <= 2'b10;
     end else begin
       if (reg_we & appspi_clk_sel_addressed) begin
@@ -547,7 +547,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       appspi_cs_sel <= 2'b10;
     end else begin
       if (reg_we & appspi_cs_sel_addressed) begin
@@ -595,7 +595,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       lcd_copi_sel <= 2'b10;
     end else begin
       if (reg_we & lcd_copi_sel_addressed) begin
@@ -643,7 +643,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       lcd_clk_sel <= 2'b10;
     end else begin
       if (reg_we & lcd_clk_sel_addressed) begin
@@ -691,7 +691,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       lcd_cs_sel <= 2'b10;
     end else begin
       if (reg_we & lcd_cs_sel_addressed) begin
@@ -739,7 +739,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ethmac_copi_sel <= 2'b10;
     end else begin
       if (reg_we & ethmac_copi_sel_addressed) begin
@@ -787,7 +787,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ethmac_sclk_sel <= 2'b10;
     end else begin
       if (reg_we & ethmac_sclk_sel_addressed) begin
@@ -835,7 +835,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ethmac_cs_sel <= 2'b10;
     end else begin
       if (reg_we & ethmac_cs_sel_addressed) begin
@@ -883,7 +883,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g0_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g0_sel_addressed) begin
@@ -933,7 +933,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g1_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g1_sel_addressed) begin
@@ -983,7 +983,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g2_sda_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g2_sda_sel_addressed) begin
@@ -1033,7 +1033,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g3_scl_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g3_scl_sel_addressed) begin
@@ -1083,7 +1083,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g4_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g4_sel_addressed) begin
@@ -1131,7 +1131,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g5_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g5_sel_addressed) begin
@@ -1179,7 +1179,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g6_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g6_sel_addressed) begin
@@ -1227,7 +1227,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g7_ce1_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g7_ce1_sel_addressed) begin
@@ -1277,7 +1277,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g8_ce0_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g8_ce0_sel_addressed) begin
@@ -1327,7 +1327,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g9_cipo_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g9_cipo_sel_addressed) begin
@@ -1375,7 +1375,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g10_copi_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g10_copi_sel_addressed) begin
@@ -1425,7 +1425,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g11_sclk_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g11_sclk_sel_addressed) begin
@@ -1475,7 +1475,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g12_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g12_sel_addressed) begin
@@ -1523,7 +1523,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g13_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g13_sel_addressed) begin
@@ -1571,7 +1571,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_txd0_sel <= 3'b10;
     end else begin
       if (reg_we & rph_txd0_sel_addressed) begin
@@ -1621,7 +1621,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_rxd0_sel <= 2'b10;
     end else begin
       if (reg_we & rph_rxd0_sel_addressed) begin
@@ -1669,7 +1669,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g16_ce2_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g16_ce2_sel_addressed) begin
@@ -1719,7 +1719,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g17_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g17_sel_addressed) begin
@@ -1769,7 +1769,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g18_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g18_sel_addressed) begin
@@ -1819,7 +1819,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g19_cipo_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g19_cipo_sel_addressed) begin
@@ -1867,7 +1867,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g20_copi_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g20_copi_sel_addressed) begin
@@ -1917,7 +1917,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g21_sclk_sel <= 3'b10;
     end else begin
       if (reg_we & rph_g21_sclk_sel_addressed) begin
@@ -1967,7 +1967,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g22_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g22_sel_addressed) begin
@@ -2015,7 +2015,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g23_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g23_sel_addressed) begin
@@ -2063,7 +2063,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g24_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g24_sel_addressed) begin
@@ -2111,7 +2111,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g25_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g25_sel_addressed) begin
@@ -2159,7 +2159,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g26_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g26_sel_addressed) begin
@@ -2207,7 +2207,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       rph_g27_sel <= 2'b10;
     end else begin
       if (reg_we & rph_g27_sel_addressed) begin
@@ -2255,7 +2255,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio0_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio0_sel_addressed) begin
@@ -2303,7 +2303,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio1_sel <= 3'b10;
     end else begin
       if (reg_we & ah_tmpio1_sel_addressed) begin
@@ -2353,7 +2353,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio2_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio2_sel_addressed) begin
@@ -2401,7 +2401,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio3_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio3_sel_addressed) begin
@@ -2449,7 +2449,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio4_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio4_sel_addressed) begin
@@ -2497,7 +2497,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio5_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio5_sel_addressed) begin
@@ -2545,7 +2545,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio6_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio6_sel_addressed) begin
@@ -2593,7 +2593,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio7_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio7_sel_addressed) begin
@@ -2641,7 +2641,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio8_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio8_sel_addressed) begin
@@ -2689,7 +2689,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio9_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio9_sel_addressed) begin
@@ -2737,7 +2737,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio10_sel <= 3'b10;
     end else begin
       if (reg_we & ah_tmpio10_sel_addressed) begin
@@ -2787,7 +2787,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio11_sel <= 3'b10;
     end else begin
       if (reg_we & ah_tmpio11_sel_addressed) begin
@@ -2837,7 +2837,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio12_sel <= 2'b10;
     end else begin
       if (reg_we & ah_tmpio12_sel_addressed) begin
@@ -2885,7 +2885,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ah_tmpio13_sel <= 3'b10;
     end else begin
       if (reg_we & ah_tmpio13_sel_addressed) begin
@@ -2935,7 +2935,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb1_sel <= 2'b10;
     end else begin
       if (reg_we & mb1_sel_addressed) begin
@@ -2983,7 +2983,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb2_sel <= 2'b10;
     end else begin
       if (reg_we & mb2_sel_addressed) begin
@@ -3031,7 +3031,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb4_sel <= 2'b10;
     end else begin
       if (reg_we & mb4_sel_addressed) begin
@@ -3079,7 +3079,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb5_sel <= 2'b10;
     end else begin
       if (reg_we & mb5_sel_addressed) begin
@@ -3127,7 +3127,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb6_sel <= 2'b10;
     end else begin
       if (reg_we & mb6_sel_addressed) begin
@@ -3175,7 +3175,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb7_sel <= 2'b10;
     end else begin
       if (reg_we & mb7_sel_addressed) begin
@@ -3223,7 +3223,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       mb10_sel <= 2'b10;
     end else begin
       if (reg_we & mb10_sel_addressed) begin
@@ -3271,7 +3271,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_1_sel <= 3'b10;
     end else begin
       if (reg_we & pmod0_1_sel_addressed) begin
@@ -3321,7 +3321,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_2_sel <= 4'b10;
     end else begin
       if (reg_we & pmod0_2_sel_addressed) begin
@@ -3373,7 +3373,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_3_sel <= 3'b10;
     end else begin
       if (reg_we & pmod0_3_sel_addressed) begin
@@ -3423,7 +3423,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_4_sel <= 4'b10;
     end else begin
       if (reg_we & pmod0_4_sel_addressed) begin
@@ -3475,7 +3475,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_5_sel <= 2'b10;
     end else begin
       if (reg_we & pmod0_5_sel_addressed) begin
@@ -3523,7 +3523,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_6_sel <= 2'b10;
     end else begin
       if (reg_we & pmod0_6_sel_addressed) begin
@@ -3571,7 +3571,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_7_sel <= 2'b10;
     end else begin
       if (reg_we & pmod0_7_sel_addressed) begin
@@ -3619,7 +3619,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod0_8_sel <= 2'b10;
     end else begin
       if (reg_we & pmod0_8_sel_addressed) begin
@@ -3667,7 +3667,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_1_sel <= 3'b10;
     end else begin
       if (reg_we & pmod1_1_sel_addressed) begin
@@ -3717,7 +3717,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_2_sel <= 4'b10;
     end else begin
       if (reg_we & pmod1_2_sel_addressed) begin
@@ -3769,7 +3769,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_3_sel <= 3'b10;
     end else begin
       if (reg_we & pmod1_3_sel_addressed) begin
@@ -3819,7 +3819,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_4_sel <= 4'b10;
     end else begin
       if (reg_we & pmod1_4_sel_addressed) begin
@@ -3871,7 +3871,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_5_sel <= 2'b10;
     end else begin
       if (reg_we & pmod1_5_sel_addressed) begin
@@ -3919,7 +3919,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_6_sel <= 2'b10;
     end else begin
       if (reg_we & pmod1_6_sel_addressed) begin
@@ -3967,7 +3967,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_7_sel <= 2'b10;
     end else begin
       if (reg_we & pmod1_7_sel_addressed) begin
@@ -4015,7 +4015,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       pmod1_8_sel <= 2'b10;
     end else begin
       if (reg_we & pmod1_8_sel_addressed) begin
@@ -4063,7 +4063,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       microsd_clk_sel <= 2'b10;
     end else begin
       if (reg_we & microsd_clk_sel_addressed) begin
@@ -4111,7 +4111,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       microsd_cmd_sel <= 2'b10;
     end else begin
       if (reg_we & microsd_cmd_sel_addressed) begin
@@ -4159,7 +4159,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       microsd_dat3_sel <= 2'b10;
     end else begin
       if (reg_we & microsd_dat3_sel_addressed) begin
@@ -4209,7 +4209,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_0_sel_addressed) begin
@@ -4243,7 +4243,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_1_sel_addressed) begin
@@ -4277,7 +4277,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_2_sel_addressed) begin
@@ -4311,7 +4311,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_3_sel_addressed) begin
@@ -4345,7 +4345,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_4_sel_addressed) begin
@@ -4379,7 +4379,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_5_sel_addressed) begin
@@ -4413,7 +4413,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_6_sel_addressed) begin
@@ -4447,7 +4447,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_7_sel_addressed) begin
@@ -4481,7 +4481,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_8_sel_addressed) begin
@@ -4515,7 +4515,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_9_sel_addressed) begin
@@ -4549,7 +4549,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_10_sel_addressed) begin
@@ -4583,7 +4583,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_11_sel_addressed) begin
@@ -4617,7 +4617,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_12_sel_addressed) begin
@@ -4651,7 +4651,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_13_sel_addressed) begin
@@ -4685,7 +4685,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_14_sel_addressed) begin
@@ -4719,7 +4719,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_15_sel_addressed) begin
@@ -4753,7 +4753,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_16_sel_addressed) begin
@@ -4787,7 +4787,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_17_sel_addressed) begin
@@ -4821,7 +4821,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_18_sel_addressed) begin
@@ -4855,7 +4855,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_19_sel_addressed) begin
@@ -4889,7 +4889,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_20_sel_addressed) begin
@@ -4923,7 +4923,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_21_sel_addressed) begin
@@ -4957,7 +4957,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_22_sel_addressed) begin
@@ -4991,7 +4991,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_23_sel_addressed) begin
@@ -5025,7 +5025,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_24_sel_addressed) begin
@@ -5059,7 +5059,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_25_sel_addressed) begin
@@ -5093,7 +5093,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_26_sel_addressed) begin
@@ -5127,7 +5127,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_27_sel_addressed) begin
@@ -5161,7 +5161,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_28_sel_addressed) begin
@@ -5195,7 +5195,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_29_sel_addressed) begin
@@ -5229,7 +5229,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_30_sel_addressed) begin
@@ -5263,7 +5263,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_0_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_0_31_sel_addressed) begin
@@ -5297,7 +5297,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_0_sel_addressed) begin
@@ -5331,7 +5331,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_1_sel_addressed) begin
@@ -5365,7 +5365,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_2_sel_addressed) begin
@@ -5399,7 +5399,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_3_sel_addressed) begin
@@ -5433,7 +5433,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_4_sel_addressed) begin
@@ -5467,7 +5467,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_5_sel_addressed) begin
@@ -5501,7 +5501,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_6_sel_addressed) begin
@@ -5535,7 +5535,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_7_sel_addressed) begin
@@ -5569,7 +5569,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_8_sel_addressed) begin
@@ -5603,7 +5603,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_9_sel_addressed) begin
@@ -5637,7 +5637,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_10_sel_addressed) begin
@@ -5671,7 +5671,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_11_sel_addressed) begin
@@ -5705,7 +5705,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_12_sel_addressed) begin
@@ -5739,7 +5739,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_13_sel_addressed) begin
@@ -5773,7 +5773,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_14_sel_addressed) begin
@@ -5807,7 +5807,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_15_sel_addressed) begin
@@ -5841,7 +5841,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_16_sel_addressed) begin
@@ -5875,7 +5875,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_17_sel_addressed) begin
@@ -5909,7 +5909,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_18_sel_addressed) begin
@@ -5943,7 +5943,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_19_sel_addressed) begin
@@ -5977,7 +5977,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_20_sel_addressed) begin
@@ -6011,7 +6011,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_21_sel_addressed) begin
@@ -6045,7 +6045,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_22_sel_addressed) begin
@@ -6079,7 +6079,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_23_sel_addressed) begin
@@ -6113,7 +6113,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_24_sel_addressed) begin
@@ -6147,7 +6147,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_25_sel_addressed) begin
@@ -6181,7 +6181,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_26_sel_addressed) begin
@@ -6215,7 +6215,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_27_sel_addressed) begin
@@ -6249,7 +6249,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_28_sel_addressed) begin
@@ -6283,7 +6283,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_29_sel_addressed) begin
@@ -6317,7 +6317,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_30_sel_addressed) begin
@@ -6351,7 +6351,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_1_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_1_31_sel_addressed) begin
@@ -6385,7 +6385,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_0_sel_addressed) begin
@@ -6419,7 +6419,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_1_sel_addressed) begin
@@ -6453,7 +6453,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_2_sel_addressed) begin
@@ -6487,7 +6487,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_3_sel_addressed) begin
@@ -6521,7 +6521,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_4_sel_addressed) begin
@@ -6555,7 +6555,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_5_sel_addressed) begin
@@ -6589,7 +6589,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_6_sel_addressed) begin
@@ -6623,7 +6623,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_7_sel_addressed) begin
@@ -6657,7 +6657,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_8_sel_addressed) begin
@@ -6691,7 +6691,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_9_sel_addressed) begin
@@ -6725,7 +6725,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_10_sel_addressed) begin
@@ -6759,7 +6759,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_11_sel_addressed) begin
@@ -6793,7 +6793,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_12_sel_addressed) begin
@@ -6827,7 +6827,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_13_sel_addressed) begin
@@ -6861,7 +6861,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_14_sel_addressed) begin
@@ -6895,7 +6895,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_15_sel_addressed) begin
@@ -6929,7 +6929,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_16_sel_addressed) begin
@@ -6963,7 +6963,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_17_sel_addressed) begin
@@ -6997,7 +6997,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_18_sel_addressed) begin
@@ -7031,7 +7031,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_19_sel_addressed) begin
@@ -7065,7 +7065,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_20_sel_addressed) begin
@@ -7099,7 +7099,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_21_sel_addressed) begin
@@ -7133,7 +7133,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_22_sel_addressed) begin
@@ -7167,7 +7167,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_23_sel_addressed) begin
@@ -7201,7 +7201,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_24_sel_addressed) begin
@@ -7235,7 +7235,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_25_sel_addressed) begin
@@ -7269,7 +7269,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_26_sel_addressed) begin
@@ -7303,7 +7303,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_27_sel_addressed) begin
@@ -7337,7 +7337,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_28_sel_addressed) begin
@@ -7371,7 +7371,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_29_sel_addressed) begin
@@ -7405,7 +7405,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_30_sel_addressed) begin
@@ -7439,7 +7439,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_2_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_2_31_sel_addressed) begin
@@ -7473,7 +7473,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_0_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_0_sel_addressed) begin
@@ -7507,7 +7507,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_1_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_1_sel_addressed) begin
@@ -7541,7 +7541,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_2_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_2_sel_addressed) begin
@@ -7575,7 +7575,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_3_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_3_sel_addressed) begin
@@ -7609,7 +7609,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_4_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_4_sel_addressed) begin
@@ -7643,7 +7643,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_5_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_5_sel_addressed) begin
@@ -7677,7 +7677,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_6_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_6_sel_addressed) begin
@@ -7711,7 +7711,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_7_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_7_sel_addressed) begin
@@ -7745,7 +7745,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_8_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_8_sel_addressed) begin
@@ -7779,7 +7779,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_9_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_9_sel_addressed) begin
@@ -7813,7 +7813,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_10_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_10_sel_addressed) begin
@@ -7847,7 +7847,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_11_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_11_sel_addressed) begin
@@ -7881,7 +7881,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_12_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_12_sel_addressed) begin
@@ -7915,7 +7915,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_13_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_13_sel_addressed) begin
@@ -7949,7 +7949,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_14_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_14_sel_addressed) begin
@@ -7983,7 +7983,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_15_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_15_sel_addressed) begin
@@ -8017,7 +8017,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_16_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_16_sel_addressed) begin
@@ -8051,7 +8051,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_17_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_17_sel_addressed) begin
@@ -8085,7 +8085,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_18_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_18_sel_addressed) begin
@@ -8119,7 +8119,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_19_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_19_sel_addressed) begin
@@ -8153,7 +8153,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_20_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_20_sel_addressed) begin
@@ -8187,7 +8187,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_21_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_21_sel_addressed) begin
@@ -8221,7 +8221,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_22_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_22_sel_addressed) begin
@@ -8255,7 +8255,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_23_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_23_sel_addressed) begin
@@ -8289,7 +8289,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_24_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_24_sel_addressed) begin
@@ -8323,7 +8323,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_25_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_25_sel_addressed) begin
@@ -8357,7 +8357,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_26_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_26_sel_addressed) begin
@@ -8391,7 +8391,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_27_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_27_sel_addressed) begin
@@ -8425,7 +8425,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_28_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_28_sel_addressed) begin
@@ -8459,7 +8459,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_29_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_29_sel_addressed) begin
@@ -8493,7 +8493,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_30_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_30_sel_addressed) begin
@@ -8527,7 +8527,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       gpio_ios_3_31_sel <= 2'b10;
     end else begin
       if (reg_we & gpio_ios_3_31_sel_addressed) begin
@@ -8561,7 +8561,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       uart_rx_0_sel <= 2'b10;
     end else begin
       if (reg_we & uart_rx_0_sel_addressed) begin
@@ -8595,7 +8595,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       uart_rx_1_sel <= 2'b10;
     end else begin
       if (reg_we & uart_rx_1_sel_addressed) begin
@@ -8629,7 +8629,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       uart_rx_2_sel <= 3'b10;
     end else begin
       if (reg_we & uart_rx_2_sel_addressed) begin
@@ -8664,7 +8664,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       uart_rx_3_sel <= 4'b10;
     end else begin
       if (reg_we & uart_rx_3_sel_addressed) begin
@@ -8700,7 +8700,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       uart_rx_4_sel <= 2'b10;
     end else begin
       if (reg_we & uart_rx_4_sel_addressed) begin
@@ -8734,7 +8734,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       spi_rx_0_sel <= 2'b10;
     end else begin
       if (reg_we & spi_rx_0_sel_addressed) begin
@@ -8768,7 +8768,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       spi_rx_1_sel <= 2'b10;
     end else begin
       if (reg_we & spi_rx_1_sel_addressed) begin
@@ -8802,7 +8802,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       spi_rx_2_sel <= 3'b10;
     end else begin
       if (reg_we & spi_rx_2_sel_addressed) begin
@@ -8837,7 +8837,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       spi_rx_3_sel <= 5'b10;
     end else begin
       if (reg_we & spi_rx_3_sel_addressed) begin
@@ -8874,7 +8874,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       spi_rx_4_sel <= 3'b10;
     end else begin
       if (reg_we & spi_rx_4_sel_addressed) begin
