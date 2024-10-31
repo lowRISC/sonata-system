@@ -123,6 +123,12 @@ void i2c_set_speed(i2c_t i2c, unsigned speed_khz) {
   DEV_WRITE(i2c + I2C_TIMING4, (t_buf << 16) | tsu_sto);
 }
 
+void reset_controller_events(i2c_t i2c) {
+  const uint32_t field_mask = (I2C_CONTROLLER_EVENTS_NACK | I2C_CONTROLLER_EVENTS_UNHANDLED_NACK_TIMEOUT |
+                               I2C_CONTROLLER_EVENTS_BUS_TIMEOUT | I2C_CONTROLLER_EVENTS_ARBITRATION_LOST);
+  DEV_WRITE(i2c + I2C_CONTROLLER_EVENTS, field_mask);
+}
+
 int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n, bool skip_stop) {
   // Set up a write to the given target address.
   int rc = write_raw_fmt(i2c, I2C_FDATA_START | (addr7 << 1) | 0u);
@@ -134,6 +140,15 @@ int i2c_write(i2c_t i2c, uint8_t addr7, const uint8_t *data, size_t n, bool skip
     write_raw_bytes(i2c, data, n - 1);
   }
   rc = write_raw_fmt(i2c, (skip_stop ? 0u : I2C_FDATA_STOP) | data[n - 1]);
+  // While format is not empty, check for controller halts and fail if one occurs.
+  while (0 != (I2C_STATUS_FMTEMPTY & DEV_READ(i2c + I2C_STATUS))) {
+    if (I2C_INTR_STATE_CONTROLLER_HALT & DEV_READ(i2c + I2C_INTR_STATE)) {
+      // Clear the Controller Halt (NAK) and return failure.
+      reset_controller_events(i2c);
+      rc = -1;
+      break;
+    }
+  }
   return rc;
 }
 
@@ -148,9 +163,9 @@ int i2c_read(i2c_t i2c, uint8_t addr7, uint8_t *buf, size_t n, uint32_t timeout_
     if (!rc) {
       rc = wait_fmt_empty(i2c);
       if (!rc) {
-        if (I2C_INTR_STATE_NAK & DEV_READ(i2c + I2C_INTR_STATE)) {
-          // Clear the NAK and return failure.
-          DEV_WRITE(i2c + I2C_INTR_STATE, I2C_INTR_STATE_NAK);
+        if (I2C_INTR_STATE_CONTROLLER_HALT & DEV_READ(i2c + I2C_INTR_STATE)) {
+          // Clear the Controller Halt (NAK) and return failure.
+          reset_controller_events(i2c);
           rc = -1;
         }
         // else no NAK interrupt, so ACK received.
