@@ -13,6 +13,14 @@
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
 
+/**
+ * Configures the number of test iterations to perform.
+ * This can be overriden via a compilation flag.
+ */
+#ifndef UART_TEST_ITERATIONS
+#define UART_TEST_ITERATIONS (1U)
+#endif
+
 const char UartLoopbackTestString[] = "test string";
 
 bool uart_loopback_test(UartPtr uart) {
@@ -50,8 +58,22 @@ bool uart_interrupt_state_test(UartPtr uart) {
 void uart_tests(CapRoot root, Log& log) {
   auto uart1 = uart_ptr(root, 1);
 
-  log.println("running uart_loopback_test");
-  check_result(log, uart_loopback_test(uart1));
-  log.println("running uart_interrupt_state_test");
-  check_result(log, uart_interrupt_state_test(uart1));
+  // Execute the specified number of iterations of each test.
+  for (size_t i = 0; i < UART_TEST_ITERATIONS; i++) {
+    log.println("\r\nrunning uart_test: {} \\ {}", i, UART_TEST_ITERATIONS - 1);
+    bool test_failed = false;
+    int failures     = 0;
+
+    log.print("  Running UART Loopback test... ");
+    failures = !uart_loopback_test(uart1);
+    test_failed |= (failures > 0);
+    write_test_result(log, failures);
+
+    log.print("  Running UART Interrupt State test... ");
+    failures = !uart_interrupt_state_test(uart1);
+    test_failed |= (failures > 0);
+    write_test_result(log, failures);
+
+    check_result(log, !test_failed);
+  }
 }
