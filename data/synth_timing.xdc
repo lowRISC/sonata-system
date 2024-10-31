@@ -402,11 +402,11 @@ set ah_spi_trce_dly_min [expr {5 * 2 * 0.004}]
 # (taking trace delay into account) to as late as possible around the rising
 # clk edge (modeled by allocating nearly all the cycle to external delay)
 # to allow for a greater trace or device delay on the SCLK->device->CIPO path.
-set_input_delay -clock clk_ah_spi -max [expr {$sclk_ns - 14                      }] [get_ports ah_tmpio12] ;# CIPO
+set_input_delay -clock clk_ah_spi -max [expr {$sclk_ns - 16                      }] [get_ports ah_tmpio12] ;# CIPO
 set_input_delay -clock clk_ah_spi -min [expr {$sclk_ns/2.0 + $ah_spi_trce_dly_min}] [get_ports ah_tmpio12]
 # For the clock, require output from as soon as reasonably possible after rise
 # clk edge (modeled by allocating nearly all the cycle to external delay).
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports ah_tmpio13] ;# SCLK
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports ah_tmpio13] ;# SCLK
 set_output_delay -clock clk_sys -min 0                         [get_ports ah_tmpio13]
 # For the outgoing data signals, require output from shortly after rising
 # (launch) SPI clk edge (modeled by allocating most of the cycle to external
@@ -428,9 +428,9 @@ set_output_delay -clock vclk_sys -min 0 [get_ports $ah_gpio_names]
 # Use same methodology as Arduino Shield SPI.
 # Distance to mikroBUS SPI pins = ~10-20 mm  x2(clk there + data back)
 set mb_spi_trce_dly_min [expr {10 * 2 * 0.004}]
-set_input_delay -clock clk_mb_spi -max [expr {$sclk_ns - 14                      }] [get_ports mb3] ;# CIPO
+set_input_delay -clock clk_mb_spi -max [expr {$sclk_ns - 16                      }] [get_ports mb3] ;# CIPO
 set_input_delay -clock clk_mb_spi -min [expr {$sclk_ns/2.0 + $mb_spi_trce_dly_min}] [get_ports mb3]
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports mb2] ;# SCLK
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports mb2] ;# SCLK
 set_output_delay -clock clk_sys -min 0                         [get_ports mb2]
 set_output_delay -clock clk_mb_spi -max [expr {$sclk_ns - 6           }] [get_ports mb4] ;# COPI
 set_output_delay -clock clk_mb_spi -min [expr {           $sclk_ns/2.0}] [get_ports mb4]
@@ -466,9 +466,9 @@ set_output_delay -clock clk_sys -min 0 [get_ports mb10]
 # Use same methodology as Arduino Shield SPI.
 # Distance to R-Pi SPI0 pins = ~3-10 mm  x2(clk there + data back)
 set rph_spi0_trce_dly_min [expr {3 * 2 * 0.004}]
-set_input_delay -clock clk_rpi_spi0 -max [expr {$sclk_ns - 14                       }] [get_ports rph_g9_cipo] ;# CIPO
+set_input_delay -clock clk_rpi_spi0 -max [expr {$sclk_ns - 16                        }] [get_ports rph_g9_cipo] ;# CIPO
 set_input_delay -clock clk_rpi_spi0 -min [expr {$sclk_ns/2.0 + $rph_spi0_trce_dly_min}] [get_ports rph_g9_cipo]
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports rph_g11_sclk] ;# SCLK
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports rph_g11_sclk] ;# SCLK
 set_output_delay -clock clk_sys -min 0                         [get_ports rph_g11_sclk]
 set_output_delay -clock clk_rpi_spi0 -max [expr {$sclk_ns - 6           }] [get_ports rph_g10_copi] ;# COPI
 set_output_delay -clock clk_rpi_spi0 -min [expr {           $sclk_ns/2.0}] [get_ports rph_g10_copi]
@@ -480,9 +480,9 @@ set_output_delay -clock clk_rpi_spi0 -min [expr {           $sclk_ns/2.0}] [get_
 # Use same methodology as Arduino Shield SPI.
 # Distance to R-Pi SPI1 pins = ~5-15 mm  x2(clk there + data back)
 set rph_spi1_trce_dly_min [expr {5 * 2 * 0.004}]
-set_input_delay -clock clk_rpi_spi1 -max [expr {$sclk_ns - 14                       }] [get_ports rph_g19_cipo] ;# CIPO
+set_input_delay -clock clk_rpi_spi1 -max [expr {$sclk_ns - 16                        }] [get_ports rph_g19_cipo] ;# CIPO
 set_input_delay -clock clk_rpi_spi1 -min [expr {$sclk_ns/2.0 + $rph_spi1_trce_dly_min}] [get_ports rph_g19_cipo]
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports rph_g21_sclk] ;# SCLK
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports rph_g21_sclk] ;# SCLK
 set_output_delay -clock clk_sys -min 0                         [get_ports rph_g21_sclk]
 set_output_delay -clock clk_rpi_spi1 -max [expr {$sclk_ns - 6           }] [get_ports rph_g20_copi] ;# COPI
 set_output_delay -clock clk_rpi_spi1 -min [expr {           $sclk_ns/2.0}] [get_ports rph_g20_copi]
@@ -560,7 +560,7 @@ set_input_delay -clock clk_appspi -max [expr {$sclk_ns/2.0 + $appspi_trce_dly_ma
 set_input_delay -clock clk_appspi -min [expr {$sclk_ns/2.0 + $appspi_trce_dly_min + (1.5 * 1.1)}] [get_ports appspi_d1]
 # Require clock output as soon as reasonably possible after rising
 # SPI clk edge. Do so by allocating nearly all the cycle to external delay.
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports appspi_clk] ;# SCLK
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports appspi_clk] ;# SCLK
 set_output_delay -clock clk_sys -min 0                         [get_ports appspi_clk]
 # Require most outputs from 2 ns (+margin) before falling (pseudo-capture)
 # edge to 3 ns (+margin) after falling (pseudo-capture) edge.
@@ -593,7 +593,7 @@ set_input_delay -clock clk_ethmac -max [expr {$sclk_ns/2.0 + $ethmac_trce_dly_ma
 set_input_delay -clock clk_ethmac -min [expr {$sclk_ns/2.0 + $ethmac_trce_dly_min              }] [get_ports ethmac_cipo]
 # Require clock output as soon as reasonably possible after rising
 # SPI clk edge. Do so by allocating nearly all the cycle to external delay.
-set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 12}] [get_ports ethmac_sclk]
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports ethmac_sclk]
 set_output_delay -clock clk_sys -min 0                         [get_ports ethmac_sclk]
 # Require data output from 3 ns (+margin) before falling (pseudo-capture)
 # clk edge to 3 ns (+margin) after falling (pseudo-capture) clk edge.
