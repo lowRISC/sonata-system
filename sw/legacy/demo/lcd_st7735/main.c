@@ -7,6 +7,7 @@
 #include "fbcon.h"
 #include "fractal.h"
 #include "gpio.h"
+#include "pwm.h"
 #include "lcd.h"
 #include "lowrisc_logo.h"
 #include "sonata_system.h"
@@ -18,27 +19,25 @@
 
 // Constants.
 enum {
-  // Pin out mapping.
-  LcdCsPin = 0,
-  LcdRstPin,
-  LcdDcPin,
-  LcdBlPin,
+  // Pin out mapping using Spi CS lines
+  LcdCsLine = 0,
+  LcdDcLine,
+  LcdRstLine,
+  // Other SPI pins
   LcdMosiPin,
   LcdSclkPin,
   // Spi clock rate.
   SpiSpeedHz = 5 * 100 * 1000,
-  // Use the first CS line.
-  SpiCsLine = 0,
 };
 
 // Buttons
 // The direction is relative to the screen in landscape orientation.
 typedef enum {
-  BTN_DOWN  = 0b00001,
-  BTN_LEFT  = 0b00010,
-  BTN_CLICK = 0b00100,
-  BTN_RIGHT = 0b01000,
-  BTN_UP    = 0b10000,
+  BTN_DOWN  = 0b00001 << 8,
+  BTN_LEFT  = 0b00010 << 8,
+  BTN_CLICK = 0b00100 << 8,
+  BTN_RIGHT = 0b01000 << 8,
+  BTN_UP    = 0b10000 << 8,
 } Buttons_t;
 
 // Local functions declaration.
@@ -51,19 +50,22 @@ static Buttons_t scan_buttons(uint32_t timeout);
 int main(void) {
   timer_init();
 
-  // Set the initial state of the LCD control pins.
-  set_output_bit(GPIO_OUT, LcdDcPin, 0x0);
-  set_output_bit(GPIO_OUT, LcdBlPin, 0x1);
-  set_output_bit(GPIO_OUT, LcdCsPin, 0x0);
-
   // Init spi driver.
   spi_t spi;
   spi_init(&spi, LCD_SPI, SpiSpeedHz);
 
+  // Turn on LCD backlight via PWM
+  pwm_t lcd_bl = PWM_FROM_ADDR_AND_INDEX(PWM_BASE, PWM_LCD);
+  set_pwm(lcd_bl, 1, 255);
+
+  // Set the initial state of the LCD control pins.
+  spi_set_cs(&spi, LcdDcLine, 0x0);
+  spi_set_cs(&spi, LcdCsLine, 0x0);
+
   // Reset LCD.
-  set_output_bit(GPIO_OUT, LcdRstPin, 0x0);
+  spi_set_cs(&spi, LcdRstLine, 0x0);
   timer_delay(150);
-  set_output_bit(GPIO_OUT, LcdRstPin, 0x1);
+  spi_set_cs(&spi, LcdRstLine, 0x1);
 
   // Init LCD driver and set the SPI driver.
   St7735Context lcd;
@@ -212,7 +214,7 @@ boot:
 static Buttons_t scan_buttons(uint32_t timeout) {
   while (true) {
     // Sample navigation buttons (debounced).
-    uint32_t in_val = read_gpio(GPIO_IN_DBNC) & 0x1f;
+    uint32_t in_val = read_gpio(GPIO_IN_DBNC) & (0x1f << 8);
     if (in_val == 0) {
       // No button pressed, so delay for 20ms and then try again, unless the timeout is reached.
       const uint32_t poll_delay = 20;
@@ -232,7 +234,7 @@ static Buttons_t scan_buttons(uint32_t timeout) {
     in_val |= in_val >> 1;
     in_val |= in_val >> 2;
     in_val |= in_val >> 4;
-    in_val = (in_val >> 1) + 1;
+    in_val = ((in_val >> 1) & (0x1f << 8)) + 1;
 
     // Wait until the button is released to avoid an event being triggered multiple times.
     while (read_gpio(GPIO_IN_DBNC) & in_val);
@@ -249,14 +251,14 @@ static void fractal_test(St7735Context *lcd) {
 }
 
 static uint32_t spi_write(void *handle, uint8_t *data, size_t len) {
-  spi_tx(handle, data, len);
-  spi_wait_idle(handle);
+  spi_tx((spi_t *)handle, data, len);
+  spi_wait_idle((spi_t *)handle);
   return len;
 }
 
 static uint32_t gpio_write(void *handle, bool cs, bool dc) {
-  set_output_bit(GPIO_OUT, LcdDcPin, dc);
-  spi_set_cs(handle, SpiCsLine, cs);
+  spi_set_cs((spi_t *)handle, LcdDcLine, dc);
+  spi_set_cs((spi_t *)handle, LcdCsLine, cs);
   return 0;
 }
 
