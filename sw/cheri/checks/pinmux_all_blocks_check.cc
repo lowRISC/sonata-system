@@ -47,22 +47,7 @@ using namespace CHERI;
   };
   I2cPtr i2cs[2] = {i2c_ptr(root, 0), i2c_ptr(root, 1)};
 
-  SonataGpioFull gpio_full;
-  gpio_full.general           = root.cast<volatile SonataGpioGeneral>();
-  gpio_full.general.address() = GPIO_ADDRESS;
-  gpio_full.general.bounds()  = GPIO_BOUNDS;
-  gpio_full.rpi               = root.cast<volatile SonataGpioRaspberryPiHat>();
-  gpio_full.rpi.address()     = GPIO_ADDRESS + GPIO_RANGE;
-  gpio_full.rpi.bounds()      = GPIO_BOUNDS;
-  gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
-  gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
-  gpio_full.arduino.bounds()  = GPIO_BOUNDS;
-  gpio_full.pmod0             = root.cast<volatile SonataGpioPmod>();
-  gpio_full.pmod0.address()   = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_full.pmod0.bounds()    = GPIO_BOUNDS;
-  gpio_full.pmod1             = root.cast<volatile SonataGpioPmod>();
-  gpio_full.pmod1.address()   = GPIO_ADDRESS + GPIO_RANGE * 4;
-  gpio_full.pmod1.bounds()    = GPIO_BOUNDS;
+  SonataGpioFull gpio_full = get_full_gpio_ptrs(root);
 
   Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
   pinmux.address()                    = PINMUX_ADDRESS;

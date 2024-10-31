@@ -13,8 +13,6 @@
 
 using namespace CHERI;
 
-typedef SonataPulseWidthModulation SonataPwm;
-
 /**
  * Configures the number of test iterations to perform.
  * This can be overridden via a compilation flag.
@@ -56,7 +54,7 @@ constexpr bool LogPwmTests               = false;
  *
  * @returns The integer number of failures during the test
  */
-int pwm_loopback_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability<volatile SonataPwm> pwm,
+int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm,
                       uint8_t period, uint8_t duty_cycle, uint8_t cycles, uint8_t error_delta, Log &log) {
   constexpr uint8_t PwmInstance = 0;
   constexpr uint8_t InputPin    = 0;
@@ -134,7 +132,7 @@ int pwm_loopback_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability
  *
  * @returns The integer number of failures during the test.
  */
-int pwm_zero_counter_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
+int pwm_zero_counter_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
   constexpr uint8_t PwmInstance        = 0;
   constexpr uint8_t InputPin           = 0;
   constexpr uint8_t PropagationWaitOps = 25;
@@ -166,7 +164,7 @@ int pwm_zero_counter_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capabi
  *
  * @returns The integer number of failures during the test.
  */
-int pwm_always_high_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
+int pwm_always_high_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
   constexpr uint8_t PwmInstance = 0;
   constexpr uint8_t InputPin    = 0;
 
@@ -201,9 +199,9 @@ int pwm_always_high_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capabil
  */
 void pwm_tests(CapRoot root, Log &log) {
   // Create bounded capabilities for PMOD0's GPIO
-  Capability<volatile SonataGpioPmod> gpio_pmod0 = root.cast<volatile SonataGpioPmod>();
-  gpio_pmod0.address()                           = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_pmod0.bounds()                            = GPIO_BOUNDS;
+  Capability<volatile SonataGpioPmod0> gpio_pmod0 = root.cast<volatile SonataGpioPmod0>();
+  gpio_pmod0.address()                            = GPIO_ADDRESS + GPIO_RANGE * 3;
+  gpio_pmod0.bounds()                             = GPIO_BOUNDS;
 
   // Create bounded capability for PWM
   Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();

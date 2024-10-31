@@ -20,8 +20,6 @@ using namespace CHERI;
 #include "../../../vendor/display_drivers/st7735/lcd_st7735_init.h"
 #include "lowrisc_logo_native.h"
 
-typedef SonataPulseWidthModulation SonataPwm;
-
 // When running in simulation, eliminate the delays?
 #define SIMULATION 0
 
@@ -170,13 +168,10 @@ static void run_script(Capability<volatile OpenTitanUart> &uart, Capability<vola
   spi.bounds()                       = SPI_BOUNDS;
 
   // Create a bounded capability for the final PWM channel since this drives the LCD backlight.
-  Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();
-  pwm.address()                      = PWM_ADDRESS + (PWM_NUM - 1) * PWM_RANGE;
-  pwm.bounds()                       = PWM_BOUNDS;
-  // TODO: We presently cannot produce an always-on output using the SonataPwm `output_set` function.
-  // pwm->output_set(0, 1, 2);
-  pwm->outputs[0].dutyCycle = 2u;
-  pwm->outputs[0].period    = 1u;
+  Capability<volatile SonataLcdPwm> pwm = root.cast<volatile SonataLcdPwm>();
+  pwm.address()                         = PWM_ADDRESS + PWM_LCD * PWM_RANGE;
+  pwm.bounds()                          = PWM_BOUNDS;
+  pwm->output_set(0, 1u, 255u);
 
   uart->init(BAUD_RATE);
   write_str(uart, "LCD check\r\n");
