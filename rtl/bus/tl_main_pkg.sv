@@ -20,8 +20,6 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_UART0       = 32'h 80100000;
   localparam logic [31:0] ADDR_SPACE_UART1       = 32'h 80101000;
   localparam logic [31:0] ADDR_SPACE_UART2       = 32'h 80102000;
-  localparam logic [31:0] ADDR_SPACE_UART3       = 32'h 80103000;
-  localparam logic [31:0] ADDR_SPACE_UART4       = 32'h 80104000;
   localparam logic [31:0] ADDR_SPACE_I2C0        = 32'h 80200000;
   localparam logic [31:0] ADDR_SPACE_I2C1        = 32'h 80201000;
   localparam logic [31:0] ADDR_SPACE_SPI0        = 32'h 80300000;
@@ -46,8 +44,6 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_UART0       = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_UART1       = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_UART2       = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_UART3       = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_UART4       = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_I2C0        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_I2C1        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_SPI0        = 32'h 00000fff;
@@ -59,7 +55,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 25;
+  localparam int N_DEVICE = 23;
 
   typedef enum int {
     TlSram = 0,
@@ -76,17 +72,15 @@ package tl_main_pkg;
     TlUart0 = 11,
     TlUart1 = 12,
     TlUart2 = 13,
-    TlUart3 = 14,
-    TlUart4 = 15,
-    TlI2C0 = 16,
-    TlI2C1 = 17,
-    TlSpi0 = 18,
-    TlSpi1 = 19,
-    TlSpi2 = 20,
-    TlSpi3 = 21,
-    TlSpi4 = 22,
-    TlUsbdev = 23,
-    TlRvPlic = 24
+    TlI2C0 = 14,
+    TlI2C1 = 15,
+    TlSpi0 = 16,
+    TlSpi1 = 17,
+    TlSpi2 = 18,
+    TlSpi3 = 19,
+    TlSpi4 = 20,
+    TlUsbdev = 21,
+    TlRvPlic = 22
   } tl_device_e;
 
   typedef enum int {
