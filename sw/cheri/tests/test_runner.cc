@@ -24,6 +24,7 @@
 #include "i2c_tests.hh"
 #include "spi_tests.hh"
 #include "pinmux_tests.hh"
+#include "pwm_tests.hh"
 #include "uart_tests.hh"
 #include "usbdev_tests.hh"
 
@@ -35,6 +36,7 @@ extern "C" void entry_point(void *rwRoot) {
   WriteUart uart{uart0};
   Log log(uart);
 
+  pwm_tests(root, log);
   uart_tests(root, log);
   i2c_tests(root, log);
   spi_tests(root, log);
