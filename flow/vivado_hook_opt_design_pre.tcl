@@ -6,7 +6,7 @@
 # - Set `opt` to `0` for no extra optimisation (fusesoc Vivado default).
 # - Set `opt` to `1` for light & effective extra optimisation (general use).
 # - Set `opt` to `2` for heavy & chancy extra optimisation (pushing clk speed).
-set opt 1
+set opt 2
 
 if {$opt >= 1} {
   # Over-constrain clock used by the core during early implementation stages
