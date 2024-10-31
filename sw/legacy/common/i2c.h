@@ -25,9 +25,10 @@
 #define I2C_TIMING2 0x44
 #define I2C_TIMING3 0x48
 #define I2C_TIMING4 0x4C
+#define I2C_CONTROLLER_EVENTS 0x78
 
 // I2C_INTR_STATE register
-#define I2C_INTR_STATE_NAK 0x10
+#define I2C_INTR_STATE_CONTROLLER_HALT (1 << 4)
 
 // I2C_CTRL register
 #define I2C_CTRL_ENABLEHOST 1
@@ -41,6 +42,12 @@
 #define I2C_FDATA_READB 0x400
 #define I2C_FDATA_STOP 0x200
 #define I2C_FDATA_START 0x100
+
+// I2C ControllerEvents register
+#define I2C_CONTROLLER_EVENTS_NACK (1u << 0)
+#define I2C_CONTROLLER_EVENTS_UNHANDLED_NACK_TIMEOUT (1u << 1)
+#define I2C_CONTROLLER_EVENTS_BUS_TIMEOUT (1u << 2)
+#define I2C_CONTROLLER_EVENTS_ARBITRATION_LOST (1 << 3)
 
 // Should be treated as opaque
 typedef uintptr_t i2c_t;
