@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/engdoreis/display_drivers.git
-    rev: d0ea11852c43bd7db2ba9316e4170b8297a1d6a0
+    rev: 66f87a03b1ef637c80cb507d2b6d556168418e6a
   }
 }
