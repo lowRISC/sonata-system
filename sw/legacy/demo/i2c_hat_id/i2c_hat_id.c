@@ -21,10 +21,14 @@
 // A timeout of 1 second should be plenty; reading at 100kbps.
 const uint32_t timeout_usecs = 1000 * 1000;
 
-static const irq_t fmt_threshold_irq = 9;
+static const irq_t i2c0_irq          = 16;
+static const irq_t fmt_threshold_irq = (1 << 0);
 
 void i2c_irq_test(irq_t irq) {
-  puts("i2c fmt_threshold_irq received");
+  i2c_t i2c0 = I2C_FROM_BASE_ADDR(I2C0_BASE);
+  if (DEV_READ(i2c0 + 0x00) & fmt_threshold_irq) {
+    puts("i2c fmt_threshold_irq received");
+  }
   rv_plic_disable(irq);
 }
 
@@ -167,8 +171,8 @@ int main(void) {
   i2c_t i2c1 = I2C_FROM_BASE_ADDR(I2C1_BASE);
 
   // Test IRQ
-  rv_plic_register_irq(fmt_threshold_irq, i2c_irq_test);
-  rv_plic_enable(fmt_threshold_irq);
+  rv_plic_register_irq(i2c0_irq, i2c_irq_test);
+  rv_plic_enable(i2c0_irq);
   // Set fmt threshold to 1
   DEV_WRITE(i2c0 + 0x24, 0x10000);
   // Enable fmt threshold IRQ
