@@ -10,7 +10,7 @@
 #define GPIO_OUT_REG 0x0
 #define GPIO_IN_REG 0x4
 #define GPIO_IN_DBNC_REG 0x8
-#define GPIO_OUT_SHIFT_REG 0xC
+#define GPIO_OUT_EN_REG 0xC
 
 #define GPIO_LED_MASK 0x00FF  // These 8 bits are the user LEDs
 
