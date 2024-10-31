@@ -92,7 +92,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ${pin.name}_sel <= ${num_options}'b10;
     end else begin
       if (reg_we & ${pin.name}_sel_addressed) begin
@@ -148,7 +148,7 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      // Select second mux input by default so block is connected to the first pin that is specified in the configuration.
       ${block_io.name}_sel <= ${num_options}'b10;
     end else begin
       if (reg_we & ${block_io.name}_sel_addressed) begin
