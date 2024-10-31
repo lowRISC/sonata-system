@@ -73,6 +73,7 @@ class PinFlat:
 
     direction: Direction
     group_index: int | None = None
+    no_default_out: bool = False
 
     @property
     def name(self) -> str:
@@ -192,7 +193,12 @@ def flatten_pins(
     for pin in pins:
         direction = pin_direction(pin)
         if pin.length is None:
-            yield PinFlat(pin.name, pin.block_ios, direction)
+            yield PinFlat(
+                pin.name,
+                pin.block_ios,
+                direction,
+                no_default_out=pin.no_default_out,
+            )
         else:
             for group_index in range(pin.length):
                 block_io_links = [
@@ -206,7 +212,13 @@ def flatten_pins(
                     # This is checked at validation time
                     if isinstance(block_io.io_index, int)
                 ]
-                yield PinFlat(pin.name, block_io_links, direction, group_index)
+                yield PinFlat(
+                    pin.name,
+                    block_io_links,
+                    direction,
+                    group_index,
+                    no_default_out=pin.no_default_out,
+                )
 
 
 def block_io_to_pin_map(
