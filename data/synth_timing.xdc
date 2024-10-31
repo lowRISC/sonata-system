@@ -417,7 +417,7 @@ set_output_delay -clock clk_ah_spi -max [expr {$sclk_ns - 6           }] [get_po
 set_output_delay -clock clk_ah_spi -min [expr {           $sclk_ns/2.0}] [get_ports ah_tmpio10]
 ##   GPIO
 # Use same methodology as PMOD 0
-set ah_gpio_names {ah_tmpio16 ah_tmpio9 ah_tmpio8 ah_tmpio7 ah_tmpio6 ah_tmpio5 ah_tmpio4 ah_tmpio3 ah_tmpio2 ah_tmpio1 ah_tmpio0}
+set ah_gpio_names {ah_tmpio9 ah_tmpio8 ah_tmpio7 ah_tmpio6 ah_tmpio5 ah_tmpio4 ah_tmpio3 ah_tmpio2 ah_tmpio1 ah_tmpio0}
 set_input_delay -clock vclk_sys -max 0 [get_ports $ah_gpio_names]
 set_input_delay -clock vclk_sys -min 0 [get_ports $ah_gpio_names]
 set_output_delay -clock vclk_sys -max 0 [get_ports $ah_gpio_names]
