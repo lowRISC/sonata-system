@@ -107,7 +107,7 @@ void usbdev_tests(CapRoot root, Log &log) {
 
   // Execute the specified number of iterations of each test
   for (size_t i = 0; i < USBDEV_TEST_ITERATIONS; i++) {
-    log.println("\n\nrunning usbdev_test: {} \\ {}", i, USBDEV_TEST_ITERATIONS - 1);
+    log.println("\r\nrunning usbdev_test: {} \\ {}", i, USBDEV_TEST_ITERATIONS - 1);
     set_console_mode(log, CC_PURPLE);
     log.println("(needs User USB connected to a Type-A USB host port)");
     set_console_mode(log, CC_RESET);

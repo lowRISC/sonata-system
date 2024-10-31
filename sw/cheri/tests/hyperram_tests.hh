@@ -269,42 +269,43 @@ void hyperram_tests(CapRoot root, Log &log) {
 
   for (size_t i = 0; i < HYPERRAM_TEST_ITERATIONS; i++) {
     log.println("\nrunning hyperram_test: {} \\ {}", i, HYPERRAM_TEST_ITERATIONS - 1);
-    log.println("HYPERRAM_TEST_SIZE: {:#08x}", HYPERRAM_TEST_SIZE);
-
+    set_console_mode(log, CC_PURPLE);
+    log.println("(HYPERRAM_TEST_SIZE: {:#08x})", HYPERRAM_TEST_SIZE);
+    set_console_mode(log, CC_RESET);
     bool test_failed = false;
     int failures     = 0;
 
-    log.print("Running RND cap test...");
+    log.print("  Running RND cap test...");
     failures = rand_cap_test(hyperram_area, hyperram_cap_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running RND data test...");
+    log.print("  Running RND data test...");
     failures = rand_data_test_full(hyperram_area, prng);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running RND data & address test...");
+    log.print("  Running RND data & address test...");
     failures = rand_data_addr_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running 0101 stripe test...");
+    log.print("  Running 0101 stripe test...");
     failures = stripe_test(hyperram_area, 0x55555555);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running 1001 stripe test...");
+    log.print("  Running 1001 stripe test...");
     failures = stripe_test(hyperram_area, 0x99999999);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running 0000_1111 stripe test...");
+    log.print("  Running 0000_1111 stripe test...");
     failures = stripe_test(hyperram_area, 0x0F0F0F0F);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
-    log.print("Running Execution test...");
+    log.print("  Running Execution test...");
     failures = execute_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
