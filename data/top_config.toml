@@ -22,7 +22,7 @@ xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
 
 [[blocks]]
 name = "uart"
-instances = 5
+instances = 3
 ios = [
   { name = "rx", type = "input", default = 1 },
   { name = "tx", type = "output" },
@@ -73,11 +73,11 @@ block_ios = [{ block = "uart", instance = 1, io = "rx" }]
 
 [[pins]]
 name = "rs232_tx"
-block_ios = [{ block = "uart", instance = 4, io = "tx" }]
+block_ios = [{ block = "uart", instance = 2, io = "tx" }]
 
 [[pins]]
 name = "rs232_rx"
-block_ios = [{ block = "uart", instance = 4, io = "rx" }]
+block_ios = [{ block = "uart", instance = 2, io = "rx" }]
 
 ## QWIIC (Sparkfun) buses
 [[pins]]
@@ -189,100 +189,110 @@ block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 6}]
 [[pins]]
 name = "rph_g7_ce1"
 block_ios = [
-  {block = "spi", instance = 3, io = "cs", io_index = 1},
+  {block = "spi", instance = 2, io = "cs", io_index = 0},
   {block = "gpio", instance = 0, io = "ios", io_index = 7},
 ]
 
 [[pins]]
 name = "rph_g8_ce0"
 block_ios = [
-  {block = "spi", instance = 3, io = "cs", io_index = 0},
+  {block = "spi", instance = 2, io = "cs", io_index = 1},
   {block = "gpio", instance = 0, io = "ios", io_index = 8},
 ]
 
 [[pins]]
 name = "rph_g9_cipo"
 block_ios = [
-  {block = "spi", instance = 3, io = "cipo"},
+  {block = "spi", instance = 2, io = "cipo"},
   {block = "gpio", instance = 0, io = "ios", io_index = 9},
 ]
 
 [[pins]]
 name = "rph_g10_copi"
 block_ios = [
-  {block = "spi", instance = 3, io = "copi"},
+  {block = "spi", instance = 2, io = "copi"},
   {block = "gpio", instance = 0, io = "ios", io_index = 10},
 ]
 
 [[pins]]
 name = "rph_g11_sclk"
 block_ios = [
-  {block = "spi", instance = 3, io = "sclk"},
+  {block = "spi", instance = 2, io = "sclk"},
   {block = "gpio", instance = 0, io = "ios", io_index = 11},
 ]
 
 [[pins]]
 name = "rph_g12"
-block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 12}]
+block_ios = [
+  {block = "gpio", instance = 0, io = "ios", io_index = 12},
+  {block = "pwm", instance = 0, io = "out", io_index = 0},
+]
 
 [[pins]]
 name = "rph_g13"
-block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 13}]
+block_ios = [
+  {block = "gpio", instance = 0, io = "ios", io_index = 13},
+  {block = "pwm", instance = 0, io = "out", io_index = 1},
+]
 
 [[pins]]
 name = "rph_txd0"
 block_ios = [
-  {block = "uart", instance = 2, io = "tx"},
+  {block = "uart", instance = 1, io = "tx"},
   {block = "gpio", instance = 0, io = "ios", io_index = 14},
 ]
 
 [[pins]]
 name = "rph_rxd0"
 block_ios = [
-  {block = "uart", instance = 2, io = "rx"},
+  {block = "uart", instance = 1, io = "rx"},
   {block = "gpio", instance = 0, io = "ios", io_index = 15},
 ]
 
 [[pins]]
 name = "rph_g16_ce2"
 block_ios = [
-  {block = "spi", instance = 4, io = "cs", io_index = 2},
+  {block = "spi", instance = 3, io = "cs", io_index = 2},
   {block = "gpio", instance = 0, io = "ios", io_index = 16}
 ]
 
 [[pins]]
 name = "rph_g17"
 block_ios = [
-  {block = "spi", instance = 4, io = "cs", io_index = 1},
+  {block = "spi", instance = 3, io = "cs", io_index = 1},
   {block = "gpio", instance = 0, io = "ios", io_index = 17},
 ]
 
 [[pins]]
 name = "rph_g18"
 block_ios = [
-  {block = "spi", instance = 4, io = "cs", io_index = 0},
+  {block = "spi", instance = 3, io = "cs", io_index = 0},
   {block = "gpio", instance = 0, io = "ios", io_index = 18},
+  {block = "pwm", instance = 0, io = "out", io_index = 2},
 ]
 
 [[pins]]
 name = "rph_g19_cipo"
 block_ios = [
-  {block = "spi", instance = 4, io = "cipo"},
+  {block = "spi", instance = 3, io = "cipo"},
   {block = "gpio", instance = 0, io = "ios", io_index = 19},
+  {block = "pwm", instance = 0, io = "out", io_index = 3},
 ]
 
 [[pins]]
 name = "rph_g20_copi"
 block_ios = [
-  {block = "spi", instance = 4, io = "copi"},
+  {block = "spi", instance = 3, io = "copi"},
   {block = "gpio", instance = 0, io = "ios", io_index = 20},
+  {block = "pwm", instance = 0, io = "out", io_index = 4},
 ]
 
 [[pins]]
 name = "rph_g21_sclk"
 block_ios = [
-  {block = "spi", instance = 4, io = "sclk"},
+  {block = "spi", instance = 3, io = "sclk"},
   {block = "gpio", instance = 0, io = "ios", io_index = 21},
+  {block = "pwm", instance = 0, io = "out", io_index = 5},
 ]
 
 [[pins]]
@@ -312,13 +322,17 @@ block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 27}]
 ## Arduino Shield
 [[pins]]
 name = "ah_tmpio0"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 0},
-             {block = "uart", instance = 3, io = "rx"}]
+block_ios = [
+  {block = "uart", instance = 1, io = "rx"},
+  {block = "gpio", instance = 1, io = "ios", io_index = 0},
+]
 
 [[pins]]
 name = "ah_tmpio1"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 1},
-             {block = "uart", instance = 3, io = "tx"}]
+block_ios = [
+  {block = "uart", instance = 1, io = "tx"},
+  {block = "gpio", instance = 1, io = "ios", io_index = 1},
+]
 
 [[pins]]
 name = "ah_tmpio2"
@@ -326,7 +340,10 @@ block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 2}]
 
 [[pins]]
 name = "ah_tmpio3"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 3}]
+block_ios = [
+  {block = "gpio", instance = 1, io = "ios", io_index = 3},
+  {block = "pwm", instance = 0, io = "out", io_index = 0},
+]
 
 [[pins]]
 name = "ah_tmpio4"
@@ -334,11 +351,17 @@ block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 4}]
 
 [[pins]]
 name = "ah_tmpio5"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 5}]
+block_ios = [
+  {block = "gpio", instance = 1, io = "ios", io_index = 5},
+  {block = "pwm", instance = 0, io = "out", io_index = 1},
+]
 
 [[pins]]
 name = "ah_tmpio6"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 6}]
+block_ios = [
+  {block = "gpio", instance = 1, io = "ios", io_index = 6}
+  {block = "pwm", instance = 0, io = "out", io_index = 2},
+]
 
 [[pins]]
 name = "ah_tmpio7"
@@ -350,33 +373,38 @@ block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 8}]
 
 [[pins]]
 name = "ah_tmpio9"
-block_ios = [{block = "gpio", instance = 1, io = "ios", io_index = 9}]
+block_ios = [
+  {block = "gpio", instance = 1, io = "ios", io_index = 9},
+  {block = "pwm", instance = 0, io = "out", io_index = 2},
+]
 
 [[pins]]
 name = "ah_tmpio10"
 block_ios = [
-  {block = "spi", instance = 3, io = "cs", io_index = 2},
+  {block = "spi", instance = 2, io = "cs", io_index = 3},
   {block = "gpio", instance = 1, io = "ios", io_index = 10},
+  {block = "pwm", instance = 0, io = "out", io_index = 4},
 ]
 
 [[pins]]
 name = "ah_tmpio11"
 block_ios = [
-  {block = "spi", instance = 3, io = "copi"},
+  {block = "spi", instance = 2, io = "copi"},
   {block = "gpio", instance = 1, io = "ios", io_index = 11},
+  {block = "pwm", instance = 0, io = "out", io_index = 5},
 ]
 
 [[pins]]
 name = "ah_tmpio12"
 block_ios = [
-  {block = "spi", instance = 3, io = "cipo"},
+  {block = "spi", instance = 2, io = "cipo"},
   {block = "gpio", instance = 1, io = "ios", io_index = 12},
 ]
 
 [[pins]]
 name = "ah_tmpio13"
 block_ios = [
-  {block = "spi", instance = 3, io = "sclk"},
+  {block = "spi", instance = 2, io = "sclk"},
   {block = "gpio", instance = 1, io = "ios", io_index = 13},
 ]
 
@@ -384,19 +412,19 @@ block_ios = [
 # mb0 is reset and already connected to a general purpose output.
 [[pins]]
 name = "mb1"
-block_ios = [{block = "spi", instance = 4, io = "cs", io_index = 3}]
+block_ios = [{block = "spi", instance = 3, io = "cs", io_index = 3}]
 
 [[pins]]
 name = "mb2"
-block_ios = [{block = "spi", instance = 4, io = "sclk"}]
+block_ios = [{block = "spi", instance = 3, io = "sclk"}]
 
 [[pins]]
 name = "mb3"
-block_ios = [{block = "spi", instance = 4, io = "cipo"}]
+block_ios = [{block = "spi", instance = 3, io = "cipo"}]
 
 [[pins]]
 name = "mb4"
-block_ios = [{block = "spi", instance = 4, io = "copi"}]
+block_ios = [{block = "spi", instance = 3, io = "copi"}]
 
 [[pins]]
 name = "mb5"
@@ -408,12 +436,11 @@ block_ios = [{block = "i2c", instance = 1, io = "scl"}]
 
 [[pins]]
 name = "mb7"
-block_ios = [{block = "uart", instance = 3, io = "tx"}]
+block_ios = [{block = "uart", instance = 1, io = "tx"}]
 
 [[pins]]
 name = "mb8"
-block_ios = [{block = "uart", instance = 3, io = "rx"}]
-# mb9 is interrupt and already connected to a general purpose input.
+block_ios = [{block = "uart", instance = 1, io = "rx"}]
 
 [[pins]]
 name = "mb10"
@@ -432,24 +459,25 @@ name = "pmod0_2"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 1},
   {block = "spi", instance = 2, io = "copi"},
-  {block = "uart", instance = 2, io = "tx"},
+  {block = "pwm", instance = 0, io = "out", io_index = 1},
+  {block = "uart", instance = 1, io = "tx"},
 ]
 
 [[pins]]
 name = "pmod0_3"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 2},
-  {block = "i2c", instance = 0, io = "scl"},
   {block = "spi", instance = 2, io = "cipo"},
-  {block = "uart", instance = 2, io = "rx"},
+  {block = "i2c", instance = 0, io = "scl"},
+  {block = "uart", instance = 1, io = "rx"},
 ]
 
 [[pins]]
 name = "pmod0_4"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 3},
-  {block = "i2c", instance = 0, io = "sda"},
   {block = "spi", instance = 2, io = "sclk"},
+  {block = "i2c", instance = 0, io = "sda"},
 ]
 
 [[pins]]
@@ -458,15 +486,24 @@ block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 4}]
 
 [[pins]]
 name = "pmod0_6"
-block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 5}]
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 5},
+  {block = "pwm", instance = 0, io = "out", io_index = 2},
+]
 
 [[pins]]
 name = "pmod0_7"
-block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 6}]
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 6},
+  {block = "spi", instance = 2, io = "cs", io_index = 1},
+]
 
 [[pins]]
 name = "pmod0_8"
-block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 7}]
+block_ios = [
+  {block = "gpio", instance = 2, io = "ios", io_index = 7},
+  {block = "spi", instance = 2, io = "cs", io_index = 2},
+]
 
 [[pins]]
 name = "pmod1_1"
@@ -480,24 +517,25 @@ name = "pmod1_2"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 1},
   {block = "spi", instance = 3, io = "copi"},
-  {block = "uart", instance = 3, io = "tx"},
+  {block = "pwm", instance = 0, io = "out", io_index = 3},
+  {block = "uart", instance = 2, io = "tx"},
 ]
 
 [[pins]]
 name = "pmod1_3"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 2},
-  {block = "i2c", instance = 1, io = "scl"},
   {block = "spi", instance = 3, io = "cipo"},
-  {block = "uart", instance = 3, io = "rx"},
+  {block = "i2c", instance = 1, io = "scl"},
+  {block = "uart", instance = 2, io = "rx"},
 ]
 
 [[pins]]
 name = "pmod1_4"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 3},
-  {block = "i2c", instance = 1, io = "sda"},
   {block = "spi", instance = 3, io = "sclk"},
+  {block = "i2c", instance = 1, io = "sda"},
 ]
 
 [[pins]]
@@ -506,15 +544,24 @@ block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 4}]
 
 [[pins]]
 name = "pmod1_6"
-block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 5}]
+block_ios = [
+  {block = "gpio", instance = 3, io = "ios", io_index = 5},
+  {block = "pwm", instance = 0, io = "out", io_index = 4},
+]
 
 [[pins]]
 name = "pmod1_7"
-block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 6}]
+block_ios = [
+  {block = "gpio", instance = 3, io = "ios", io_index = 6},
+  {block = "spi", instance = 3, io = "cs", io_index = 1},
+]
 
 [[pins]]
 name = "pmod1_8"
-block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 7}]
+block_ios = [
+  {block = "gpio", instance = 3, io = "ios", io_index = 7},
+  {block = "spi", instance = 3, io = "cs", io_index = 2},
+]
 
 ## MicroSD card slot
 [[pins]]

@@ -283,13 +283,11 @@ class SonataPinmux : private utils::NoCopyNoMove {
     uart_0_rx     = 0x880,
     uart_1_rx     = 0x881,
     uart_2_rx     = 0x882,
-    uart_3_rx     = 0x883,
-    uart_4_rx     = 0x884,
-    spi_0_cipo    = 0x885,
-    spi_1_cipo    = 0x886,
-    spi_2_cipo    = 0x887,
-    spi_3_cipo    = 0x888,
-    spi_4_cipo    = 0x889,
+    spi_0_cipo    = 0x883,
+    spi_1_cipo    = 0x884,
+    spi_2_cipo    = 0x885,
+    spi_3_cipo    = 0x886,
+    spi_4_cipo    = 0x887,
   };
 
   /**
@@ -307,8 +305,14 @@ class SonataPinmux : private utils::NoCopyNoMove {
   static constexpr uint8_t output_pin_options(OutputPin output_pin) {
     switch (output_pin) {
       case OutputPin::pmod0_2:
-      case OutputPin::pmod0_4:
       case OutputPin::pmod1_2:
+        return 5;
+      case OutputPin::rph_g18:
+      case OutputPin::rph_g20_copi:
+      case OutputPin::rph_g21_sclk:
+      case OutputPin::ah_tmpio10:
+      case OutputPin::ah_tmpio11:
+      case OutputPin::pmod0_4:
       case OutputPin::pmod1_4:
         return 4;
       case OutputPin::rph_g0:
@@ -319,20 +323,28 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::rph_g8_ce0:
       case OutputPin::rph_g10_copi:
       case OutputPin::rph_g11_sclk:
+      case OutputPin::rph_g12:
+      case OutputPin::rph_g13:
       case OutputPin::rph_txd0:
       case OutputPin::rph_g16_ce2:
       case OutputPin::rph_g17:
-      case OutputPin::rph_g18:
-      case OutputPin::rph_g20_copi:
-      case OutputPin::rph_g21_sclk:
+      case OutputPin::rph_g19_cipo:
       case OutputPin::ah_tmpio1:
-      case OutputPin::ah_tmpio10:
-      case OutputPin::ah_tmpio11:
+      case OutputPin::ah_tmpio3:
+      case OutputPin::ah_tmpio5:
+      case OutputPin::ah_tmpio6:
+      case OutputPin::ah_tmpio9:
       case OutputPin::ah_tmpio13:
       case OutputPin::pmod0_1:
       case OutputPin::pmod0_3:
+      case OutputPin::pmod0_6:
+      case OutputPin::pmod0_7:
+      case OutputPin::pmod0_8:
       case OutputPin::pmod1_1:
       case OutputPin::pmod1_3:
+      case OutputPin::pmod1_6:
+      case OutputPin::pmod1_7:
+      case OutputPin::pmod1_8:
         return 3;
       default:
         return 2;
@@ -353,13 +365,12 @@ class SonataPinmux : private utils::NoCopyNoMove {
    */
   static constexpr uint8_t block_input_options(BlockInput block_input) {
     switch (block_input) {
+      case BlockInput::uart_1_rx:
+        return 6;
+      case BlockInput::spi_2_cipo:
       case BlockInput::spi_3_cipo:
         return 5;
-      case BlockInput::uart_3_rx:
-        return 4;
       case BlockInput::uart_2_rx:
-      case BlockInput::spi_2_cipo:
-      case BlockInput::spi_4_cipo:
         return 3;
       default:
         return 2;
