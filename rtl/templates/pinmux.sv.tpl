@@ -92,8 +92,13 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
+      % if pin.no_default_out:
+      // Select first mux input (constant) by default so pin is connected to no block initially
+      ${pin.name}_sel <= ${num_options}'b1;
+      %else:
       // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
       ${pin.name}_sel <= ${num_options}'b10;
+      %endif
     end else begin
       if (reg_we & ${pin.name}_sel_addressed) begin
         ${pin.name}_sel <= reg_wdata[${(output_idx%4)*8}+:${num_options}];
