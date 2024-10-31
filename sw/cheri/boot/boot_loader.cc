@@ -41,7 +41,7 @@ const uint8_t SoftwareSelectGpioPins[] = {13, 14, 15};
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
 typedef CHERI::Capability<volatile OpenTitanUart> &UartRef;
-typedef CHERI::Capability<volatile SonataGPIO> &GpioRef;
+typedef CHERI::Capability<volatile SonataGpioBoard> &GpioRef;
 
 [[noreturn]] void complain_and_loop(UartRef uart, const char *str) {
   write_str(uart, prefix);
@@ -148,9 +148,9 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
 
   SpiPtr spi = spi_ptr(root, 2);
 
-  CHERI::Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
-  gpio.address()                              = GPIO_ADDRESS;
-  gpio.bounds()                               = GPIO_BOUNDS;
+  CHERI::Capability<volatile SonataGpioBoard> gpio = root.cast<volatile SonataGpioBoard>();
+  gpio.address()                                   = GPIO_ADDRESS;
+  gpio.bounds()                                    = GPIO_BOUNDS;
 
   CHERI::Capability<uint8_t> sram = root.cast<uint8_t>();
   sram.address()                  = SRAM_ADDRESS + 0x1000;
