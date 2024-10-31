@@ -91,9 +91,9 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
 
 Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
   const static uint8_t st7735_orientation_map[] = {
-      ST77_MADCTL_MY | ST77_MADCTL_MV,
-      ST77_MADCTL_MX | ST77_MADCTL_MV,
+      ST77_MADCTL_MV | ST77_MADCTL_MX,
       ST77_MADCTL_MX | ST77_MADCTL_MY,
+      ST77_MADCTL_MV | ST77_MADCTL_MY,
       0,
   };
 
@@ -201,13 +201,13 @@ Result lcd_st7735_putchar(St7735Context *ctx, LCD_Point origin, char character) 
 
   set_address(ctx, origin.x, origin.y, origin.x + char_descriptor->width - 1, origin.y + font->height - 1);
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
-  const uint8_t *char_bitmap = &font->bitmap_table[char_descriptor->position - 1];
+  const uint8_t *char_bitmap = &font->bitmap_table[char_descriptor->position];
   for (int row = 0; row < font->height; row++) {
     for (int column = 0; column < char_descriptor->width; column++) {
       uint8_t bit = (uint8_t)(column % 8);
       char_bitmap += (uint8_t)(bit == 0);
       buffer[column] =
-          (uint16_t)((*char_bitmap & (0x01 << bit)) ? ctx->parent.foreground_color : ctx->parent.background_color);
+          (uint16_t)((char_bitmap[-1] & (0x01 << bit)) ? ctx->parent.foreground_color : ctx->parent.background_color);
     }
     write_buffer(ctx, (uint8_t *)buffer, sizeof(buffer));
   }

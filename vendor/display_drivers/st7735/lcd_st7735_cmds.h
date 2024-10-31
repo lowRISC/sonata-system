@@ -72,9 +72,9 @@ typedef enum {
 } ST7735_Cmd;
 
 typedef enum {
-  ST77_MADCTL_MX  = 0x01 << 7,  // Column Address Order
-  ST77_MADCTL_MV  = 0x01 << 6,  // Row/Column Exchange
-  ST77_MADCTL_MY  = 0x01 << 5,  // Row Address Order
+  ST77_MADCTL_MY  = 0x01 << 7,  // Row Address Order
+  ST77_MADCTL_MX  = 0x01 << 6,  // Column Address Order
+  ST77_MADCTL_MV  = 0x01 << 5,  // Row/Column Exchange
   ST77_MADCTL_ML  = 0x01 << 4,
   ST77_MADCTL_RGB = 0x01 << 3,
   ST77_MADCTL_MH  = 0x01 << 2
