@@ -32,6 +32,10 @@ module top_verilator (input logic clk_i, rst_ni);
   logic scl1_o, scl1_oe;
   logic sda1_o, sda1_oe;
 
+  logic cs_pmod1_o, cs_pmod1_oe;
+  logic sck_pmod1_o, sck_pmod1_oe;
+  logic copi_pmod1_o, copi_pmod1_oe;
+
   // Output clocks and data to the I2C buses.
   wire scl_rpi0_out = scl_rpi0_oe ? scl_rpi0_o : 1'b1;
   wire sda_rpi0_out = sda_rpi0_oe ? sda_rpi0_o : 1'b1;
@@ -41,6 +45,21 @@ module top_verilator (input logic clk_i, rst_ni);
 
   wire scl1_out = scl1_oe ? scl1_o : 1'b1;
   wire sda1_out = sda1_oe ? sda1_o : 1'b1;
+
+  // Output for the SPI PMOD1 buses, used for PMOD SF3 DPI
+  wire cs_pmod1_out   = cs_pmod1_oe ? cs_pmod1_o : 1'b1;
+  wire sck_pmod1_out  = sck_pmod1_oe ? sck_pmod1_o : 1'b1;
+  wire copi_pmod1_out = copi_pmod1_oe ? copi_pmod1_o : 1'b1;
+
+  // Input from SPI PMOD1 bus
+  wire cipo_pmod1_i;
+
+  // SPI PMOD SF3 OOB
+  wire pmod1_spi_d2; // WP_N (write protect negated)
+  wire pmod1_spi_d3; // HOLD_N or RESET_N
+  // Tie to 1 as they're active low and we don't need either signal
+  assign pmod1_spi_d2 = 1'b1;
+  assign pmod1_spi_d3 = 1'b1;
 
   // Clocks and data from the I2C DPI models.
   wire scl_rpi0_dpi, sda_rpi0_dpi;
@@ -194,6 +213,14 @@ module top_verilator (input logic clk_i, rst_ni);
   assign {scl1_o, scl1_oe} = {inout_to_pins[INOUT_PIN_SCL1], inout_to_pins_en[INOUT_PIN_SCL1]};
   assign {sda1_o, sda1_oe} = {inout_to_pins[INOUT_PIN_SDA1], inout_to_pins_en[INOUT_PIN_SDA1]};
 
+  // Output SPI traffic to the PMOD SF3 on PMOD1
+  assign {cs_pmod1_o, cs_pmod1_oe} = {inout_to_pins[INOUT_PIN_PMOD1_1],
+                                   inout_to_pins_en[INOUT_PIN_PMOD1_1]};
+  assign {copi_pmod1_o, copi_pmod1_oe} = {inout_to_pins[INOUT_PIN_PMOD1_2],
+                                       inout_to_pins_en[INOUT_PIN_PMOD1_2]};
+  assign {sck_pmod1_o, sck_pmod1_oe} = {inout_to_pins[INOUT_PIN_PMOD1_4],
+                                     inout_to_pins_en[INOUT_PIN_PMOD1_4]};
+
   assign in_from_pins[IN_PIN_SER0_RX]   = uart_sys_rx;
   assign in_from_pins[IN_PIN_SER1_RX]   = uart_aux_rx;
 
@@ -213,6 +240,9 @@ module top_verilator (input logic clk_i, rst_ni);
   // There is no device model on the mikroBUS Click I2C bus.
   assign inout_from_pins[INOUT_PIN_MB5] = 1'b1;
   assign inout_from_pins[INOUT_PIN_MB6] = 1'b1;
+  // Input SPI traffic from PMOD SF3 on PMOD1
+  assign inout_from_pins[INOUT_PIN_PMOD1_3] = cipo_pmod1_i;
+
 
   // CS outputs to SPI peripherals from controllers.
   assign rph_g8_ce0   = inout_to_pins[INOUT_PIN_RPH_G8_CE0];
@@ -485,6 +515,25 @@ module top_verilator (input logic clk_i, rst_ni);
     .cipo     ( ),  // not used.
 
     .oob_in   ({lcd_dc, lcd_rst, lcd_backlight}),
+    .oob_out  ( )  // not used.
+  );
+
+  // SPI connection to PMOD SF3 flash via PMOD1 pins
+  spidpi #(
+    .ID       ("pmod_sf3"),
+    .NDevices (1),
+    .DataW    (1),
+    .OOB_InW  (2),
+    .OOB_OutW (1)
+  ) u_spidpi_pmod_sf3 (
+    .rst_ni   (rst_ni),
+
+    .sck      (sck_pmod1_out),
+    .cs       (cs_pmod1_out),
+    .copi     (copi_pmod1_out),
+    .cipo     (cipo_pmod1_i),
+
+    .oob_in   ({pmod1_spi_d3, pmod1_spi_d2}),
     .oob_out  ( )  // not used.
   );
 

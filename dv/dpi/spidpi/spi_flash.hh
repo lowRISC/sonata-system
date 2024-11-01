@@ -11,8 +11,9 @@ class spi_flash : public spidpi {
 public:
   spi_flash(unsigned dataW,      // Number of data lines.
             unsigned oobInW,     // Width of Out-Of-Band input data (bits).
-            unsigned oobOutW) :  // Width of Out-Of-Band output data (bits).
-            spidpi(dataW, oobInW, oobOutW) {
+            unsigned oobOutW,    // Width of Out-Of-Band output data (bits).
+            uint32_t jedec_id) : // The JEDEC ID of the flash device.
+            spidpi(dataW, oobInW, oobOutW), jedec_id(jedec_id) {
       reset();
    }
 
@@ -66,4 +67,7 @@ private:
   // Current offset within flash for programming/reading operation.
   uint32_t memOffset;
   uint8_t  mem[kFlashBytes];
+
+  // JEDEC ID of the flash device, written in the bottom 24 bytes.
+  uint32_t jedec_id;
 };
