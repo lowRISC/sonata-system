@@ -18,7 +18,7 @@
 #define SYSTEM_INFO_ADDRESS (0x8000'C000)
 #define SYSTEM_INFO_BOUNDS (0x0000'0020)
 
-#define GPIO_NUM 5
+#define GPIO_NUM 6
 #define GPIO_BOUNDS (0x0000'0010)
 #define GPIO_ADDRESS (0x8000'0000)
 #define GPIO_RANGE (0x0000'0040)
@@ -28,7 +28,7 @@
 #define PWM_BOUNDS (0x0000'0008)
 #define PWM_RANGE (0x0000'0008)
 
-#define UART_NUM 5
+#define UART_NUM 3
 #define UART_BOUNDS (0x0000'0034)
 #define UART_ADDRESS (0x8010'0000)
 #define UART_RANGE (0x0000'1000)
@@ -38,7 +38,7 @@
 #define I2C_ADDRESS (0x8020'0000)
 #define I2C_RANGE (0x0000'1000)
 
-#define SPI_NUM 5
+#define SPI_NUM 4
 #define SPI_BOUNDS (0x0000'002C)
 #define SPI_ADDRESS (0x8030'0000)
 #define SPI_RANGE (0x0000'1000)
