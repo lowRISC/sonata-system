@@ -17,7 +17,7 @@ typedef SonataPulseWidthModulation SonataPwm;
 
 /**
  * Configures the number of test iterations to perform.
- * This can be overriden via a compilation flag.
+ * This can be overridden via a compilation flag.
  */
 #ifndef PWM_TEST_ITERATIONS
 #define PWM_TEST_ITERATIONS (1U)
@@ -27,7 +27,7 @@ typedef SonataPulseWidthModulation SonataPwm;
  * Configures whether cable connections required for PWM testing
  * are available. This includes cables between:
  *  - MikroBus PWM and PMOD0 Pin 1
- * This can be overriden via a compilation flag.
+ * This can be overridden via a compilation flag.
  */
 #ifndef PWM_CABLE_CONNECTIONS_AVAILABLE
 #define PWM_CABLE_CONNECTIONS_AVAILABLE true
@@ -159,6 +159,45 @@ int pwm_zero_counter_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capabi
 }
 
 /**
+ * Run the PWM "Always High" test. This checks that when the PWM duty cycle exceeds its counter (i.e. its period),
+ * that the PWM will only ever output 1.
+ *
+ * Requires a connection between PWM 0 (mikroBus PWM) and PMOD0 pin 1.
+ *
+ * @returns The integer number of failures during the test.
+ */
+int pwm_always_high_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
+  constexpr uint8_t PwmInstance        = 0;
+  constexpr uint8_t InputPin           = 0;
+  constexpr uint8_t PropagationWaitOps = 25;
+
+  int failures = 0;
+
+  // Configure GPIO, timer and PWM respectively.
+  gpio_pmod0->set_output_enable(InputPin, false);
+  reset_mcycle();
+  pwm->output_set(PwmInstance, 0, 1);
+
+  for (uint32_t period = 1; period < 255; period++) {
+    // Choose a duty cycle about 50% between the period end and the max (255)
+    uint32_t duty_cycle = (256 - period) / 2 + period;
+    pwm->output_set(PwmInstance, period, duty_cycle);
+    // Check that output is always high for 2 PWM periods (+ a small constant)
+    constexpr uint8_t MinimumCycles = 50;
+    uint32_t start_mcycle           = get_mcycle();
+    uint32_t end_mcycle             = start_mcycle + (period * 2) + MinimumCycles;
+    while (get_mcycle() < end_mcycle) {
+      failures += !gpio_pmod0->read_input(0);
+    }
+  }
+
+  // Disable PWM output
+  pwm->output_set(PwmInstance, 0, 0);
+
+  return failures;
+}
+
+/**
  * Run the whole suite of PWM tests.
  */
 void pwm_tests(CapRoot root, Log &log) {
@@ -182,9 +221,9 @@ void pwm_tests(CapRoot root, Log &log) {
     int failures     = 0;
 
     if (PWM_CABLE_CONNECTIONS_AVAILABLE) {
-      constexpr size_t NumTests               = 6;
-      constexpr uint8_t periods[NumTests]     = {255, 255, 233, 128, 128, 64};
-      constexpr uint8_t duty_cycles[NumTests] = {128, 64, 74, 64, 32, 32};
+      constexpr size_t NumTests               = 8;
+      constexpr uint8_t periods[NumTests]     = {255, 255, 255, 255, 233, 128, 128, 64};
+      constexpr uint8_t duty_cycles[NumTests] = {224, 192, 128, 64, 74, 64, 32, 32};
 
       for (size_t i = 0; i < NumTests; i++) {
         uint8_t period     = periods[i];
@@ -198,6 +237,11 @@ void pwm_tests(CapRoot root, Log &log) {
 
       log.print("  Running PWM Zero Counter test... ");
       failures = pwm_zero_counter_test(gpio_pmod0, pwm);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
+
+      log.print("  Running PWM Always High test...");
+      failures = pwm_always_high_test(gpio_pmod0, pwm);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
