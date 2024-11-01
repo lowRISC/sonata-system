@@ -230,6 +230,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::pmod0_4:
       case OutputPin::pmod1_4:
         return 4;
+      case OutputPin::ser1_tx:
       case OutputPin::rph_g0:
       case OutputPin::rph_g1:
       case OutputPin::rph_g2_sda:
@@ -282,11 +283,10 @@ class SonataPinmux : private utils::NoCopyNoMove {
     switch (block_input) {
       case BlockInput::uart_1_rx:
         return 6;
+      case BlockInput::uart_2_rx:
       case BlockInput::spi_0_cipo:
       case BlockInput::spi_1_cipo:
         return 4;
-      case BlockInput::uart_2_rx:
-        return 3;
       default:
         return 2;
     }

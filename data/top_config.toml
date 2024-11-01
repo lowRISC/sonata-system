@@ -65,11 +65,17 @@ block_ios = [{ block = "uart", instance = 0, io = "rx" }]
 
 [[pins]]
 name = "ser1_tx"
-block_ios = [{ block = "uart", instance = 1, io = "tx" }]
+block_ios = [
+  { block = "uart", instance = 1, io = "tx" },
+  { block = "uart", instance = 2, io = "tx" },
+]
 
 [[pins]]
 name = "ser1_rx"
-block_ios = [{ block = "uart", instance = 1, io = "rx" }]
+block_ios = [
+  { block = "uart", instance = 1, io = "rx" },
+  { block = "uart", instance = 2, io = "rx" },
+]
 
 [[pins]]
 name = "rs232_tx"
@@ -141,14 +147,14 @@ block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 6}]
 [[pins]]
 name = "rph_g7_ce1"
 block_ios = [
-  {block = "spi", instance = 0, io = "cs", io_index = 0},
+  {block = "spi", instance = 0, io = "cs", io_index = 1},
   {block = "gpio", instance = 0, io = "ios", io_index = 7},
 ]
 
 [[pins]]
 name = "rph_g8_ce0"
 block_ios = [
-  {block = "spi", instance = 0, io = "cs", io_index = 1},
+  {block = "spi", instance = 0, io = "cs", io_index = 0},
   {block = "gpio", instance = 0, io = "ios", io_index = 8},
 ]
 
