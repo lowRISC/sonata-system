@@ -112,7 +112,7 @@ module top_verilator (input logic clk_i, rst_ni);
   wire lcd_backlight;
 
   // mikroBUS Click.
-  wire mb0, mb1;
+  wire mb1;
   // Arduino
   wire ah_tmpio10;
   // RPi header.
@@ -124,7 +124,7 @@ module top_verilator (input logic clk_i, rst_ni);
   // MicroSD card slot
   wire microsd_dat3;
   // None of these signals is used presently.
-  wire unused_io_ = ^{mb0, mb1, ah_tmpio10, rph_g18, rph_g17,
+  wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1, ethmac_rst, ethmac_cs,
                       usrLed, microsd_dat3};
 
@@ -179,10 +179,6 @@ module top_verilator (input logic clk_i, rst_ni);
 
   assign uart_sys_tx = out_to_pins[OUT_PIN_SER0_TX];
   assign uart_aux_tx = out_to_pins[OUT_PIN_SER1_TX];
-  assign appspi_d0   = out_to_pins[OUT_PIN_APPSPI_D0];
-  assign lcd_copi    = out_to_pins[OUT_PIN_LCD_COPI];
-  assign appspi_clk  = out_to_pins[OUT_PIN_APPSPI_CLK];
-  assign lcd_clk     = out_to_pins[OUT_PIN_LCD_CLK];
 
   // Output I2C traffic to the RPi HAT ID EEPROM.
   assign {scl_rpi0_o, scl_rpi0_oe} = {inout_to_pins[INOUT_PIN_RPH_G1],
@@ -198,7 +194,6 @@ module top_verilator (input logic clk_i, rst_ni);
   assign {scl1_o, scl1_oe} = {inout_to_pins[INOUT_PIN_SCL1], inout_to_pins_en[INOUT_PIN_SCL1]};
   assign {sda1_o, sda1_oe} = {inout_to_pins[INOUT_PIN_SDA1], inout_to_pins_en[INOUT_PIN_SDA1]};
 
-  assign in_from_pins[IN_PIN_APPSPI_D1] = appspi_d1;
   assign in_from_pins[IN_PIN_SER0_RX]   = uart_sys_rx;
   assign in_from_pins[IN_PIN_SER1_RX]   = uart_aux_rx;
 
@@ -220,26 +215,17 @@ module top_verilator (input logic clk_i, rst_ni);
   assign inout_from_pins[INOUT_PIN_MB6] = 1'b1;
 
   // CS outputs to SPI peripherals from controllers.
-  assign appspi_cs    = out_to_pins[OUT_PIN_APPSPI_CS];
-  assign lcd_cs       = out_to_pins[OUT_PIN_LCD_CS];
-  assign ethmac_cs    = out_to_pins[OUT_PIN_ETHMAC_CS];
   assign rph_g8_ce0   = inout_to_pins[INOUT_PIN_RPH_G8_CE0];
   assign rph_g7_ce1   = inout_to_pins[INOUT_PIN_RPH_G7_CE1];
   assign ah_tmpio10   = inout_to_pins[INOUT_PIN_AH_TMPIO10];
-  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
   assign rph_g18      = inout_to_pins[INOUT_PIN_RPH_G18];
   assign rph_g17      = inout_to_pins[INOUT_PIN_RPH_G17];
   assign rph_g16_ce2  = inout_to_pins[INOUT_PIN_RPH_G16_CE2];
   assign mb1          = out_to_pins[OUT_PIN_MB1];
 
   logic unused_out_pins = ^{out_to_pins[OUT_PIN_RS232_TX],
-                            out_to_pins[OUT_PIN_ETHMAC_COPI],
-                            out_to_pins[OUT_PIN_ETHMAC_SCLK],
-                            out_to_pins[OUT_PIN_MB2],
-                            out_to_pins[OUT_PIN_MICROSD_CMD],
-                            out_to_pins[OUT_PIN_MICROSD_CLK]};
-
-  logic [18:0] unused_gp_o;
+                            out_to_pins[OUT_PIN_MB2]};
+  logic [23:0] unused_gp_o;
 
   // Loopback functionality used to verify the operation of the pinmux and GPIO pins;
   // these signals are re-timed through a single register stage simply to prevent Verilator
@@ -264,8 +250,8 @@ module top_verilator (input logic clk_i, rst_ni);
   wire [4:0] nav_sw_n = '0;
   wire [7:0] user_sw_n = '0;
   wire [2:0] sel_sw_n = '0;
-  wire mb9 = 1'b1; // undriven, apt to float high.
   wire microsd_det = 1'b1; // pulled high to indicate the _absence_ of a microSD card.
+
 
   // Instantiating the Sonata System.
   sonata_system #(
@@ -289,8 +275,7 @@ module top_verilator (input logic clk_i, rst_ni);
     .rst_hr_ni      (rst_hr_n),
 
     .gp_i           ({
-                      14'b0,
-                      mb9, // mikroBUS Click interrupt
+                      15'b0,
                       microsd_det, // MicroSD card insertion detection
                       sel_sw_n, // Software selection switches
                       nav_sw_n, // joystick
@@ -298,9 +283,6 @@ module top_verilator (input logic clk_i, rst_ni);
                     }),
     .gp_o           ({
                       unused_gp_o,
-                      mb0, // mikroBUS Click reset
-                      ethmac_rst, // Ethernet
-                      lcd_backlight, lcd_dc, lcd_rst, // LCD screen
                       usrLed // User LEDs (8 bits)
                      }),
 
@@ -310,6 +292,23 @@ module top_verilator (input logic clk_i, rst_ni);
     .ard_an_di_i    (0),
     .ard_an_p_i     (0),
     .ard_an_n_i     (0),
+
+
+    // Non-pinmuxed spi devices
+    .lcd_copi_o              (lcd_copi),
+    .lcd_sclk_o              (lcd_clk),
+    .lcd_cs_o                (lcd_cs),
+    .lcd_dc_o                (lcd_dc),
+    .lcd_rst_o               (lcd_rst),
+    .lcd_backlight_o         (lcd_backlight),
+
+    .spi_board_copi_o        (appspi_d0),
+    .spi_board_cipo_i        (appspi_d1),
+    .spi_board_sclk_o        (appspi_clk),
+    .spi_board_flash_cs_o    (appspi_cs),
+    .spi_board_eth_cs_o      (ethmac_cs),
+    .spi_board_eth_rst_o     (ethmac_rst),
+    .spi_board_microsd_cs_o  (microsd_dat3),
 
     // SPI hosts
     .spi_eth_irq_ni(1'b1),

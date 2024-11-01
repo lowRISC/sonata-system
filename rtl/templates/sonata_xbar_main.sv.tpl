@@ -41,6 +41,10 @@ module sonata_xbar_main
   input  tlul_pkg::tl_d2h_t tl_xadc_i,
   output tlul_pkg::tl_h2d_t tl_timer_o,
   input  tlul_pkg::tl_d2h_t tl_timer_i,
+  output tlul_pkg::tl_h2d_t tl_spi_board_o,
+  input  tlul_pkg::tl_d2h_t tl_spi_board_i,
+  output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
+  input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
   % for block in config.blocks:
   % if not block.name == "gpio":
   output tlul_pkg::tl_h2d_t tl_${block.name}_o[${block.name.upper()}_NUM],
@@ -87,6 +91,10 @@ module sonata_xbar_main
     .tl_xadc_i        (tl_xadc_i),
     .tl_timer_o       (tl_timer_o),
     .tl_timer_i       (tl_timer_i),
+    .tl_spi_board_i   (tl_spi_board_i),
+    .tl_spi_board_o   (tl_spi_board_o),
+    .tl_spi_lcd_i     (tl_spi_lcd_i),
+    .tl_spi_lcd_o     (tl_spi_lcd_o),
     % for block in config.blocks:
     % if not block.name == "gpio":
     % for i in range(block.instances):
