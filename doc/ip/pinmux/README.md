@@ -13,7 +13,7 @@ The default value for all of these selectors is `'b10`.
 | Address | Pin output | Possible block outputs |
 |---------|------------|------------------------|
 | 0x000 | `ser0_tx` | 0, `uart[0].tx` |
-| 0x001 | `ser1_tx` | 0, `uart[1].tx` |
+| 0x001 | `ser1_tx` | 0, `uart[1].tx`, `uart[2].tx` |
 | 0x002 | `rs232_tx` | 0, `uart[2].tx` |
 | 0x003 | `scl0` | 0, `i2c[0].scl` |
 | 0x004 | `sda0` | 0, `i2c[0].sda` |
@@ -26,8 +26,8 @@ The default value for all of these selectors is `'b10`.
 | 0x00b | `rph_g4` | 0, `gpio[0].ios[4]` |
 | 0x00c | `rph_g5` | 0, `gpio[0].ios[5]` |
 | 0x00d | `rph_g6` | 0, `gpio[0].ios[6]` |
-| 0x00e | `rph_g7_ce1` | 0, `spi[0].cs[0]`, `gpio[0].ios[7]` |
-| 0x00f | `rph_g8_ce0` | 0, `spi[0].cs[1]`, `gpio[0].ios[8]` |
+| 0x00e | `rph_g7_ce1` | 0, `spi[0].cs[1]`, `gpio[0].ios[7]` |
+| 0x00f | `rph_g8_ce0` | 0, `spi[0].cs[0]`, `gpio[0].ios[8]` |
 | 0x010 | `rph_g9_cipo` | 0, `gpio[0].ios[9]` |
 | 0x011 | `rph_g10_copi` | 0, `spi[0].copi`, `gpio[0].ios[10]` |
 | 0x012 | `rph_g11_sclk` | 0, `spi[0].sclk`, `gpio[0].ios[11]` |
@@ -149,7 +149,7 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x839 | `gpio[3].ios[7]` | 0, `pmod1_8` |
 | 0x83a | `uart[0].rx` | 1, `ser0_rx` |
 | 0x83b | `uart[1].rx` | 1, `ser1_rx`, `rph_rxd0`, `ah_tmpio0`, `mb8`, `pmod0_3` |
-| 0x83c | `uart[2].rx` | 1, `rs232_rx`, `pmod1_3` |
+| 0x83c | `uart[2].rx` | 1, `ser1_rx`, `rs232_rx`, `pmod1_3` |
 | 0x83d | `spi[0].cipo` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod0_3` |
 | 0x83e | `spi[1].cipo` | 0, `rph_g19_cipo`, `mb3`, `pmod1_3` |
 
