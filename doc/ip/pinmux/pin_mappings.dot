@@ -65,12 +65,12 @@ digraph {
       |<gpi_16>gpi_16\
     "]
 
-    gpio_rph [label = "gpio_rph|<gpio_0-27>gpio_0-27"]
-    gpio_ah [label = "gpio_ah|<gpio_0-13>gpio_0-13"]
+    gpio_0 [label = "gpio_0|<gpio_0-27>gpio_0-27"]
+    gpio_1 [label = "gpio_1|<gpio_0-13>gpio_0-13"]
 
-    gpio_pmod0 [label = "gpio_pmod0|<gpio_0-7>gpio_0-7"]
-    gpio_pmodc [label = "gpio_pmodc|<gpio_0-5>gpio_0-5"]
-    gpio_pmod1 [label = "gpio_pmod1|<gpio_0-7>gpio_0-7"]
+    gpio_2 [label = "gpio_2|<gpio_0-7>gpio_0-7"]
+    gpio_3 [label = "gpio_3|<gpio_0-5>gpio_0-5"]
+    gpio_4 [label = "gpio_4|<gpio_0-7>gpio_0-7"]
 
     pwm [label = "pwm|<0>0|<1>1|<2>2|<3>3|<4>4|<5>5|<6>6"]
   }
@@ -473,72 +473,72 @@ digraph {
   gpio_board:"gpi_16" -> microsd:det
 
   edge [dir=both color=grey];
-  gpio_rph:"gpio_0-27" -> rph:g0;
-  gpio_rph:"gpio_0-27" -> rph:g1;
-  gpio_rph:"gpio_0-27" -> rph:g2_sda;
-  gpio_rph:"gpio_0-27" -> rph:g3_scl;
-  gpio_rph:"gpio_0-27" -> rph:g4;
-  gpio_rph:"gpio_0-27" -> rph:g5;
-  gpio_rph:"gpio_0-27" -> rph:g6;
-  gpio_rph:"gpio_0-27" -> rph:g7_spi0_ce0;
-  gpio_rph:"gpio_0-27" -> rph:g8_spi0_ce1;
-  gpio_rph:"gpio_0-27" -> rph:g9_spi0_cipo;
-  gpio_rph:"gpio_0-27" -> rph:g10_spi0_copi;
-  gpio_rph:"gpio_0-27" -> rph:g11_spi0_sclk;
-  gpio_rph:"gpio_0-27" -> rph:g12;
-  gpio_rph:"gpio_0-27" -> rph:g13;
-  gpio_rph:"gpio_0-27" -> rph:txd0;
-  gpio_rph:"gpio_0-27" -> rph:rxd0;
-  gpio_rph:"gpio_0-27" -> rph:g16_spi1_ce2;
-  gpio_rph:"gpio_0-27" -> rph:g17_spi1_ce1;
-  gpio_rph:"gpio_0-27" -> rph:g18_spi1_ce0;
-  gpio_rph:"gpio_0-27" -> rph:g19_spi1_cipo;
-  gpio_rph:"gpio_0-27" -> rph:g20_spi1_copi;
-  gpio_rph:"gpio_0-27" -> rph:g21_spi1_sclk;
-  gpio_rph:"gpio_0-27" -> rph:g22;
-  gpio_rph:"gpio_0-27" -> rph:g23;
-  gpio_rph:"gpio_0-27" -> rph:g24;
-  gpio_rph:"gpio_0-27" -> rph:g25;
-  gpio_rph:"gpio_0-27" -> rph:g26;
-  gpio_rph:"gpio_0-27" -> rph:g27;
+  gpio_0:"gpio_0-27" -> rph:g0;
+  gpio_0:"gpio_0-27" -> rph:g1;
+  gpio_0:"gpio_0-27" -> rph:g2_sda;
+  gpio_0:"gpio_0-27" -> rph:g3_scl;
+  gpio_0:"gpio_0-27" -> rph:g4;
+  gpio_0:"gpio_0-27" -> rph:g5;
+  gpio_0:"gpio_0-27" -> rph:g6;
+  gpio_0:"gpio_0-27" -> rph:g7_spi0_ce0;
+  gpio_0:"gpio_0-27" -> rph:g8_spi0_ce1;
+  gpio_0:"gpio_0-27" -> rph:g9_spi0_cipo;
+  gpio_0:"gpio_0-27" -> rph:g10_spi0_copi;
+  gpio_0:"gpio_0-27" -> rph:g11_spi0_sclk;
+  gpio_0:"gpio_0-27" -> rph:g12;
+  gpio_0:"gpio_0-27" -> rph:g13;
+  gpio_0:"gpio_0-27" -> rph:txd0;
+  gpio_0:"gpio_0-27" -> rph:rxd0;
+  gpio_0:"gpio_0-27" -> rph:g16_spi1_ce2;
+  gpio_0:"gpio_0-27" -> rph:g17_spi1_ce1;
+  gpio_0:"gpio_0-27" -> rph:g18_spi1_ce0;
+  gpio_0:"gpio_0-27" -> rph:g19_spi1_cipo;
+  gpio_0:"gpio_0-27" -> rph:g20_spi1_copi;
+  gpio_0:"gpio_0-27" -> rph:g21_spi1_sclk;
+  gpio_0:"gpio_0-27" -> rph:g22;
+  gpio_0:"gpio_0-27" -> rph:g23;
+  gpio_0:"gpio_0-27" -> rph:g24;
+  gpio_0:"gpio_0-27" -> rph:g25;
+  gpio_0:"gpio_0-27" -> rph:g26;
+  gpio_0:"gpio_0-27" -> rph:g27;
 
-  gpio_ah:"gpio_0-13" -> ah:tmpio0;
-  gpio_ah:"gpio_0-13" -> ah:tmpio1;
-  gpio_ah:"gpio_0-13" -> ah:tmpio2;
-  gpio_ah:"gpio_0-13" -> ah:tmpio3;
-  gpio_ah:"gpio_0-13" -> ah:tmpio4;
-  gpio_ah:"gpio_0-13" -> ah:tmpio5;
-  gpio_ah:"gpio_0-13" -> ah:tmpio6;
-  gpio_ah:"gpio_0-13" -> ah:tmpio7;
-  gpio_ah:"gpio_0-13" -> ah:tmpio8;
-  gpio_ah:"gpio_0-13" -> ah:tmpio9;
-  gpio_ah:"gpio_0-13" -> ah:tmpio10;
-  gpio_ah:"gpio_0-13" -> ah:tmpio11;
-  gpio_ah:"gpio_0-13" -> ah:tmpio12;
-  gpio_ah:"gpio_0-13" -> ah:tmpio13;
+  gpio_1:"gpio_0-13" -> ah:tmpio0;
+  gpio_1:"gpio_0-13" -> ah:tmpio1;
+  gpio_1:"gpio_0-13" -> ah:tmpio2;
+  gpio_1:"gpio_0-13" -> ah:tmpio3;
+  gpio_1:"gpio_0-13" -> ah:tmpio4;
+  gpio_1:"gpio_0-13" -> ah:tmpio5;
+  gpio_1:"gpio_0-13" -> ah:tmpio6;
+  gpio_1:"gpio_0-13" -> ah:tmpio7;
+  gpio_1:"gpio_0-13" -> ah:tmpio8;
+  gpio_1:"gpio_0-13" -> ah:tmpio9;
+  gpio_1:"gpio_0-13" -> ah:tmpio10;
+  gpio_1:"gpio_0-13" -> ah:tmpio11;
+  gpio_1:"gpio_0-13" -> ah:tmpio12;
+  gpio_1:"gpio_0-13" -> ah:tmpio13;
 
-  gpio_pmod0:"gpio_0-7" -> pmod0:1;
-  gpio_pmod0:"gpio_0-7" -> pmod0:2;
-  gpio_pmod0:"gpio_0-7" -> pmod0:3;
-  gpio_pmod0:"gpio_0-7" -> pmod0:4;
-  gpio_pmod0:"gpio_0-7" -> pmod0:5;
-  gpio_pmod0:"gpio_0-7" -> pmod0:6;
-  gpio_pmod0:"gpio_0-7" -> pmod0:7;
-  gpio_pmod0:"gpio_0-7" -> pmod0:8;
+  gpio_2:"gpio_0-7" -> pmod0:1;
+  gpio_2:"gpio_0-7" -> pmod0:2;
+  gpio_2:"gpio_0-7" -> pmod0:3;
+  gpio_2:"gpio_0-7" -> pmod0:4;
+  gpio_2:"gpio_0-7" -> pmod0:5;
+  gpio_2:"gpio_0-7" -> pmod0:6;
+  gpio_2:"gpio_0-7" -> pmod0:7;
+  gpio_2:"gpio_0-7" -> pmod0:8;
 
-  gpio_pmod1:"gpio_0-7" -> pmod1:1;
-  gpio_pmod1:"gpio_0-7" -> pmod1:2;
-  gpio_pmod1:"gpio_0-7" -> pmod1:3;
-  gpio_pmod1:"gpio_0-7" -> pmod1:4;
-  gpio_pmod1:"gpio_0-7" -> pmod1:5;
-  gpio_pmod1:"gpio_0-7" -> pmod1:6;
-  gpio_pmod1:"gpio_0-7" -> pmod1:7;
-  gpio_pmod1:"gpio_0-7" -> pmod1:8;
+  gpio_3:"gpio_0-5" -> pmodc:1;
+  gpio_3:"gpio_0-5" -> pmodc:2;
+  gpio_3:"gpio_0-5" -> pmodc:3;
+  gpio_3:"gpio_0-5" -> pmodc:4;
+  gpio_3:"gpio_0-5" -> pmodc:5;
+  gpio_3:"gpio_0-5" -> pmodc:6;
 
-  gpio_pmodc:"gpio_0-5" -> pmodc:1;
-  gpio_pmodc:"gpio_0-5" -> pmodc:2;
-  gpio_pmodc:"gpio_0-5" -> pmodc:3;
-  gpio_pmodc:"gpio_0-5" -> pmodc:4;
-  gpio_pmodc:"gpio_0-5" -> pmodc:5;
-  gpio_pmodc:"gpio_0-5" -> pmodc:6;
+  gpio_4:"gpio_0-7" -> pmod1:1;
+  gpio_4:"gpio_0-7" -> pmod1:2;
+  gpio_4:"gpio_0-7" -> pmod1:3;
+  gpio_4:"gpio_0-7" -> pmod1:4;
+  gpio_4:"gpio_0-7" -> pmod1:5;
+  gpio_4:"gpio_0-7" -> pmod1:6;
+  gpio_4:"gpio_0-7" -> pmod1:7;
+  gpio_4:"gpio_0-7" -> pmod1:8;
 }
