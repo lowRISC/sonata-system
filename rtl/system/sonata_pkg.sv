@@ -7,7 +7,7 @@
 package sonata_pkg;
 
   // Number of Instances
-  localparam int unsigned GPIO_NUM = 4;
+  localparam int unsigned GPIO_NUM = 5;
   localparam int unsigned PWM_NUM = 1;
   localparam int unsigned UART_NUM = 3;
   localparam int unsigned I2C_NUM = 2;
@@ -21,7 +21,7 @@ package sonata_pkg;
   // Number of input, output, and inout pins
   localparam int unsigned IN_PIN_NUM = 5;
   localparam int unsigned OUT_PIN_NUM = 8;
-  localparam int unsigned INOUT_PIN_NUM = 64;
+  localparam int unsigned INOUT_PIN_NUM = 70;
 
   localparam int unsigned IN_PIN_SER0_RX = 0;
   localparam int unsigned IN_PIN_SER1_RX = 1;
@@ -102,6 +102,12 @@ package sonata_pkg;
   localparam int unsigned INOUT_PIN_PMOD1_6 = 61;
   localparam int unsigned INOUT_PIN_PMOD1_7 = 62;
   localparam int unsigned INOUT_PIN_PMOD1_8 = 63;
+  localparam int unsigned INOUT_PIN_PMODC_1 = 64;
+  localparam int unsigned INOUT_PIN_PMODC_2 = 65;
+  localparam int unsigned INOUT_PIN_PMODC_3 = 66;
+  localparam int unsigned INOUT_PIN_PMODC_4 = 67;
+  localparam int unsigned INOUT_PIN_PMODC_5 = 68;
+  localparam int unsigned INOUT_PIN_PMODC_6 = 69;
 
   typedef logic [   IN_PIN_NUM-1:0] sonata_in_pins_t;
   typedef logic [  OUT_PIN_NUM-1:0] sonata_out_pins_t;
