@@ -11,7 +11,7 @@ package sonata_pkg;
   localparam int unsigned PWM_NUM = 1;
   localparam int unsigned UART_NUM = 3;
   localparam int unsigned I2C_NUM = 2;
-  localparam int unsigned SPI_NUM = 5;
+  localparam int unsigned SPI_NUM = 2;
 
   // Width of block IO arrays
   localparam int unsigned GPIO_IOS_WIDTH = 32;
@@ -19,39 +19,24 @@ package sonata_pkg;
   localparam int unsigned SPI_CS_WIDTH = 4;
 
   // Number of input, output, and inout pins
-  localparam int unsigned IN_PIN_NUM = 8;
-  localparam int unsigned OUT_PIN_NUM = 20;
+  localparam int unsigned IN_PIN_NUM = 5;
+  localparam int unsigned OUT_PIN_NUM = 8;
   localparam int unsigned INOUT_PIN_NUM = 64;
 
   localparam int unsigned IN_PIN_SER0_RX = 0;
   localparam int unsigned IN_PIN_SER1_RX = 1;
   localparam int unsigned IN_PIN_RS232_RX = 2;
-  localparam int unsigned IN_PIN_APPSPI_D1 = 3;
-  localparam int unsigned IN_PIN_ETHMAC_CIPO = 4;
-  localparam int unsigned IN_PIN_MB3 = 5;
-  localparam int unsigned IN_PIN_MB8 = 6;
-  localparam int unsigned IN_PIN_MICROSD_DAT0 = 7;
+  localparam int unsigned IN_PIN_MB3 = 3;
+  localparam int unsigned IN_PIN_MB8 = 4;
 
   localparam int unsigned OUT_PIN_SER0_TX = 0;
   localparam int unsigned OUT_PIN_SER1_TX = 1;
   localparam int unsigned OUT_PIN_RS232_TX = 2;
-  localparam int unsigned OUT_PIN_APPSPI_D0 = 3;
-  localparam int unsigned OUT_PIN_APPSPI_CLK = 4;
-  localparam int unsigned OUT_PIN_APPSPI_CS = 5;
-  localparam int unsigned OUT_PIN_LCD_COPI = 6;
-  localparam int unsigned OUT_PIN_LCD_CLK = 7;
-  localparam int unsigned OUT_PIN_LCD_CS = 8;
-  localparam int unsigned OUT_PIN_ETHMAC_COPI = 9;
-  localparam int unsigned OUT_PIN_ETHMAC_SCLK = 10;
-  localparam int unsigned OUT_PIN_ETHMAC_CS = 11;
-  localparam int unsigned OUT_PIN_MB1 = 12;
-  localparam int unsigned OUT_PIN_MB2 = 13;
-  localparam int unsigned OUT_PIN_MB4 = 14;
-  localparam int unsigned OUT_PIN_MB7 = 15;
-  localparam int unsigned OUT_PIN_MB10 = 16;
-  localparam int unsigned OUT_PIN_MICROSD_CLK = 17;
-  localparam int unsigned OUT_PIN_MICROSD_CMD = 18;
-  localparam int unsigned OUT_PIN_MICROSD_DAT3 = 19;
+  localparam int unsigned OUT_PIN_MB1 = 3;
+  localparam int unsigned OUT_PIN_MB2 = 4;
+  localparam int unsigned OUT_PIN_MB4 = 5;
+  localparam int unsigned OUT_PIN_MB7 = 6;
+  localparam int unsigned OUT_PIN_MB10 = 7;
 
   localparam int unsigned INOUT_PIN_SCL0 = 0;
   localparam int unsigned INOUT_PIN_SDA0 = 1;
