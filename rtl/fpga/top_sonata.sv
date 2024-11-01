@@ -140,6 +140,7 @@ module top_sonata
   // PMODs
   inout  logic [7:0] pmod0,
   inout  logic [7:0] pmod1,
+  inout  logic [5:0] pmodc,
 
   // Status input from USB transceiver
   input  logic       usrusb_vbusdetect,
@@ -437,6 +438,7 @@ module top_sonata
     .inout_to_pins_en_i(inout_to_pins_en),
     .inout_from_pins_o (inout_from_pins ),
     .inout_pins_io({
+      pmodc,
       pmod1,
       pmod0,
       mb6,

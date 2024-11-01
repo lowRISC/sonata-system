@@ -1,6 +1,6 @@
 [[blocks]]
 name = "gpio"
-instances = 4 # RPi, Ard, Pmod0, Pmod1
+instances = 5 # RPi, Ard, Pmod0, Pmod1, PmodC
 ios = [
   {
     name = "ios",
@@ -520,3 +520,28 @@ block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 7},
   {block = "spi", instance = 1, io = "cs", io_index = 2},
 ]
+
+
+[[pins]]
+name = "pmodc_1"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 0}]
+
+[[pins]]
+name = "pmodc_2"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 1}]
+
+[[pins]]
+name = "pmodc_3"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 2}]
+
+[[pins]]
+name = "pmodc_4"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 3}]
+
+[[pins]]
+name = "pmodc_5"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 4}]
+
+[[pins]]
+name = "pmodc_6"
+block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 5}]
