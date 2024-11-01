@@ -86,7 +86,7 @@ jobs:
     runs-on: [ubuntu-22.04-fpga, sonata]
     env:
       BITSTREAM_PATH: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
-      TIMING_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_timing_summary_routed.rpt
+      TIMING_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_timing_summary_postroute_physopted.rpt
       UTILIZATION_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_utilization_placed.rpt
       GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream
 
