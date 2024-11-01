@@ -251,7 +251,17 @@ module top_sonata
   assign enable_cheri = 1'b1;
 
   logic rgbled_dout;
-  logic [18:0] unused_gp_o;
+  logic [23:0] unused_gp_o;
+
+  wire spi_board_copi;
+  wire spi_board_cipo;
+  wire spi_board_sclk;
+
+  assign spi_board_cipo = &{1'b1, appspi_d1, ethmac_cipo, microsd_dat0};
+
+  assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
+  assign {ethmac_copi, ethmac_sclk}  = {spi_board_copi, spi_board_sclk};
+  assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
 
   sonata_system #(
     .CheriErrWidth   (  9             ),
@@ -276,8 +286,7 @@ module top_sonata
 
     // GPIO
     .gp_i           ({
-                      14'b0,
-                      mb9, // mikroBUS Click interrupt
+                      15'b0,
                       microsd_det, // MicroSD card insertion detection
                       sel_sw_n, // Software selection switches
                       nav_sw_n, // joystick
@@ -285,9 +294,6 @@ module top_sonata
                     }),
     .gp_o           ({
                       unused_gp_o,
-                      mb0, // mikroBUS Click reset
-                      ethmac_rst, // Ethernet
-                      lcd_backlight, lcd_dc, lcd_rst, // LCD screen
                       usrLed // User LEDs (8 bits)
                     }),
     .gp_o_en        (),
@@ -296,6 +302,22 @@ module top_sonata
     .ard_an_di_i    (ard_an_di),
     .ard_an_p_i     (ard_an_p),
     .ard_an_n_i     (ard_an_n),
+
+    // Non-pinmuxed spi devices
+    .lcd_copi_o              (lcd_copi),
+    .lcd_sclk_o              (lcd_clk),
+    .lcd_cs_o                (lcd_cs),
+    .lcd_dc_o                (lcd_dc),
+    .lcd_rst_o               (lcd_rst),
+    .lcd_backlight_o         (lcd_backlight),
+
+    .spi_board_copi_o        (spi_board_copi),
+    .spi_board_cipo_i        (spi_board_cipo),
+    .spi_board_sclk_o        (spi_board_sclk),
+    .spi_board_flash_cs_o    (appspi_cs),
+    .spi_board_eth_cs_o      (ethmac_cs),
+    .spi_board_eth_rst_o     (ethmac_rst),
+    .spi_board_microsd_cs_o  (microsd_dat3),
 
     // Interrupt for Ethernet is out of band
     .spi_eth_irq_ni (ethmac_intr),
@@ -392,32 +414,17 @@ module top_sonata
   );
 
   // Input Pins
-  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
   assign in_from_pins[IN_PIN_MB8         ] = mb8;
   assign in_from_pins[IN_PIN_MB3         ] = mb3;
-  assign in_from_pins[IN_PIN_ETHMAC_CIPO ] = ethmac_cipo;
-  assign in_from_pins[IN_PIN_APPSPI_D1   ] = appspi_d1;
   assign in_from_pins[IN_PIN_RS232_RX    ] = rs232_rx;
   assign in_from_pins[IN_PIN_SER1_RX     ] = ser1_rx;
   assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
 
-  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
-  assign microsd_cmd  = out_to_pins[OUT_PIN_MICROSD_CMD ];
-  assign microsd_clk  = out_to_pins[OUT_PIN_MICROSD_CLK ];
   assign mb10         = out_to_pins[OUT_PIN_MB10        ];
   assign mb7          = out_to_pins[OUT_PIN_MB7         ];
   assign mb4          = out_to_pins[OUT_PIN_MB4         ];
   assign mb2          = out_to_pins[OUT_PIN_MB2         ];
   assign mb1          = out_to_pins[OUT_PIN_MB1         ];
-  assign ethmac_cs    = out_to_pins[OUT_PIN_ETHMAC_CS   ];
-  assign ethmac_sclk  = out_to_pins[OUT_PIN_ETHMAC_SCLK ];
-  assign ethmac_copi  = out_to_pins[OUT_PIN_ETHMAC_COPI ];
-  assign lcd_cs       = out_to_pins[OUT_PIN_LCD_CS      ];
-  assign lcd_clk      = out_to_pins[OUT_PIN_LCD_CLK     ];
-  assign lcd_copi     = out_to_pins[OUT_PIN_LCD_COPI    ];
-  assign appspi_cs    = out_to_pins[OUT_PIN_APPSPI_CS   ];
-  assign appspi_clk   = out_to_pins[OUT_PIN_APPSPI_CLK  ];
-  assign appspi_d0    = out_to_pins[OUT_PIN_APPSPI_D0   ];
   assign rs232_tx     = out_to_pins[OUT_PIN_RS232_TX    ];
   assign ser1_tx      = out_to_pins[OUT_PIN_SER1_TX     ];
   assign ser0_tx      = out_to_pins[OUT_PIN_SER0_TX     ];
