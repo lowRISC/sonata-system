@@ -231,6 +231,9 @@ def output_block_ios_iter(
 
         possible_pins = block_io_to_pins[block_io.uid]
 
+        if len(possible_pins) == 0:
+            continue
+
         yield OutputBlockIo(
             block_io,
             possible_pins,
