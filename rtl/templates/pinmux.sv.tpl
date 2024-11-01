@@ -168,9 +168,6 @@ module pinmux
       % for idx, pin in enumerate(possible_pins):
       ${pin.direction_prefix}from_pins_i[${pin.idx_param}]${',' if idx < len(possible_pins)-1 else ''}
       % endfor
-      % if len(possible_pins) == 0:
-      1'b${block_io.default_value}
-      % endif
     }),
     .sel_i(${block_io.name}_sel),
     .out_o(${block_io.uid.block}_${block_io.uid.io}_o[${block_io.uid.instance}]${block_io.io_idx_str})
