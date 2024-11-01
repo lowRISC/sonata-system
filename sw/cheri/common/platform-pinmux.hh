@@ -123,6 +123,12 @@ class SonataPinmux : private utils::NoCopyNoMove {
     pmod1_6      = 0x045,
     pmod1_7      = 0x046,
     pmod1_8      = 0x047,
+    pmodc_1      = 0x048,
+    pmodc_2      = 0x049,
+    pmodc_3      = 0x04a,
+    pmodc_4      = 0x04b,
+    pmodc_5      = 0x04c,
+    pmodc_6      = 0x04d,
   };
 
   /**
@@ -198,11 +204,17 @@ class SonataPinmux : private utils::NoCopyNoMove {
     gpio_3_ios_5  = 0x837,
     gpio_3_ios_6  = 0x838,
     gpio_3_ios_7  = 0x839,
-    uart_0_rx     = 0x83a,
-    uart_1_rx     = 0x83b,
-    uart_2_rx     = 0x83c,
-    spi_0_cipo    = 0x83d,
-    spi_1_cipo    = 0x83e,
+    gpio_4_ios_0  = 0x83a,
+    gpio_4_ios_1  = 0x83b,
+    gpio_4_ios_2  = 0x83c,
+    gpio_4_ios_3  = 0x83d,
+    gpio_4_ios_4  = 0x83e,
+    gpio_4_ios_5  = 0x83f,
+    uart_0_rx     = 0x840,
+    uart_1_rx     = 0x841,
+    uart_2_rx     = 0x842,
+    spi_0_cipo    = 0x843,
+    spi_1_cipo    = 0x844,
   };
 
   /**
