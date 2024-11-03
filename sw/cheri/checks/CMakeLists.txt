@@ -12,6 +12,8 @@ set(CHECKS
   rgbled_test.cc
   usbdev_check.cc
   pinmux_check.cc
+  rs485_check.cc
+  rs485_spam_check.cc
 )
 
 foreach(CHECK ${CHECKS})

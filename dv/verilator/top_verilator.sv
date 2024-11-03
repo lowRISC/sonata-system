@@ -194,8 +194,12 @@ module top_verilator (input logic clk_i, rst_ni);
   sonata_out_pins_t out_to_pins;
   sonata_inout_pins_t inout_from_pins, inout_to_pins, inout_to_pins_en;
 
+  logic rs485_tx, rs485_rx;
+  logic rs485_tx_enable, rs485_rx_enable;
+
   assign uart_sys_tx = out_to_pins[OUT_PIN_SER0_TX];
   assign uart_aux_tx = out_to_pins[OUT_PIN_SER1_TX];
+  assign rs485_tx    = out_to_pins[OUT_PIN_RS485_TX];
 
   // Output I2C traffic to the RPi HAT ID EEPROM.
   assign {scl_rpi0_o, scl_rpi0_oe} = {inout_to_pins[INOUT_PIN_RPH_G1],
@@ -221,6 +225,7 @@ module top_verilator (input logic clk_i, rst_ni);
 
   assign in_from_pins[IN_PIN_SER0_RX]   = uart_sys_rx;
   assign in_from_pins[IN_PIN_SER1_RX]   = uart_aux_rx;
+  assign in_from_pins[IN_PIN_RS485_RX]  = rs485_rx;
 
   // SCL0/SDA0 pins are presently not connected to any I2C models; just pulled up on the PCB.
   // - there is no model on either the QWIIC0 connector or the Arduino Shield.
@@ -382,6 +387,9 @@ module top_verilator (input logic clk_i, rst_ni);
     .hyperram_nrst(),
     .hyperram_cs  (),
 
+    .rs485_tx_enable_o(rs485_tx_enable),
+    .rs485_rx_enable_o(rs485_rx_enable),
+
     .in_from_pins_i     (in_from_pins    ),
     .out_to_pins_o      (out_to_pins     ),
     .inout_from_pins_i  (inout_from_pins ),
@@ -537,6 +545,40 @@ module top_verilator (input logic clk_i, rst_ni);
     .oob_out  ( )  // not used.
   );
 
+  logic rs485_di, rs485_ro;
+  logic rs485_ren, rs485_de;
+
+  rs485_ctrl u_rs485_ctrl (
+    .clk_i (clk_i),
+    .rst_ni(rst_ni),
+
+    .tx_i       (rs485_tx),
+    .rx_o       (rs485_rx),
+    .rx_enable_i(rs485_rx_enable),
+    .tx_enable_i(rs485_tx_enable),
+
+    .di_o (rs485_di),
+    .ren_o(rs485_ren),
+    .de_o (rs485_de),
+    .ro_i (rs485_ro)
+  );
+
+  logic rs485_uartdpi_tx, rs485_uartdpi_rx;
+
+  assign rs485_ro =         rs485_ren ? 1'b0     : rs485_uartdpi_tx;
+  assign rs485_uartdpi_rx = rs485_de  ? rs485_di : 1'b1;
+
+  uartdpi #(
+    .BAUD ( BaudRate    ),
+    .FREQ ( SysClkFreq  ),
+    .NAME ( "rs485"     )
+  ) u_rs485_uartdpi (
+    .clk_i,
+    .rst_ni,
+    .active(1'b1       ),
+    .tx_o  (rs485_uartdpi_tx),
+    .rx_i  (rs485_uartdpi_rx)
+  );
 
   export "DPI-C" function mhpmcounter_get;
 

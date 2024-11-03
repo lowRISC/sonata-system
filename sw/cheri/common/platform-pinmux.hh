@@ -129,6 +129,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
     pmodc_4      = 0x04b,
     pmodc_5      = 0x04c,
     pmodc_6      = 0x04d,
+    rs485_tx     = 0x04e,
   };
 
   /**
@@ -296,6 +297,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case BlockInput::uart_1_rx:
         return 6;
       case BlockInput::uart_2_rx:
+        return 5;
       case BlockInput::spi_0_cipo:
       case BlockInput::spi_1_cipo:
         return 4;

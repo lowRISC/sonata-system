@@ -394,12 +394,36 @@ set_input_delay -clock vclk_sys -max 0 [get_ports ser1_rx]
 set_input_delay -clock vclk_sys -min 0 [get_ports ser1_rx]
 set_output_delay -clock vclk_sys -max 0 [get_ports ser1_tx]
 set_output_delay -clock vclk_sys -min 0 [get_ports ser1_tx]
-## UART RS232
+## UART RS-232
 # Use same methodology as UART 0
 set_input_delay -clock vclk_sys -max 0 [get_ports rs232_rx]
 set_input_delay -clock vclk_sys -min 0 [get_ports rs232_rx]
 set_output_delay -clock vclk_sys -max 0 [get_ports rs232_tx]
 set_output_delay -clock vclk_sys -min 0 [get_ports rs232_tx]
+## UART RS-485
+# Use same methodology as UART 0
+set_input_delay -clock vclk_sys -max 0 [get_ports rs485_ro]
+set_input_delay -clock vclk_sys -min 0 [get_ports rs485_ro]
+set_output_delay -clock vclk_sys -max 0 [get_ports rs485_di]
+set_output_delay -clock vclk_sys -min 0 [get_ports rs485_di]
+
+# Output controlling the driver and receiver enables for the RS-485 transceiver.
+# The driver enable (rs485_de) timing is critical as if it comes too late the
+# initial start bit from the UART will be truncated. The driver can take a
+# maximum of 90ns to enable from the SL83485 datasheet. Receiver enable is
+# quicker than driver enable (50ns) but identical constraints are applied as for
+# simplicity the logic waits an equal amount of time for receiver enable as
+# driver enable.
+#
+# A multi-cycle constraint is applied to both of these outputs in the
+# multi-cycle constraints section. The rs485_ctrl module is responsible for
+# controlling these outputs and won't switch them faster than the multi-cycle
+# constraints specify
+set rs485_transceiver_switch_time 90
+set_output_delay -clock vclk_sys -max $rs485_transceiver_switch_time [get_ports rs485_de]
+set_output_delay -clock vclk_sys -min 0  [get_ports rs485_de]
+set_output_delay -clock vclk_sys -max $rs485_transceiver_switch_time [get_ports rs485_ren]
+set_output_delay -clock vclk_sys -min 0  [get_ports rs485_ren]
 
 ## QWIIC and Arduino Shield I2C
 # I2C Fast-mode Plus has a maximum speed of 1 Mbps using a 1 MHz clock
@@ -899,12 +923,27 @@ set_multicycle_path        $ser1_mulcycs       -setup -from [get_ports ser1_rx]
 set_multicycle_path [expr {$ser1_mulcycs - 1}] -hold  -from [get_ports ser1_rx]
 set_multicycle_path        $ser1_mulcycs       -setup -to [get_ports ser1_tx]
 set_multicycle_path [expr {$ser1_mulcycs - 1}] -hold  -to [get_ports ser1_tx]
-## UART RS232 - use same methodology as UART 0
+## UART RS-232 - use same methodology as UART 0
 set rs232_mulcycs $header_uart_mulcycs
 set_multicycle_path        $rs232_mulcycs       -setup -from [get_ports rs232_rx]
 set_multicycle_path [expr {$rs232_mulcycs - 1}] -hold  -from [get_ports rs232_rx]
 set_multicycle_path        $rs232_mulcycs       -setup -to [get_ports rs232_tx]
 set_multicycle_path [expr {$rs232_mulcycs - 1}] -hold  -to [get_ports rs232_tx]
+## UART RS-485 - use same methodology as UART 0
+set rs485_mulcycs $ser0_mulcycs
+set_multicycle_path        $rs485_mulcycs       -setup -from [get_ports rs485_ro]
+set_multicycle_path [expr {$rs485_mulcycs - 1}] -hold  -from [get_ports rs485_ro]
+set_multicycle_path        $rs485_mulcycs       -setup -to [get_ports rs485_di]
+set_multicycle_path [expr {$rs485_mulcycs - 1}] -hold  -to [get_ports rs485_di]
+## UART RS-485 - Driver and receiver enables
+# See comments on set_output_delay for same ports. 10ns is added to
+# rs485_transceiver_switch_time to account for FPGA output delays and otherwise
+# ease timing
+set rs485_en_mulcycs [expr {int(($rs485_transceiver_switch_time + 10) / $clk_sys_ns) + 1}]
+set_multicycle_path        $rs485_en_mulcycs       -setup -to [get_ports rs485_de]
+set_multicycle_path [expr {$rs485_en_mulcycs - 1}] -hold  -to [get_ports rs485_de]
+set_multicycle_path        $rs485_en_mulcycs       -setup -to [get_ports rs485_ren]
+set_multicycle_path [expr {$rs485_en_mulcycs - 1}] -hold  -to [get_ports rs485_ren]
 ## mikroBUS UART - use same methodology as UART 0
 set mb_ser_mulcycs $header_uart_mulcycs
 set_multicycle_path        $mb_ser_mulcycs       -setup -from [get_ports mb8]
