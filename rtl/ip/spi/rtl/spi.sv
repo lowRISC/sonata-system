@@ -187,7 +187,13 @@ module spi import spi_reg_pkg::*; #(
   // Internal loopback functionality allowing the input (CIPO) to be received directly from
   // the output (COPI) for testing.
   logic spi_cipo;
-  assign spi_cipo = reg2hw.control.int_loopback.q ? spi_copi_o : spi_cipo_i;
+  logic spi_copi_q;
+
+  always_ff @(posedge clk_i) begin
+    spi_copi_q <= spi_copi_o;
+  end
+
+  assign spi_cipo = reg2hw.control.int_loopback.q ? spi_copi_q : spi_cipo_i;
 
   spi_core u_spi_core (
     .clk_i,
