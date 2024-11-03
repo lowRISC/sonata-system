@@ -86,6 +86,8 @@ jobs:
     runs-on: [ubuntu-22.04-fpga, sonata]
     env:
       BITSTREAM_PATH: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
+      TIMING_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_timing_summary_routed.rpt
+      UTILIZATION_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_utilization_placed.rpt
       GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream
 
     steps:
@@ -128,6 +130,14 @@ jobs:
       run: |
         module load xilinx/vivado
         nix run .#bitstream-build
+
+    - name: Upload implementation reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: implementation-reports
+        path: |
+          ${{ env.TIMING_RPT }}
+          ${{ env.UTILIZATION_RPT }}
 
     # Only upload the bistream if this is not a pull-request and the build bistream step ran. 
     - name: Upload bitstream to the cache

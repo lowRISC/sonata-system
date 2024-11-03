@@ -93,6 +93,14 @@ set_property -dict { PACKAGE_PIN E17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [
 set_property -dict { PACKAGE_PIN D17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmod0[6]}]
 set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmod0[7]}]
 
+## PMODC (pins between PMOD0 and PMOD1 on shared connector)
+set_property -dict { PACKAGE_PIN K15 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[0]}] ;# PMODC_1 on schematic
+set_property -dict { PACKAGE_PIN J15 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[1]}] ;# PMODC_2
+set_property -dict { PACKAGE_PIN K16 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[2]}] ;# ...
+set_property -dict { PACKAGE_PIN J18 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[3]}]
+set_property -dict { PACKAGE_PIN F18 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[4]}]
+set_property -dict { PACKAGE_PIN J17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmodc[5]}]
+
 ## PMOD1
 set_property -dict { PACKAGE_PIN B18 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmod1[0]}]
 set_property -dict { PACKAGE_PIN E16 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports {pmod1[1]}]

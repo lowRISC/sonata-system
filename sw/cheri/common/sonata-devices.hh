@@ -54,6 +54,12 @@ typedef SonataPinmux *PinmuxPtr;
   return i2c;
 }
 
+/**
+ * Note: SPI 0 is `spi_board`, used for Ethernet/Flash/MicroSD.
+ *       SPI 1 is `spi_lcd`, used for the LCD.
+ *       SPI 2 is actually what is called SPI0, for general use.
+ *       SPI 3 is actually what is called SPI1, for general use.
+ */
 [[maybe_unused]] static SpiPtr spi_ptr(CapRoot root, uint32_t idx = 0) {
   CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   assert(idx < SPI_NUM);

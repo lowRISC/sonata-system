@@ -88,9 +88,11 @@ void *spidpi_create(const char *id,      // Bus identification.
   assert(ndevices == 1u);
   // Attach the appropriate devices to this bus.
   if (!strcmp(id, "flash")) {
-    ctx = new spi_flash(dataW, oobInW, oobOutW);
+    ctx = new spi_flash(dataW, oobInW, oobOutW, 0xef4019);
   } else if (!strcmp(id, "lcd")) {
     ctx = new spi_lcd(dataW, oobInW, oobOutW);
+  } else if (!strcmp(id, "pmod_sf3")) {
+    ctx = new spi_flash(dataW, oobInW, oobOutW, 0x20ba19);
   } else {
     ctx = new spidpi(dataW, oobInW, oobOutW, true);
     ctx->logText("Warning: SPI bus '%s' not recognised", id);

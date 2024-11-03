@@ -28,11 +28,9 @@ using namespace CHERI;
   // Initialise capabilities for UART0 (the console), and all other UARTS (1-4)
   UartPtr uart0 = uart_ptr(rwRoot, 0);
   uart0->init(BAUD_RATE);
-  UartPtr uarts[4] = {
+  UartPtr uarts[2] = {
       uart_ptr(rwRoot, 1),
       uart_ptr(rwRoot, 2),
-      uart_ptr(rwRoot, 3),
-      uart_ptr(rwRoot, 4),
   };
   for (UartPtr uart : uarts) {
     uart->init(BAUD_RATE);
@@ -44,8 +42,8 @@ using namespace CHERI;
 
   // Create capabilities for SPI3&4, I2C0&1, GPIO and Pinmux for use in Pinmux testing
   SpiPtr spis[2] = {
-      spi_ptr(rwRoot, 2),
-      spi_ptr(rwRoot, 3),
+      spi_ptr(rwRoot, 2),  // SPI0
+      spi_ptr(rwRoot, 3),  // SPI1
   };
   I2cPtr i2cs[2] = {i2c_ptr(root, 0), i2c_ptr(root, 1)};
 
@@ -85,14 +83,14 @@ using namespace CHERI;
   OutputPinAssignment pmod_test_gpio_off_pins[]    = {{SonataPinmux::OutputPin::pmod0_2, 0}};
   BlockInputAssignment pmod_test_gpio_off_inputs[] = {{SonataPinmux::BlockInput::gpio_2_ios_2, 0}};
 
-  OutputPinAssignment pmod_test_uart_on_pins[]     = {{SonataPinmux::OutputPin::pmod0_2, 3}};
-  BlockInputAssignment pmod_test_uart_on_inputs[]  = {{SonataPinmux::BlockInput::uart_2_rx, 2}};
+  OutputPinAssignment pmod_test_uart_on_pins[]     = {{SonataPinmux::OutputPin::pmod0_2, 4}};
+  BlockInputAssignment pmod_test_uart_on_inputs[]  = {{SonataPinmux::BlockInput::uart_1_rx, 5}};
   OutputPinAssignment pmod_test_uart_off_pins[]    = {{SonataPinmux::OutputPin::pmod0_2, 0}};
-  BlockInputAssignment pmod_test_uart_off_inputs[] = {{SonataPinmux::BlockInput::uart_2_rx, 0}};
+  BlockInputAssignment pmod_test_uart_off_inputs[] = {{SonataPinmux::BlockInput::uart_1_rx, 0}};
 
   OutputPinAssignment pmod_test_i2c_on_pins[2];
   pmod_test_i2c_on_pins[0] = {SonataPinmux::OutputPin::pmod0_3, 2};  // Mux to I2C SDA
-  pmod_test_i2c_on_pins[1] = {SonataPinmux::OutputPin::pmod0_4, 2};  // Mux to I2C SCL
+  pmod_test_i2c_on_pins[1] = {SonataPinmux::OutputPin::pmod0_4, 3};  // Mux to I2C SCL
   OutputPinAssignment pmod_test_i2c_off_pins[2];
   pmod_test_i2c_off_pins[0] = {SonataPinmux::OutputPin::pmod0_3, 0};
   pmod_test_i2c_off_pins[1] = {SonataPinmux::OutputPin::pmod0_4, 0};
@@ -100,13 +98,13 @@ using namespace CHERI;
   OutputPinAssignment pmod_test_spi_on_pins[3];
   pmod_test_spi_on_pins[0]                       = {SonataPinmux::OutputPin::pmod0_1, 2};  // Mux to SPI CS
   pmod_test_spi_on_pins[1]                       = {SonataPinmux::OutputPin::pmod0_2, 2};  // Mux to SPI COPI
-  pmod_test_spi_on_pins[2]                       = {SonataPinmux::OutputPin::pmod0_4, 3};  // Mux to SPI SCK
-  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::spi_2_rx, 2}};
+  pmod_test_spi_on_pins[2]                       = {SonataPinmux::OutputPin::pmod0_4, 2};  // Mux to SPI SCK
+  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::spi_0_cipo, 3}};
   OutputPinAssignment pmod_test_spi_off_pins[3];
   pmod_test_spi_off_pins[0]                       = {SonataPinmux::OutputPin::pmod0_1, 0};
   pmod_test_spi_off_pins[1]                       = {SonataPinmux::OutputPin::pmod0_2, 0};
   pmod_test_spi_off_pins[2]                       = {SonataPinmux::OutputPin::pmod0_4, 0};
-  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::spi_2_rx, 0}};
+  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::spi_0_cipo, 0}};
 
   // The pinmux testplan to execute. This testplan runs through testing GPIO, UART, I2C and SPI
   // all on the same PMOD pins, with users manually changing out the connected devices between
@@ -157,7 +155,7 @@ using namespace CHERI;
           .num_block_inputs = ARRAYSIZE(pmod_test_uart_on_inputs),
           .uart_data =
               {
-                  UartTest::UartNum::Uart2,
+                  UartTest::UartNum::Uart1,
                   UartTimeoutUsec,
                   UartTestBytes,
               },
@@ -173,7 +171,7 @@ using namespace CHERI;
           .num_block_inputs = ARRAYSIZE(pmod_test_uart_off_inputs),
           .uart_data =
               {
-                  UartTest::UartNum::Uart2,
+                  UartTest::UartNum::Uart1,
                   UartTimeoutUsec,
                   UartTestBytes,
               },
@@ -211,7 +209,7 @@ using namespace CHERI;
           .num_output_pins  = ARRAYSIZE(pmod_test_spi_on_pins),
           .block_inputs     = pmod_test_spi_on_inputs,
           .num_block_inputs = ARRAYSIZE(pmod_test_spi_on_inputs),
-          .spi_data         = {SpiTest::SpiNum::Spi2},
+          .spi_data         = {SpiTest::SpiNum::Spi0},
           .expected_result  = true,
       },
       {
@@ -222,7 +220,7 @@ using namespace CHERI;
           .num_output_pins  = ARRAYSIZE(pmod_test_spi_off_pins),
           .block_inputs     = pmod_test_spi_off_inputs,
           .num_block_inputs = ARRAYSIZE(pmod_test_spi_off_inputs),
-          .spi_data         = {SpiTest::SpiNum::Spi2},
+          .spi_data         = {SpiTest::SpiNum::Spi0},
           .expected_result  = false,
       },
   };

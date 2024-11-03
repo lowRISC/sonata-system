@@ -43,9 +43,9 @@ void spi_flash::writeByte(uint8_t inByte, uint32_t oobIn) {
       case CmdEnableReset: cmdComplete = true; break;
       case CmdReset: reset(); cmdComplete = true; break;
       case CmdReadJEDECId:
-        rsp[0] = 0xef;
-        rsp[1] = 0x40;
-        rsp[2] = 0x19;
+        rsp[0] = static_cast<uint8_t>(jedec_id >> 16);
+        rsp[1] = static_cast<uint8_t>(jedec_id >> 8);
+        rsp[2] = static_cast<uint8_t>(jedec_id);
         rspLen = 3u;
         rspIdx = 0u;
         cmdComplete = true;

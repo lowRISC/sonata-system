@@ -168,6 +168,40 @@ bool gpio_write_read_test(SonataGpioFull *gpio, GpioPin output_pin, GpioPin inpu
 }
 
 /**
+ * Tests that the given SPI block is working as expected, by writing and reading
+ * some data via SPI to read the JEDEC/Manufacturer ID of a connected N25Q56A
+ * flash memory device, and checking it against known values. This test expects
+ * that the SPI pins corresponding to the given SPI block are connected to a
+ * device with such memory, e.g. a PMOD SF3.
+ *
+ * Returns true if the test passed, or false if it failed.
+ */
+bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
+  constexpr uint8_t CmdReadJEDECId     = 0x9f;
+  constexpr uint8_t ExpectedJedecId[3] = {0x20, 0xBA, 0x19};
+
+  // Configure the SPI to be MSB-first.
+  spi->wait_idle();
+  spi->init(false, false, true, 0);
+
+  // Read the JEDEC ID from the external flash
+  uint8_t jedec_id[3] = {0x12, 0x34, 0x56};  // (Dummy data)
+  spi->cs             = (spi->cs & ~1u);     // Set ¬CS High
+  spi->blocking_write(&CmdReadJEDECId, 1);
+  spi->blocking_read(jedec_id, 3);
+  spi->cs = (spi->cs | 1u);  // Set ¬CS Low
+
+  // Check that the retrieved ID matches our expected value
+  for (size_t index = 0; index < sizeof(jedec_id); index++) {
+    if (jedec_id[index] != ExpectedJedecId[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Resets an I2C controller to acknowledge and disable any Controller Halt
  * events. When the I2C device is disconnected from Pinmux and tested,
  * the controller will continue to halt as it will not be able to see

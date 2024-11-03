@@ -417,7 +417,9 @@ int spi_irq_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, Log &log) {
  */
 int spi_loopback_test(SpiPtr spi, bool external, bool cpol, bool cpha, bool msb_first, ds::xoroshiro::P32R8 &prng,
                       Log &log) {
-  constexpr uint32_t kSpiSpeed = 0u;  // Let's go as fast as possible.
+  // Register stage in internal loopback means this is the fastest possible
+  // speed.
+  constexpr uint32_t kSpiSpeed = 1u;
   // Take a copy of the PRNG so that we can predict the read-side data.
   ds::xoroshiro::P32R8 read_prng = prng;
   size_t bytes_read              = 0u;

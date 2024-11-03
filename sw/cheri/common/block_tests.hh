@@ -43,5 +43,6 @@ bool get_gpio_input(SonataGpioFull *gpio, GpioPin pin);
 bool uart_send_receive_test(ds::xoroshiro::P32R8 &prng, UartPtr uart, uint32_t read_timeout_usec, uint32_t test_length);
 bool gpio_write_read_test(SonataGpioFull *gpio, GpioPin output_pin, GpioPin input_pin, uint32_t wait_usec,
                           uint32_t test_length);
+bool spi_n25q256a_read_jedec_id(SpiPtr spi);
 
 void reset_i2c_controller(I2cPtr i2c);
