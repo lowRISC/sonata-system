@@ -90,6 +90,7 @@ The default value for all of these selectors is `'b10`.
 | 0x04b | `pmodc_4` | 0, `gpio[4].ios[3]` |
 | 0x04c | `pmodc_5` | 0, `gpio[4].ios[4]` |
 | 0x04d | `pmodc_6` | 0, `gpio[4].ios[5]` |
+| 0x04e | `rs485_tx` | 0, `uart[2].tx` |
 
 Besides the output pin selectors, there are also selectors for which pin should drive block inputs:
 
@@ -161,7 +162,7 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x83f | `gpio[4].ios[5]` | 0, `pmodc_6` |
 | 0x840 | `uart[0].rx` | 1, `ser0_rx` |
 | 0x841 | `uart[1].rx` | 1, `ser1_rx`, `rph_rxd0`, `ah_tmpio0`, `mb8`, `pmod0_3` |
-| 0x842 | `uart[2].rx` | 1, `ser1_rx`, `rs232_rx`, `pmod1_3` |
+| 0x842 | `uart[2].rx` | 1, `ser1_rx`, `rs232_rx`, `pmod1_3`, `rs485_rx` |
 | 0x843 | `spi[0].cipo` | 0, `rph_g9_cipo`, `ah_tmpio12`, `pmod0_3` |
 | 0x844 | `spi[1].cipo` | 0, `rph_g19_cipo`, `mb3`, `pmod1_3` |
 

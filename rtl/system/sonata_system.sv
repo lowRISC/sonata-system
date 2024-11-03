@@ -99,6 +99,9 @@ module sonata_system
   output wire                      hyperram_nrst,
   output wire                      hyperram_cs,
 
+  output wire                      rs485_rx_enable_o,
+  output wire                      rs485_tx_enable_o,
+
   // Pin Signals
   input  sonata_in_pins_t    in_from_pins_i,
   output sonata_out_pins_t   out_to_pins_o,
@@ -1334,6 +1337,21 @@ module sonata_system
     .tl_i(tl_pinmux_h2d),
     .tl_o(tl_pinmux_d2h)
   );
+
+  // The RS-485 transceiver operates in half-duplex, it cannot transmit and receive at the same time.
+  // When transmitting the driver must be enabled and otherwise it must be disabled to receive. This
+  // is handled by the rs485_ctrl module in the hierarchy above sonata_system but that module
+  // requires rx_enable and tx_enable inputs which are provided below.
+
+  // Enable the RS-485 receiver any time the RS-485 RX input is connect to the UART via pinmux.
+  // Whether or not we are transmitting does not need to be factored in here as that is dealt with
+  // via rs485_ctrl.
+  assign rs485_rx_enable_o = u_pinmux.uart_rx_2_sel[4];
+
+  // Transmission enabled when UART is muxed to RS-485 TX output and UART is actively transmitting.
+  assign rs485_tx_enable_o = u_pinmux.rs485_tx_sel[1]                           &
+                             gen_uart_blocks[2].u_uart.uart_core.tx_enable      &
+                             ~gen_uart_blocks[2].u_uart.hw2reg.status.txidle.d;
 
   for (genvar i = 0; i < NrDevices; i++) begin : gen_unused_device
     if (i != RevTags) begin

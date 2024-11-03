@@ -3950,6 +3950,54 @@ module pinmux
     .out_o(inout_to_pins_en_o[INOUT_PIN_PMODC_6])
   );
 
+  logic [1:0] rs485_tx_sel;
+  logic rs485_tx_sel_addressed;
+
+  // Register addresses of 0x000 to 0x7ff are pin selectors, which are packed with 4 per 32-bit word.
+  assign rs485_tx_sel_addressed =
+    reg_addr[RegAddrWidth-1] == 1'b0 &
+    reg_addr[RegAddrWidth-2:0] == 76 &
+    reg_be[2] == 1'b1;
+
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      // Select second input by default so that pins are connected to the first block that is specified in the configuration.
+      rs485_tx_sel <= 2'b10;
+    end else begin
+      if (reg_we & rs485_tx_sel_addressed) begin
+        rs485_tx_sel <= reg_wdata[16+:2];
+      end
+    end
+  end
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) rs485_tx_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0, // This is set to Z later when output enable is low.
+      uart_tx_i[2]
+    }),
+    .sel_i(rs485_tx_sel),
+    .out_o(out_to_pins_o[OUT_PIN_RS485_TX])
+  );
+
+  prim_onehot_mux #(
+    .Width(1),
+    .Inputs(2)
+  ) rs485_tx_enable_mux (
+    .clk_i,
+    .rst_ni,
+    .in_i({
+      1'b0,
+      uart_tx_en_i[2]
+    }),
+    .sel_i(rs485_tx_sel),
+    .out_o(out_to_pins_en_o[OUT_PIN_RS485_TX])
+  );
+
   // Inputs - Physical pin inputs are muxed to particular block IO
 
   logic [1:0] gpio_ios_0_0_sel;
@@ -6200,7 +6248,7 @@ module pinmux
     .out_o(uart_rx_o[1])
   );
 
-  logic [3:0] uart_rx_2_sel;
+  logic [4:0] uart_rx_2_sel;
   logic uart_rx_2_sel_addressed;
 
   // Register addresses of 0x800 to 0xfff are block IO selectors, which are packed with 4 per 32-bit word.
@@ -6212,17 +6260,17 @@ module pinmux
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       // Select second input by default so that pins are connected to the first block that is specified in the configuration.
-      uart_rx_2_sel <= 4'b10;
+      uart_rx_2_sel <= 5'b10;
     end else begin
       if (reg_we & uart_rx_2_sel_addressed) begin
-        uart_rx_2_sel <= reg_wdata[16+:4];
+        uart_rx_2_sel <= reg_wdata[16+:5];
       end
     end
   end
 
   prim_onehot_mux #(
     .Width(1),
-    .Inputs(4)
+    .Inputs(5)
   ) uart_rx_2_mux (
     .clk_i,
     .rst_ni,
@@ -6230,7 +6278,8 @@ module pinmux
       1'b1,
       in_from_pins_i[IN_PIN_SER1_RX],
       in_from_pins_i[IN_PIN_RS232_RX],
-      inout_from_pins_i[INOUT_PIN_PMOD1_3]
+      inout_from_pins_i[INOUT_PIN_PMOD1_3],
+      in_from_pins_i[IN_PIN_RS485_RX]
     }),
     .sel_i(uart_rx_2_sel),
     .out_o(uart_rx_o[2])

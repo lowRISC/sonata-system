@@ -17,6 +17,7 @@ filesets:
       - rtl/fpga/top_sonata.sv
       - rtl/fpga/clkgen_sonata.sv
       - rtl/fpga/rst_ctrl.sv
+      - rtl/system/rs485_ctrl.sv
     file_type: systemVerilogSource
 
   files_verilator:
@@ -30,6 +31,7 @@ filesets:
       - lowrisc:dv_dpi_c:usbdpi:0.1
       - lowrisc:dv_dpi_sv:usbdpi:0.1
     files:
+      - rtl/system/rs485_ctrl.sv: { file_type: systemVerilogSource }
       - dv/dpi/i2cdpi/i2c_lsm9ds1.cc: { file_type: cppSource }
       - dv/dpi/i2cdpi/i2c_lsm9ds1.hh: { file_type: cppSource, is_include_file: true }
       - dv/dpi/i2cdpi/i2c_as621x.cc: { file_type: cppSource }

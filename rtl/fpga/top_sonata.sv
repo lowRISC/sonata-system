@@ -48,6 +48,12 @@ module top_sonata
   output logic       rs232_tx,
   input  logic       rs232_rx,
 
+  // RS-485
+  input  logic       rs485_ro,
+  output logic       rs485_de,
+  output logic       rs485_ren,
+  output logic       rs485_di,
+
   // QWIIC (Sparkfun) buses
   inout  logic       scl0,  // qwiic0 and Arduino Header
   inout  logic       sda0,
@@ -263,6 +269,12 @@ module top_sonata
   assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
   assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
 
+  // RS-485 outputs go through the 'rs485_ctrl' module before being output. These signals come
+  // directly from sonata_system and are fed into the delay module which connects to the actual
+  // outputs.
+  logic rs485_rx, rs485_tx;
+  logic rs485_rx_enable, rs485_tx_enable;
+
   sonata_system #(
     .CheriErrWidth   (  9             ),
     .SRAMInitFile    ( SRAMInitFile   ),
@@ -362,6 +374,9 @@ module top_sonata
     .hyperram_nrst,
     .hyperram_cs,
 
+    .rs485_tx_enable_o(rs485_tx_enable),
+    .rs485_rx_enable_o(rs485_rx_enable),
+
     .in_from_pins_i     (in_from_pins    ),
     .out_to_pins_o      (out_to_pins     ),
     .inout_from_pins_i  (inout_from_pins ),
@@ -419,6 +434,7 @@ module top_sonata
   assign in_from_pins[IN_PIN_MB8         ] = mb8;
   assign in_from_pins[IN_PIN_MB3         ] = mb3;
   assign in_from_pins[IN_PIN_RS232_RX    ] = rs232_rx;
+  assign in_from_pins[IN_PIN_RS485_RX    ] = rs485_rx;
   assign in_from_pins[IN_PIN_SER1_RX     ] = ser1_rx;
   assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
 
@@ -428,6 +444,7 @@ module top_sonata
   assign mb2          = out_to_pins[OUT_PIN_MB2         ];
   assign mb1          = out_to_pins[OUT_PIN_MB1         ];
   assign rs232_tx     = out_to_pins[OUT_PIN_RS232_TX    ];
+  assign rs485_tx     = out_to_pins[OUT_PIN_RS485_TX    ];
   assign ser1_tx      = out_to_pins[OUT_PIN_SER1_TX     ];
   assign ser0_tx      = out_to_pins[OUT_PIN_SER0_TX     ];
 
@@ -491,5 +508,38 @@ module top_sonata
       sda0,
       scl0
     })
+  );
+
+  // 90ns switch time + 10ns margin for FPGA output and otherwise easing timing. If this parameter
+  // is adjusted constraints on rs485_de/rs485_ren in synth_timing.xdc must be adjusted to match
+  parameter int unsigned Rs485TransceiverSwitchDelayNs = 90 + 10;
+
+  // Calculate system clock cycles required to cover Rs485TransceiverSwitchDelayNs. Unconditionally
+  // add 1 on the assumption Rs485TransceiverSwitchDelayNs does not fit into an integer number of
+  // cycles so the result of the divide will need rounding up.
+  parameter int unsigned Rs485TransceiverSwitchCycles =
+    (Rs485TransceiverSwitchDelayNs / (1_000_000_000 / SysClkFreq)) + 1;
+
+  // Cycles to keep RS485 driver active after transmission finishes. Required to work around
+  // un-documented transceiver behaviour so just use Rs485TransceiverSwitchCycles value and that has
+  // been observed to work well.
+  parameter int unsigned Rs485TransmitEndCycles = Rs485TransceiverSwitchCycles;
+
+  rs485_ctrl #(
+    .TransceiverSwitchCycles(Rs485TransceiverSwitchCycles),
+    .TransmitEndCycles(Rs485TransmitEndCycles)
+  ) u_rs485_ctrl (
+    .clk_i (clk_sys),
+    .rst_ni(rst_sys_n),
+
+    .tx_i       (rs485_tx),
+    .rx_o       (rs485_rx),
+    .rx_enable_i(rs485_rx_enable),
+    .tx_enable_i(rs485_tx_enable),
+
+    .di_o (rs485_di),
+    .ren_o(rs485_ren),
+    .de_o (rs485_de),
+    .ro_i (rs485_ro)
   );
 endmodule : top_sonata

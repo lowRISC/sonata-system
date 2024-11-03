@@ -545,3 +545,11 @@ block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 4}]
 [[pins]]
 name = "pmodc_6"
 block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 5}]
+
+[[pins]]
+name = "rs485_rx"
+block_ios = [{ block = "uart", instance = 2, io = "rx" }]
+
+[[pins]]
+name = "rs485_tx"
+block_ios = [{ block = "uart", instance = 2, io = "tx" }]

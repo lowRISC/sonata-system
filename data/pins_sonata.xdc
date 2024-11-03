@@ -136,9 +136,15 @@ set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVCMOS33 } [get_ports ser0_rx]
 set_property -dict { PACKAGE_PIN E18 IOSTANDARD LVCMOS33 } [get_ports ser1_tx]
 set_property -dict { PACKAGE_PIN G18 IOSTANDARD LVCMOS33 } [get_ports ser1_rx]
 
-## UART RS232
+## UART RS-232
 set_property -dict { PACKAGE_PIN P3  IOSTANDARD LVCMOS33 } [get_ports rs232_tx]
 set_property -dict { PACKAGE_PIN N6  IOSTANDARD LVCMOS33 } [get_ports rs232_rx]
+
+## UART RS-485
+set_property -dict { PACKAGE_PIN R2  IOSTANDARD LVCMOS33 } [get_ports rs485_ro]
+set_property -dict { PACKAGE_PIN M4  IOSTANDARD LVCMOS33 } [get_ports rs485_de]
+set_property -dict { PACKAGE_PIN N4  IOSTANDARD LVCMOS33 } [get_ports rs485_ren]
+set_property -dict { PACKAGE_PIN M6  IOSTANDARD LVCMOS33 } [get_ports rs485_di]
 
 ## QWIIC and Arduino Shield
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports sda0]
