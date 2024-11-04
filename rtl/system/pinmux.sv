@@ -3961,8 +3961,8 @@ module pinmux
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      // Select second mux input by default so that pin is connected to the first block that is specified in the configuration.
-      rs485_tx_sel <= 2'b10;
+      // Select first mux input (constant) by default so pin is connected to no block initially
+      rs485_tx_sel <= 2'b1;
     end else begin
       if (reg_we & rs485_tx_sel_addressed) begin
         rs485_tx_sel <= reg_wdata[16+:2];
