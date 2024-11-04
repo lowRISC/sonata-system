@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 data/xbar_main_generated.hjson linguist-generated=true
-doc/ip/pinmux.md linguist-generated=true
+doc/ip/pinmux/README.md linguist-generated=true
 rtl/bus/sonata_xbar_main.sv linguist-generated=true
 rtl/bus/tl_main_pkg.sv linguist-generated=true
 rtl/bus/tl_ifetch_pkg.sv linguist-generated=true
@@ -11,3 +11,4 @@ rtl/bus/xbar_ifetch.sv linguist-generated=true
 rtl/system/pinmux.sv linguist-generated=true
 rtl/system/sonata_pkg.sv linguist-generated=true
 rtl/system/system_info.sv linguist-generated=true
+sw/cheri/common/platform-pinmux.hh linguist-generated=true
