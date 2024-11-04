@@ -439,25 +439,25 @@ block_ios = [
 ]
 
 [[pins]]
-name = "pmod0_5"
+name = "pmod0_7"
 block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 4}]
 
 [[pins]]
-name = "pmod0_6"
+name = "pmod0_8"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 5},
   {block = "pwm", instance = 0, io = "out", io_index = 2},
 ]
 
 [[pins]]
-name = "pmod0_7"
+name = "pmod0_9"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 6},
   {block = "spi", instance = 0, io = "cs", io_index = 1},
 ]
 
 [[pins]]
-name = "pmod0_8"
+name = "pmod0_10"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 7},
   {block = "spi", instance = 0, io = "cs", io_index = 2},
@@ -497,30 +497,29 @@ block_ios = [
 ]
 
 [[pins]]
-name = "pmod1_5"
+name = "pmod1_7"
 block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 4}]
 
 [[pins]]
-name = "pmod1_6"
+name = "pmod1_8"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 5},
   {block = "pwm", instance = 0, io = "out", io_index = 4},
 ]
 
 [[pins]]
-name = "pmod1_7"
+name = "pmod1_9"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 6},
   {block = "spi", instance = 1, io = "cs", io_index = 1},
 ]
 
 [[pins]]
-name = "pmod1_8"
+name = "pmod1_10"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 7},
   {block = "spi", instance = 1, io = "cs", io_index = 2},
 ]
-
 
 [[pins]]
 name = "pmodc_1"

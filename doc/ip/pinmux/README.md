@@ -72,18 +72,18 @@ The default value for all of these selectors is `'b10`.
 | 0x039 | `pmod0_2` | 0, `gpio[2].ios[1]`, `spi[0].copi`, `pwm_out[1]`, `uart[1].tx` |
 | 0x03a | `pmod0_3` | 0, `gpio[2].ios[2]`, `i2c[0].scl` |
 | 0x03b | `pmod0_4` | 0, `gpio[2].ios[3]`, `spi[0].sclk`, `i2c[0].sda` |
-| 0x03c | `pmod0_5` | 0, `gpio[2].ios[4]` |
-| 0x03d | `pmod0_6` | 0, `gpio[2].ios[5]`, `pwm_out[2]` |
-| 0x03e | `pmod0_7` | 0, `gpio[2].ios[6]`, `spi[0].cs[1]` |
-| 0x03f | `pmod0_8` | 0, `gpio[2].ios[7]`, `spi[0].cs[2]` |
+| 0x03c | `pmod0_7` | 0, `gpio[2].ios[4]` |
+| 0x03d | `pmod0_8` | 0, `gpio[2].ios[5]`, `pwm_out[2]` |
+| 0x03e | `pmod0_9` | 0, `gpio[2].ios[6]`, `spi[0].cs[1]` |
+| 0x03f | `pmod0_10` | 0, `gpio[2].ios[7]`, `spi[0].cs[2]` |
 | 0x040 | `pmod1_1` | 0, `gpio[3].ios[0]`, `spi[1].cs[0]` |
 | 0x041 | `pmod1_2` | 0, `gpio[3].ios[1]`, `spi[1].copi`, `pwm_out[3]`, `uart[2].tx` |
 | 0x042 | `pmod1_3` | 0, `gpio[3].ios[2]`, `i2c[1].scl` |
 | 0x043 | `pmod1_4` | 0, `gpio[3].ios[3]`, `spi[1].sclk`, `i2c[1].sda` |
-| 0x044 | `pmod1_5` | 0, `gpio[3].ios[4]` |
-| 0x045 | `pmod1_6` | 0, `gpio[3].ios[5]`, `pwm_out[4]` |
-| 0x046 | `pmod1_7` | 0, `gpio[3].ios[6]`, `spi[1].cs[1]` |
-| 0x047 | `pmod1_8` | 0, `gpio[3].ios[7]`, `spi[1].cs[2]` |
+| 0x044 | `pmod1_7` | 0, `gpio[3].ios[4]` |
+| 0x045 | `pmod1_8` | 0, `gpio[3].ios[5]`, `pwm_out[4]` |
+| 0x046 | `pmod1_9` | 0, `gpio[3].ios[6]`, `spi[1].cs[1]` |
+| 0x047 | `pmod1_10` | 0, `gpio[3].ios[7]`, `spi[1].cs[2]` |
 | 0x048 | `pmodc_1` | 0, `gpio[4].ios[0]` |
 | 0x049 | `pmodc_2` | 0, `gpio[4].ios[1]` |
 | 0x04a | `pmodc_3` | 0, `gpio[4].ios[2]` |
@@ -141,18 +141,18 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x82b | `gpio[2].ios[1]` | 0, `pmod0_2` |
 | 0x82c | `gpio[2].ios[2]` | 0, `pmod0_3` |
 | 0x82d | `gpio[2].ios[3]` | 0, `pmod0_4` |
-| 0x82e | `gpio[2].ios[4]` | 0, `pmod0_5` |
-| 0x82f | `gpio[2].ios[5]` | 0, `pmod0_6` |
-| 0x830 | `gpio[2].ios[6]` | 0, `pmod0_7` |
-| 0x831 | `gpio[2].ios[7]` | 0, `pmod0_8` |
+| 0x82e | `gpio[2].ios[4]` | 0, `pmod0_7` |
+| 0x82f | `gpio[2].ios[5]` | 0, `pmod0_8` |
+| 0x830 | `gpio[2].ios[6]` | 0, `pmod0_9` |
+| 0x831 | `gpio[2].ios[7]` | 0, `pmod0_10` |
 | 0x832 | `gpio[3].ios[0]` | 0, `pmod1_1` |
 | 0x833 | `gpio[3].ios[1]` | 0, `pmod1_2` |
 | 0x834 | `gpio[3].ios[2]` | 0, `pmod1_3` |
 | 0x835 | `gpio[3].ios[3]` | 0, `pmod1_4` |
-| 0x836 | `gpio[3].ios[4]` | 0, `pmod1_5` |
-| 0x837 | `gpio[3].ios[5]` | 0, `pmod1_6` |
-| 0x838 | `gpio[3].ios[6]` | 0, `pmod1_7` |
-| 0x839 | `gpio[3].ios[7]` | 0, `pmod1_8` |
+| 0x836 | `gpio[3].ios[4]` | 0, `pmod1_7` |
+| 0x837 | `gpio[3].ios[5]` | 0, `pmod1_8` |
+| 0x838 | `gpio[3].ios[6]` | 0, `pmod1_9` |
+| 0x839 | `gpio[3].ios[7]` | 0, `pmod1_10` |
 | 0x83a | `gpio[4].ios[0]` | 0, `pmodc_1` |
 | 0x83b | `gpio[4].ios[1]` | 0, `pmodc_2` |
 | 0x83c | `gpio[4].ios[2]` | 0, `pmodc_3` |

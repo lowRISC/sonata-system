@@ -111,18 +111,18 @@ class SonataPinmux : private utils::NoCopyNoMove {
     pmod0_2      = 0x039,
     pmod0_3      = 0x03a,
     pmod0_4      = 0x03b,
-    pmod0_5      = 0x03c,
-    pmod0_6      = 0x03d,
-    pmod0_7      = 0x03e,
-    pmod0_8      = 0x03f,
+    pmod0_7      = 0x03c,
+    pmod0_8      = 0x03d,
+    pmod0_9      = 0x03e,
+    pmod0_10     = 0x03f,
     pmod1_1      = 0x040,
     pmod1_2      = 0x041,
     pmod1_3      = 0x042,
     pmod1_4      = 0x043,
-    pmod1_5      = 0x044,
-    pmod1_6      = 0x045,
-    pmod1_7      = 0x046,
-    pmod1_8      = 0x047,
+    pmod1_7      = 0x044,
+    pmod1_8      = 0x045,
+    pmod1_9      = 0x046,
+    pmod1_10     = 0x047,
     pmodc_1      = 0x048,
     pmodc_2      = 0x049,
     pmodc_3      = 0x04a,
@@ -265,14 +265,14 @@ class SonataPinmux : private utils::NoCopyNoMove {
       case OutputPin::ah_tmpio13:
       case OutputPin::pmod0_1:
       case OutputPin::pmod0_3:
-      case OutputPin::pmod0_6:
-      case OutputPin::pmod0_7:
       case OutputPin::pmod0_8:
+      case OutputPin::pmod0_9:
+      case OutputPin::pmod0_10:
       case OutputPin::pmod1_1:
       case OutputPin::pmod1_3:
-      case OutputPin::pmod1_6:
-      case OutputPin::pmod1_7:
       case OutputPin::pmod1_8:
+      case OutputPin::pmod1_9:
+      case OutputPin::pmod1_10:
         return 3;
       default:
         return 2;
