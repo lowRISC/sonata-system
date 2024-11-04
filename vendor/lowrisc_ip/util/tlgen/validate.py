@@ -116,7 +116,7 @@ Crossbar configuration format.
 # by inspecting the base addresses. Note that the validation
 # script also ensures that base addresses are aligned with
 # to this granularity.
-MIN_DEVICE_SPACING = 0x20
+MIN_DEVICE_SPACING = 0x40
 
 
 def check_keys(obj: Dict[Any, Any],
