@@ -15,7 +15,7 @@ memory_size  = 0x00000040
 [[blocks]]
 name = "pwm"
 instances = 1
-ios = [{ name = "out", type = "output", length = 6 }]
+ios = [{ name = "out", type = "output", length = 7 }]
 memory_start = 0x80001000
 memory_size  = 0x00001000
 xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
