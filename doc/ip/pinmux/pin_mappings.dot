@@ -13,15 +13,13 @@ digraph {
     i2c_0 [label = "i2c_0|<sda>sda|<scl>scl"]
     i2c_1 [label = "i2c_1|<sda>sda|<scl>scl"]
 
-    // SPI for Flash, Ethernet & microSD
+    // SPI for Flash & microSD
     spi_board [label = "spi_board\
       |<copi>copi\
       |<cipo>cipo\
       |<sclk>sclk\
       |<cs_0>cs_0\
       |<cs_1>cs_1\
-      |<cs_2>cs_2\
-      |<cs_3>cs_3\
     "]
 
     // SPI for LCD
@@ -32,6 +30,15 @@ digraph {
       |<cs_0>cs_0\
       |<cs_1>cs_1\
       |<cs_2>cs_2\
+    "]
+
+    // SPI for Ethernet MAC
+    spi_ethmac [label = "spi_ethmac\
+      |<copi>copi\
+      |<cipo>cipo\
+      |<sclk>sclk\
+      |<cs_0>cs_0\
+      |<cs_1>cs_1\
     "]
 
     // Pi Spi0, Pmod 0, Arduino Header
@@ -190,8 +197,8 @@ digraph {
         </tr>
         <tr><td port="clk">lcd_clk</td><td>sclk</td></tr>
         <tr><td port="cs">lcd_cs</td><td>cs</td></tr>
-        <tr><td port="rst">lcd_rst</td><td>gpo</td></tr>
         <tr><td port="dc">lcd_dc</td><td>gpo</td></tr>
+        <tr><td port="rst">lcd_rst</td><td>gpo</td></tr>
         <tr><td port="backlight">lcd_backlight</td><td>gpo</td></tr>
       </table>
     >];
@@ -381,22 +388,22 @@ digraph {
   spi_board:sclk -> appspi:clk;
   spi_board:cs_0 -> appspi:cs;
 
-  spi_board:copi -> ethmac:copi;
-  spi_board:cipo -> ethmac:cipo [dir=back];
-  spi_board:sclk -> ethmac:sclk;
-  spi_board:cs_1 -> ethmac:cs;
-  spi_board:cs_2 -> ethmac:rst;
-
   spi_board:copi -> microsd:cmd;
   spi_board:cipo -> microsd:dat0 [dir=back];
   spi_board:sclk -> microsd:clk;
-  spi_board:cs_3 -> microsd:dat3;
+  spi_board:cs_1 -> microsd:dat3;
 
   spi_lcd:copi -> lcd:copi;
   spi_lcd:sclk -> lcd:clk;
   spi_lcd:cs_0 -> lcd:cs;
   spi_lcd:cs_1 -> lcd:dc;
   spi_lcd:cs_2 -> lcd:rst;
+
+  spi_ethmac:copi -> ethmac:copi;
+  spi_ethmac:cipo -> ethmac:cipo [dir=back];
+  spi_ethmac:sclk -> ethmac:sclk;
+  spi_ethmac:cs_0 -> ethmac:cs;
+  spi_ethmac:cs_1 -> ethmac:rst;
 
   spi_0:copi -> pmod0:2;
   spi_0:cipo -> pmod0:3 [dir=back];
