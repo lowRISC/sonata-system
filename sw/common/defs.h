@@ -38,7 +38,7 @@
 #define I2C_ADDRESS (0x8020'0000)
 #define I2C_RANGE (0x0000'1000)
 
-#define SPI_NUM 4
+#define SPI_NUM 5
 #define SPI_BOUNDS (0x0000'002C)
 #define SPI_ADDRESS (0x8030'0000)
 #define SPI_RANGE (0x0000'1000)

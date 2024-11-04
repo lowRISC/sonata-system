@@ -42,8 +42,8 @@ using namespace CHERI;
 
   // Create capabilities for SPI3&4, I2C0&1, GPIO and Pinmux for use in Pinmux testing
   SpiPtr spis[2] = {
-      spi_ptr(rwRoot, 2),  // SPI0
-      spi_ptr(rwRoot, 3),  // SPI1
+      spi_ptr(rwRoot, 3),  // SPI0
+      spi_ptr(rwRoot, 4),  // SPI1
   };
   I2cPtr i2cs[2] = {i2c_ptr(root, 0), i2c_ptr(root, 1)};
 
