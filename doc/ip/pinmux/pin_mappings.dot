@@ -290,10 +290,10 @@ digraph {
         <tr><td port="2">pmod0_2</td><td>gpio, copi, pwm, tx</td></tr>
         <tr><td port="3">pmod0_3</td><td>gpio, cipo, scl, rx</td></tr>
         <tr><td port="4">pmod0_4</td><td>gpio, sclk, sda</td></tr>
-        <tr><td port="5">pmod0_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod0_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod0_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod0_8</td><td>gpio, cs</td></tr>
+        <tr><td port="5">pmod0_7</td><td>gpio</td></tr>
+        <tr><td port="6">pmod0_8</td><td>gpio, pwm</td></tr>
+        <tr><td port="7">pmod0_9</td><td>gpio, cs</td></tr>
+        <tr><td port="8">pmod0_10</td><td>gpio, cs</td></tr>
       </table>
     >];
 
@@ -306,10 +306,10 @@ digraph {
         <tr><td port="2">pmod1_2</td><td>gpio, copi, pwm, tx</td></tr>
         <tr><td port="3">pmod1_3</td><td>gpio, cipo, scl, rx</td></tr>
         <tr><td port="4">pmod1_4</td><td>gpio, sclk, sca</td></tr>
-        <tr><td port="5">pmod1_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod1_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod1_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod1_8</td><td>gpio, cs</td></tr>
+        <tr><td port="5">pmod1_7</td><td>gpio</td></tr>
+        <tr><td port="6">pmod1_8</td><td>gpio, pwm</td></tr>
+        <tr><td port="7">pmod1_9</td><td>gpio, cs</td></tr>
+        <tr><td port="8">pmod1_10</td><td>gpio, cs</td></tr>
       </table>
     >];
 
