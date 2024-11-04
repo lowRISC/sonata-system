@@ -269,13 +269,13 @@ set_output_delay -clock tck -min [expr {$jtag_trce_dly_min - $tck_ns/4.0}] [get_
 # Data inputs are 4x oversampled and can tolerate some inputs being captured
 # in the cycle after others are captured, but no more.
 # So, need an arrival window no greater than the capture clk period.
-# Allow only 80% a clock period for good measure, and split it across
+# Allow only 90% of a clock period for good measure, and split it across
 # both setup and hold to avoid the tool adding superfluous delay to the path.
-set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.7}] [get_ports usrusb_v_p] ;# data in lines (diff), x4 oversamp
+set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.8}] [get_ports usrusb_v_p] ;# data in lines (diff), x4 oversamp
 set_input_delay -clock vclk_extusb -min [expr {              $clk_usb_ns*0.1}] [get_ports usrusb_v_p]
-set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.7}] [get_ports usrusb_v_n] ;# data in lines (diff), x4 oversamp
+set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.8}] [get_ports usrusb_v_n] ;# data in lines (diff), x4 oversamp
 set_input_delay -clock vclk_extusb -min [expr {              $clk_usb_ns*0.1}] [get_ports usrusb_v_n]
-set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.7}] [get_ports usrusb_rcv] ;# data in lines (single), x4 oversamp
+set_input_delay -clock vclk_extusb -max [expr {$clk_usb_ns - $clk_usb_ns*0.8}] [get_ports usrusb_rcv] ;# data in lines (single), x4 oversamp
 set_input_delay -clock vclk_extusb -min [expr {              $clk_usb_ns*0.1}] [get_ports usrusb_rcv]
 # Data outputs are only being captured every 4 launch cycles, but we want to
 # avoid massive skew between them.
