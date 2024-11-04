@@ -372,7 +372,7 @@ void pinmux_tests(CapRoot root, Log &log) {
   SonataPinmux Pinmux                 = SonataPinmux(pinmux);
 
   // Create bounded capabilities for other devices, to be used in testing.
-  SpiPtr spi = spi_ptr(root, 3);
+  SpiPtr spi = spi_ptr(root, 4);
 
   UartPtr uart1 = uart_ptr(root, 1);
 
