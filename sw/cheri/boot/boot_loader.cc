@@ -36,7 +36,7 @@ const uint32_t SoftwareSlots[] = {
     2 * 10 * 1024 * 1024,  // Slot 3
 };
 
-const uint8_t SoftwareSelectGpioPins[] = {14, 15, 16};
+const uint8_t SoftwareSelectGpioPins[] = {13, 14, 15};
 
 const char prefix[] = "\x1b[35mbootloader\033[0m: ";
 
