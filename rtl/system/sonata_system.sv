@@ -41,6 +41,12 @@ module sonata_system
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
   // Non-pinmuxed spi devices
+  output logic                     spi_board_copi_o,
+  input  logic                     spi_board_cipo_i,
+  output logic                     spi_board_sclk_o,
+  output logic                     spi_board_flash_cs_o,
+  output logic                     spi_board_microsd_cs_o,
+
   output logic                     lcd_copi_o,
   output logic                     lcd_sclk_o,
   output logic                     lcd_cs_o,
@@ -48,15 +54,12 @@ module sonata_system
   output logic                     lcd_rst_o,
   output logic                     lcd_backlight_o,
 
-  output logic                     spi_board_copi_o,
-  input  logic                     spi_board_cipo_i,
-  output logic                     spi_board_sclk_o,
-  output logic                     spi_board_flash_cs_o,
-  output logic                     spi_board_eth_cs_o,
-  output logic                     spi_board_eth_rst_o,
-  output logic                     spi_board_microsd_cs_o,
-
-  input  logic                     spi_eth_irq_ni, // Interrupt from Ethernet MAC
+  output logic                     ethmac_copi_o,
+  input  logic                     ethmac_cipo_i,
+  output logic                     ethmac_sclk_o,
+  output logic                     ethmac_cs_o,
+  output logic                     ethmac_rst_o,
+  input  logic                     ethmac_irq_ni, // Interrupt from Ethernet MAC
 
   // User JTAG
   input  logic                     tck_i,   // JTAG test clock pad
@@ -157,7 +160,7 @@ module sonata_system
   logic external_irq;
 
   logic [I2cIrqs-1:0]    i2c_interrupts [I2C_NUM];
-  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM + 2];
+  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM + 3];
   logic [UartIrqs-1:0]   uart_interrupts[UART_NUM];
   logic [UsbdevIrqs-1:0] usbdev_interrupts;
 
@@ -313,6 +316,8 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_spi_board_d2h;
   tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
   tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
+  tlul_pkg::tl_h2d_t tl_spi_ethmac_h2d;
+  tlul_pkg::tl_d2h_t tl_spi_ethmac_d2h;
   tlul_pkg::tl_h2d_t tl_system_info_h2d;
   tlul_pkg::tl_d2h_t tl_system_info_d2h;
   tlul_pkg::tl_h2d_t tl_rgbled_ctrl_h2d;
@@ -375,6 +380,8 @@ module sonata_system
     .tl_spi_board_i   (tl_spi_board_d2h),
     .tl_spi_lcd_o     (tl_spi_lcd_h2d),
     .tl_spi_lcd_i     (tl_spi_lcd_d2h),
+    .tl_spi_ethmac_o  (tl_spi_ethmac_h2d),
+    .tl_spi_ethmac_i  (tl_spi_ethmac_d2h),
     .tl_uart_o        (tl_uart_h2d),
     .tl_uart_i        (tl_uart_d2h),
     .tl_i2c_o         (tl_i2c_h2d),
@@ -1061,10 +1068,11 @@ module sonata_system
 
 
   // Dedicated Spi Controllers
-  // - Flash memory, Ethernet & microSD
+  // - Flash memory & microSD
   // - LCD screen
+  // - Ethernet MAC
   spi #(
-    .CSWidth(4)
+    .CSWidth(2)
   ) u_spi_board (
     .clk_i               (clk_sys_i),
     .rst_ni              (rst_sys_ni),
@@ -1083,12 +1091,7 @@ module sonata_system
     // SPI signals.
     .spi_copi_o          (spi_board_copi_o),
     .spi_cipo_i          (spi_board_cipo_i),
-    .spi_cs_o            ({
-      spi_board_microsd_cs_o,
-      spi_board_eth_rst_o,
-      spi_board_eth_cs_o,
-      spi_board_flash_cs_o
-    }),
+    .spi_cs_o            ({spi_board_microsd_cs_o, spi_board_flash_cs_o}),
     .spi_clk_o           (spi_board_sclk_o)
   );
 
@@ -1116,6 +1119,29 @@ module sonata_system
     .spi_clk_o           (lcd_sclk_o)
   );
 
+  spi #(
+    .CSWidth(2)
+  ) u_spi_ethmac (
+    .clk_i               (clk_sys_i),
+    .rst_ni              (rst_sys_ni),
+
+    // TileLink interface.
+    .tl_i                (tl_spi_ethmac_h2d),
+    .tl_o                (tl_spi_ethmac_d2h),
+
+    // Interrupts currently disconnected.
+    .intr_rx_full_o      (spi_interrupts[2][0]),
+    .intr_rx_watermark_o (spi_interrupts[2][1]),
+    .intr_tx_empty_o     (spi_interrupts[2][2]),
+    .intr_tx_watermark_o (spi_interrupts[2][3]),
+    .intr_complete_o     (spi_interrupts[2][4]),
+
+    // SPI signals.
+    .spi_copi_o          (ethmac_copi_o),
+    .spi_cipo_i          (ethmac_cipo_i),
+    .spi_cs_o            ({ethmac_rst_o, ethmac_cs_o}),
+    .spi_clk_o           (ethmac_sclk_o)
+  );
 
   // Pinmuxed SPI controllers.
   // - 2x Pinmuxed
@@ -1136,11 +1162,11 @@ module sonata_system
       .tl_o                (tl_spi_d2h[i]),
 
       // Interrupts currently disconnected.
-      .intr_rx_full_o      (spi_interrupts[i + 2][0]),
-      .intr_rx_watermark_o (spi_interrupts[i + 2][1]),
-      .intr_tx_empty_o     (spi_interrupts[i + 2][2]),
-      .intr_tx_watermark_o (spi_interrupts[i + 2][3]),
-      .intr_complete_o     (spi_interrupts[i + 2][4]),
+      .intr_rx_full_o      (spi_interrupts[i + 3][0]),
+      .intr_rx_watermark_o (spi_interrupts[i + 3][1]),
+      .intr_tx_empty_o     (spi_interrupts[i + 3][2]),
+      .intr_tx_watermark_o (spi_interrupts[i + 3][3]),
+      .intr_complete_o     (spi_interrupts[i + 3][4]),
 
       // SPI signals.
       .spi_copi_o          (spi_copi[i]),
@@ -1155,7 +1181,7 @@ module sonata_system
     if (!rst_sys_ni) begin
       ethmac_irq <= 1'b0;
     end else begin
-      ethmac_irq <= !spi_eth_irq_ni;
+      ethmac_irq <= !ethmac_irq_ni;
     end
   end
 

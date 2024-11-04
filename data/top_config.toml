@@ -51,7 +51,7 @@ ios = [
   { name = "sclk", type = "output" },
   { name = "cs", type = "output", length = 4 },
 ]
-memory_start = 0x80302000
+memory_start = 0x80303000
 memory_size  = 0x00001000
 
 # UARTS

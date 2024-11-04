@@ -136,15 +136,13 @@ module top_verilator (input logic clk_i, rst_ni);
   wire ah_tmpio10;
   // RPi header.
   wire rph_g18, rph_g17, rph_g16_ce2, rph_g8_ce0, rph_g7_ce1;
-  // Ethernet
-  wire ethmac_rst, ethmac_cs;
   // User LEDs.
   wire [7:0] usrLed;
   // MicroSD card slot
   wire microsd_dat3;
   // None of these signals is used presently.
   wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
-                      rph_g16_ce2, rph_g8_ce0, rph_g7_ce1, ethmac_rst, ethmac_cs,
+                      rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
                       usrLed, microsd_dat3};
 
   // Reporting of CHERI enable/disable and any exceptions that occur.
@@ -325,6 +323,12 @@ module top_verilator (input logic clk_i, rst_ni);
 
 
     // Non-pinmuxed spi devices
+    .spi_board_copi_o        (appspi_d0),
+    .spi_board_cipo_i        (appspi_d1),
+    .spi_board_sclk_o        (appspi_clk),
+    .spi_board_flash_cs_o    (appspi_cs),
+    .spi_board_microsd_cs_o  (microsd_dat3),
+
     .lcd_copi_o              (lcd_copi),
     .lcd_sclk_o              (lcd_clk),
     .lcd_cs_o                (lcd_cs),
@@ -332,16 +336,12 @@ module top_verilator (input logic clk_i, rst_ni);
     .lcd_rst_o               (lcd_rst),
     .lcd_backlight_o         (lcd_backlight),
 
-    .spi_board_copi_o        (appspi_d0),
-    .spi_board_cipo_i        (appspi_d1),
-    .spi_board_sclk_o        (appspi_clk),
-    .spi_board_flash_cs_o    (appspi_cs),
-    .spi_board_eth_cs_o      (ethmac_cs),
-    .spi_board_eth_rst_o     (ethmac_rst),
-    .spi_board_microsd_cs_o  (microsd_dat3),
-
-    // SPI hosts
-    .spi_eth_irq_ni(1'b1),
+    .ethmac_copi_o           (),
+    .ethmac_cipo_i           (),
+    .ethmac_sclk_o           (),
+    .ethmac_cs_o             (),
+    .ethmac_rst_o            (),
+    .ethmac_irq_ni           (1'b1), // Interrupt for Ethernet is out of band
 
     // CHERI signals
     .cheri_en_i     (cheri_en ),
