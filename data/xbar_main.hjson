@@ -150,7 +150,7 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x80300000",
-        size_byte: "0x1000",
+        size_byte: "0x00001000",
       }],
     },
     { name:  "spi_lcd",
@@ -160,7 +160,17 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x80301000",
-        size_byte: "0x1000",
+        size_byte: "0x00001000",
+      }],
+    },
+    { name:  "spi_ethmac",
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x80302000",
+        size_byte: "0x00001000",
       }],
     },
     % for block in config.blocks:
@@ -221,6 +231,7 @@
       "timer",
       "spi_board",
       "spi_lcd",
+      "spi_ethmac",
       % for block in config.blocks:
       % if not block.name == "gpio":
       % for i in range(block.instances):

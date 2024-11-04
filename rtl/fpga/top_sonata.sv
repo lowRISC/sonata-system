@@ -258,10 +258,9 @@ module top_sonata
   wire spi_board_cipo;
   wire spi_board_sclk;
 
-  assign spi_board_cipo = &{1'b1, appspi_d1, ethmac_cipo, microsd_dat0};
+  assign spi_board_cipo = &{appspi_d1, microsd_dat0};
 
   assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
-  assign {ethmac_copi, ethmac_sclk}  = {spi_board_copi, spi_board_sclk};
   assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
 
   sonata_system #(
@@ -305,6 +304,12 @@ module top_sonata
     .ard_an_n_i     (ard_an_n),
 
     // Non-pinmuxed spi devices
+    .spi_board_copi_o        (spi_board_copi),
+    .spi_board_cipo_i        (spi_board_cipo),
+    .spi_board_sclk_o        (spi_board_sclk),
+    .spi_board_flash_cs_o    (appspi_cs),
+    .spi_board_microsd_cs_o  (microsd_dat3),
+
     .lcd_copi_o              (lcd_copi),
     .lcd_sclk_o              (lcd_clk),
     .lcd_cs_o                (lcd_cs),
@@ -312,16 +317,12 @@ module top_sonata
     .lcd_rst_o               (lcd_rst),
     .lcd_backlight_o         (lcd_backlight),
 
-    .spi_board_copi_o        (spi_board_copi),
-    .spi_board_cipo_i        (spi_board_cipo),
-    .spi_board_sclk_o        (spi_board_sclk),
-    .spi_board_flash_cs_o    (appspi_cs),
-    .spi_board_eth_cs_o      (ethmac_cs),
-    .spi_board_eth_rst_o     (ethmac_rst),
-    .spi_board_microsd_cs_o  (microsd_dat3),
-
-    // Interrupt for Ethernet is out of band
-    .spi_eth_irq_ni (ethmac_intr),
+    .ethmac_copi_o           (ethmac_copi),
+    .ethmac_cipo_i           (ethmac_cipo),
+    .ethmac_sclk_o           (ethmac_sclk),
+    .ethmac_cs_o             (ethmac_cs),
+    .ethmac_rst_o            (ethmac_rst),
+    .ethmac_irq_ni           (ethmac_intr), // Interrupt for Ethernet is out of band
 
     // CHERI signals
     .cheri_en_i     (enable_cheri),
