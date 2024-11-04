@@ -56,6 +56,10 @@ create_generated_clock -name clk_hr3x  $clk_hr3x_source_pin
 set mainClk_and_generated {mainClk clk_sys clk_usb clk_hr clk_hr90p clk_hr3x}
 # I/O clocks
 create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
+                       -name clk_pmod0_spi [get_port {pmod0[3]}] ;# PMOD 0 SPI clk
+create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
+                       -name clk_pmod1_spi [get_port {pmod1[3]}] ;# PMOD 1 SPI clk
+create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_lcd [get_port lcd_clk] ;# LCD SPI clk
 create_generated_clock -source $clk_sys_source_pin -divide_by 2 \
                        -name clk_ah_spi [get_port ah_tmpio13] ;# Arduino Header SPI clk
@@ -292,20 +296,58 @@ set usb_conf_names {usrusb_softcn usrusb_sus usrusb_spd}
 set_output_delay -clock vclk_extusb -max 0 [get_ports $usb_conf_names]
 set_output_delay -clock vclk_extusb -min 0 [get_ports $usb_conf_names]
 
-## PMOD 0 - asynchronous GPIO
+## PMOD 0
+#   SPI (or I^2C or UART or GPIO, but let us assume SPI is most critical)
+# Use *similar* methodology as Arduino Shield SPI, but with less I/O delay on
+# some shared ports to avoid timing violations on I^2C and UART paths.
+# Distance to PMOD 0 SPI pins = ~20-25 mm  x2(clk there + data back)
+set pmod0_spi_trce_dly_min [expr {20 * 2 * 0.004}]
+set_input_delay -clock clk_pmod0_spi -max [expr {$sclk_ns - 22                         }] [get_ports {pmod0[2]}] ;# CIPO
+set_input_delay -clock clk_pmod0_spi -min [expr {$sclk_ns/2.0 + $pmod0_spi_trce_dly_min}] [get_ports {pmod0[2]}]
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports {pmod0[3]}] ;# SCLK
+set_output_delay -clock clk_sys -min 0                         [get_ports {pmod0[3]}]
+set_output_delay -clock clk_pmod0_spi -max [expr {$sclk_ns - 6           }] [get_ports {pmod0[1]}] ;# COPI
+set_output_delay -clock clk_pmod0_spi -min [expr {           $sclk_ns/2.0}] [get_ports {pmod0[1]}]
+set_output_delay -clock clk_pmod0_spi -max [expr {$sclk_ns - 6           }] [get_ports {pmod0[0] pmod0[6] pmod0[7]}] ;# chip selects
+set_output_delay -clock clk_pmod0_spi -min [expr {           $sclk_ns/2.0}] [get_ports {pmod0[0] pmod0[6] pmod0[7]}]
+#   GPIO/PWM (that are not SPI)
 # Could be human-scale or processor-scale (bit-bashing) time periods.
 # Put a multicycle constraint on them both in the timing exceptions section,
 # and zero I/O delays here.
-set_input_delay -clock vclk_sys -max 0 [get_ports {pmod0[*]}]
-set_input_delay -clock vclk_sys -min 0 [get_ports {pmod0[*]}]
-set_output_delay -clock vclk_sys -max 0 [get_ports {pmod0[*]}]
-set_output_delay -clock vclk_sys -min 0 [get_ports {pmod0[*]}]
-## PMOD 1 - asynchronous GPIO
-# Use same methodology as PMOD 0
-set_input_delay -clock vclk_sys -max 0 [get_ports {pmod1[*]}]
-set_input_delay -clock vclk_sys -min 0 [get_ports {pmod1[*]}]
-set_output_delay -clock vclk_sys -max 0 [get_ports {pmod1[*]}]
-set_output_delay -clock vclk_sys -min 0 [get_ports {pmod1[*]}]
+set pmod0_gpio_names {pmod0[4] pmod0[5]}
+set_input_delay -clock vclk_sys -max 0 [get_ports $pmod0_gpio_names]
+set_input_delay -clock vclk_sys -min 0 [get_ports $pmod0_gpio_names]
+set_output_delay -clock vclk_sys -max 0 [get_ports $pmod0_gpio_names]
+set_output_delay -clock vclk_sys -min 0 [get_ports $pmod0_gpio_names]
+
+## PMOD 1
+#   SPI (or I^2C or UART or GPIO, but let us assume SPI is most critical)
+# Use *similar* methodology as Arduino Shield SPI, but with less I/O delay on
+# some shared ports to avoid timing violations on I^2C and UART paths.
+# Distance to PMOD 1 SPI pins = ~25-30 mm  x2(clk there + data back)
+set pmod1_spi_trce_dly_min [expr {25 * 2 * 0.004}]
+set_input_delay -clock clk_pmod1_spi -max [expr {$sclk_ns - 22                         }] [get_ports {pmod1[2]}] ;# CIPO
+set_input_delay -clock clk_pmod1_spi -min [expr {$sclk_ns/2.0 + $pmod1_spi_trce_dly_min}] [get_ports {pmod1[2]}]
+set_output_delay -clock clk_sys -max [expr {$clk_sys_ns - 14}] [get_ports {pmod1[3]}] ;# SCLK
+set_output_delay -clock clk_sys -min 0                         [get_ports {pmod1[3]}]
+set_output_delay -clock clk_pmod1_spi -max [expr {$sclk_ns - 6           }] [get_ports {pmod1[1]}] ;# COPI
+set_output_delay -clock clk_pmod1_spi -min [expr {           $sclk_ns/2.0}] [get_ports {pmod1[1]}]
+set_output_delay -clock clk_pmod1_spi -max [expr {$sclk_ns - 6           }] [get_ports {pmod1[0] pmod1[6] pmod1[7]}] ;# chip selects
+set_output_delay -clock clk_pmod1_spi -min [expr {           $sclk_ns/2.0}] [get_ports {pmod1[0] pmod1[6] pmod1[7]}]
+#   GPIO/PWM (that are not SPI)
+# Use same methodology as PMOD 0 GPIO
+set pmod1_gpio_names {pmod1[4] pmod1[5]}
+set_input_delay -clock vclk_sys -max 0 [get_ports $pmod1_gpio_names]
+set_input_delay -clock vclk_sys -min 0 [get_ports $pmod1_gpio_names]
+set_output_delay -clock vclk_sys -max 0 [get_ports $pmod1_gpio_names]
+set_output_delay -clock vclk_sys -min 0 [get_ports $pmod1_gpio_names]
+
+## PMOD C - asynchronous GPIO
+# Use same methodology as PMOD 0 GPIO
+set_input_delay -clock vclk_sys -max 0 [get_ports {pmodc[*]}]
+set_input_delay -clock vclk_sys -min 0 [get_ports {pmodc[*]}]
+set_output_delay -clock vclk_sys -max 0 [get_ports {pmodc[*]}]
+set_output_delay -clock vclk_sys -min 0 [get_ports {pmodc[*]}]
 
 ## LCD display
 # ST7735R LCD driver datasheet:
@@ -418,7 +460,7 @@ set_output_delay -clock clk_ah_spi -min [expr {           $sclk_ns/2.0}] [get_po
 set_output_delay -clock clk_ah_spi -max [expr {$sclk_ns - 6           }] [get_ports ah_tmpio10] ;# chip select
 set_output_delay -clock clk_ah_spi -min [expr {           $sclk_ns/2.0}] [get_ports ah_tmpio10]
 ##   GPIO
-# Use same methodology as PMOD 0
+# Use same methodology as PMOD 0 GPIO
 set ah_gpio_names {ah_tmpio9 ah_tmpio8 ah_tmpio7 ah_tmpio6 ah_tmpio5 ah_tmpio4 ah_tmpio3 ah_tmpio2 ah_tmpio1 ah_tmpio0}
 set_input_delay -clock vclk_sys -max 0 [get_ports $ah_gpio_names]
 set_input_delay -clock vclk_sys -min 0 [get_ports $ah_gpio_names]
@@ -451,7 +493,7 @@ set_input_delay -clock vclk_sys -min 0 [get_ports mb8]
 set_output_delay -clock vclk_sys -max 0 [get_ports mb7] ;# UART TX
 set_output_delay -clock vclk_sys -min 0 [get_ports mb7]
 #   GPI/O
-# Use same methodology as PMOD 0
+# Use same methodology as PMOD 0 GPIO
 set_input_delay -clock vclk_sys -max 0 [get_ports mb9] ;# Interrupt input (connected to GPI)
 set_input_delay -clock vclk_sys -min 0 [get_ports mb9]
 set_output_delay -clock vclk_sys -max 0 [get_ports mb0] ;# Reset output (connected to GPO)
@@ -507,7 +549,7 @@ set_input_delay -clock vclk_sys -min 0 [get_ports rph_rxd0]
 set_output_delay -clock vclk_sys -max 0 [get_ports rph_txd0]
 set_output_delay -clock vclk_sys -min 0 [get_ports rph_txd0]
 ##   Other GPIO
-# Use same methodology as PMOD 0
+# Use same methodology as PMOD 0 GPIO
 set rph_gpio_names {rph_g4 rph_g5 rph_g6 rph_g12 rph_g13 rph_g22 rph_g23 rph_g24 rph_g25 rph_g26 rph_g27}
 set_input_delay -clock vclk_sys -max 0 [get_ports $rph_gpio_names]
 set_input_delay -clock vclk_sys -min 0 [get_ports $rph_gpio_names]
@@ -716,6 +758,16 @@ set_false_path -from [get_ports {hyperram_dq[*]}]
 set_false_path -to [get_ports hyperram_cs]
 set_false_path -to [get_ports hyperram_nrst]
 
+## PMOD 0 & 1
+# Ignore setup paths from PMOD multi-use ports that can be UART RX (but we are
+# modelling as an SPI port) to UART TX ports.
+# These are caused by the UART line loopback combined with pinmux.
+set_false_path -setup -from [get_ports {pmod0[2] pmod1[2]}] -to [get_clocks vclk_sys]
+# Ignore hold paths from UART RX ports to the PMOD multi-use ports that can be
+# UART TX (but we are modelling as an SPI port).
+# These are caused by the UART line loopback combined with pinmux.
+set_false_path -hold -from [get_clocks vclk_sys] -to [get_ports {pmod0[1] pmod1[1]}]
+
 ## prim_flop_2sync
 # Explicit false_path not needed so long as ASYNC_REG property is correctly
 # set on the underlying flops earlier in the flow.
@@ -793,25 +845,38 @@ set_multicycle_path        $ethmac_mulcycs       -setup -end -from [get_ports et
 set_multicycle_path [expr {$ethmac_mulcycs - 1}] -hold  -end -from [get_ports ethmac_cipo] ;# in
 ## Arduino Shield SPI
 # Data is clocked by SPI host no faster than half the rate of the system clk.
-set ah_spi_mulcycs 2
+set header_spi_mulcycs 2
+set ah_spi_mulcycs $header_spi_mulcycs
 set_multicycle_path        $ah_spi_mulcycs       -setup -start -to [get_ports {ah_tmpio11 ah_tmpio10}] ;# out
 set_multicycle_path [expr {$ah_spi_mulcycs - 1}] -hold  -start -to [get_ports {ah_tmpio11 ah_tmpio10}] ;# out
 set_multicycle_path        $ah_spi_mulcycs       -setup -end -from [get_ports ah_tmpio12] ;# in
 set_multicycle_path [expr {$ah_spi_mulcycs - 1}] -hold  -end -from [get_ports ah_tmpio12] ;# in
+## PMOD 0 SPI - use same methodology as Arduino SPI
+set pmod0_spi_mulcycs $header_spi_mulcycs
+set_multicycle_path        $pmod0_spi_mulcycs       -setup -start -to [get_ports {pmod0[0] pmod0[1] pmod0[3] pmod0[6] pmod0[7]}]
+set_multicycle_path [expr {$pmod0_spi_mulcycs - 1}] -hold  -start -to [get_ports {pmod0[0] pmod0[1] pmod0[3] pmod0[6] pmod0[7]}]
+set_multicycle_path        $pmod0_spi_mulcycs       -setup -end -from [get_ports {pmod0[2]}]
+set_multicycle_path [expr {$pmod0_spi_mulcycs - 1}] -hold  -end -from [get_ports {pmod0[2]}]
+## PMOD 1 SPI - use same methodology as Arduino SPI
+set pmod1_spi_mulcycs $header_spi_mulcycs
+set_multicycle_path        $pmod1_spi_mulcycs       -setup -start -to [get_ports {pmod1[0] pmod1[1] pmod1[3] pmod1[6] pmod1[7]}]
+set_multicycle_path [expr {$pmod1_spi_mulcycs - 1}] -hold  -start -to [get_ports {pmod1[0] pmod1[1] pmod1[3] pmod1[6] pmod1[7]}]
+set_multicycle_path        $pmod1_spi_mulcycs       -setup -end -from [get_ports {pmod1[2]}]
+set_multicycle_path [expr {$pmod1_spi_mulcycs - 1}] -hold  -end -from [get_ports {pmod1[2]}]
 ## mikroBUS SPI - use same methodology as Arduino SPI
-set mb_spi_mulcycs $ah_spi_mulcycs
+set mb_spi_mulcycs $header_spi_mulcycs
 set_multicycle_path        $mb_spi_mulcycs       -setup -start -to [get_ports {mb1 mb4}]
 set_multicycle_path [expr {$mb_spi_mulcycs - 1}] -hold  -start -to [get_ports {mb1 mb4}]
 set_multicycle_path        $mb_spi_mulcycs       -setup -end -from [get_ports mb3]
 set_multicycle_path [expr {$mb_spi_mulcycs - 1}] -hold  -end -from [get_ports mb3]
 ## R-Pi SPI0 - use same methodology as Arduino SPI
-set rph_spi0_mulcycs $ah_spi_mulcycs
+set rph_spi0_mulcycs $header_spi_mulcycs
 set_multicycle_path        $rph_spi0_mulcycs       -setup -start -to [get_ports {rph_g10_copi rph_g8_ce0 rph_g7_ce1}]
 set_multicycle_path [expr {$rph_spi0_mulcycs - 1}] -hold  -start -to [get_ports {rph_g10_copi rph_g8_ce0 rph_g7_ce1}]
 set_multicycle_path        $rph_spi0_mulcycs       -setup -end -from [get_ports rph_g9_cipo]
 set_multicycle_path [expr {$rph_spi0_mulcycs - 1}] -hold  -end -from [get_ports rph_g9_cipo]
 ## R-Pi SPI1 - use same methodology as Arduino SPI
-set rph_spi1_mulcycs $ah_spi_mulcycs
+set rph_spi1_mulcycs $header_spi_mulcycs
 set_multicycle_path        $rph_spi1_mulcycs       -setup -start -to [get_ports {rph_g20_copi rph_g18 rph_g17 rph_g16_ce2}]
 set_multicycle_path [expr {$rph_spi1_mulcycs - 1}] -hold  -start -to [get_ports {rph_g20_copi rph_g18 rph_g17 rph_g16_ce2}]
 set_multicycle_path        $rph_spi1_mulcycs       -setup -end -from [get_ports rph_g19_cipo]
@@ -822,31 +887,32 @@ set_multicycle_path [expr {$rph_spi1_mulcycs - 1}] -hold  -end -from [get_ports 
 # UART RX and TX are run 16x faster than the baud rate.
 # Allow them to be captured or output over the course of half the a bit-period.
 # (Could maybe allow full bit-period, but prefer to keep timing less variable)
-set ser0_mulcycs 8
+set header_uart_mulcycs 8
+set ser0_mulcycs $header_uart_mulcycs
 set_multicycle_path        $ser0_mulcycs       -setup -from [get_ports ser0_rx]
 set_multicycle_path [expr {$ser0_mulcycs - 1}] -hold  -from [get_ports ser0_rx]
 set_multicycle_path        $ser0_mulcycs       -setup -to [get_ports ser0_tx]
 set_multicycle_path [expr {$ser0_mulcycs - 1}] -hold  -to [get_ports ser0_tx]
 ## UART 1 - use same methodology as UART 0
-set ser1_mulcycs $ser0_mulcycs
+set ser1_mulcycs $header_uart_mulcycs
 set_multicycle_path        $ser1_mulcycs       -setup -from [get_ports ser1_rx]
 set_multicycle_path [expr {$ser1_mulcycs - 1}] -hold  -from [get_ports ser1_rx]
 set_multicycle_path        $ser1_mulcycs       -setup -to [get_ports ser1_tx]
 set_multicycle_path [expr {$ser1_mulcycs - 1}] -hold  -to [get_ports ser1_tx]
 ## UART RS232 - use same methodology as UART 0
-set rs232_mulcycs $ser0_mulcycs
+set rs232_mulcycs $header_uart_mulcycs
 set_multicycle_path        $rs232_mulcycs       -setup -from [get_ports rs232_rx]
 set_multicycle_path [expr {$rs232_mulcycs - 1}] -hold  -from [get_ports rs232_rx]
 set_multicycle_path        $rs232_mulcycs       -setup -to [get_ports rs232_tx]
 set_multicycle_path [expr {$rs232_mulcycs - 1}] -hold  -to [get_ports rs232_tx]
 ## mikroBUS UART - use same methodology as UART 0
-set mb_ser_mulcycs $ser0_mulcycs
+set mb_ser_mulcycs $header_uart_mulcycs
 set_multicycle_path        $mb_ser_mulcycs       -setup -from [get_ports mb8]
 set_multicycle_path [expr {$mb_ser_mulcycs - 1}] -hold  -from [get_ports mb8]
 set_multicycle_path        $mb_ser_mulcycs       -setup -to [get_ports mb7]
 set_multicycle_path [expr {$mb_ser_mulcycs - 1}] -hold  -to [get_ports mb7]
 ## R-Pi Header UART - use same methodology as UART 0
-set rph_ser_mulcycs $ser0_mulcycs
+set rph_ser_mulcycs $header_uart_mulcycs
 set_multicycle_path        $rph_ser_mulcycs       -setup -from [get_ports rph_rxd0]
 set_multicycle_path [expr {$rph_ser_mulcycs - 1}] -hold  -from [get_ports rph_rxd0]
 set_multicycle_path        $rph_ser_mulcycs       -setup -to [get_ports rph_txd0]
@@ -860,66 +926,74 @@ set_multicycle_path [expr {$rph_ser_mulcycs - 1}] -hold  -to [get_ports rph_txd0
 # in units of system clock cycles.
 # Balance the desire to provide repeatable user-programable timing
 # against the desire to relax physical timing to help wider design QoR.
-set qwiic_ah_i2c_mulcycs 2
+set header_i2c_mulcycs 2
+set qwiic_ah_i2c_mulcycs $header_i2c_mulcycs
 set_multicycle_path        $qwiic_ah_i2c_mulcycs       -setup -from [get_ports {sda0 scl0}]
 set_multicycle_path [expr {$qwiic_ah_i2c_mulcycs - 1}] -hold  -from [get_ports {sda0 scl0}]
 set_multicycle_path        $qwiic_ah_i2c_mulcycs       -setup -to [get_ports {sda0 scl0}]
 set_multicycle_path [expr {$qwiic_ah_i2c_mulcycs - 1}] -hold  -to [get_ports {sda0 scl0}]
 ## QWIIC-only I2C - Use same methodology as the other QWIIC I2C
-set qwiic_only_i2c_mulcycs $qwiic_ah_i2c_mulcycs
+set qwiic_only_i2c_mulcycs $header_i2c_mulcycs
 set_multicycle_path        $qwiic_only_i2c_mulcycs       -setup -from [get_ports {sda1 scl1}]
 set_multicycle_path [expr {$qwiic_only_i2c_mulcycs - 1}] -hold  -from [get_ports {sda1 scl1}]
 set_multicycle_path        $qwiic_only_i2c_mulcycs       -setup -to [get_ports {sda1 scl1}]
 set_multicycle_path [expr {$qwiic_only_i2c_mulcycs - 1}] -hold  -to [get_ports {sda1 scl1}]
 ## mikroBUS I2C - use same methodology as the QWIIC I2C
-set mb_i2c_mulcycs $qwiic_ah_i2c_mulcycs
+set mb_i2c_mulcycs $header_i2c_mulcycs
 set_multicycle_path        $mb_i2c_mulcycs       -setup -from [get_ports {mb5 mb6}]
 set_multicycle_path [expr {$mb_i2c_mulcycs - 1}] -hold  -from [get_ports {mb5 mb6}]
 set_multicycle_path        $mb_i2c_mulcycs       -setup -to [get_ports {mb5 mb6}]
 set_multicycle_path [expr {$mb_i2c_mulcycs - 1}] -hold  -to [get_ports {mb5 mb6}]
 ## R-Pi Header I2C/GPIO - use same methodology as the QWIIC I2C
-set rph_i2c_mulcycs $qwiic_ah_i2c_mulcycs
+set rph_i2c_mulcycs $header_i2c_mulcycs
 set_multicycle_path        $rph_i2c_mulcycs       -setup -from [get_ports {rph_g2_sda rph_g3_scl}]
 set_multicycle_path [expr {$rph_i2c_mulcycs - 1}] -hold  -from [get_ports {rph_g2_sda rph_g3_scl}]
 set_multicycle_path        $rph_i2c_mulcycs       -setup -to [get_ports {rph_g2_sda rph_g3_scl}]
 set_multicycle_path [expr {$rph_i2c_mulcycs - 1}] -hold  -to [get_ports {rph_g2_sda rph_g3_scl}]
 ## R-Pi Hat ID EEPROM I2C - use same methodology as the QWIIC I2C
-set rph_id_mulcycs $qwiic_ah_i2c_mulcycs
+set rph_id_mulcycs $header_i2c_mulcycs
 set_multicycle_path        $rph_id_mulcycs       -setup -from [get_ports {rph_g1 rph_g0}]
 set_multicycle_path [expr {$rph_id_mulcycs - 1}] -hold  -from [get_ports {rph_g1 rph_g0}]
 set_multicycle_path        $rph_id_mulcycs       -setup -to [get_ports {rph_g1 rph_g0}]
 set_multicycle_path [expr {$rph_id_mulcycs - 1}] -hold  -to [get_ports {rph_g1 rph_g0}]
 
-## PMOD 0 - asynchronous GPIO
+## PMOD 0 GPIO
 # Could be human-scale or processor-scale (bit-bashing) time periods.
 # May be possible for some TLUL host to read or write at full system clock
 # speed, but unlikely to be reliable.
 # Allow two cycles so that known high-speed ports get place & route priority.
-set pmod0_mulcycs 2
-set_multicycle_path        $pmod0_mulcycs       -setup -from [get_ports {pmod0[*]}]
-set_multicycle_path [expr {$pmod0_mulcycs - 1}] -hold  -from [get_ports {pmod0[*]}]
-set_multicycle_path        $pmod0_mulcycs       -setup -to [get_ports {pmod0[*]}]
-set_multicycle_path [expr {$pmod0_mulcycs - 1}] -hold  -to [get_ports {pmod0[*]}]
-## PMOD 1 - use same methodology as PMOD 0
-set pmod1_mulcycs $pmod0_mulcycs
-set_multicycle_path        $pmod1_mulcycs       -setup -from [get_ports {pmod1[*]}]
-set_multicycle_path [expr {$pmod1_mulcycs - 1}] -hold  -from [get_ports {pmod1[*]}]
-set_multicycle_path        $pmod1_mulcycs       -setup -to [get_ports {pmod1[*]}]
-set_multicycle_path [expr {$pmod1_mulcycs - 1}] -hold  -to [get_ports {pmod1[*]}]
-## mikroBUS GPIO - use same methodology as PMOD 0
-set mb_gpio_mulcycs $pmod0_mulcycs
+set header_gpio_mulcycs 2
+set pmod0_gpio_mulcycs $header_gpio_mulcycs
+set_multicycle_path        $pmod0_gpio_mulcycs       -setup -from [get_ports $pmod0_gpio_names]
+set_multicycle_path [expr {$pmod0_gpio_mulcycs - 1}] -hold  -from [get_ports $pmod0_gpio_names]
+set_multicycle_path        $pmod0_gpio_mulcycs       -setup -to [get_ports $pmod0_gpio_names]
+set_multicycle_path [expr {$pmod0_gpio_mulcycs - 1}] -hold  -to [get_ports $pmod0_gpio_names]
+## PMOD 1 GPIO - use same methodology as PMOD 0 GPIO
+set pmod1_gpio_mulcycs $header_gpio_mulcycs
+set_multicycle_path        $pmod1_gpio_mulcycs       -setup -from [get_ports $pmod1_gpio_names]
+set_multicycle_path [expr {$pmod1_gpio_mulcycs - 1}] -hold  -from [get_ports $pmod1_gpio_names]
+set_multicycle_path        $pmod1_gpio_mulcycs       -setup -to [get_ports $pmod1_gpio_names]
+set_multicycle_path [expr {$pmod1_gpio_mulcycs - 1}] -hold  -to [get_ports $pmod1_gpio_names]
+## PMOD C - use same methodology as PMOD 0 GPIO
+set pmodc_mulcycs $header_gpio_mulcycs
+set_multicycle_path        $pmodc_mulcycs       -setup -from [get_ports {pmodc[*]}]
+set_multicycle_path [expr {$pmodc_mulcycs - 1}] -hold  -from [get_ports {pmodc[*]}]
+set_multicycle_path        $pmodc_mulcycs       -setup -to [get_ports {pmodc[*]}]
+set_multicycle_path [expr {$pmodc_mulcycs - 1}] -hold  -to [get_ports {pmodc[*]}]
+## mikroBUS GPIO - use same methodology as PMOD 0 GPIO
+set mb_gpio_mulcycs $header_gpio_mulcycs
 set_multicycle_path        $mb_gpio_mulcycs       -setup -from [get_ports mb9] ;# Interrupt input
 set_multicycle_path [expr {$mb_gpio_mulcycs - 1}] -hold  -from [get_ports mb9]
 set_multicycle_path        $mb_gpio_mulcycs       -setup -to [get_ports mb0] ;# Reset output
 set_multicycle_path [expr {$mb_gpio_mulcycs - 1}] -hold  -to [get_ports mb0]
-## R-Pi Header GPIO - use same methodology as PMOD 0
-set rph_gpio_mulcycs $pmod0_mulcycs
+## R-Pi Header GPIO - use same methodology as PMOD 0 GPIO
+set rph_gpio_mulcycs $header_gpio_mulcycs
 set_multicycle_path        $rph_gpio_mulcycs       -setup -from [get_ports $rph_gpio_names]
 set_multicycle_path [expr {$rph_gpio_mulcycs - 1}] -hold  -from [get_ports $rph_gpio_names]
 set_multicycle_path        $rph_gpio_mulcycs       -setup -to [get_ports $rph_gpio_names]
 set_multicycle_path [expr {$rph_gpio_mulcycs - 1}] -hold  -to [get_ports $rph_gpio_names]
-## Arduino Shield GPIO - use same methodology as PMOD 0
-set ah_gpio_mulcycs $pmod0_mulcycs
+## Arduino Shield GPIO - use same methodology as PMOD 0 GPIO
+set ah_gpio_mulcycs $header_gpio_mulcycs
 set_multicycle_path        $ah_gpio_mulcycs       -setup -from [get_ports $ah_gpio_names]
 set_multicycle_path [expr {$ah_gpio_mulcycs - 1}] -hold  -from [get_ports $ah_gpio_names]
 set_multicycle_path        $ah_gpio_mulcycs       -setup -to [get_ports $ah_gpio_names]
