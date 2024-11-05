@@ -825,7 +825,7 @@ module sonata_system
     .scramble_nonce_i       ('0),
     .scramble_req_o         (  ),
 
-    .debug_req_i            (),
+    .debug_req_i            (1'b0),
     .crash_dump_o           (),
     .double_fault_seen_o    (),
 
@@ -1117,7 +1117,7 @@ module sonata_system
 
     // SPI signals.
     .spi_copi_o          (lcd_copi_o),
-    .spi_cipo_i          (),
+    .spi_cipo_i          (1'b1),
     .spi_cs_o            ({lcd_rst_o, lcd_dc_o, lcd_cs_o}),
     .spi_clk_o           (lcd_sclk_o)
   );
