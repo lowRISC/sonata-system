@@ -172,7 +172,7 @@ module sonata_system
   // Each IP block has a single interrupt line to the PLIC and software shall consult the intr_state
   // register within the block itself to identify the interrupt source(s).
   logic [I2C_NUM-1:0]  i2c_irq;
-  logic [SPI_NUM-1:0]  spi_irq;
+  logic [SPI_NUM+2:0]  spi_irq;
   logic [UART_NUM-1:0] uart_irq;
   logic                usbdev_irq;
 
@@ -185,8 +185,9 @@ module sonata_system
     for (int i = 0; i < I2C_NUM; i++) begin
       i2c_irq[i] = |i2c_interrupts[i];
     end
-    // Single interrupt line per SPI controller.
-    for (int i = 0; i < SPI_NUM; i++) begin
+    // Single interrupt line per SPI controller; there are 3 dedicated SPI controllers
+    // for the on-board peripherals.
+    for (int i = 0; i < SPI_NUM + 3; i++) begin
       spi_irq[i] = |spi_interrupts[i];
     end
     // Single interrupt line for USBDEV.
@@ -195,8 +196,8 @@ module sonata_system
 
   logic [31:0] intr_vector;
 
-  assign intr_vector[31 : SPI_NUM + 24] = 'b0;      // Support up to 8 SPI controllers.
-  assign intr_vector[SPI_NUM + 23 : 24] = spi_irq;
+  assign intr_vector[31 : SPI_NUM + 27] = 'b0;      // Support up to 8 SPI controllers.
+  assign intr_vector[SPI_NUM + 26 : 24] = spi_irq;
   assign intr_vector[23 : I2C_NUM + 16] = 'b0;      // Support up to 8 I2C blocks.
   assign intr_vector[I2C_NUM + 15 : 16] = i2c_irq;
   assign intr_vector[15 : UART_NUM + 8] = 'b0;
