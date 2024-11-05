@@ -7,7 +7,9 @@
 #include "dev_access.h"
 #include "sonata_system.h"
 
-#define NUM_IRQS 182
+#define NUM_IRQS 32
+
+#define I2C0_INTERRUPT 16
 
 #define RV_PLIC_IRQ_PRIO_BASE_REG 0x000000
 #define RV_PLIC_IRQ_PENDING_BASE_REG 0x001000
@@ -43,8 +45,8 @@ void rv_plic_init(void) {
   // Set priority threshold to 0 so IRQs can trigger with any non-zero priority.
   DEV_WRITE(RV_PLIC_BASE + RV_PLIC_CTX_THRESHOLD_REG, 0);
 
-  install_exception_handler(11, rv_plic_handler);
-  enable_interrupts(1 << 11);
+  install_exception_handler(I2C0_INTERRUPT, rv_plic_handler);
+  enable_interrupts(1 << I2C0_INTERRUPT);
   arch_local_irq_enable();
 }
 
