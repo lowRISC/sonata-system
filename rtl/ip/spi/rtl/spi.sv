@@ -159,12 +159,12 @@ module spi import spi_reg_pkg::*; #(
   // Status-type FIFO-related interrupts.
   logic rx_fifo_ge_watermark, tx_fifo_empty, tx_fifo_le_watermark;
   assign tx_fifo_empty = ~|tx_fifo_depth;
-  // Tx FIFO level at or above programmed watermark (1,2,4,8,16,32,56)
+  // Rx FIFO level at or above programmed watermark (1,2,4,8,16,32,56)
   always_comb begin
     if (reg2hw.control.rx_watermark.q == 4'h6) rx_fifo_ge_watermark = (rx_fifo_depth_w >= 8'd56);
     else rx_fifo_ge_watermark = |(rx_fifo_depth_w >> reg2hw.control.rx_watermark.q);
   end
-  // Rx FIFO level at or below programmed watermark (1,2,4,8,16)
+  // Tx FIFO level at or below programmed watermark (1,2,4,8,16)
   assign tx_fifo_le_watermark = (tx_fifo_depth_w == (8'h1 << reg2hw.control.tx_watermark.q)) ||
                               ~|(tx_fifo_depth_w >> reg2hw.control.tx_watermark.q);
 
