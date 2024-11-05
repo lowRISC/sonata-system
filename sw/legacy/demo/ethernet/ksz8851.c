@@ -13,12 +13,11 @@
 #include "spi.h"
 #include "timer.h"
 
-enum {
-  // IRQ
-  EthIntrIrq = 47,
+#define ETHERNET_INTERRUPT_INDEX 2
 
-  // GPIO Output
-  EthRstPin = 14,
+enum {
+  // CS line 1 on SPI controler.
+  EthRstPin = 1,
 
   // CS line 0 on SPI controller.
   EthCsLine = 0,
@@ -303,9 +302,9 @@ err_t ksz8851_init(struct netif *netif) {
   if (!spi) return ERR_ARG;
 
   // Reset chip
-  set_output_bit(GPIO_OUT, EthRstPin, 0);
+  spi_set_cs(spi, EthRstPin, 0);
   timer_delay(150);
-  set_output_bit(GPIO_OUT, EthRstPin, 0x1);
+  spi_set_cs(spi, EthRstPin, 1);
 
   uint16_t cider = ksz8851_reg_read(spi, ETH_CIDER);
   putstr("KSZ8851: Chip ID is ");
@@ -380,8 +379,8 @@ err_t ksz8851_init(struct netif *netif) {
 
   // Initialize IRQ
   eth_netif = netif;
-  rv_plic_register_irq(EthIntrIrq, ksz8851_irq_handler);
-  rv_plic_enable(EthIntrIrq);
+  rv_plic_register_irq(ETHERNET_INTERRUPT_INDEX, ksz8851_irq_handler);
+  rv_plic_enable(ETHERNET_INTERRUPT_INDEX);
 
   puts("KSZ8851: Initialized");
   return ERR_OK;
