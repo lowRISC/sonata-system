@@ -261,10 +261,7 @@ module top_sonata
   logic [23:0] unused_gp_o;
 
   wire spi_board_copi;
-  wire spi_board_cipo;
   wire spi_board_sclk;
-
-  assign spi_board_cipo = &{appspi_d1, microsd_dat0};
 
   assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
   assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
@@ -317,7 +314,8 @@ module top_sonata
 
     // Non-pinmuxed spi devices
     .spi_board_copi_o        (spi_board_copi),
-    .spi_board_cipo_i        (spi_board_cipo),
+    .spi_board_flash_cipo_i  (appspi_d1),
+    .spi_board_microsd_cipo_i(microsd_dat0),
     .spi_board_sclk_o        (spi_board_sclk),
     .spi_board_flash_cs_o    (appspi_cs),
     .spi_board_microsd_cs_o  (microsd_dat3),

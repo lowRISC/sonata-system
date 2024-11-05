@@ -116,6 +116,14 @@ module top_verilator (input logic clk_i, rst_ni);
   wire appspi_d3; // HOLD_N or RESET_N
   wire appspi_cs; // Chip select negated
 
+  // microSD card interface.
+  // Note: no DPI model presently.
+  wire microsd_clk;
+  wire microsd_dat0 = 1'b1; // SPI mode: CIPO
+  wire microsd_dat3; // SPI mode: CS_N
+  wire microsd_cmd;  // SPI mode: COPI
+  wire microsd_det = 1'b1; // pulled high to indicate the _absence_ of a microSD card.
+
   // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
   assign appspi_d2 = 1'b1;
   assign appspi_d3 = 1'b1;
@@ -138,12 +146,10 @@ module top_verilator (input logic clk_i, rst_ni);
   wire rph_g18, rph_g17, rph_g16_ce2, rph_g8_ce0, rph_g7_ce1;
   // User LEDs.
   wire [7:0] usrLed;
-  // MicroSD card slot
-  wire microsd_dat3;
   // None of these signals is used presently.
   wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
-                      usrLed, microsd_dat3};
+                      usrLed, microsd_clk, microsd_cmd, microsd_dat3};
 
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
@@ -283,8 +289,12 @@ module top_verilator (input logic clk_i, rst_ni);
   wire [4:0] nav_sw_n = '0;
   wire [7:0] user_sw_n = '0;
   wire [2:0] sel_sw_n = '0;
-  wire microsd_det = 1'b1; // pulled high to indicate the _absence_ of a microSD card.
 
+  wire spi_board_copi;
+  wire spi_board_sclk;
+
+  assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
+  assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
 
   // Instantiating the Sonata System.
   sonata_system #(
@@ -328,9 +338,10 @@ module top_verilator (input logic clk_i, rst_ni);
 
 
     // Non-pinmuxed spi devices
-    .spi_board_copi_o        (appspi_d0),
-    .spi_board_cipo_i        (appspi_d1),
-    .spi_board_sclk_o        (appspi_clk),
+    .spi_board_copi_o        (spi_board_copi),
+    .spi_board_flash_cipo_i  (appspi_d1),
+    .spi_board_microsd_cipo_i(microsd_dat0),
+    .spi_board_sclk_o        (spi_board_sclk),
     .spi_board_flash_cs_o    (appspi_cs),
     .spi_board_microsd_cs_o  (microsd_dat3),
 

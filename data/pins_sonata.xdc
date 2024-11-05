@@ -291,6 +291,7 @@ set_property -dict { PACKAGE_PIN C10 IOSTANDARD LVCMOS33 } [get_ports appspi_d1]
 set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS33 } [get_ports appspi_d2]
 set_property -dict { PACKAGE_PIN A9  IOSTANDARD LVCMOS33 } [get_ports appspi_d3]
 set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports appspi_cs]
+set_property PULLTYPE PULLUP [get_ports appspi_d1]
 
 ## Ethernet MAC
 set_property -dict { PACKAGE_PIN J5  IOSTANDARD LVCMOS18 } [get_ports ethmac_rst]

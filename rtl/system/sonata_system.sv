@@ -42,7 +42,8 @@ module sonata_system
 
   // Non-pinmuxed spi devices
   output logic                     spi_board_copi_o,
-  input  logic                     spi_board_cipo_i,
+  input  logic                     spi_board_flash_cipo_i,
+  input  logic                     spi_board_microsd_cipo_i,
   output logic                     spi_board_sclk_o,
   output logic                     spi_board_flash_cs_o,
   output logic                     spi_board_microsd_cs_o,
@@ -1069,6 +1070,11 @@ module sonata_system
     .intr_av_setup_empty_o        (usbdev_interrupts[17])
   );
 
+  // Combine the CIPO lines from the Flash memory and the microSD card to the
+  // first dedicated SPI controller; CIPO line should only be driven by the
+  // peripheral whilst the corresponding Chip Select line is asserted, active low.
+  wire spi_board_cipo = &{spi_board_microsd_cipo_i | spi_board_microsd_cs_o,
+                          spi_board_flash_cipo_i   | spi_board_flash_cs_o};
 
   // Dedicated Spi Controllers
   // - Flash memory & microSD
@@ -1093,7 +1099,7 @@ module sonata_system
 
     // SPI signals.
     .spi_copi_o          (spi_board_copi_o),
-    .spi_cipo_i          (spi_board_cipo_i),
+    .spi_cipo_i          (spi_board_cipo),
     .spi_cs_o            ({spi_board_microsd_cs_o, spi_board_flash_cs_o}),
     .spi_clk_o           (spi_board_sclk_o)
   );
