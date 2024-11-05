@@ -14,8 +14,6 @@
  */
 #define SIMULATION 0
 
-#define USE_GPIO_SHIFT_REG 0
-
 static const bool dual_uart = true;
 static uart_t uart0, uart1;
 
@@ -70,7 +68,7 @@ int main(void) {
   uint64_t last_elapsed_time = get_elapsed_time();
 
   // Reset user LEDs to having just one on
-  set_outputs(GPIO_OUT, 0x10);  // Bottom 4 bits are LCD control as you can see in top_sonata.sv
+  set_outputs(GPIO_OUT, 0x01);
 
   // PWM variables
   uint32_t counter    = UINT8_MAX;
@@ -99,19 +97,13 @@ int main(void) {
       // Re-enable interrupts with output complete
       arch_local_irq_enable();
 
-      // Cycling through green LEDs
-      if (USE_GPIO_SHIFT_REG) {
-        // Feed value of BTN0 into the shift register
-        set_outputs(GPIO_OUT_SHIFT, in_val);
-      } else {
-        // Cycle through LEDs unless BTN0 is pressed
-        uint32_t out_val = read_gpio(GPIO_OUT);
-        out_val          = (out_val << 1) & GPIO_LED_MASK;
-        if ((in_val & 0x1) || (out_val == 0)) {
-          out_val = 0x10;
-        }
-        set_outputs(GPIO_OUT, out_val);
+      // Cycle through LEDs
+      uint32_t out_val = read_gpio(GPIO_OUT);
+      out_val          = (out_val << 1) & GPIO_LED_MASK;
+      if ((in_val & (1u << 9)) || (out_val == 0)) {
+        out_val = 0x1;
       }
+      set_outputs(GPIO_OUT, out_val);
 
       // Going from bright to dim on PWM
       for (int i = 0; i < NUM_PWM_MODULES; i++) {
