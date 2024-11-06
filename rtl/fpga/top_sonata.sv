@@ -260,15 +260,6 @@ module top_sonata
   logic rgbled_dout;
   logic [23:0] unused_gp_o;
 
-  wire spi_board_copi;
-  wire spi_board_cipo;
-  wire spi_board_sclk;
-
-  assign spi_board_cipo = &{appspi_d1, microsd_dat0};
-
-  assign {appspi_d0,   appspi_clk}   = {spi_board_copi, spi_board_sclk};
-  assign {microsd_cmd, microsd_clk}  = {spi_board_copi, spi_board_sclk};
-
   // RS-485 outputs go through the 'rs485_ctrl' module before being output. These signals come
   // directly from sonata_system and are fed into the delay module which connects to the actual
   // outputs.
@@ -316,12 +307,6 @@ module top_sonata
     .ard_an_n_i     (ard_an_n),
 
     // Non-pinmuxed spi devices
-    .spi_board_copi_o        (spi_board_copi),
-    .spi_board_cipo_i        (spi_board_cipo),
-    .spi_board_sclk_o        (spi_board_sclk),
-    .spi_board_flash_cs_o    (appspi_cs),
-    .spi_board_microsd_cs_o  (microsd_dat3),
-
     .lcd_copi_o              (lcd_copi),
     .lcd_sclk_o              (lcd_clk),
     .lcd_cs_o                (lcd_cs),
@@ -437,6 +422,8 @@ module top_sonata
   assign in_from_pins[IN_PIN_RS485_RX    ] = rs485_rx;
   assign in_from_pins[IN_PIN_SER1_RX     ] = ser1_rx;
   assign in_from_pins[IN_PIN_SER0_RX     ] = ser0_rx;
+  assign in_from_pins[IN_PIN_APPSPI_D1   ] = appspi_d1;
+  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
 
   assign mb10         = out_to_pins[OUT_PIN_MB10        ];
   assign mb7          = out_to_pins[OUT_PIN_MB7         ];
@@ -447,6 +434,12 @@ module top_sonata
   assign rs485_tx     = out_to_pins[OUT_PIN_RS485_TX    ];
   assign ser1_tx      = out_to_pins[OUT_PIN_SER1_TX     ];
   assign ser0_tx      = out_to_pins[OUT_PIN_SER0_TX     ];
+  assign appspi_d0    = out_to_pins[OUT_PIN_APPSPI_D0   ];
+  assign appspi_clk   = out_to_pins[OUT_PIN_APPSPI_CLK  ];
+  assign appspi_cs    = out_to_pins[OUT_PIN_APPSPI_CS   ];
+  assign microsd_cmd  = out_to_pins[OUT_PIN_MICROSD_CMD ];
+  assign microsd_clk  = out_to_pins[OUT_PIN_MICROSD_CLK ];
+  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
 
   // Inout Pins
   padring #(

@@ -19,7 +19,6 @@
 //     -> hw_rev
 //     -> xadc
 //     -> timer
-//     -> spi_board
 //     -> spi_lcd
 //     -> spi_ethmac
 //     -> pwm0
@@ -30,6 +29,7 @@
 //     -> i2c1
 //     -> spi0
 //     -> spi1
+//     -> spi2
 //     -> asf_27
 //       -> usbdev
 //     -> rv_plic
@@ -70,8 +70,6 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_system_info_i,
   output tlul_pkg::tl_h2d_t tl_timer_o,
   input  tlul_pkg::tl_d2h_t tl_timer_i,
-  output tlul_pkg::tl_h2d_t tl_spi_board_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_board_i,
   output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
   input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
   output tlul_pkg::tl_h2d_t tl_spi_ethmac_o,
@@ -92,6 +90,8 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_spi0_i,
   output tlul_pkg::tl_h2d_t tl_spi1_o,
   input  tlul_pkg::tl_d2h_t tl_spi1_i,
+  output tlul_pkg::tl_h2d_t tl_spi2_o,
+  input  tlul_pkg::tl_d2h_t tl_spi2_i,
   output tlul_pkg::tl_h2d_t tl_usbdev_o,
   input  tlul_pkg::tl_d2h_t tl_usbdev_i,
   output tlul_pkg::tl_h2d_t tl_rv_plic_o,
@@ -162,38 +162,38 @@ module xbar_main (
   assign tl_timer_o = tl_s1n_25_ds_h2d[9];
   assign tl_s1n_25_ds_d2h[9] = tl_timer_i;
 
-  assign tl_spi_board_o = tl_s1n_25_ds_h2d[10];
-  assign tl_s1n_25_ds_d2h[10] = tl_spi_board_i;
+  assign tl_spi_lcd_o = tl_s1n_25_ds_h2d[10];
+  assign tl_s1n_25_ds_d2h[10] = tl_spi_lcd_i;
 
-  assign tl_spi_lcd_o = tl_s1n_25_ds_h2d[11];
-  assign tl_s1n_25_ds_d2h[11] = tl_spi_lcd_i;
+  assign tl_spi_ethmac_o = tl_s1n_25_ds_h2d[11];
+  assign tl_s1n_25_ds_d2h[11] = tl_spi_ethmac_i;
 
-  assign tl_spi_ethmac_o = tl_s1n_25_ds_h2d[12];
-  assign tl_s1n_25_ds_d2h[12] = tl_spi_ethmac_i;
+  assign tl_pwm0_o = tl_s1n_25_ds_h2d[12];
+  assign tl_s1n_25_ds_d2h[12] = tl_pwm0_i;
 
-  assign tl_pwm0_o = tl_s1n_25_ds_h2d[13];
-  assign tl_s1n_25_ds_d2h[13] = tl_pwm0_i;
+  assign tl_uart0_o = tl_s1n_25_ds_h2d[13];
+  assign tl_s1n_25_ds_d2h[13] = tl_uart0_i;
 
-  assign tl_uart0_o = tl_s1n_25_ds_h2d[14];
-  assign tl_s1n_25_ds_d2h[14] = tl_uart0_i;
+  assign tl_uart1_o = tl_s1n_25_ds_h2d[14];
+  assign tl_s1n_25_ds_d2h[14] = tl_uart1_i;
 
-  assign tl_uart1_o = tl_s1n_25_ds_h2d[15];
-  assign tl_s1n_25_ds_d2h[15] = tl_uart1_i;
+  assign tl_uart2_o = tl_s1n_25_ds_h2d[15];
+  assign tl_s1n_25_ds_d2h[15] = tl_uart2_i;
 
-  assign tl_uart2_o = tl_s1n_25_ds_h2d[16];
-  assign tl_s1n_25_ds_d2h[16] = tl_uart2_i;
+  assign tl_i2c0_o = tl_s1n_25_ds_h2d[16];
+  assign tl_s1n_25_ds_d2h[16] = tl_i2c0_i;
 
-  assign tl_i2c0_o = tl_s1n_25_ds_h2d[17];
-  assign tl_s1n_25_ds_d2h[17] = tl_i2c0_i;
+  assign tl_i2c1_o = tl_s1n_25_ds_h2d[17];
+  assign tl_s1n_25_ds_d2h[17] = tl_i2c1_i;
 
-  assign tl_i2c1_o = tl_s1n_25_ds_h2d[18];
-  assign tl_s1n_25_ds_d2h[18] = tl_i2c1_i;
+  assign tl_spi0_o = tl_s1n_25_ds_h2d[18];
+  assign tl_s1n_25_ds_d2h[18] = tl_spi0_i;
 
-  assign tl_spi0_o = tl_s1n_25_ds_h2d[19];
-  assign tl_s1n_25_ds_d2h[19] = tl_spi0_i;
+  assign tl_spi1_o = tl_s1n_25_ds_h2d[19];
+  assign tl_s1n_25_ds_d2h[19] = tl_spi1_i;
 
-  assign tl_spi1_o = tl_s1n_25_ds_h2d[20];
-  assign tl_s1n_25_ds_d2h[20] = tl_spi1_i;
+  assign tl_spi2_o = tl_s1n_25_ds_h2d[20];
+  assign tl_s1n_25_ds_d2h[20] = tl_spi2_i;
 
   assign tl_asf_27_us_h2d = tl_s1n_25_ds_h2d[21];
   assign tl_s1n_25_ds_d2h[21] = tl_asf_27_us_d2h;
@@ -257,47 +257,47 @@ module xbar_main (
       dev_sel_s1n_25 = 5'd9;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_BOARD)) == ADDR_SPACE_SPI_BOARD) begin
+                  ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
       dev_sel_s1n_25 = 5'd10;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
+                  ~(ADDR_MASK_SPI_ETHMAC)) == ADDR_SPACE_SPI_ETHMAC) begin
       dev_sel_s1n_25 = 5'd11;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_ETHMAC)) == ADDR_SPACE_SPI_ETHMAC) begin
+                  ~(ADDR_MASK_PWM0)) == ADDR_SPACE_PWM0) begin
       dev_sel_s1n_25 = 5'd12;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_PWM0)) == ADDR_SPACE_PWM0) begin
+                  ~(ADDR_MASK_UART0)) == ADDR_SPACE_UART0) begin
       dev_sel_s1n_25 = 5'd13;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_UART0)) == ADDR_SPACE_UART0) begin
+                  ~(ADDR_MASK_UART1)) == ADDR_SPACE_UART1) begin
       dev_sel_s1n_25 = 5'd14;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_UART1)) == ADDR_SPACE_UART1) begin
+                  ~(ADDR_MASK_UART2)) == ADDR_SPACE_UART2) begin
       dev_sel_s1n_25 = 5'd15;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_UART2)) == ADDR_SPACE_UART2) begin
+                  ~(ADDR_MASK_I2C0)) == ADDR_SPACE_I2C0) begin
       dev_sel_s1n_25 = 5'd16;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_I2C0)) == ADDR_SPACE_I2C0) begin
+                  ~(ADDR_MASK_I2C1)) == ADDR_SPACE_I2C1) begin
       dev_sel_s1n_25 = 5'd17;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_I2C1)) == ADDR_SPACE_I2C1) begin
+                  ~(ADDR_MASK_SPI0)) == ADDR_SPACE_SPI0) begin
       dev_sel_s1n_25 = 5'd18;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI0)) == ADDR_SPACE_SPI0) begin
+                  ~(ADDR_MASK_SPI1)) == ADDR_SPACE_SPI1) begin
       dev_sel_s1n_25 = 5'd19;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI1)) == ADDR_SPACE_SPI1) begin
+                  ~(ADDR_MASK_SPI2)) == ADDR_SPACE_SPI2) begin
       dev_sel_s1n_25 = 5'd20;
 
     end else if ((tl_s1n_25_us_h2d.a_address &
@@ -315,10 +315,10 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqPass  (23'h381ea7),
-    .DRspPass  (23'h381ea7),
-    .DReqDepth (92'h10001111110000101011000),
-    .DRspDepth (92'h10001111110000101011000),
+    .DReqPass  (23'h3c0ea7),
+    .DRspPass  (23'h3c0ea7),
+    .DReqDepth (92'h10000111111000101011000),
+    .DRspDepth (92'h10000111111000101011000),
     .N         (23)
   ) u_s1n_25 (
     .clk_i        (clk_sys_i),
