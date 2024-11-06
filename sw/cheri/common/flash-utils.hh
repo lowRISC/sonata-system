@@ -8,9 +8,8 @@
 #include <cheri.hh>
 #include <platform-spi.hh>
 
+#include "sonata-devices.hh"
 #include "timer-utils.hh"
-
-typedef CHERI::Capability<volatile SonataSpi> &SpiRef;
 
 static const uint8_t CmdEnableReset         = 0x66;
 static const uint8_t CmdReset               = 0x99;
@@ -26,12 +25,12 @@ static const uint8_t CmdReadData4Addr       = 0x13;
 
 class SpiFlash {
  private:
-  SpiRef spi;
+  SpiPtr spi;
 
   void set_cs(bool enable) { spi->cs = enable ? (spi->cs & ~1u) : (spi->cs | 1u); }
 
  public:
-  SpiFlash(SpiRef spi_) : spi(spi_) {}
+  SpiFlash(SpiPtr spi_) : spi(spi_) {}
 
   void reset() {
     set_cs(true);

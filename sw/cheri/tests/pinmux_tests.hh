@@ -125,18 +125,18 @@ static void reset_spi_flash(SpiPtr spi) {
  * Returns the number of failures during the test.
  */
 static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
-  constexpr uint8_t PmxPmod1Io1ToSpi1Cs   = 2;
-  constexpr uint8_t PmxPmod1Io2ToSpi1Copi = 2;
-  constexpr uint8_t PmxPmod1Io4ToSpi1Sclk = 2;
-  constexpr uint8_t PmxSpi1CipoToPmod1Io3 = 3;
+  constexpr uint8_t PmxPmod1Io1ToSpi2Cs   = 2;
+  constexpr uint8_t PmxPmod1Io2ToSpi2Copi = 2;
+  constexpr uint8_t PmxPmod1Io4ToSpi2Sclk = 2;
+  constexpr uint8_t PmxSpi2CipoToPmod1Io3 = 3;
 
   int failures = 0;
 
   // Ensure the SPI Flash pins are enabled using Pinmux
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi1Cs);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_1_cipo, PmxSpi1CipoToPmod1Io3);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi1Copi);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi1Sclk);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
+  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxSpi2CipoToPmod1Io3);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi2Copi);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi2Sclk);
 
   // Configure the SPI to be MSB-first.
   spi->wait_idle();
@@ -149,7 +149,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
   // Disable the SPI Flash pins through pinmux
   spi->wait_idle();
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxToDisabled);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_1_cipo, PmxToDisabled);
+  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxToDisabled);
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxToDisabled);
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxToDisabled);
   reset_spi_flash(spi);
@@ -159,10 +159,10 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Re-enable the SPI Flash pins through pinmux
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi1Cs);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_1_cipo, PmxSpi1CipoToPmod1Io3);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi1Copi);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi1Sclk);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
+  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxSpi2CipoToPmod1Io3);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi2Copi);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi2Sclk);
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test one more time; it should pass.
@@ -178,7 +178,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Re-enable the Chip Select through Pinmux.
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi1Cs);
+  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test again; it should pass.
@@ -186,7 +186,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Reset muxed pins to not interfere with future tests
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_1_cipo, PmxToDefault);
+  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxToDefault);
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxToDefault);
   failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxToDefault);
 

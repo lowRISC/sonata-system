@@ -146,9 +146,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
   uart.address()                                 = UART_ADDRESS;
   uart.bounds()                                  = UART_BOUNDS;
 
-  CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
-  spi.address()                             = SPI_ADDRESS;
-  spi.bounds()                              = SPI_BOUNDS;
+  SpiPtr spi = spi_ptr(root, 2);
 
   CHERI::Capability<volatile SonataGPIO> gpio = root.cast<volatile SonataGPIO>();
   gpio.address()                              = GPIO_ADDRESS;
