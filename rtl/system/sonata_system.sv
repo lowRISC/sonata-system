@@ -116,7 +116,9 @@ module sonata_system
   localparam int unsigned BusByteEnable = 4;
   localparam int unsigned BusDataWidth  = 32;
   localparam int unsigned RegAddrWidth  = 8;
-  localparam int unsigned TRegAddrWidth = 16;  // Timer uses more address bits.
+  localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
+  localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
+  localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
 
   // The number of data bits controlled by each mask bit; since the CPU requires
   // only byte level access, explicitly grouping the data bits makes the inferred
@@ -157,7 +159,7 @@ module sonata_system
   logic external_irq;
 
   logic [I2cIrqs-1:0]    i2c_interrupts [I2C_NUM];
-  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM + 2];
+  logic [SpiIrqs-1:0]    spi_interrupts [TotalSpiNum];
   logic [UartIrqs-1:0]   uart_interrupts[UART_NUM];
   logic [UsbdevIrqs-1:0] usbdev_interrupts;
 
@@ -166,7 +168,7 @@ module sonata_system
   // Each IP block has a single interrupt line to the PLIC and software shall consult the intr_state
   // register within the block itself to identify the interrupt source(s).
   logic [I2C_NUM-1:0]  i2c_irq;
-  logic [SPI_NUM+1:0]  spi_irq;
+  logic [TotalSpiNum-1:0]  spi_irq;
   logic [UART_NUM-1:0] uart_irq;
   logic                usbdev_irq;
 
@@ -181,7 +183,7 @@ module sonata_system
     end
     // Single interrupt line per SPI controller; there are 2 dedicated SPI controllers
     // for the on-board peripherals.
-    for (int i = 0; i < SPI_NUM + 2; i++) begin
+    for (int i = 0; i < TotalSpiNum; i++) begin
       spi_irq[i] = |spi_interrupts[i];
     end
     // Single interrupt line for USBDEV.
@@ -190,8 +192,8 @@ module sonata_system
 
   logic [31:0] intr_vector;
 
-  assign intr_vector[31               : 24 + SPI_NUM + 2] = 'b0;      // Support up to 8 SPI controllers.
-  assign intr_vector[23 + SPI_NUM + 2 : 24              ] = spi_irq;
+  assign intr_vector[31               : 24 + TotalSpiNum] = 'b0;      // Support up to 8 SPI controllers.
+  assign intr_vector[23 + TotalSpiNum : 24              ] = spi_irq;
   assign intr_vector[23               : 16 + I2C_NUM    ] = 'b0;      // Support up to 8 I2C blocks.
   assign intr_vector[15 + I2C_NUM     : 16              ] = i2c_irq;
   assign intr_vector[15               :  8 + UART_NUM   ] = 'b0;
@@ -1130,11 +1132,11 @@ module sonata_system
       .tl_o                (tl_spi_d2h[i]),
 
       // Interrupts currently disconnected.
-      .intr_rx_full_o      (spi_interrupts[i + 2][0]),
-      .intr_rx_watermark_o (spi_interrupts[i + 2][1]),
-      .intr_tx_empty_o     (spi_interrupts[i + 2][2]),
-      .intr_tx_watermark_o (spi_interrupts[i + 2][3]),
-      .intr_complete_o     (spi_interrupts[i + 2][4]),
+      .intr_rx_full_o      (spi_interrupts[i + FixedSpiNum][0]),
+      .intr_rx_watermark_o (spi_interrupts[i + FixedSpiNum][1]),
+      .intr_tx_empty_o     (spi_interrupts[i + FixedSpiNum][2]),
+      .intr_tx_watermark_o (spi_interrupts[i + FixedSpiNum][3]),
+      .intr_complete_o     (spi_interrupts[i + FixedSpiNum][4]),
 
       // SPI signals.
       .spi_copi_o          (spi_copi[i]),
@@ -1243,11 +1245,11 @@ module sonata_system
   );
 
   system_info #(
-    .SysClkFreq ( SysClkFreq ),
-    .GpioNum    (   GPIO_NUM ),
-    .UartNum    (   UART_NUM ),
-    .I2cNum     (    I2C_NUM ),
-    .SpiNum     (    SPI_NUM )
+    .SysClkFreq (  SysClkFreq ),
+    .GpioNum    (    GPIO_NUM ),
+    .UartNum    (    UART_NUM ),
+    .I2cNum     (     I2C_NUM ),
+    .SpiNum     ( TotalSpiNum )
   ) u_system_info (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
