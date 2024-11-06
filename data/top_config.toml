@@ -85,6 +85,15 @@ block_ios = [{ block = "uart", instance = 2, io = "tx" }]
 name = "rs232_rx"
 block_ios = [{ block = "uart", instance = 2, io = "rx" }]
 
+[[pins]]
+name = "rs485_rx"
+block_ios = [{ block = "uart", instance = 2, io = "rx" }]
+
+[[pins]]
+name = "rs485_tx"
+block_ios = [{ block = "uart", instance = 2, io = "tx" }]
+no_default_out = true
+
 ## QWIIC (Sparkfun) buses
 [[pins]]
 name = "scl0"
@@ -144,35 +153,35 @@ name = "rph_g6"
 block_ios = [{block = "gpio", instance = 0, io = "ios", io_index = 6}]
 
 [[pins]]
-name = "rph_g7_ce1"
+name = "rph_g7"
 block_ios = [
   {block = "spi", instance = 1, io = "cs", io_index = 1},
   {block = "gpio", instance = 0, io = "ios", io_index = 7},
 ]
 
 [[pins]]
-name = "rph_g8_ce0"
+name = "rph_g8"
 block_ios = [
   {block = "spi", instance = 1, io = "cs", io_index = 0},
   {block = "gpio", instance = 0, io = "ios", io_index = 8},
 ]
 
 [[pins]]
-name = "rph_g9_cipo"
+name = "rph_g9"
 block_ios = [
   {block = "spi", instance = 1, io = "cipo"},
   {block = "gpio", instance = 0, io = "ios", io_index = 9},
 ]
 
 [[pins]]
-name = "rph_g10_copi"
+name = "rph_g10"
 block_ios = [
   {block = "spi", instance = 1, io = "copi"},
   {block = "gpio", instance = 0, io = "ios", io_index = 10},
 ]
 
 [[pins]]
-name = "rph_g11_sclk"
+name = "rph_g11"
 block_ios = [
   {block = "spi", instance = 1, io = "sclk"},
   {block = "gpio", instance = 0, io = "ios", io_index = 11},
@@ -207,7 +216,7 @@ block_ios = [
 ]
 
 [[pins]]
-name = "rph_g16_ce2"
+name = "rph_g16"
 block_ios = [
   {block = "spi", instance = 2, io = "cs", io_index = 2},
   {block = "gpio", instance = 0, io = "ios", io_index = 16},
@@ -229,7 +238,7 @@ block_ios = [
 ]
 
 [[pins]]
-name = "rph_g19_cipo"
+name = "rph_g19"
 block_ios = [
   {block = "spi", instance = 2, io = "cipo"},
   {block = "gpio", instance = 0, io = "ios", io_index = 19},
@@ -237,7 +246,7 @@ block_ios = [
 ]
 
 [[pins]]
-name = "rph_g20_copi"
+name = "rph_g20"
 block_ios = [
   {block = "spi", instance = 2, io = "copi"},
   {block = "gpio", instance = 0, io = "ios", io_index = 20},
@@ -245,7 +254,7 @@ block_ios = [
 ]
 
 [[pins]]
-name = "rph_g21_sclk"
+name = "rph_g21"
 block_ios = [
   {block = "spi", instance = 2, io = "sclk"},
   {block = "gpio", instance = 0, io = "ios", io_index = 21},
@@ -438,25 +447,25 @@ block_ios = [
 ]
 
 [[pins]]
-name = "pmod0_5"
+name = "pmod0_7"
 block_ios = [{block = "gpio", instance = 2, io = "ios", io_index = 4}]
 
 [[pins]]
-name = "pmod0_6"
+name = "pmod0_8"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 5},
   {block = "pwm", instance = 0, io = "out", io_index = 2},
 ]
 
 [[pins]]
-name = "pmod0_7"
+name = "pmod0_9"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 6},
   {block = "spi", instance = 1, io = "cs", io_index = 1},
 ]
 
 [[pins]]
-name = "pmod0_8"
+name = "pmod0_10"
 block_ios = [
   {block = "gpio", instance = 2, io = "ios", io_index = 7},
   {block = "spi", instance = 1, io = "cs", io_index = 2},
@@ -496,25 +505,25 @@ block_ios = [
 ]
 
 [[pins]]
-name = "pmod1_5"
+name = "pmod1_7"
 block_ios = [{block = "gpio", instance = 3, io = "ios", io_index = 4}]
 
 [[pins]]
-name = "pmod1_6"
+name = "pmod1_8"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 5},
   {block = "pwm", instance = 0, io = "out", io_index = 4},
 ]
 
 [[pins]]
-name = "pmod1_7"
+name = "pmod1_9"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 6},
   {block = "spi", instance = 2, io = "cs", io_index = 1},
 ]
 
 [[pins]]
-name = "pmod1_8"
+name = "pmod1_10"
 block_ios = [
   {block = "gpio", instance = 3, io = "ios", io_index = 7},
   {block = "spi", instance = 2, io = "cs", io_index = 2},
@@ -544,15 +553,6 @@ block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 4}]
 [[pins]]
 name = "pmodc_6"
 block_ios = [{block = "gpio", instance = 4, io = "ios", io_index = 5}]
-
-[[pins]]
-name = "rs485_rx"
-block_ios = [{ block = "uart", instance = 2, io = "rx" }]
-
-[[pins]]
-name = "rs485_tx"
-block_ios = [{ block = "uart", instance = 2, io = "tx" }]
-no_default_out = true
 
 # Application Flash
 [[pins]]

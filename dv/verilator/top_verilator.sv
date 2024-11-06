@@ -261,12 +261,12 @@ module top_verilator (input logic clk_i, rst_ni);
 
 
   // CS outputs to SPI peripherals from controllers.
-  assign rph_g8_ce0   = inout_to_pins[INOUT_PIN_RPH_G8_CE0];
-  assign rph_g7_ce1   = inout_to_pins[INOUT_PIN_RPH_G7_CE1];
+  assign rph_g8_ce0   = inout_to_pins[INOUT_PIN_RPH_G8];
+  assign rph_g7_ce1   = inout_to_pins[INOUT_PIN_RPH_G7];
   assign ah_tmpio10   = inout_to_pins[INOUT_PIN_AH_TMPIO10];
   assign rph_g18      = inout_to_pins[INOUT_PIN_RPH_G18];
   assign rph_g17      = inout_to_pins[INOUT_PIN_RPH_G17];
-  assign rph_g16_ce2  = inout_to_pins[INOUT_PIN_RPH_G16_CE2];
+  assign rph_g16_ce2  = inout_to_pins[INOUT_PIN_RPH_G16];
   assign mb1          = out_to_pins[OUT_PIN_MB1];
 
   logic unused_out_pins = ^{out_to_pins[OUT_PIN_RS232_TX],
