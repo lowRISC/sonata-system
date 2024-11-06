@@ -12,6 +12,7 @@
 #include "../../common/defs.h"
 #include "../common/asm.hh"
 #include "../common/sonata-devices.hh"
+#include "../common/timer-utils.hh"
 #include "test_runner.hh"
 
 #include <array>
@@ -42,6 +43,11 @@ struct PlicTest {
 
   bool is_irq_clearable;
   volatile bool irq_fired = false;
+
+  // Rounded CPU clock cycles per microsecond, as this may not be an integral number
+  static constexpr uint32_t CyclesPerUsec = (CPU_TIMER_HZ + 999'999) / 1'000'000;
+  // The number of cycles to wait for an interrupt before timing out.
+  static constexpr uint32_t wfiTimeout = 10 * CyclesPerUsec;
 
   void (*irq_handler)(PlicTest *plic_test, PLIC::Interrupts irq) = nullptr;
 
@@ -99,6 +105,11 @@ struct PlicTest {
       uart->interrupt_enable(uartMap[i].id);
       uart->interruptTest = ip_irq_id;
       wfi();
+      if (!irq_fired) {
+        error_count++;
+        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      }
+      irq_fired = false;
     }
   }
 
@@ -163,6 +174,11 @@ struct PlicTest {
       i2c->interrupt_enable(i2cMap[i].id);
       i2c->interruptTest = 0x01 << ip_irq_id;
       wfi();
+      if (!irq_fired) {
+        error_count++;
+        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      }
+      irq_fired = false;
     }
   }
 
@@ -217,6 +233,11 @@ struct PlicTest {
       spi->interrupt_enable(spiMap[i].id);
       spi->interruptTest = ip_irq_id;
       wfi();
+      if (!irq_fired) {
+        error_count++;
+        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      }
+      irq_fired = false;
     }
   }
 
@@ -284,6 +305,11 @@ struct PlicTest {
       usbdev->interrupt_enable(usbdevMap[i].id);
       usbdev->interruptTest = ip_irq_id;
       wfi();
+      if (!irq_fired) {
+        error_count++;
+        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      }
+      irq_fired = false;
     }
   }
 
@@ -291,17 +317,24 @@ struct PlicTest {
     ASM::Ibex::global_interrupt_set(true);
     ASM::Ibex::global_interrupt_set(false);
     if (!irq_fired) {
-      ASM::Ibex::wfi();
-      ASM::Ibex::global_interrupt_set(true);
-      ASM::Ibex::global_interrupt_set(false);
+      reset_mcycle();
+      const uint32_t end_mcycle = get_mcycle() + wfiTimeout;
+      while (get_mcycle() < end_mcycle && !irq_fired) {
+        asm volatile("");
+      }
     }
   }
 
   // Log the expected and observed interrupts at both the PLIC and the IP block itself;
   // the `irq_handler` function shall record any mismatches.
   void log(PLIC::Interrupts fired, uint32_t fired_intr_state, bool failed) {
-    log_->print("  irq fired: {:#x}, expected: {:#x} : IP-local fired: {:#x}, expected: {:#x}... ",
-                static_cast<uint32_t>(fired), static_cast<uint32_t>(plic_irq_id), fired_intr_state, exp_intr_state);
+    if (fired != 0 && fired_intr_state != 0) {
+      log_->print("  irq fired: {:#x}, expected: {:#x} : IP-local fired: {:#x}, expected: {:#x}... ",
+                  static_cast<uint32_t>(fired), static_cast<uint32_t>(plic_irq_id), fired_intr_state, exp_intr_state);
+    } else {
+      log_->print("  no irq fired within timeout for irq: {:#x} : IP-local: {:#x}... ",
+                  static_cast<uint32_t>(plic_irq_id), exp_intr_state);
+    }
     write_test_result(*log_, failed);
   }
 
