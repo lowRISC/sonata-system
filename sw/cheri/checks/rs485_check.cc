@@ -42,7 +42,6 @@ using namespace CHERI;
 
   write_str(uart, "Writing to RS-485 Uart\r\n");
 
-  uint32_t num = 0;
   while (1) {
     write_str(rs485_uart, "Hello from RS-485! Type something and terminate with enter (\\r):\r\n");
 
