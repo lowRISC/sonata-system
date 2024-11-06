@@ -41,12 +41,6 @@ module sonata_system
   input  wire  [ArdAniWidth-1:0]   ard_an_n_i,
 
   // Non-pinmuxed spi devices
-  output logic                     spi_board_copi_o,
-  input  logic                     spi_board_cipo_i,
-  output logic                     spi_board_sclk_o,
-  output logic                     spi_board_flash_cs_o,
-  output logic                     spi_board_microsd_cs_o,
-
   output logic                     lcd_copi_o,
   output logic                     lcd_sclk_o,
   output logic                     lcd_cs_o,
@@ -163,7 +157,7 @@ module sonata_system
   logic external_irq;
 
   logic [I2cIrqs-1:0]    i2c_interrupts [I2C_NUM];
-  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM + 3];
+  logic [SpiIrqs-1:0]    spi_interrupts [SPI_NUM + 2];
   logic [UartIrqs-1:0]   uart_interrupts[UART_NUM];
   logic [UsbdevIrqs-1:0] usbdev_interrupts;
 
@@ -172,7 +166,7 @@ module sonata_system
   // Each IP block has a single interrupt line to the PLIC and software shall consult the intr_state
   // register within the block itself to identify the interrupt source(s).
   logic [I2C_NUM-1:0]  i2c_irq;
-  logic [SPI_NUM+2:0]  spi_irq;
+  logic [SPI_NUM+1:0]  spi_irq;
   logic [UART_NUM-1:0] uart_irq;
   logic                usbdev_irq;
 
@@ -185,9 +179,9 @@ module sonata_system
     for (int i = 0; i < I2C_NUM; i++) begin
       i2c_irq[i] = |i2c_interrupts[i];
     end
-    // Single interrupt line per SPI controller; there are 3 dedicated SPI controllers
+    // Single interrupt line per SPI controller; there are 2 dedicated SPI controllers
     // for the on-board peripherals.
-    for (int i = 0; i < SPI_NUM + 3; i++) begin
+    for (int i = 0; i < SPI_NUM + 2; i++) begin
       spi_irq[i] = |spi_interrupts[i];
     end
     // Single interrupt line for USBDEV.
@@ -196,17 +190,17 @@ module sonata_system
 
   logic [31:0] intr_vector;
 
-  assign intr_vector[31 : SPI_NUM + 27] = 'b0;      // Support up to 8 SPI controllers.
-  assign intr_vector[SPI_NUM + 26 : 24] = spi_irq;
-  assign intr_vector[23 : I2C_NUM + 16] = 'b0;      // Support up to 8 I2C blocks.
-  assign intr_vector[I2C_NUM + 15 : 16] = i2c_irq;
-  assign intr_vector[15 : UART_NUM + 8] = 'b0;
-  assign intr_vector[UART_NUM + 7  : 8] = uart_irq; // Support up to 8 UARTs.
-  assign intr_vector[7:4]               = 4'h0;     // Reserved for future use.
-  assign intr_vector[3]                 = usbdev_irq;
-  assign intr_vector[2]                 = ethmac_irq;
-  assign intr_vector[1]                 = hardware_revoker_irq;
-  assign intr_vector[0]                 = 1'b0;     // This is a special case and tied to zero.
+  assign intr_vector[31               : 24 + SPI_NUM + 2] = 'b0;      // Support up to 8 SPI controllers.
+  assign intr_vector[23 + SPI_NUM + 2 : 24              ] = spi_irq;
+  assign intr_vector[23               : 16 + I2C_NUM    ] = 'b0;      // Support up to 8 I2C blocks.
+  assign intr_vector[15 + I2C_NUM     : 16              ] = i2c_irq;
+  assign intr_vector[15               :  8 + UART_NUM   ] = 'b0;
+  assign intr_vector[ 7 + UART_NUM    :  8              ] = uart_irq; // Support up to 8 UARTs.
+  assign intr_vector[ 7               :  4              ] = 4'h0;     // Reserved for future use.
+  assign intr_vector[ 3                                 ] = usbdev_irq;
+  assign intr_vector[ 2                                 ] = ethmac_irq;
+  assign intr_vector[ 1                                 ] = hardware_revoker_irq;
+  assign intr_vector[ 0                                 ] = 1'b0;     // This is a special case and tied to zero.
 
   // Bus signals for host(s).
   logic                     host_req   [NrHosts];
@@ -316,8 +310,6 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_uart_d2h[UART_NUM];
   tlul_pkg::tl_h2d_t tl_timer_h2d;
   tlul_pkg::tl_d2h_t tl_timer_d2h;
-  tlul_pkg::tl_h2d_t tl_spi_board_h2d;
-  tlul_pkg::tl_d2h_t tl_spi_board_d2h;
   tlul_pkg::tl_h2d_t tl_spi_lcd_h2d;
   tlul_pkg::tl_d2h_t tl_spi_lcd_d2h;
   tlul_pkg::tl_h2d_t tl_spi_ethmac_h2d;
@@ -380,8 +372,6 @@ module sonata_system
     .tl_xadc_i        (tl_xadc_d2h),
     .tl_timer_o       (tl_timer_h2d),
     .tl_timer_i       (tl_timer_d2h),
-    .tl_spi_board_o   (tl_spi_board_h2d),
-    .tl_spi_board_i   (tl_spi_board_d2h),
     .tl_spi_lcd_o     (tl_spi_lcd_h2d),
     .tl_spi_lcd_i     (tl_spi_lcd_d2h),
     .tl_spi_ethmac_o  (tl_spi_ethmac_h2d),
@@ -1070,35 +1060,9 @@ module sonata_system
     .intr_av_setup_empty_o        (usbdev_interrupts[17])
   );
 
-
   // Dedicated Spi Controllers
-  // - Flash memory & microSD
   // - LCD screen
   // - Ethernet MAC
-  spi #(
-    .CSWidth(2)
-  ) u_spi_board (
-    .clk_i               (clk_sys_i),
-    .rst_ni              (rst_sys_ni),
-
-    // TileLink interface.
-    .tl_i                (tl_spi_board_h2d),
-    .tl_o                (tl_spi_board_d2h),
-
-    // Interrupts currently disconnected.
-    .intr_rx_full_o      (spi_interrupts[0][0]),
-    .intr_rx_watermark_o (spi_interrupts[0][1]),
-    .intr_tx_empty_o     (spi_interrupts[0][2]),
-    .intr_tx_watermark_o (spi_interrupts[0][3]),
-    .intr_complete_o     (spi_interrupts[0][4]),
-
-    // SPI signals.
-    .spi_copi_o          (spi_board_copi_o),
-    .spi_cipo_i          (spi_board_cipo_i),
-    .spi_cs_o            ({spi_board_microsd_cs_o, spi_board_flash_cs_o}),
-    .spi_clk_o           (spi_board_sclk_o)
-  );
-
   spi #(
     .CSWidth(3)
   ) u_spi_lcd (
@@ -1110,11 +1074,11 @@ module sonata_system
     .tl_o                (tl_spi_lcd_d2h),
 
     // Interrupts currently disconnected.
-    .intr_rx_full_o      (spi_interrupts[1][0]),
-    .intr_rx_watermark_o (spi_interrupts[1][1]),
-    .intr_tx_empty_o     (spi_interrupts[1][2]),
-    .intr_tx_watermark_o (spi_interrupts[1][3]),
-    .intr_complete_o     (spi_interrupts[1][4]),
+    .intr_rx_full_o      (spi_interrupts[0][0]),
+    .intr_rx_watermark_o (spi_interrupts[0][1]),
+    .intr_tx_empty_o     (spi_interrupts[0][2]),
+    .intr_tx_watermark_o (spi_interrupts[0][3]),
+    .intr_complete_o     (spi_interrupts[0][4]),
 
     // SPI signals.
     .spi_copi_o          (lcd_copi_o),
@@ -1134,11 +1098,11 @@ module sonata_system
     .tl_o                (tl_spi_ethmac_d2h),
 
     // Interrupts currently disconnected.
-    .intr_rx_full_o      (spi_interrupts[2][0]),
-    .intr_rx_watermark_o (spi_interrupts[2][1]),
-    .intr_tx_empty_o     (spi_interrupts[2][2]),
-    .intr_tx_watermark_o (spi_interrupts[2][3]),
-    .intr_complete_o     (spi_interrupts[2][4]),
+    .intr_rx_full_o      (spi_interrupts[1][0]),
+    .intr_rx_watermark_o (spi_interrupts[1][1]),
+    .intr_tx_empty_o     (spi_interrupts[1][2]),
+    .intr_tx_watermark_o (spi_interrupts[1][3]),
+    .intr_complete_o     (spi_interrupts[1][4]),
 
     // SPI signals.
     .spi_copi_o          (ethmac_copi_o),
@@ -1166,11 +1130,11 @@ module sonata_system
       .tl_o                (tl_spi_d2h[i]),
 
       // Interrupts currently disconnected.
-      .intr_rx_full_o      (spi_interrupts[i + 3][0]),
-      .intr_rx_watermark_o (spi_interrupts[i + 3][1]),
-      .intr_tx_empty_o     (spi_interrupts[i + 3][2]),
-      .intr_tx_watermark_o (spi_interrupts[i + 3][3]),
-      .intr_complete_o     (spi_interrupts[i + 3][4]),
+      .intr_rx_full_o      (spi_interrupts[i + 2][0]),
+      .intr_rx_watermark_o (spi_interrupts[i + 2][1]),
+      .intr_tx_empty_o     (spi_interrupts[i + 2][2]),
+      .intr_tx_watermark_o (spi_interrupts[i + 2][3]),
+      .intr_complete_o     (spi_interrupts[i + 2][4]),
 
       // SPI signals.
       .spi_copi_o          (spi_copi[i]),

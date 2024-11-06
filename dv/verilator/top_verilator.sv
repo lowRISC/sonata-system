@@ -109,16 +109,31 @@ module top_verilator (input logic clk_i, rst_ni);
   wire usb_dn_pullup; // D- pullup enable.
 
   // SPI flash interface.
-  wire appspi_clk;
-  wire appspi_d0; // COPI (controller output peripheral input)
-  wire appspi_d1; // CIPO (controller input peripheral output)
-  wire appspi_d2; // WP_N (write protect negated)
-  wire appspi_d3; // HOLD_N or RESET_N
-  wire appspi_cs; // Chip select negated
+  wire appspi_clk = out_to_pins[OUT_PIN_APPSPI_CLK];
+  // COPI (controller output peripheral input)
+  wire appspi_d0 = out_to_pins[OUT_PIN_APPSPI_D0];
+  // CIPO (controller input peripheral output)
+  wire appspi_d1;
+  assign in_from_pins[IN_PIN_APPSPI_D1] = appspi_d1;
+  // WP_N (write protect negated)
+  wire appspi_d2 = 1'b1;
+  // HOLD_N or RESET_N
+  wire appspi_d3 = 1'b1;
+  // Chip select negated
+  wire appspi_cs = out_to_pins[OUT_PIN_APPSPI_CS];
 
-  // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
-  assign appspi_d2 = 1'b1;
-  assign appspi_d3 = 1'b1;
+  // microSD card interface.
+  // Note: no DPI model presently.
+  wire microsd_clk = out_to_pins[OUT_PIN_MICROSD_CLK];
+  // SPI mode: CIPO
+  wire microsd_dat0 = 1'b1;
+  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
+  // SPI mode: CS_N
+  wire microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
+  // SPI mode: COPI
+  wire microsd_cmd = out_to_pins[OUT_PIN_MICROSD_CMD];
+  // pulled high to indicate the _absence_ of a microSD card.
+  wire microsd_det = 1'b1;
 
   // LCD interface.
   wire lcd_rst;
@@ -138,12 +153,10 @@ module top_verilator (input logic clk_i, rst_ni);
   wire rph_g18, rph_g17, rph_g16_ce2, rph_g8_ce0, rph_g7_ce1;
   // User LEDs.
   wire [7:0] usrLed;
-  // MicroSD card slot
-  wire microsd_dat3;
   // None of these signals is used presently.
   wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
-                      usrLed, microsd_dat3};
+                      usrLed, microsd_clk, microsd_cmd, microsd_dat3};
 
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
@@ -283,8 +296,6 @@ module top_verilator (input logic clk_i, rst_ni);
   wire [4:0] nav_sw_n = '0;
   wire [7:0] user_sw_n = '0;
   wire [2:0] sel_sw_n = '0;
-  wire microsd_det = 1'b1; // pulled high to indicate the _absence_ of a microSD card.
-
 
   // Instantiating the Sonata System.
   sonata_system #(
@@ -328,12 +339,6 @@ module top_verilator (input logic clk_i, rst_ni);
 
 
     // Non-pinmuxed spi devices
-    .spi_board_copi_o        (appspi_d0),
-    .spi_board_cipo_i        (appspi_d1),
-    .spi_board_sclk_o        (appspi_clk),
-    .spi_board_flash_cs_o    (appspi_cs),
-    .spi_board_microsd_cs_o  (microsd_dat3),
-
     .lcd_copi_o              (lcd_copi),
     .lcd_sclk_o              (lcd_clk),
     .lcd_cs_o                (lcd_cs),

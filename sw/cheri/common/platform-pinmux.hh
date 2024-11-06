@@ -130,6 +130,12 @@ class SonataPinmux : private utils::NoCopyNoMove {
     pmodc_5      = 0x04c,
     pmodc_6      = 0x04d,
     rs485_tx     = 0x04e,
+    appspi_d0    = 0x04f,
+    appspi_clk   = 0x050,
+    appspi_cs    = 0x051,
+    microsd_cmd  = 0x052,
+    microsd_clk  = 0x053,
+    microsd_dat3 = 0x054,
   };
 
   /**
@@ -216,6 +222,7 @@ class SonataPinmux : private utils::NoCopyNoMove {
     uart_2_rx     = 0x842,
     spi_0_cipo    = 0x843,
     spi_1_cipo    = 0x844,
+    spi_2_cipo    = 0x845,
   };
 
   /**
@@ -298,9 +305,11 @@ class SonataPinmux : private utils::NoCopyNoMove {
         return 6;
       case BlockInput::uart_2_rx:
         return 5;
-      case BlockInput::spi_0_cipo:
       case BlockInput::spi_1_cipo:
+      case BlockInput::spi_2_cipo:
         return 4;
+      case BlockInput::spi_0_cipo:
+        return 3;
       default:
         return 2;
     }
