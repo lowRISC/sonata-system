@@ -379,6 +379,11 @@ module top_sonata
   assign led_legacy = ~cheri_en;
   assign led_halted = 1'b0;
 
+  // mikroBUS Click boards mostly use this pin as an active low reset signal but some
+  // boards use it as an active low Read Enable (RE) pin; presently this pin is not
+  // under software control so some boards are not supported.
+  assign mb0 = 1'b1;
+
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
   clkgen_sonata #(
     .SysClkFreq(SysClkFreq),
