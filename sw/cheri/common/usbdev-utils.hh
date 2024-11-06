@@ -140,7 +140,7 @@ class UsbdevUtils {
         cfgLen(cfg_len),
         testDscr(test),
         testLen(test_len),
-        bufAvail(((uint64_t)1u << OpenTitanUsbdev::NumBuffers) - 1u) {
+        bufAvail(((uint64_t)1u << OpenTitanUsbdev::BufferCount) - 1u) {
     // Initialise the device and track which packet buffers are still available for use.
     int rc = usbdev->init(bufAvail);
     assert(!rc);
@@ -180,7 +180,7 @@ class UsbdevUtils {
   /// Allocate a buffer.
   bool buf_alloc(uint8_t &bufNum) {
     if (bufAvail) {
-      for (bufNum = 0U; bufNum < OpenTitanUsbdev::NumBuffers; ++bufNum) {
+      for (bufNum = 0U; bufNum < OpenTitanUsbdev::BufferCount; ++bufNum) {
         if (1U & (bufAvail >> bufNum)) {
           bufAvail &= ~((uint64_t)1U << bufNum);
           return true;
@@ -237,9 +237,9 @@ class UsbdevUtils {
   /// Send a packet of data over the USB to the host controller.
   bool send_data(uint8_t ep, const uint32_t *data, uint16_t pktLen) {
     uint8_t bufNum;
-    assert(pktLen <= OpenTitanUsbdev::MaxPacketLen);
+    assert(pktLen <= OpenTitanUsbdev::MaxPacketLength);
     if (!buf_alloc(bufNum)) return false;
-    if (usbdev->send_packet(bufNum, ep, data, (uint8_t)pktLen)) {
+    if (usbdev->packet_send(bufNum, ep, data, (uint8_t)pktLen)) {
       buf_release(bufNum);
       return false;
     }
@@ -253,7 +253,7 @@ class UsbdevUtils {
     // controller; this must be done promptly not just for performance reasons but also to ensure
     // that IN Control Transfers conclude their Data Stage before the Status Stage commences.
     uint8_t ep, bufNum;
-    int rc = usbdev->packet_collected(ep, bufNum);
+    int rc = usbdev->retrieve_collected_packet(ep, bufNum);
     while (!rc) {
       // Release the buffer for reuse.
       buf_release(bufNum);
@@ -261,7 +261,7 @@ class UsbdevUtils {
         // Invoke the 'done' handler for this IN endpoint.
         epInCtx[ep].txDoneCallback(epInCtx[ep].txDoneHandle, rc);
       }
-      rc = usbdev->packet_collected(ep, bufNum);
+      rc = usbdev->retrieve_collected_packet(ep, bufNum);
     }
 
     // Ensure that the packet reception FIFOs remains supplied with buffers.
@@ -270,7 +270,7 @@ class UsbdevUtils {
     // Process received packets.
     uint16_t pktLen;
     bool isSetup;
-    rc = usbdev->recv_packet(ep, bufNum, pktLen, isSetup, packetData);
+    rc = usbdev->packet_receive(bufNum, ep, pktLen, isSetup, packetData);
     while (!rc) {
       // Release the buffer for reuse.
       buf_release(bufNum);
@@ -278,7 +278,7 @@ class UsbdevUtils {
         const uint8_t *pktData = reinterpret_cast<uint8_t *>(packetData);
         epOutCtx[ep].recvCallback(epOutCtx[ep].recvHandle, ep, isSetup, pktData, pktLen);
       }
-      rc = usbdev->recv_packet(ep, bufNum, pktLen, isSetup, packetData);
+      rc = usbdev->packet_receive(bufNum, ep, pktLen, isSetup, packetData);
     }
   }
 
@@ -315,7 +315,7 @@ class UsbdevUtils {
               switch (data[3]) {
                 case kUsbDescTypeDevice:
                   if (wLen > devLen) wLen = devLen;
-                  rc = usbdev->send_packet(bufNum, 0u, (uint32_t *)devDscr, (uint8_t)wLen);
+                  rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)devDscr, (uint8_t)wLen);
                   assert(!rc);
                   ctrlState = Ctrl_StatusGetDesc;
                   release   = false;
@@ -323,14 +323,14 @@ class UsbdevUtils {
 
                 case kUsbDescTypeConfiguration:
                   if (wLen > cfgLen) wLen = cfgLen;
-                  rc = usbdev->send_packet(bufNum, 0u, (uint32_t *)cfgDscr, (uint8_t)wLen);
+                  rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)cfgDscr, (uint8_t)wLen);
                   assert(!rc);
                   ctrlState = Ctrl_StatusGetDesc;
                   release   = false;
                   break;
 
                 default:
-                  rc = usbdev->set_ep_stalling(0u, true);
+                  rc = usbdev->set_endpoint_stalling(0u, true);
                   assert(!rc);
                   break;
               }
@@ -340,7 +340,7 @@ class UsbdevUtils {
             case kUsbSetupReqSetAddress:
               devAddr = (uint8_t)wValue;
               // Send a Zero Length Packet as ACK.
-              rc = usbdev->send_packet(bufNum, 0u, nullptr, 0u);
+              rc = usbdev->packet_send(bufNum, 0u, nullptr, 0u);
               assert(!rc);
               ctrlState = Ctrl_StatusSetAddr;
               release   = false;
@@ -348,7 +348,7 @@ class UsbdevUtils {
 
             // SET_CONFIGURATION request.
             case kUsbSetupReqSetConfiguration:
-              rc = usbdev->send_packet(bufNum, 0u, nullptr, 0u);  // ZLP ACK.
+              rc = usbdev->packet_send(bufNum, 0u, nullptr, 0u);  // ZLP ACK.
               assert(!rc);
               ctrlState = Ctrl_StatusSetConfig;
               release   = false;
@@ -358,7 +358,7 @@ class UsbdevUtils {
             // configuration.
             case kVendorSetupReqTestConfig:
               if (wLen > testLen) wLen = testLen;
-              rc = usbdev->send_packet(bufNum, 0u, (uint32_t *)testDscr, (uint8_t)wLen);
+              rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)testDscr, (uint8_t)wLen);
               assert(!rc);
               ctrlState = Ctrl_StatusGetDesc;
               release   = false;
@@ -444,5 +444,5 @@ class UsbdevUtils {
   } epOutCtx[OpenTitanUsbdev::MaxEndpoints];
 
   // Buffer for received packet data.
-  uint32_t packetData[OpenTitanUsbdev::MaxPacketLen >> 2];
+  uint32_t packetData[OpenTitanUsbdev::MaxPacketLength >> 2];
 };
