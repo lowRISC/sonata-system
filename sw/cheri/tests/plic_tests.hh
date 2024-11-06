@@ -92,25 +92,26 @@ struct PlicTest {
         plic_test->error_count += wrong_irq;
         plic_test->error_count += wrong_local;
         plic_test->log(irq, uart->interruptEnable & uart->interruptState, wrong_irq || wrong_local);
-        if (plic_test->is_irq_clearable) {
-          uart->interruptState = plic_test->ip_irq_id;
-        } else {
-          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
-          uart->interruptTest = 0;
-        }
-        // Disable interrupt to prevent interference with other tests.
-        uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(plic_test->ip_irq_id));
+        plic_test->uart_irq_clear(uart);
       };
       // Enable and trigger the interrupt now that the handler has been registered.
       uart->interrupt_enable(uartMap[i].id);
       uart->interruptTest = ip_irq_id;
-      wfi();
-      if (!irq_fired) {
-        error_count++;
-        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      if (!irq_caught()) {
+        uart_irq_clear(uart);
       }
-      irq_fired = false;
     }
+  }
+
+  void uart_irq_clear(UartPtr uart) {
+    if (is_irq_clearable) {
+      uart->interruptState = ip_irq_id;
+    } else {
+      // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+      uart->interruptTest = 0;
+    }
+    // Disable interrupt to prevent interference with other tests.
+    uart->interrupt_disable(static_cast<OpenTitanUart::OpenTitanUartInterrupt>(ip_irq_id));
   }
 
   void i2c_test(size_t i2c_instance) {
@@ -161,25 +162,26 @@ struct PlicTest {
         plic_test->error_count += wrong_irq;
         plic_test->error_count += wrong_local;
         plic_test->log(irq, i2c->interruptEnable & i2c->interruptState, wrong_irq || wrong_local);
-        if (plic_test->is_irq_clearable) {
-          i2c->interruptState = 0x1 << plic_test->ip_irq_id;
-        } else {
-          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
-          i2c->interruptTest = 0;
-        }
-        // Disable interrupt to prevent interference with other tests.
-        i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(plic_test->ip_irq_id));
+        plic_test->i2c_irq_clear(i2c);
       };
       // Enable and trigger the interrupt now that the handler has been registered.
       i2c->interrupt_enable(i2cMap[i].id);
       i2c->interruptTest = 0x01 << ip_irq_id;
-      wfi();
-      if (!irq_fired) {
-        error_count++;
-        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      if (!irq_caught()) {
+        i2c_irq_clear(i2c);
       }
-      irq_fired = false;
     }
+  }
+
+  void i2c_irq_clear(I2cPtr i2c) {
+    if (is_irq_clearable) {
+      i2c->interruptState = 0x1 << ip_irq_id;
+    } else {
+      // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+      i2c->interruptTest = 0;
+    }
+    // Disable interrupt to prevent interference with other tests.
+    i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(ip_irq_id));
   }
 
   void spi_test(size_t spi_instance) {
@@ -220,25 +222,26 @@ struct PlicTest {
         plic_test->error_count += wrong_irq;
         plic_test->error_count += wrong_local;
         plic_test->log(irq, spi->interruptEnable & spi->interruptState, wrong_irq || wrong_local);
-        if (plic_test->is_irq_clearable) {
-          spi->interruptState = plic_test->ip_irq_id;
-        } else {
-          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
-          spi->interruptTest = 0;
-        }
-        // Disable interrupt to prevent interference with other tests.
-        spi->interrupt_disable(static_cast<SonataSpi::SonataSpiInterrupt>(plic_test->ip_irq_id));
+        plic_test->spi_irq_clear(spi);
       };
       // Enable and trigger the interrupt now that the handler has been registered.
       spi->interrupt_enable(spiMap[i].id);
       spi->interruptTest = ip_irq_id;
-      wfi();
-      if (!irq_fired) {
-        error_count++;
-        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      if (!irq_caught()) {
+        spi_irq_clear(spi);
       }
-      irq_fired = false;
     }
+  }
+
+  void spi_irq_clear(SpiPtr spi) {
+    if (is_irq_clearable) {
+      spi->interruptState = ip_irq_id;
+    } else {
+      // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+      spi->interruptTest = 0;
+    }
+    // Disable interrupt to prevent interference with other tests.
+    spi->interrupt_disable(static_cast<SonataSpi::SonataSpiInterrupt>(ip_irq_id));
   }
 
   void usbdev_test() {
@@ -292,28 +295,31 @@ struct PlicTest {
         plic_test->error_count += wrong_irq;
         plic_test->error_count += wrong_local;
         plic_test->log(irq, usbdev->interruptEnable & usbdev->interruptState, wrong_irq || wrong_local);
-        if (plic_test->is_irq_clearable) {
-          usbdev->interruptState = plic_test->ip_irq_id;
-        } else {
-          // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
-          usbdev->interruptTest = 0;
-        }
-        // Disable interrupt to prevent interference with other tests.
-        usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::OpenTitanUsbdevInterrupt>(plic_test->ip_irq_id));
+        plic_test->usbdev_irq_clear(usbdev);
       };
       // Enable and trigger the interrupt now that the handler has been registered.
       usbdev->interrupt_enable(usbdevMap[i].id);
       usbdev->interruptTest = ip_irq_id;
-      wfi();
-      if (!irq_fired) {
-        error_count++;
-        log(static_cast<PLIC::Interrupts>(0), 0, true);
+      if (!irq_caught()) {
+        usbdev_irq_clear(usbdev);
       }
-      irq_fired = false;
     }
   }
 
-  inline void wfi() {
+  void usbdev_irq_clear(UsbdevPtr usbdev) {
+    if (is_irq_clearable) {
+      usbdev->interruptState = ip_irq_id;
+    } else {
+      // Ensure that the `intr_test` bit does not keep the Status-type interrupt asserted.
+      usbdev->interruptTest = 0;
+    }
+    // Disable interrupt to prevent interference with other tests.
+    usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::OpenTitanUsbdevInterrupt>(ip_irq_id));
+  }
+
+  // Wait with timeout until an interrupt occurs, logging any mismatch.
+  // Returns true iff the expected interrupt occurred within the timeout interval.
+  inline bool irq_caught() {
     ASM::Ibex::global_interrupt_set(true);
     ASM::Ibex::global_interrupt_set(false);
     if (!irq_fired) {
@@ -323,6 +329,13 @@ struct PlicTest {
         asm volatile("");
       }
     }
+    if (!irq_fired) {
+      error_count++;
+      log(static_cast<PLIC::Interrupts>(0), 0, true);
+      return false;
+    }
+    irq_fired = false;
+    return true;
   }
 
   // Log the expected and observed interrupts at both the PLIC and the IP block itself;
