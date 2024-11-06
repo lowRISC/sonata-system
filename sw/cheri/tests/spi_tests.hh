@@ -480,11 +480,6 @@ int spi_loopback_test(SpiPtr spi, bool external, bool cpol, bool cpha, bool msb_
  * Run the whole suite of SPI tests.
  */
 void spi_tests(CapRoot root, Log &log) {
-  // Create bounded capabilities for SPI.
-  Capability<volatile SonataSpi> spi0 = root.cast<volatile SonataSpi>();
-  spi0.address()                      = SPI_ADDRESS;
-  spi0.bounds()                       = SPI_BOUNDS;
-
   // Access to each of the SPI controllers.
   SpiPtr spis[SPI_NUM];
   for (int s = 0; s < SPI_NUM; s++) {
@@ -494,7 +489,7 @@ void spi_tests(CapRoot root, Log &log) {
     spis[s]->init(false, false, true, 0);
   }
 
-  SpiFlash spi_flash(spi0);
+  SpiFlash spi_flash(spis[2]);
 
   // Initialise 8-bit PRNG for use in random test data
   ds::xoroshiro::P32R8 prng;
@@ -508,22 +503,22 @@ void spi_tests(CapRoot root, Log &log) {
     int failures     = 0;
 
     log.print("  Running Flash Jedec ID Read test... ");
-    failures = spi_read_flash_jedec_id_test(spi0, spi_flash);
+    failures = spi_read_flash_jedec_id_test(spis[2], spi_flash);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
     log.print("  Running Flash Sector Erase test... ");
-    failures = spi_flash_erase_test(spi0, prng, spi_flash);
+    failures = spi_flash_erase_test(spis[2], prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
     log.print("  Running Flash Random Data test... ");
-    failures = spi_flash_random_data_test(spi0, prng, spi_flash);
+    failures = spi_flash_random_data_test(spis[2], prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
     log.print("  Running Slow Clock test... ");
-    failures = spi_flash_slow_clock_test(spi0, prng, spi_flash);
+    failures = spi_flash_slow_clock_test(spis[2], prng, spi_flash);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 
