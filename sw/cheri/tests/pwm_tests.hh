@@ -167,9 +167,8 @@ int pwm_zero_counter_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capabi
  * @returns The integer number of failures during the test.
  */
 int pwm_always_high_test(Capability<volatile SonataGpioPmod> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
-  constexpr uint8_t PwmInstance        = 0;
-  constexpr uint8_t InputPin           = 0;
-  constexpr uint8_t PropagationWaitOps = 25;
+  constexpr uint8_t PwmInstance = 0;
+  constexpr uint8_t InputPin    = 0;
 
   int failures = 0;
 
