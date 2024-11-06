@@ -248,44 +248,44 @@ struct PlicTest {
     instance = 0;
 
     struct usbdev_irq {
-      OpenTitanUsbdev::OpenTitanUsbdevInterrupt id;
+      OpenTitanUsbdev::UsbdevInterrupt id;
       bool can_clear;
     };
     static constexpr std::array<usbdev_irq, 18> usbdevMap = {{
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptDisconnected, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptHostLost, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkReset, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkSuspend, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkResume, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvBufferOverflow, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkInError, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptCrcError, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPidError, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptBitstuffError, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptFrame, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPowered, true},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptLinkOutError, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::Disconnected, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::HostLost, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::LinkReset, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::LinkSuspend, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::LinkResume, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::AvailableBufferOverflow, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::LinkInError, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::RedundancyCheckError, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::PacketIdentifierError, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::BitstuffingError, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::FrameUpdated, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::Powered, true},
+        {OpenTitanUsbdev::UsbdevInterrupt::LinkOutError, true},
 
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketReceived, false},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptPacketSent, false},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptRecvFifoFull, false},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvOutBufferEmpty, false},
-        {OpenTitanUsbdev::OpenTitanUsbdevInterrupt::InterruptAvSetupBufferEmpty, false},
+        {OpenTitanUsbdev::UsbdevInterrupt::PacketReceived, false},
+        {OpenTitanUsbdev::UsbdevInterrupt::PacketSent, false},
+        {OpenTitanUsbdev::UsbdevInterrupt::ReceiveFull, false},
+        {OpenTitanUsbdev::UsbdevInterrupt::AvailableOutEmpty, false},
+        {OpenTitanUsbdev::UsbdevInterrupt::AvailableSetupEmpty, false},
     }};
 
     auto usbdev = usbdev_ptr(root);
 
     // Ensure that initially all interrupts are cleared and disabled.
-    usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::OpenTitanUsbdevInterrupt>(~0u));
+    usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::UsbdevInterrupt>(~0u));
     usbdev->interruptState = ~0u;
     usbdev->interruptTest  = 0u;
 
     log_->println("  Testing USBDEV:");
     for (size_t i = 0; i < usbdevMap.size(); ++i) {
-      ip_irq_id        = usbdevMap[i].id;
+      ip_irq_id        = static_cast<uint32_t>(usbdevMap[i].id);
       is_irq_clearable = usbdevMap[i].can_clear;
       plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::Usbdev + instance);
-      exp_intr_state   = usbdevMap[i].id;
+      exp_intr_state   = static_cast<uint32_t>(usbdevMap[i].id);
 
       // Register interrupt handler.
       irq_handler = [](PlicTest *plic_test, PLIC::Interrupts irq) {
@@ -314,7 +314,7 @@ struct PlicTest {
       usbdev->interruptTest = 0;
     }
     // Disable interrupt to prevent interference with other tests.
-    usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::OpenTitanUsbdevInterrupt>(ip_irq_id));
+    usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::UsbdevInterrupt>(ip_irq_id));
   }
 
   // Wait with timeout until an interrupt occurs, logging any mismatch.

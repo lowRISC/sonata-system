@@ -40,17 +40,17 @@ static void write_strn(UartPtr uart, const char *str, size_t len) {
 static const uint8_t _Alignas(uint32_t) signon[] = "Hello from CHERI USB!\r\n";
 
 // Device Descriptor; see "Table 9-8. Standard Device Descriptor"
-static const uint8_t _Alignas(uint32_t) dev_dscr[] = {0x12u, 1,    0,    2,    0, 0, 0, OpenTitanUsbdev::MaxPacketLen,
-                                                      0xd1,  0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
-                                                      0,     1,    0,    0,    0, 1};
+static const uint8_t _Alignas(uint32_t) dev_dscr[] = {
+    0x12u, 1, 0, 2, 0, 0, 0, OpenTitanUsbdev::MaxPacketLength, 0xd1, 0x18, 0x3a, 0x50,  // Google lowRISC generic FS USB
+    0,     1, 0, 0, 0, 1};
 
 // Configuration Descriptor; see "Table 9-10. Standard Configuration Descriptor"
 static const uint8_t _Alignas(uint32_t) cfg_dscr[] = {
     // Present a single interface consisting of an IN EP and and OUT EP.
     USB_CFG_DSCR_HEAD(USB_CFG_DSCR_LEN + (USB_INTERFACE_DSCR_LEN + 2 * USB_EP_DSCR_LEN), 1),
     VEND_INTERFACE_DSCR(0, 2, 0x50, 1),
-    USB_BULK_EP_DSCR(0, 1, OpenTitanUsbdev::MaxPacketLen, 0),
-    USB_BULK_EP_DSCR(1, 1, OpenTitanUsbdev::MaxPacketLen, 4),
+    USB_BULK_EP_DSCR(0, 1, OpenTitanUsbdev::MaxPacketLength, 0),
+    USB_BULK_EP_DSCR(1, 1, OpenTitanUsbdev::MaxPacketLength, 4),
 };
 
 // Default test descriptor; required by the USB DPI model and retrieved using a Vendor Specific
@@ -67,7 +67,7 @@ static void rxCallback(void *rxHandle, uint8_t ep, bool setup, const uint8_t *da
 
 [[noreturn]] extern "C" void entry_point(void *rwRoot) {
   // Buffer for data transfer to/from the USB device.
-  //  uint8_t _Alignas(uint32_t) data[OpenTitanUsbdev::MaxPacketLen];
+  //  uint8_t _Alignas(uint32_t) data[OpenTitanUsbdev::MaxPacketLength];
 
   Capability<void> root{rwRoot};
 
