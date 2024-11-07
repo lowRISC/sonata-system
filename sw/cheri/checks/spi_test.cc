@@ -37,7 +37,7 @@ using namespace CHERI;
   uart.bounds()                           = UART_BOUNDS;
 
   Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
-  spi.address()                      = SPI_ADDRESS;
+  spi.address()                      = SPI_ADDRESS + 2 * SPI_RANGE;
   spi.bounds()                       = SPI_BOUNDS;
 
   SpiFlash spi_flash(spi);
