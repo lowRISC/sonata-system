@@ -1313,7 +1313,7 @@ module sonata_system
   // Enable the RS-485 receiver any time the RS-485 RX input is connect to the UART via pinmux.
   // Whether or not we are transmitting does not need to be factored in here as that is dealt with
   // via rs485_ctrl.
-  assign rs485_rx_enable_o = u_pinmux.uart_rx_2_sel[4];
+  assign rs485_rx_enable_o = u_pinmux.uart_rx_2_sel[3];
 
   // Transmission enabled when UART is muxed to RS-485 TX output and UART is actively transmitting.
   assign rs485_tx_enable_o = u_pinmux.rs485_tx_sel[1]                           &
