@@ -68,6 +68,7 @@ filesets:
     files:
       - flow/vivado_setup.tcl : { file_type: tclSource }
       - flow/vivado_hook_opt_design_pre.tcl : { file_type: user, copyto: vivado_hook_opt_design_pre.tcl }
+      - flow/vivado_hook_place_design_pre.tcl : { file_type: user, copyto: vivado_hook_place_design_pre.tcl }
       - flow/vivado_hook_route_design_pre.tcl : { file_type: user, copyto: vivado_hook_route_design_pre.tcl }
 
 parameters:
