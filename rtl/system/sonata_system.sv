@@ -119,6 +119,8 @@ module sonata_system
   localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
   localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
   localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
+  localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
+  localparam int unsigned TotalGpioNum  = GPIO_NUM + FixedGpioNum; // The total number of GPIO instances
 
   // The number of data bits controlled by each mask bit; since the CPU requires
   // only byte level access, explicitly grouping the data bits makes the inferred
@@ -850,9 +852,9 @@ module sonata_system
   // 1: Raspberry Pi HAT
   // 2: Arduino Shield
   // 3: Pmod
-  logic [GPIO_IOS_WIDTH-1:0] gpio_from_pins     [GPIO_NUM + 1];
-  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins       [GPIO_NUM + 1];
-  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins_enable[GPIO_NUM + 1];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_from_pins     [TotalGpioNum];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins       [TotalGpioNum];
+  logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins_enable[TotalGpioNum];
 
   assign gpio_from_pins[0] = gp_i;
   assign gp_o              = gpio_to_pins       [0];
@@ -861,7 +863,7 @@ module sonata_system
   gpio #(
     .GpiWidth     ( GPIO_IOS_WIDTH ),
     .GpoWidth     ( GPIO_IOS_WIDTH ),
-    .NumInstances ( GPIO_NUM + 1   )
+    .NumInstances ( TotalGpioNum   )
   ) u_gpio (
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
@@ -1245,11 +1247,11 @@ module sonata_system
   );
 
   system_info #(
-    .SysClkFreq (  SysClkFreq ),
-    .GpioNum    (    GPIO_NUM ),
-    .UartNum    (    UART_NUM ),
-    .I2cNum     (     I2C_NUM ),
-    .SpiNum     ( TotalSpiNum )
+    .SysClkFreq (   SysClkFreq ),
+    .GpioNum    ( TotalGpioNum ),
+    .UartNum    (     UART_NUM ),
+    .I2cNum     (      I2C_NUM ),
+    .SpiNum     (  TotalSpiNum )
   ) u_system_info (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
