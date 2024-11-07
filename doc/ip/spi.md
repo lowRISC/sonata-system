@@ -7,28 +7,26 @@ In Sonata, there are multiple uses for SPI:
 - LCD screen
 - Ethernet
 - Flash
-- Raspberry Pi hat
+- MicroSD card
+- Raspberry Pi HAT
 - Arduino shield
-- mikroBUS
-
-The current Sonata system configuration has two SPI instantiations, one for the LCD screen and one for Flash.
-The Sonata top-level will need modification to add more SPI blocks for other uses.
+- mikroBUS click
 
 The offset for each of the blocks is shown below, with each additional block having a `0x1000` offset from the previous.
 
 | SPI Instance          | Offset (from SPI base) |
 |-----------------------|------------------------|
-| Flash                 | 0x0                    |
-| LCD Screen            | 0x1000                 |
-| Ethernet MAC          | 0x2000                 |
-| Raspberry Pi HAT SPI0 | 0x3000                 |
-| Raspberry Pi HAT SPI1 | 0x4000                 |
-| Arduino Shield        | 0x5000                 |
-| mikroBUS Click        | 0x6000                 |
+| LCD Screen            | 0x0000                 |
+| Ethernet MAC          | 0x1000                 |
+| SPI0                  | 0x2000                 |
+| SPI1                  | 0x3000                 |
+| SPI2                  | 0x4000                 |
+
+Please refer to the [pin multiplexer](pinmux/pin-mappings.md) on how to connect SPI 0, 1 and 2.
 
 ## Overview
 
-Each SPI block has a two 64 entry FIFOs one for transmit and one for receive.
+Each SPI block has two 8-entry FIFOs - one for transmit and one for receive.
 To begin an SPI transaction write to the [`START`](#start) register.
 Bytes do not need to be immediately available in the transmit FIFO nor space available in the receive FIFO to begin the transaction.
 The SPI block will only run the clock when its able to proceed.
