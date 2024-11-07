@@ -127,6 +127,14 @@ module spi_core #(
 
   assign active = state_q == ACTIVE;
 
+  function automatic logic [7:0] bit_reverse(input logic [7:0] in);
+    logic [7:0] out;
+    for (int unsigned b = 0; b < 8; b++) begin
+      out[b] = in[7 - b];
+    end
+    return out;
+  endfunction
+
   always_comb begin
     clk_running = 1'b0;
     finish_edge  = 1'b0;
@@ -190,14 +198,10 @@ module spi_core #(
 
     if (output_edge || start_edge) begin
       if ((bit_count_q == 4'd0) || (bit_count_q == 4'd8) || start_edge) begin
-        copi_shift_d = data_in_i;
+        copi_shift_d = msb_first_i ? data_in_i : bit_reverse(data_in_i);
         data_in_ready_o = 1'b1;
       end else begin
-        if (msb_first_i) begin
-          copi_shift_d = {copi_shift_q[6:0], 1'b0};
-        end else begin
-          copi_shift_d = {1'b0, copi_shift_q[7:1]};
-        end
+        copi_shift_d = {copi_shift_q[6:0], 1'b0};
       end
     end
   end
@@ -207,8 +211,7 @@ module spi_core #(
   end
 
   assign data_out_valid_d = sample_edge && (bit_count_q == '0);
-  assign cipo_shift_d = msb_first_i ? {cipo_shift_q[6:0], spi_cipo_i} :
-                                      {spi_cipo_i, cipo_shift_q[7:1]};
+  assign cipo_shift_d = {cipo_shift_q[6:0], spi_cipo_i};
 
   always_ff @(posedge clk_i) begin
     if (sample_edge) begin
@@ -284,9 +287,9 @@ module spi_core #(
   end
 
   assign spi_clk_o  = clk_q;
-  assign spi_copi_o = msb_first_i ? copi_shift_q[7] : copi_shift_q[0];
+  assign spi_copi_o = copi_shift_q[7];
 
-  assign data_out_o = cipo_shift_q;
+  assign data_out_o = msb_first_i ? cipo_shift_q : bit_reverse(cipo_shift_q);
   assign data_out_valid_o = data_out_valid_q;
 
   assign idle_o = state_q == IDLE;
