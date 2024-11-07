@@ -13,7 +13,7 @@ For more information on contact bounce, see [this Wikipedia page](https://en.wik
 | 0x0000 | Output                   |
 | 0x0004 | Input                    |
 | 0x0008 | Debounced input          |
-| 0x000C | Output enable            |
+| 0x000C | Output enable (currently not used) |
 | 0x0040 | R-Pi output              |
 | 0x0044 | R-Pi input               |
 | 0x0048 | R-pi debounced input     |
@@ -30,6 +30,10 @@ For more information on contact bounce, see [this Wikipedia page](https://en.wik
 | 0x0104 | PMOD1 input              |
 | 0x0108 | PMOD1 debounced input    |
 | 0x010C | PMOD1 output enable      |
+| 0x0140 | PMODC output             |
+| 0x0144 | PMODC input              |
+| 0x0148 | PMODC debounced input    |
+| 0x014C | PMODC output enable      |
 
 ## Output
 
@@ -37,22 +41,7 @@ The output register displays the specified value onto the boards output.
 
 | Bit offset | Description |
 |------------|-------------|
-| 22         | mikroBUS reset |
-| 21         | mikroBUS SPI chip select |
-| 20         | Arduino SPI chip select |
-| 19         | R-Pi SPI1 chip select 0 |
-| 18         | R-Pi SPI1 chip select 1 |
-| 17         | R-Pi SPI1 chip select 2 |
-| 16         | R-Pi SPI0 chip select 0 |
-| 15         | R-Pi SPI0 chip select 1 |
-| 14         | Ethernet reset |
-| 13         | Ethernet SPI chip select |
-| 12         | Flash SPI chip select |
-| 11-4       | LEDs        |
-| 3          | LCD backlight |
-| 2          | LCD DC      |
-| 1          | LCD reset   |
-| 0          | LCD chip select |
+| 7-0        | LEDs        |
 
 In this case writing a one will turn an LED on and a zero will turn the LED off.
 
@@ -63,48 +52,48 @@ The only difference between the registers is that the latter has debounced signa
 
 | Bit offset | Description |
 |------------|-------------|
-| 17         | MicroSD card detection (0: present, 1: absent) |
-| 16-14      | Software select switches (1, 2, 3) |
-| 13         | mikroBUS interrupt |
-| 12-5       | DIP switches |
-| 4-0        | Joystick (left, down, up, right, press) |
+| 16         | MicroSD card detection (0: present, 1: absent) |
+| 15-13      | Software select switches (1, 2, 3) |
+| 12-8       | Joystick (left, down, up, right, press) |
+| 7-0        | DIP switches |
 
 The input registers are used to interact with the joystick, the button and the DIP switches that are available on the Sonata board.
 
 ## Raspberry Pi HAT
 
-The Raspberry Pi HAT header has 27 pins that can act as GPIO.
+The Raspberry Pi HAT header has 28 pins that can act as GPIO.
 Some can be remapped to other IP blocks (see Pinmux).
-When writing, it only writes the bits for which the output is set to enable.
-The input and output registers have the same bit mapping.
-
-| Bit offset | Description |
-|------------|-------------|
-| 27-0       | g27 - g0    |
-
-When the output enable is set to zero it instead acts as an input pin.
-
-## Arduino Shield
-
-The Arduino Shield header has 17 pins that can act as GPIO.
 When writing, it only writes the bits for which the output is set to enable.
 The input and output registers have the same bit mapping.
 
 | Bit offset | Description  |
 |------------|--------------|
-| 17-0       | GPIO 17 to 0 |
+| 27-0       | GPIO 27 to 0 |
 
 When the output enable is set to zero it instead acts as an input pin.
 
-## PMOD
+## Arduino Shield
 
-The two PMOD headers has 16 GPIO pins.
+The Arduino Shield header has 14 pins that can act as GPIO.
+When writing, it only writes the bits for which the output is set to enable.
+The input and output registers have the same bit mapping.
+
+| Bit offset | Description  |
+|------------|--------------|
+| 13-0       | GPIO 13 to 0 |
+
+When the output enable is set to zero it instead acts as an input pin.
+
+## Pmod
+
+The Pmod header is split up as Pmod 0, C and 1.
+Pmod 0 and 1 have 8 GPIO outputs each while C has 6.
 When writing, it only writes the bits for which the output is set to enable.
 The input and output registers have the same bit mapping.
 
 | Bit offset | Description |
 |------------|-------------|
-|   15-8     | PMOD 1      |
-|   7-0      | PMOD 0      |
+| 7-6        | Accessible for Pmod 0 and 1 only |
+| 5-0        | Accessible for Pmod 0, 1 and C |
 
 When the output enable is set to zero it instead acts as an input pin.
