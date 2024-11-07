@@ -6,6 +6,7 @@
 #include "../common/console.hh"
 #include "../common/flash-utils.hh"
 #include "../common/uart-utils.hh"
+#include "../common/platform-pinmux.hh"
 #include "test_runner.hh"
 #include <cheri.hh>
 #include <ds/xoroshiro.h>
@@ -42,14 +43,16 @@ using namespace CHERI;
 /**
  * Configures which of the SPI controllers shall use an external loopback
  * via a jumper cable, and not just the internal loopback within the SPI
- * block itself. (-1 = no jumper cable present)
+ * block itself. (-1 = no jumper cable present).
+ *
+ * Defaults to using SPI controller 4, which requires you to have
+ * a loopback jumper cable between the MB3 and MB4 pins of the mikroBUS
+ * Click header.
+ *
+ * This can be overriden via a compilation flag.
  */
 #ifndef SPI_TEST_EXT_LOOPBACK_CONN
-// Try an external loopback test with another SPI controller;
-// Note: we can install a loopback wire between pins MB3 and MB4 of the
-// mikroBUS Click header in CI and test this using SPI controller 4.
-// #define SPI_TEST_EXT_LOOPBACK_CONN (4)
-#define SPI_TEST_EXT_LOOPBACK_CONN (-1)
+#define SPI_TEST_EXT_LOOPBACK_CONN (4)
 #endif
 
 // The expected JEDEC ID to read from the SPI Flash
@@ -417,7 +420,10 @@ int spi_irq_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, Log &log) {
  */
 int spi_loopback_test(SpiPtr spi, bool external, bool cpol, bool cpha, bool msb_first, ds::xoroshiro::P32R8 &prng,
                       Log &log) {
-  constexpr uint32_t kSpiSpeed = 0u;  // Let's go as fast as possible.
+  // Go as fast as possible, unless using an external loopback, as the
+  // Verilator simulation includes a single cycle delay forbidding
+  // this from running at full speed.
+  const uint32_t kSpiSpeed = external ? 1u : 0u;
   // Take a copy of the PRNG so that we can predict the read-side data.
   ds::xoroshiro::P32R8 read_prng = prng;
   size_t bytes_read              = 0u;
@@ -490,6 +496,17 @@ void spi_tests(CapRoot root, Log &log) {
   }
 
   SpiFlash spi_flash(spis[2]);
+
+  // Create a bounded capability for pinmux & initialise the driver
+  Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
+  pinmux.address()                    = PINMUX_ADDRESS;
+  pinmux.bounds()                     = PINMUX_BOUNDS;
+  SonataPinmux Pinmux                 = SonataPinmux(pinmux);
+
+  if (SPI_TEST_EXT_LOOPBACK_CONN == 4) {
+    // Mux SPI2 to receive from MB3.
+    Pinmux.block_input_select(SonataPinmux::BlockInput::spi_2_cipo, 2);
+  }
 
   // Initialise 8-bit PRNG for use in random test data
   ds::xoroshiro::P32R8 prng;
@@ -569,5 +586,10 @@ void spi_tests(CapRoot root, Log &log) {
     }
 
     check_result(log, !test_failed);
+  }
+
+  if (SPI_TEST_EXT_LOOPBACK_CONN == 4) {
+    // Mux SPI2 back to its default
+    Pinmux.block_input_select(SonataPinmux::BlockInput::spi_2_cipo, 1);
   }
 }
