@@ -28,7 +28,7 @@ using namespace CHERI;
   SonataPinmux Pinmux = SonataPinmux(pinmux);
 
   Pinmux.output_pin_select(SonataPinmux::OutputPin::rs485_tx, 1);
-  Pinmux.block_input_select(SonataPinmux::BlockInput::uart_2_rx, 4);
+  Pinmux.block_input_select(SonataPinmux::BlockInput::uart_2_rx, 3);
 
   Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
   uart.address()                          = UART_ADDRESS;
