@@ -40,10 +40,11 @@ using namespace CHERI;
   WriteUart uart{uart0};
   Log log(uart);
 
-  // Create capabilities for SPI3&4, I2C0&1, GPIO and Pinmux for use in Pinmux testing
-  SpiPtr spis[2] = {
-      spi_ptr(rwRoot, 3),  // SPI0
-      spi_ptr(rwRoot, 4),  // SPI1
+  // Create capabilities for SPI0-2, I2C0&1, GPIO and Pinmux for use in Pinmux testing
+  SpiPtr spis[3] = {
+      spi_ptr(rwRoot, 2),  // SPI0
+      spi_ptr(rwRoot, 3),  // SPI1
+      spi_ptr(rwRoot, 4),  // SPI2
   };
   I2cPtr i2cs[2] = {i2c_ptr(root, 0), i2c_ptr(root, 1)};
 
@@ -84,12 +85,12 @@ using namespace CHERI;
   pmod_test_spi_on_pins[0]                       = {SonataPinmux::OutputPin::pmod0_1, 2};  // Mux to SPI CS
   pmod_test_spi_on_pins[1]                       = {SonataPinmux::OutputPin::pmod0_2, 2};  // Mux to SPI COPI
   pmod_test_spi_on_pins[2]                       = {SonataPinmux::OutputPin::pmod0_4, 2};  // Mux to SPI SCK
-  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::spi_0_cipo, 3}};
+  BlockInputAssignment pmod_test_spi_on_inputs[] = {{SonataPinmux::BlockInput::spi_1_cipo, 3}};
   OutputPinAssignment pmod_test_spi_off_pins[3];
   pmod_test_spi_off_pins[0]                       = {SonataPinmux::OutputPin::pmod0_1, 0};
   pmod_test_spi_off_pins[1]                       = {SonataPinmux::OutputPin::pmod0_2, 0};
   pmod_test_spi_off_pins[2]                       = {SonataPinmux::OutputPin::pmod0_4, 0};
-  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::spi_0_cipo, 0}};
+  BlockInputAssignment pmod_test_spi_off_inputs[] = {{SonataPinmux::BlockInput::spi_1_cipo, 0}};
 
   // The pinmux testplan to execute. This testplan runs through testing GPIO, UART, I2C and SPI
   // all on the same PMOD pins, with users manually changing out the connected devices between
@@ -194,7 +195,7 @@ using namespace CHERI;
           .num_output_pins  = ARRAYSIZE(pmod_test_spi_on_pins),
           .block_inputs     = pmod_test_spi_on_inputs,
           .num_block_inputs = ARRAYSIZE(pmod_test_spi_on_inputs),
-          .spi_data         = {SpiTest::SpiNum::Spi0},
+          .spi_data         = {SpiTest::SpiNum::Spi1},
           .expected_result  = true,
       },
       {
@@ -205,7 +206,7 @@ using namespace CHERI;
           .num_output_pins  = ARRAYSIZE(pmod_test_spi_off_pins),
           .block_inputs     = pmod_test_spi_off_inputs,
           .num_block_inputs = ARRAYSIZE(pmod_test_spi_off_inputs),
-          .spi_data         = {SpiTest::SpiNum::Spi0},
+          .spi_data         = {SpiTest::SpiNum::Spi1},
           .expected_result  = false,
       },
   };
