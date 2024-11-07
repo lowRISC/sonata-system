@@ -28,6 +28,7 @@ filesets:
     files:
       - rtl/system/sonata_pkg.sv
       - rtl/bus/sonata_xbar_main.sv
+      - rtl/ip/strace/rtl/strace_top.sv
       - rtl/system/jtag_id_pkg.sv
       - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv

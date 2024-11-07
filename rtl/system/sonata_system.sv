@@ -101,7 +101,9 @@ module sonata_system
   output sonata_out_pins_t   out_to_pins_o,
   input  sonata_inout_pins_t inout_from_pins_i,
   output sonata_inout_pins_t inout_to_pins_o,
-  output sonata_inout_pins_t inout_to_pins_en_o
+  output sonata_inout_pins_t inout_to_pins_en_o,
+
+  output logic [3:0]         strace_o
 );
   ///////////////////////////////////////////////
   // Signals, types and parameters for system. //
@@ -1206,6 +1208,64 @@ module sonata_system
     .tl_o   (tl_rgbled_ctrl_d2h),
 
     .rgbled_dout_o
+  );
+
+  // TODO: Tap onto the PWM device port for now.
+  wire strace_cfg_re = device_req[Pwm] & !device_we[Pwm] & device_addr[Pwm][7];
+  wire strace_cfg_we = device_req[Pwm] &  device_we[Pwm] & device_addr[Pwm][7];
+  wire [3:0]  strace_cfg_addr = device_addr[Pwm][3:0];
+  wire [31:0] strace_cfg_wdata = device_wdata[Pwm];
+
+  // Collect the I2C buses and SPI buses.
+  logic [I2C_NUM-1:0] strace_i2c_scl;
+  logic [I2C_NUM-1:0] strace_i2c_sda;
+  logic [SPI_NUM-1:0] strace_spi_sck;
+  logic [SPI_NUM-1:0] strace_spi_cs;  // TODO: require multi-CS support.
+  logic [SPI_NUM-1:0] strace_spi_copi;
+  logic [SPI_NUM-1:0] strace_spi_cipo;
+  always_comb begin
+    for (integer i = 0; i < I2C_NUM; i++) begin
+      strace_i2c_scl[i] = i2c_scl_d2h[i];
+      strace_i2c_sda[i] = i2c_sda_d2h[i];
+    end
+    for (integer i = 0; i < SPI_NUM; i++) begin
+      strace_spi_sck[i]  = spi_sclk[i];
+      strace_spi_cs[i]   = spi_cs[i][1];  // TODO: Only interested in microSD presently!
+      strace_spi_copi[i] = spi_copi[i];
+      strace_spi_cipo[i] = spi_cipo[i];
+    end
+  end
+
+  // Sonata Trace port.
+  strace_top #(
+    .I2C_NUM  (I2C_NUM),
+    .SPI_NUM  (SPI_NUM)
+  ) u_strace(
+    .clk_i      (clk_sys_i),
+    .rst_ni     (rst_sys_ni),
+
+    // Configuration interface.
+    .cfg_re     (strace_cfg_re),
+    .cfg_we     (strace_cfg_we),
+    .cfg_addr   (strace_cfg_addr),
+    .cfg_wdata  (strace_cfg_wdata),
+    // TODO: make read data available; presently not done because of GPIO tap.
+    .cfg_rdata  (),
+
+    // I2C bus(es).
+    .i2c_scl    (strace_i2c_scl),
+    .i2c_sda    (strace_i2c_sda),
+
+    // SPI bus(es).
+    .spi_cs     (strace_spi_cs),
+    .spi_sck    (strace_spi_sck),
+    .spi_copi   (strace_spi_copi),
+    .spi_cipo   (strace_spi_cipo),
+
+    // TL-UL activity.
+    .tlul_trace (4'h0),
+
+    .strace_o   (strace_o)
   );
 
   // Debug module top.
