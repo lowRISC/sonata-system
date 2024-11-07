@@ -115,7 +115,7 @@ static bool execute_i2c_pmod_colour_test(const Test &test, I2cPtr i2cs[2], Log &
  * Execute a SPI N25Q256A ID read test using the SPI and CS pin specified in
  * the test.
  */
-static bool execute_spi_test(const Test &test, SpiPtr spis[2]) {
+static bool execute_spi_test(const Test &test, SpiPtr spis[3]) {
   SpiPtr tested_spi = spis[static_cast<uint8_t>(test.spi_data.spi)];
   bool result       = spi_n25q256a_read_jedec_id(tested_spi);
   return result == test.expected_result;
@@ -151,7 +151,7 @@ static inline bool joystick_moved(SonataGpioFull *gpio) {
  * otherwise.
  */
 bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                  UartPtr uarts[2], SpiPtr spis[2], I2cPtr i2cs[2], SonataPinmux *pinmux) {
+                  UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux) {
   // If manual intervention is required, print out the test instruction and wait
   // for the user to press the joystick to signal that they are ready.
   if (test.manual_required) {
@@ -264,7 +264,7 @@ bool ask_retry_last_test(Log &log, SonataGpioFull *gpio) {
  * otherwise. Will return true even if there were retries.
  */
 bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                      UartPtr uarts[2], SpiPtr spis[2], I2cPtr i2cs[2], SonataPinmux *pinmux) {
+                      UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux) {
   log.println("");
   log.println("{}Starting check.", prefix);
   log.println("");

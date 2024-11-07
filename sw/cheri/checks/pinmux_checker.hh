@@ -69,9 +69,10 @@ struct I2cTest {
 // The test-specific data required to carry out a SPI Pmod SF3 Read ID test
 struct SpiTest {
   enum class SpiNum : uint8_t {
-    // The Flash and LCD have unused dedicated SPIs which cannot be tested.
+    // Ethernet and LCD have unused dedicated SPIs which cannot be muxed.
     Spi0,
     Spi1,
+    Spi2,
     NumSpi,
   } spi;
 };
@@ -125,4 +126,4 @@ struct Test {
 };
 
 bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                      UartPtr uarts[4], SpiPtr spis[2], I2cPtr i2cs[2], SonataPinmux *pinmux);
+                      UartPtr uarts[4], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux);
