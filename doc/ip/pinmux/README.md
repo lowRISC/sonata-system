@@ -57,7 +57,7 @@ The default value for all of these selectors is `'b10`.
 | 0x02a | `ah_tmpio6` | 0, `gpio[1].ios[6]`, `pwm_out[2]` |
 | 0x02b | `ah_tmpio7` | 0, `gpio[1].ios[7]` |
 | 0x02c | `ah_tmpio8` | 0, `gpio[1].ios[8]` |
-| 0x02d | `ah_tmpio9` | 0, `gpio[1].ios[9]`, `pwm_out[2]` |
+| 0x02d | `ah_tmpio9` | 0, `gpio[1].ios[9]`, `pwm_out[3]` |
 | 0x02e | `ah_tmpio10` | 0, `spi[1].cs[3]`, `gpio[1].ios[10]`, `pwm_out[4]` |
 | 0x02f | `ah_tmpio11` | 0, `spi[1].copi`, `gpio[1].ios[11]`, `pwm_out[5]` |
 | 0x030 | `ah_tmpio12` | 0, `gpio[1].ios[12]` |
