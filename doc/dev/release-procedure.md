@@ -62,7 +62,16 @@ cp sonata-vX.Y.bit.slot3.uf2 ../
 
 ### Automated testing
 
-Run tests on FPGA (note python3.11 or above required), adjust the /dev part to the UART as required.
+Run tests on simulation (note python3.11 or above required). FPGA testing is currently done in CI and requires quite a few add-ons to your board.
+
+```shell
+# Build the simulator
+fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system
+# Run the tests
+util/test_runner.py sim -e sw/cheri/build/tests/test_runner --simulator-binary build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator
+```
+
+Run tests on FPGA (note python3.11 or above required), adjust the /dev part to the UART as required. You will need to connect a Raspberry Pi sense HAT and a temperature sensor to QWIIC 1.
 
 ```shell
 ./util/test_runner.py fpga -e ./sw/cheri/build/tests/test_runner -t ./util/sonata-openocd-cfg.tcl /dev/ttyUSB2
