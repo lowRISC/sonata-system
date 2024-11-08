@@ -13,8 +13,8 @@ packaging
 poetry
 pycryptodome
 pydantic
+pyserial
 semantic_version
-serial
 setuptools
 tabulate
 toml
