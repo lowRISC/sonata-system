@@ -308,8 +308,10 @@ Test runner: All tests finished in 42895559 cycles
 
 In your release directory from the procedures above you should have:
  - `sonata-vX.Y.bit.slot1.uf2`
+ - `sonata-vX.Y.bit.slot2.uf2`
+ - `sonata-vX.Y.bit.slot3.uf2`
  - `sonata_simple_demo_vX.Y.slot1.uf2`
- - `snake_demo_vX.Y.slot1.uf2`
+ - `snake_demo_vX.Y.slot2.uf2`
 
 Use these to create the GitHub release, remember to include the RP2040 UF2 and include appropriate release notes.
 
