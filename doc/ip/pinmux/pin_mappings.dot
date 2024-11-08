@@ -14,7 +14,7 @@ digraph {
     i2c_1 [label = "i2c_1|<sda>sda|<scl>scl"]
 
     // SPI for Flash & microSD
-    spi_board [label = "spi_board\
+    spi_0 [label = "spi_0\
       |<copi>copi\
       |<cipo>cipo\
       |<sclk>sclk\
@@ -42,7 +42,7 @@ digraph {
     "]
 
     // Pi Spi0, Pmod 0, Arduino Header
-    spi_0 [label = "spi_0\
+    spi_1 [label = "spi_1\
       |<copi>copi\
       |<cipo>cipo\
       |<sclk>sclk\
@@ -53,7 +53,7 @@ digraph {
     "]
 
     // Pi Spi1, Pmod 1, mikroBUS
-    spi_1 [label = "spi_1\
+    spi_2 [label = "spi_2\
       |<copi>copi\
       |<cipo>cipo\
       |<sclk>sclk\
@@ -383,15 +383,15 @@ digraph {
   // SPI
   edge [dir=forward color=dodgerblue];
 
-  spi_board:copi -> appspi:d0;
-  spi_board:cipo -> appspi:d1 [dir=back];
-  spi_board:sclk -> appspi:clk;
-  spi_board:cs_0 -> appspi:cs;
+  spi_0:copi -> appspi:d0;
+  spi_0:cipo -> appspi:d1 [dir=back];
+  spi_0:sclk -> appspi:clk;
+  spi_0:cs_0 -> appspi:cs;
 
-  spi_board:copi -> microsd:cmd;
-  spi_board:cipo -> microsd:dat0 [dir=back];
-  spi_board:sclk -> microsd:clk;
-  spi_board:cs_1 -> microsd:dat3;
+  spi_0:copi -> microsd:cmd;
+  spi_0:cipo -> microsd:dat0 [dir=back];
+  spi_0:sclk -> microsd:clk;
+  spi_0:cs_1 -> microsd:dat3;
 
   spi_lcd:copi -> lcd:copi;
   spi_lcd:sclk -> lcd:clk;
@@ -405,42 +405,42 @@ digraph {
   spi_ethmac:cs_0 -> ethmac:cs;
   spi_ethmac:cs_1 -> ethmac:rst;
 
-  spi_0:copi -> pmod0:2;
-  spi_0:cipo -> pmod0:3 [dir=back];
-  spi_0:sclk -> pmod0:4;
-  spi_0:cs_0 -> pmod0:1;
-  spi_0:cs_1 -> pmod0:7;
-  spi_0:cs_2 -> pmod0:8;
+  spi_1:copi -> pmod0:2;
+  spi_1:cipo -> pmod0:3 [dir=back];
+  spi_1:sclk -> pmod0:4;
+  spi_1:cs_0 -> pmod0:1;
+  spi_1:cs_1 -> pmod0:7;
+  spi_1:cs_2 -> pmod0:8;
 
-  spi_0:copi -> rph:g10_spi0_copi;
-  spi_0:cipo -> rph:g9_spi0_cipo [dir=back];
-  spi_0:sclk -> rph:g11_spi0_sclk;
-  spi_0:cs_1 -> rph:g7_spi0_ce1;
-  spi_0:cs_0 -> rph:g8_spi0_ce0;
+  spi_1:copi -> rph:g10_spi0_copi;
+  spi_1:cipo -> rph:g9_spi0_cipo [dir=back];
+  spi_1:sclk -> rph:g11_spi0_sclk;
+  spi_1:cs_1 -> rph:g7_spi0_ce1;
+  spi_1:cs_0 -> rph:g8_spi0_ce0;
 
-  spi_0:copi -> ah:tmpio11;
-  spi_0:cipo -> ah:tmpio12 [dir=back];
-  spi_0:sclk -> ah:tmpio13;
-  spi_0:cs_3 -> ah:tmpio10;
+  spi_1:copi -> ah:tmpio11;
+  spi_1:cipo -> ah:tmpio12 [dir=back];
+  spi_1:sclk -> ah:tmpio13;
+  spi_1:cs_3 -> ah:tmpio10;
 
-  spi_1:copi -> pmod1:2;
-  spi_1:cipo -> pmod1:3 [dir=back];
-  spi_1:sclk -> pmod1:4;
-  spi_1:cs_0 -> pmod1:1;
-  spi_1:cs_1 -> pmod1:7;
-  spi_1:cs_2 -> pmod1:8;
+  spi_2:copi -> pmod1:2;
+  spi_2:cipo -> pmod1:3 [dir=back];
+  spi_2:sclk -> pmod1:4;
+  spi_2:cs_0 -> pmod1:1;
+  spi_2:cs_1 -> pmod1:7;
+  spi_2:cs_2 -> pmod1:8;
 
-  spi_1:copi -> rph:g20_spi1_copi;
-  spi_1:cipo -> rph:g19_spi1_cipo [dir=back];
-  spi_1:sclk -> rph:g21_spi1_sclk;
-  spi_1:cs_0 -> rph:g18_spi1_ce0;
-  spi_1:cs_1 -> rph:g17_spi1_ce1;
-  spi_1:cs_2 -> rph:g16_spi1_ce2;
+  spi_2:copi -> rph:g20_spi1_copi;
+  spi_2:cipo -> rph:g19_spi1_cipo [dir=back];
+  spi_2:sclk -> rph:g21_spi1_sclk;
+  spi_2:cs_0 -> rph:g18_spi1_ce0;
+  spi_2:cs_1 -> rph:g17_spi1_ce1;
+  spi_2:cs_2 -> rph:g16_spi1_ce2;
 
-  spi_1:copi -> mb:4;
-  spi_1:cipo -> mb:3 [dir=back];
-  spi_1:sclk -> mb:2;
-  spi_1:cs_3 -> mb:1;
+  spi_2:copi -> mb:4;
+  spi_2:cipo -> mb:3 [dir=back];
+  spi_2:sclk -> mb:2;
+  spi_2:cs_3 -> mb:1;
 
   // PWM
   edge [dir=forward color=hotpink];
