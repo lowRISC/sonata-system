@@ -2343,7 +2343,7 @@ module pinmux
     .in_i({
       1'b0, // This is set to Z later when output enable is low.
       gpio_ios_i[1][9],
-      pwm_out_i[0][2]
+      pwm_out_i[0][3]
     }),
     .sel_i(ah_tmpio9_sel),
     .out_o(inout_to_pins_o[INOUT_PIN_AH_TMPIO9])
@@ -2358,7 +2358,7 @@ module pinmux
     .in_i({
       1'b0,
       gpio_ios_en_i[1][9],
-      pwm_out_en_i[0][2]
+      pwm_out_en_i[0][3]
     }),
     .sel_i(ah_tmpio9_sel),
     .out_o(inout_to_pins_en_o[INOUT_PIN_AH_TMPIO9])
