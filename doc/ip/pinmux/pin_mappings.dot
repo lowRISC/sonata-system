@@ -215,8 +215,8 @@ digraph {
         <tr><td port="g4"           >rph_g4</td><td>gpio</td></tr>
         <tr><td port="g5"           >rph_g5</td><td>gpio</td></tr>
         <tr><td port="g6"           >rph_g6</td><td>gpio</td></tr>
-        <tr><td port="g7_spi0_ce0"  >rph_g7_spi0_ce0</td><td>gpio, cs</td></tr>
-        <tr><td port="g8_spi0_ce1"  >rph_g8_spi0_ce1</td><td>gpio, cs</td></tr>
+        <tr><td port="g7_spi0_ce1"  >rph_g7_spi0_ce1</td><td>gpio, cs</td></tr>
+        <tr><td port="g8_spi0_ce0"  >rph_g8_spi0_ce0</td><td>gpio, cs</td></tr>
         <tr><td port="g9_spi0_cipo" >rph_g9_spi0_cipo</td><td>gpio, cipo</td></tr>
         <tr><td port="g10_spi0_copi">rph_g10_spi0_copi</td><td>gpio, copi</td></tr>
         <tr><td port="g11_spi0_sclk">rph_g11_spi0_sclk</td><td>gpio, sclk</td></tr>
@@ -415,8 +415,8 @@ digraph {
   spi_0:copi -> rph:g10_spi0_copi;
   spi_0:cipo -> rph:g9_spi0_cipo [dir=back];
   spi_0:sclk -> rph:g11_spi0_sclk;
-  spi_0:cs_0 -> rph:g7_spi0_ce0;
-  spi_0:cs_1 -> rph:g8_spi0_ce1;
+  spi_0:cs_1 -> rph:g7_spi0_ce1;
+  spi_0:cs_0 -> rph:g8_spi0_ce0;
 
   spi_0:copi -> ah:tmpio11;
   spi_0:cipo -> ah:tmpio12 [dir=back];
@@ -485,8 +485,8 @@ digraph {
   gpio_rph:"gpio_0-27" -> rph:g4;
   gpio_rph:"gpio_0-27" -> rph:g5;
   gpio_rph:"gpio_0-27" -> rph:g6;
-  gpio_rph:"gpio_0-27" -> rph:g7_spi0_ce0;
-  gpio_rph:"gpio_0-27" -> rph:g8_spi0_ce1;
+  gpio_rph:"gpio_0-27" -> rph:g7_spi0_ce1;
+  gpio_rph:"gpio_0-27" -> rph:g8_spi0_ce0;
   gpio_rph:"gpio_0-27" -> rph:g9_spi0_cipo;
   gpio_rph:"gpio_0-27" -> rph:g10_spi0_copi;
   gpio_rph:"gpio_0-27" -> rph:g11_spi0_sclk;
