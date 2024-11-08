@@ -114,6 +114,52 @@ Got second flash read:
 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 ca cb cc cd ce cf d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc dd de df e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
 ```
 
+Run the USB connection test:
+```shell
+util/mem_helper.sh load_program -e sw/cheri/build/checks/usbdev_check
+```
+Connect the user USB to a laptop's USB-A port. The UART should show this:
+```
+Initialising USB
+Connected
+Test passed; disconnected from USB.
+```
+
+Run the USB echo test. First you need to apply the following diff:
+```diff
+diff --git a/sw/cheri/checks/usbdev_check.cc b/sw/cheri/checks/usbdev_check.cc
+index 4212ae7..7c68507 100644
+--- a/sw/cheri/checks/usbdev_check.cc
++++ b/sw/cheri/checks/usbdev_check.cc
+@@ -26,7 +26,7 @@ using namespace CHERI;
+ // - if disconnection is not enabled then a terminator emulator may be attached to `/dev/ttyUSB<n>`
+ //   and a sign-on message should be observed. Any characters entered into the terminal will
+ //   be echoed on the UART output.
+-static constexpr bool do_disconnect = true;
++static constexpr bool do_disconnect = false;
+ 
+ static void write_strn(UartPtr uart, const char *str, size_t len) {
+   while (len-- > 0u) {
+```
+Then use the following commands:
+```shell
+cmake --build sw/cheri/build
+util/mem_helper.sh load_program -e sw/cheri/build/checks/usbdev_check
+```
+
+Check the UART output is:
+```
+Initialising USB
+Connected
+Sent sign-on message over USB.
+```
+
+Open USB serial output. For me this is `screen /dev/ttyUSB1`. Check that the output is:
+```
+Hello from CHERI USB!
+```
+Also type into the USB screen instance and see that it is echoed on the UART side.
+
 #### Vivado - Known errors
 
 None at the moment.
