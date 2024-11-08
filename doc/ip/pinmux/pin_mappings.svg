@@ -628,20 +628,20 @@
 <polygon fill="darkorange" stroke="darkorange" points="89.47,-1307.41 79.5,-1311 89.53,-1314.41 89.47,-1307.41"/>
 <polygon fill="darkorange" stroke="darkorange" points="825.53,-923.59 835.5,-920 825.47,-916.59 825.53,-923.59"/>
 </g>
-<!-- spi_board -->
+<!-- spi_0 -->
 <g id="node6" class="node">
-<title>spi_board</title>
-<path fill="none" stroke="black" d="M20.5,-2620C20.5,-2620 82.5,-2620 82.5,-2620 88.5,-2620 94.5,-2626 94.5,-2632 94.5,-2632 94.5,-2746 94.5,-2746 94.5,-2752 88.5,-2758 82.5,-2758 82.5,-2758 20.5,-2758 20.5,-2758 14.5,-2758 8.5,-2752 8.5,-2746 8.5,-2746 8.5,-2632 8.5,-2632 8.5,-2626 14.5,-2620 20.5,-2620"/>
-<text text-anchor="middle" x="51.5" y="-2742.8" font-family="Times,serif" font-size="14.00">spi_board</text>
-<polyline fill="none" stroke="black" points="8.5,-2735 94.5,-2735 "/>
+<title>spi_0</title>
+<path fill="none" stroke="black" d="M36.5,-2620C36.5,-2620 66.5,-2620 66.5,-2620 72.5,-2620 78.5,-2626 78.5,-2632 78.5,-2632 78.5,-2746 78.5,-2746 78.5,-2752 72.5,-2758 66.5,-2758 66.5,-2758 36.5,-2758 36.5,-2758 30.5,-2758 24.5,-2752 24.5,-2746 24.5,-2746 24.5,-2632 24.5,-2632 24.5,-2626 30.5,-2620 36.5,-2620"/>
+<text text-anchor="middle" x="51.5" y="-2742.8" font-family="Times,serif" font-size="14.00">spi_0</text>
+<polyline fill="none" stroke="black" points="24.5,-2735 78.5,-2735 "/>
 <text text-anchor="middle" x="51.5" y="-2719.8" font-family="Times,serif" font-size="14.00">copi</text>
-<polyline fill="none" stroke="black" points="8.5,-2712 94.5,-2712 "/>
+<polyline fill="none" stroke="black" points="24.5,-2712 78.5,-2712 "/>
 <text text-anchor="middle" x="51.5" y="-2696.8" font-family="Times,serif" font-size="14.00">cipo</text>
-<polyline fill="none" stroke="black" points="8.5,-2689 94.5,-2689 "/>
+<polyline fill="none" stroke="black" points="24.5,-2689 78.5,-2689 "/>
 <text text-anchor="middle" x="51.5" y="-2673.8" font-family="Times,serif" font-size="14.00">sclk</text>
-<polyline fill="none" stroke="black" points="8.5,-2666 94.5,-2666 "/>
+<polyline fill="none" stroke="black" points="24.5,-2666 78.5,-2666 "/>
 <text text-anchor="middle" x="51.5" y="-2650.8" font-family="Times,serif" font-size="14.00">cs_0</text>
-<polyline fill="none" stroke="black" points="8.5,-2643 94.5,-2643 "/>
+<polyline fill="none" stroke="black" points="24.5,-2643 78.5,-2643 "/>
 <text text-anchor="middle" x="51.5" y="-2627.8" font-family="Times,serif" font-size="14.00">cs_1</text>
 </g>
 <!-- appspi -->
@@ -670,28 +670,28 @@
 <polygon fill="none" stroke="black" points="1033.5,-2692 1033.5,-2717 1073.5,-2717 1073.5,-2692 1033.5,-2692"/>
 <text text-anchor="start" x="1045.5" y="-2700.8" font-family="Times,serif" font-size="14.00">cs</text>
 </g>
-<!-- spi_board&#45;&gt;appspi -->
+<!-- spi_0&#45;&gt;appspi -->
 <g id="edge33" class="edge">
-<title>spi_board:copi&#45;&gt;appspi:d0</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2724C473.64,-2724 564.29,-2828.09 937.23,-2829.97"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="937.49,-2833.47 947.5,-2830 937.51,-2826.47 937.49,-2833.47"/>
+<title>spi_0:copi&#45;&gt;appspi:d0</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2724C464.73,-2724 557.24,-2828.14 937.32,-2829.98"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="937.49,-2833.48 947.5,-2830 937.51,-2826.48 937.49,-2833.48"/>
 </g>
-<!-- spi_board&#45;&gt;appspi -->
+<!-- spi_0&#45;&gt;appspi -->
 <g id="edge34" class="edge">
-<title>spi_board:cipo&#45;&gt;appspi:d1</title>
-<path fill="none" stroke="dodgerblue" d="M105.77,-2701.03C478.61,-2702.87 569.47,-2805 947.5,-2805"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="105.51,-2697.52 95.5,-2701 105.49,-2704.52 105.51,-2697.52"/>
+<title>spi_0:cipo&#45;&gt;appspi:d1</title>
+<path fill="none" stroke="dodgerblue" d="M89.68,-2701.02C469.66,-2702.82 562.38,-2805 947.5,-2805"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="89.51,-2697.52 79.5,-2701 89.49,-2704.52 89.51,-2697.52"/>
 </g>
-<!-- spi_board&#45;&gt;appspi -->
+<!-- spi_0&#45;&gt;appspi -->
 <g id="edge35" class="edge">
-<title>spi_board:sclk&#45;&gt;appspi:clk</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2677C471.44,-2677 566.42,-2728.06 937.29,-2728.99"/>
+<title>spi_0:sclk&#45;&gt;appspi:clk</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2677C462.57,-2677 559.34,-2728.09 937.38,-2728.99"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="937.5,-2732.49 947.5,-2729 937.5,-2725.49 937.5,-2732.49"/>
 </g>
-<!-- spi_board&#45;&gt;appspi -->
+<!-- spi_0&#45;&gt;appspi -->
 <g id="edge36" class="edge">
-<title>spi_board:cs_0&#45;&gt;appspi:cs</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2654C471.39,-2654 566.47,-2703.1 937.29,-2703.99"/>
+<title>spi_0:cs_0&#45;&gt;appspi:cs</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2654C462.52,-2654 559.39,-2703.12 937.38,-2703.99"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="937.5,-2707.49 947.5,-2704 937.5,-2700.49 937.5,-2707.49"/>
 </g>
 <!-- microsd -->
@@ -728,28 +728,28 @@
 <polygon fill="none" stroke="black" points="1011.5,-2490 1011.5,-2515 1051.5,-2515 1051.5,-2490 1011.5,-2490"/>
 <text text-anchor="start" x="1020" y="-2498.8" font-family="Times,serif" font-size="14.00">gpi</text>
 </g>
-<!-- spi_board&#45;&gt;microsd -->
+<!-- spi_0&#45;&gt;microsd -->
 <g id="edge37" class="edge">
-<title>spi_board:copi&#45;&gt;microsd:cmd</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2724C452.56,-2724 541.32,-2654.35 893.28,-2653.02"/>
+<title>spi_0:copi&#45;&gt;microsd:cmd</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2724C443.67,-2724 534.25,-2654.31 893.34,-2653.02"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="893.51,-2656.52 903.5,-2653 893.49,-2649.52 893.51,-2656.52"/>
 </g>
-<!-- spi_board&#45;&gt;microsd -->
+<!-- spi_0&#45;&gt;microsd -->
 <g id="edge38" class="edge">
-<title>spi_board:cipo&#45;&gt;microsd:dat0</title>
-<path fill="none" stroke="dodgerblue" d="M105.76,-2700.97C458.88,-2699.14 545.2,-2603 903.5,-2603"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="105.49,-2697.47 95.5,-2701 105.51,-2704.47 105.49,-2697.47"/>
+<title>spi_0:cipo&#45;&gt;microsd:dat0</title>
+<path fill="none" stroke="dodgerblue" d="M89.69,-2700.97C449.93,-2699.19 538.12,-2603 903.5,-2603"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="89.49,-2697.48 79.5,-2701 89.51,-2704.48 89.49,-2697.48"/>
 </g>
-<!-- spi_board&#45;&gt;microsd -->
+<!-- spi_0&#45;&gt;microsd -->
 <g id="edge39" class="edge">
-<title>spi_board:sclk&#45;&gt;microsd:clk</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2677C451.85,-2677 542.02,-2628.93 893.3,-2628.01"/>
+<title>spi_0:sclk&#45;&gt;microsd:clk</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2677C442.97,-2677 534.93,-2628.9 893.36,-2628.01"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="893.5,-2631.51 903.5,-2628 893.5,-2624.51 893.5,-2631.51"/>
 </g>
-<!-- spi_board&#45;&gt;microsd -->
+<!-- spi_0&#45;&gt;microsd -->
 <g id="edge40" class="edge">
-<title>spi_board:cs_1&#45;&gt;microsd:dat3</title>
-<path fill="none" stroke="dodgerblue" d="M95.5,-2631C454.21,-2631 539.85,-2528.92 893.49,-2527.03"/>
+<title>spi_0:cs_1&#45;&gt;microsd:dat3</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-2631C445.2,-2631 532.76,-2528.92 893.3,-2527.03"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="893.51,-2530.53 903.5,-2527 893.49,-2523.53 893.51,-2530.53"/>
 </g>
 <!-- spi_lcd -->
@@ -902,11 +902,11 @@
 <path fill="none" stroke="dodgerblue" d="M101.5,-2884C464.77,-2884 558.1,-2880.07 916.37,-2880"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="916.5,-2883.5 926.5,-2880 916.5,-2876.5 916.5,-2883.5"/>
 </g>
-<!-- spi_0 -->
+<!-- spi_1 -->
 <g id="node9" class="node">
-<title>spi_0</title>
+<title>spi_1</title>
 <path fill="none" stroke="black" d="M36.5,-741C36.5,-741 66.5,-741 66.5,-741 72.5,-741 78.5,-747 78.5,-753 78.5,-753 78.5,-913 78.5,-913 78.5,-919 72.5,-925 66.5,-925 66.5,-925 36.5,-925 36.5,-925 30.5,-925 24.5,-919 24.5,-913 24.5,-913 24.5,-753 24.5,-753 24.5,-747 30.5,-741 36.5,-741"/>
-<text text-anchor="middle" x="51.5" y="-909.8" font-family="Times,serif" font-size="14.00">spi_0</text>
+<text text-anchor="middle" x="51.5" y="-909.8" font-family="Times,serif" font-size="14.00">spi_1</text>
 <polyline fill="none" stroke="black" points="24.5,-902 78.5,-902 "/>
 <text text-anchor="middle" x="51.5" y="-886.8" font-family="Times,serif" font-size="14.00">copi</text>
 <polyline fill="none" stroke="black" points="24.5,-879 78.5,-879 "/>
@@ -922,101 +922,101 @@
 <polyline fill="none" stroke="black" points="24.5,-764 78.5,-764 "/>
 <text text-anchor="middle" x="51.5" y="-748.8" font-family="Times,serif" font-size="14.00">cs_3</text>
 </g>
-<!-- spi_0&#45;&gt;rph -->
+<!-- spi_1&#45;&gt;rph -->
 <g id="edge57" class="edge">
-<title>spi_0:copi&#45;&gt;rph:g10_spi0_copi</title>
+<title>spi_1:copi&#45;&gt;rph:g10_spi0_copi</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-891C699.53,-891 212.51,-2062.73 820.1,-2075.89"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-2079.39 830.5,-2076 820.54,-2072.39 820.46,-2079.39"/>
 </g>
-<!-- spi_0&#45;&gt;rph -->
+<!-- spi_1&#45;&gt;rph -->
 <g id="edge58" class="edge">
-<title>spi_0:cipo&#45;&gt;rph:g9_spi0_cipo</title>
+<title>spi_1:cipo&#45;&gt;rph:g9_spi0_cipo</title>
 <path fill="none" stroke="dodgerblue" d="M89.74,-868.11C715.46,-881.21 192.3,-2101 830.5,-2101"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.54,-864.6 79.5,-868 89.46,-871.6 89.54,-864.6"/>
 </g>
-<!-- spi_0&#45;&gt;rph -->
+<!-- spi_1&#45;&gt;rph -->
 <g id="edge59" class="edge">
-<title>spi_0:sclk&#45;&gt;rph:g11_spi0_sclk</title>
+<title>spi_1:sclk&#45;&gt;rph:g11_spi0_sclk</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-845C707.54,-845 204.54,-2038.08 820.42,-2050.9"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-2054.4 830.5,-2051 820.54,-2047.4 820.46,-2054.4"/>
 </g>
-<!-- spi_0&#45;&gt;rph -->
+<!-- spi_1&#45;&gt;rph -->
 <g id="edge60" class="edge">
-<title>spi_0:cs_1&#45;&gt;rph:g7_spi0_ce1</title>
+<title>spi_1:cs_1&#45;&gt;rph:g7_spi0_ce1</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-798C763.73,-798 149.11,-2137.16 820.02,-2150.89"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-2154.4 830.5,-2151 820.54,-2147.4 820.46,-2154.4"/>
 </g>
-<!-- spi_0&#45;&gt;rph -->
+<!-- spi_1&#45;&gt;rph -->
 <g id="edge61" class="edge">
-<title>spi_0:cs_0&#45;&gt;rph:g8_spi0_ce0</title>
+<title>spi_1:cs_0&#45;&gt;rph:g8_spi0_ce0</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-821C745.25,-821 167.31,-2112.65 820.31,-2125.9"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.47,-2129.4 830.5,-2126 820.54,-2122.4 820.47,-2129.4"/>
 </g>
-<!-- spi_0&#45;&gt;ah -->
+<!-- spi_1&#45;&gt;ah -->
 <g id="edge62" class="edge">
-<title>spi_0:copi&#45;&gt;ah:tmpio11</title>
+<title>spi_1:copi&#45;&gt;ah:tmpio11</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-891C582.47,-891 362.13,-77.24 855.22,-66.12"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="855.54,-69.61 865.5,-66 855.46,-62.61 855.54,-69.61"/>
 </g>
-<!-- spi_0&#45;&gt;ah -->
+<!-- spi_1&#45;&gt;ah -->
 <g id="edge63" class="edge">
-<title>spi_0:cipo&#45;&gt;ah:tmpio12</title>
+<title>spi_1:cipo&#45;&gt;ah:tmpio12</title>
 <path fill="none" stroke="dodgerblue" d="M89.8,-867.88C583.5,-856.73 361.89,-41 865.5,-41"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.46,-864.39 79.5,-868 89.54,-871.39 89.46,-864.39"/>
 </g>
-<!-- spi_0&#45;&gt;ah -->
+<!-- spi_1&#45;&gt;ah -->
 <g id="edge64" class="edge">
-<title>spi_0:sclk&#45;&gt;ah:tmpio13</title>
+<title>spi_1:sclk&#45;&gt;ah:tmpio13</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-845C583.75,-845 360.88,-27.3 855.19,-16.12"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="855.54,-19.61 865.5,-16 855.46,-12.61 855.54,-19.61"/>
 </g>
-<!-- spi_0&#45;&gt;ah -->
+<!-- spi_1&#45;&gt;ah -->
 <g id="edge65" class="edge">
-<title>spi_0:cs_3&#45;&gt;ah:tmpio10</title>
+<title>spi_1:cs_3&#45;&gt;ah:tmpio10</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-752C532.49,-752 410.95,-100.97 855.24,-91.11"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="855.54,-94.61 865.5,-91 855.46,-87.61 855.54,-94.61"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge51" class="edge">
-<title>spi_0:copi&#45;&gt;pmod0:2</title>
+<title>spi_1:copi&#45;&gt;pmod0:2</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-891C420.72,-891 489.58,-722.34 825.48,-719.05"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-722.55 835.5,-719 825.48,-715.55 825.52,-722.55"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge52" class="edge">
-<title>spi_0:cipo&#45;&gt;pmod0:3</title>
+<title>spi_1:cipo&#45;&gt;pmod0:3</title>
 <path fill="none" stroke="dodgerblue" d="M89.52,-867.95C425.61,-864.62 494.08,-694 835.5,-694"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.48,-864.45 79.5,-868 89.52,-871.45 89.48,-864.45"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge53" class="edge">
-<title>spi_0:sclk&#45;&gt;pmod0:4</title>
+<title>spi_1:sclk&#45;&gt;pmod0:4</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-845C421.12,-845 489.2,-672.42 825.47,-669.05"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-672.55 835.5,-669 825.48,-665.55 825.52,-672.55"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge54" class="edge">
-<title>spi_0:cs_0&#45;&gt;pmod0:1</title>
+<title>spi_1:cs_0&#45;&gt;pmod0:1</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-821C413.78,-821 496.08,-745.57 825.19,-744.02"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.51,-747.52 835.5,-744 825.49,-740.52 825.51,-747.52"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge55" class="edge">
-<title>spi_0:cs_1&#45;&gt;pmod0:7</title>
+<title>spi_1:cs_1&#45;&gt;pmod0:7</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-798C424.23,-798 486.17,-596.98 825.38,-593.06"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-596.56 835.5,-593 825.48,-589.56 825.52,-596.56"/>
 </g>
-<!-- spi_0&#45;&gt;pmod0 -->
+<!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge56" class="edge">
-<title>spi_0:cs_2&#45;&gt;pmod0:8</title>
+<title>spi_1:cs_2&#45;&gt;pmod0:8</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-775C424.47,-775 485.95,-572.02 825.38,-568.06"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-571.56 835.5,-568 825.48,-564.56 825.52,-571.56"/>
 </g>
-<!-- spi_1 -->
+<!-- spi_2 -->
 <g id="node10" class="node">
-<title>spi_1</title>
+<title>spi_2</title>
 <path fill="none" stroke="black" d="M36.5,-1097C36.5,-1097 66.5,-1097 66.5,-1097 72.5,-1097 78.5,-1103 78.5,-1109 78.5,-1109 78.5,-1269 78.5,-1269 78.5,-1275 72.5,-1281 66.5,-1281 66.5,-1281 36.5,-1281 36.5,-1281 30.5,-1281 24.5,-1275 24.5,-1269 24.5,-1269 24.5,-1109 24.5,-1109 24.5,-1103 30.5,-1097 36.5,-1097"/>
-<text text-anchor="middle" x="51.5" y="-1265.8" font-family="Times,serif" font-size="14.00">spi_1</text>
+<text text-anchor="middle" x="51.5" y="-1265.8" font-family="Times,serif" font-size="14.00">spi_2</text>
 <polyline fill="none" stroke="black" points="24.5,-1258 78.5,-1258 "/>
 <text text-anchor="middle" x="51.5" y="-1242.8" font-family="Times,serif" font-size="14.00">copi</text>
 <polyline fill="none" stroke="black" points="24.5,-1235 78.5,-1235 "/>
@@ -1032,99 +1032,99 @@
 <polyline fill="none" stroke="black" points="24.5,-1120 78.5,-1120 "/>
 <text text-anchor="middle" x="51.5" y="-1104.8" font-family="Times,serif" font-size="14.00">cs_3</text>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge72" class="edge">
-<title>spi_1:copi&#45;&gt;rph:g20_spi1_copi</title>
+<title>spi_2:copi&#45;&gt;rph:g20_spi1_copi</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1247C497.29,-1247 410.75,-1815.72 820.42,-1824.89"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-1828.39 830.5,-1825 820.54,-1821.39 820.46,-1828.39"/>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge73" class="edge">
-<title>spi_1:cipo&#45;&gt;rph:g19_spi1_cipo</title>
+<title>spi_2:cipo&#45;&gt;rph:g19_spi1_cipo</title>
 <path fill="none" stroke="dodgerblue" d="M89.58,-1224.11C512.22,-1233.74 399.37,-1850 830.5,-1850"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.54,-1220.61 79.5,-1224 89.46,-1227.61 89.54,-1220.61"/>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge74" class="edge">
-<title>spi_1:sclk&#45;&gt;rph:g21_spi1_sclk</title>
+<title>spi_2:sclk&#45;&gt;rph:g21_spi1_sclk</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1201C503.01,-1201 405.18,-1790.39 820.28,-1799.88"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-1803.39 830.5,-1800 820.54,-1796.39 820.46,-1803.39"/>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge75" class="edge">
-<title>spi_1:cs_0&#45;&gt;rph:g18_spi1_ce0</title>
+<title>spi_2:cs_0&#45;&gt;rph:g18_spi1_ce0</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1177C531.73,-1177 377.21,-1864.47 820.26,-1874.88"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-1878.38 830.5,-1875 820.54,-1871.38 820.46,-1878.38"/>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge76" class="edge">
-<title>spi_1:cs_1&#45;&gt;rph:g17_spi1_ce1</title>
+<title>spi_2:cs_1&#45;&gt;rph:g17_spi1_ce1</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1154C546.52,-1154 362.78,-1889.11 820.27,-1899.88"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-1903.38 830.5,-1900 820.54,-1896.38 820.46,-1903.38"/>
 </g>
-<!-- spi_1&#45;&gt;rph -->
+<!-- spi_2&#45;&gt;rph -->
 <g id="edge77" class="edge">
-<title>spi_1:cs_2&#45;&gt;rph:g16_spi1_ce2</title>
+<title>spi_2:cs_2&#45;&gt;rph:g16_spi1_ce2</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1131C561.8,-1131 347.85,-1913.8 820.29,-1924.88"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="820.46,-1928.38 830.5,-1925 820.54,-1921.38 820.46,-1928.38"/>
 </g>
-<!-- spi_1&#45;&gt;mb -->
+<!-- spi_2&#45;&gt;mb -->
 <g id="edge78" class="edge">
-<title>spi_1:copi&#45;&gt;mb:4</title>
+<title>spi_2:copi&#45;&gt;mb:4</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1247C451.85,-1247 544.1,-1172.37 911.39,-1171.02"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="911.51,-1174.52 921.5,-1171 911.49,-1167.52 911.51,-1174.52"/>
 </g>
-<!-- spi_1&#45;&gt;mb -->
+<!-- spi_2&#45;&gt;mb -->
 <g id="edge79" class="edge">
-<title>spi_1:cipo&#45;&gt;mb:3</title>
+<title>spi_2:cipo&#45;&gt;mb:3</title>
 <path fill="none" stroke="dodgerblue" d="M89.58,-1223.99C455.63,-1223.5 550.45,-1196 921.5,-1196"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.5,-1220.49 79.5,-1224 89.5,-1227.49 89.5,-1220.49"/>
 </g>
-<!-- spi_1&#45;&gt;mb -->
+<!-- spi_2&#45;&gt;mb -->
 <g id="edge80" class="edge">
-<title>spi_1:sclk&#45;&gt;mb:2</title>
+<title>spi_2:sclk&#45;&gt;mb:2</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1201C450.45,-1201 545.46,-1220.64 911.42,-1221"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="911.5,-1224.5 921.5,-1221 911.5,-1217.5 911.5,-1224.5"/>
 </g>
-<!-- spi_1&#45;&gt;mb -->
+<!-- spi_2&#45;&gt;mb -->
 <g id="edge81" class="edge">
-<title>spi_1:cs_3&#45;&gt;mb:1</title>
+<title>spi_2:cs_3&#45;&gt;mb:1</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1108C455.29,-1108 540.75,-1243.52 911.3,-1245.97"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="911.49,-1249.47 921.5,-1246 911.51,-1242.47 911.49,-1249.47"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge66" class="edge">
-<title>spi_1:copi&#45;&gt;pmod1:2</title>
+<title>spi_2:copi&#45;&gt;pmod1:2</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1247C437.87,-1247 473.04,-950.72 825.25,-945.08"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-948.58 835.5,-945 825.47,-941.58 825.53,-948.58"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge67" class="edge">
-<title>spi_1:cipo&#45;&gt;pmod1:3</title>
+<title>spi_2:cipo&#45;&gt;pmod1:3</title>
 <path fill="none" stroke="dodgerblue" d="M89.76,-1223.92C442.28,-1218.24 476.8,-920 835.5,-920"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.47,-1220.42 79.5,-1224 89.53,-1227.42 89.47,-1220.42"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge68" class="edge">
-<title>spi_1:sclk&#45;&gt;pmod1:4</title>
+<title>spi_2:sclk&#45;&gt;pmod1:4</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1201C438.62,-1201 472.42,-900.65 825.5,-895.08"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-898.58 835.5,-895 825.47,-891.58 825.53,-898.58"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge69" class="edge">
-<title>spi_1:cs_0&#45;&gt;pmod1:1</title>
+<title>spi_2:cs_0&#45;&gt;pmod1:1</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1177C424.47,-1177 485.95,-974.02 825.38,-970.06"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-973.56 835.5,-970 825.48,-966.56 825.52,-973.56"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge70" class="edge">
-<title>spi_1:cs_1&#45;&gt;pmod1:7</title>
+<title>spi_2:cs_1&#45;&gt;pmod1:7</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1154C443.6,-1154 467.57,-825.19 825.36,-819.09"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-822.58 835.5,-819 825.47,-815.59 825.53,-822.58"/>
 </g>
-<!-- spi_1&#45;&gt;pmod1 -->
+<!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge71" class="edge">
-<title>spi_1:cs_2&#45;&gt;pmod1:8</title>
+<title>spi_2:cs_2&#45;&gt;pmod1:8</title>
 <path fill="none" stroke="dodgerblue" d="M79.5,-1131C443.96,-1131 467.22,-800.22 825.35,-794.09"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-797.59 835.5,-794 825.47,-790.59 825.53,-797.59"/>
 </g>
