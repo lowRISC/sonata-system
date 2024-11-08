@@ -213,9 +213,11 @@ Open screen:
 screen /dev/ttyUSB2 921600
 ```
 
-You should see output from the simple demo after you press the reset button (SW5):
+You should see output from the simple demo after you press the reset button (SW5). The git SHA will depend on the commit your built your bitstream on, please confirm this is the same as you expect.
 
 ```
+bootloader: Sonata system git SHA: 9f794fe3bd4eec8d
+bootloader: Selected software slot: 1
 bootloader: Loading software from flash...
 bootloader: Booting into program, hopefully.
 Led Walk Raw: Look pretty LEDs!
