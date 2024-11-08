@@ -341,52 +341,52 @@
 <!-- pmod0 -->
 <g id="node29" class="node">
 <title>pmod0</title>
-<polygon fill="none" stroke="black" points="836.5,-731 836.5,-756 911.5,-756 911.5,-731 836.5,-731"/>
-<text text-anchor="start" x="841.5" y="-739.8" font-family="Times,serif" font-size="14.00">pmod0_1</text>
-<polygon fill="none" stroke="black" points="911.5,-731 911.5,-756 1057.5,-756 1057.5,-731 911.5,-731"/>
-<text text-anchor="start" x="957" y="-739.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
-<polygon fill="none" stroke="black" points="1057.5,-556 1057.5,-756 1228.5,-756 1228.5,-556 1057.5,-556"/>
-<text text-anchor="start" x="1115.5" y="-659.8" font-family="Times,serif" font-size="14.00">Pmod 0</text>
-<text text-anchor="start" x="1062.5" y="-644.8" font-family="Times,serif" font-size="14.00">types 1A, 2A, 3A or 6A</text>
-<polygon fill="none" stroke="black" points="836.5,-706 836.5,-731 911.5,-731 911.5,-706 836.5,-706"/>
-<text text-anchor="start" x="841.5" y="-714.8" font-family="Times,serif" font-size="14.00">pmod0_2</text>
-<polygon fill="none" stroke="black" points="911.5,-706 911.5,-731 1057.5,-731 1057.5,-706 911.5,-706"/>
-<text text-anchor="start" x="916.5" y="-714.8" font-family="Times,serif" font-size="14.00">gpio, copi, pwm, tx</text>
-<polygon fill="none" stroke="black" points="836.5,-681 836.5,-706 911.5,-706 911.5,-681 836.5,-681"/>
-<text text-anchor="start" x="841.5" y="-689.8" font-family="Times,serif" font-size="14.00">pmod0_3</text>
-<polygon fill="none" stroke="black" points="911.5,-681 911.5,-706 1057.5,-706 1057.5,-681 911.5,-681"/>
-<text text-anchor="start" x="923.5" y="-689.8" font-family="Times,serif" font-size="14.00">gpio, cipo, scl, rx</text>
-<polygon fill="none" stroke="black" points="836.5,-656 836.5,-681 911.5,-681 911.5,-656 836.5,-656"/>
-<text text-anchor="start" x="841.5" y="-664.8" font-family="Times,serif" font-size="14.00">pmod0_4</text>
-<polygon fill="none" stroke="black" points="911.5,-656 911.5,-681 1057.5,-681 1057.5,-656 911.5,-656"/>
-<text text-anchor="start" x="933.5" y="-664.8" font-family="Times,serif" font-size="14.00">gpio, sclk, sda</text>
-<polygon fill="none" stroke="black" points="836.5,-631 836.5,-656 911.5,-656 911.5,-631 836.5,-631"/>
-<text text-anchor="start" x="841.5" y="-639.8" font-family="Times,serif" font-size="14.00">pmod0_5</text>
-<polygon fill="none" stroke="black" points="911.5,-631 911.5,-656 1057.5,-656 1057.5,-631 911.5,-631"/>
-<text text-anchor="start" x="969" y="-639.8" font-family="Times,serif" font-size="14.00">gpio</text>
-<polygon fill="none" stroke="black" points="836.5,-606 836.5,-631 911.5,-631 911.5,-606 836.5,-606"/>
-<text text-anchor="start" x="841.5" y="-614.8" font-family="Times,serif" font-size="14.00">pmod0_6</text>
-<polygon fill="none" stroke="black" points="911.5,-606 911.5,-631 1057.5,-631 1057.5,-606 911.5,-606"/>
-<text text-anchor="start" x="947" y="-614.8" font-family="Times,serif" font-size="14.00">gpio, pwm</text>
-<polygon fill="none" stroke="black" points="836.5,-581 836.5,-606 911.5,-606 911.5,-581 836.5,-581"/>
-<text text-anchor="start" x="841.5" y="-589.8" font-family="Times,serif" font-size="14.00">pmod0_7</text>
-<polygon fill="none" stroke="black" points="911.5,-581 911.5,-606 1057.5,-606 1057.5,-581 911.5,-581"/>
-<text text-anchor="start" x="957" y="-589.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
-<polygon fill="none" stroke="black" points="836.5,-556 836.5,-581 911.5,-581 911.5,-556 836.5,-556"/>
-<text text-anchor="start" x="841.5" y="-564.8" font-family="Times,serif" font-size="14.00">pmod0_8</text>
-<polygon fill="none" stroke="black" points="911.5,-556 911.5,-581 1057.5,-581 1057.5,-556 911.5,-556"/>
-<text text-anchor="start" x="957" y="-564.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="832.5,-731 832.5,-756 916.5,-756 916.5,-731 832.5,-731"/>
+<text text-anchor="start" x="842" y="-739.8" font-family="Times,serif" font-size="14.00">pmod0_1</text>
+<polygon fill="none" stroke="black" points="916.5,-731 916.5,-756 1062.5,-756 1062.5,-731 916.5,-731"/>
+<text text-anchor="start" x="962" y="-739.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="1062.5,-556 1062.5,-756 1233.5,-756 1233.5,-556 1062.5,-556"/>
+<text text-anchor="start" x="1120.5" y="-659.8" font-family="Times,serif" font-size="14.00">Pmod 0</text>
+<text text-anchor="start" x="1067.5" y="-644.8" font-family="Times,serif" font-size="14.00">types 1A, 2A, 3A or 6A</text>
+<polygon fill="none" stroke="black" points="832.5,-706 832.5,-731 916.5,-731 916.5,-706 832.5,-706"/>
+<text text-anchor="start" x="842" y="-714.8" font-family="Times,serif" font-size="14.00">pmod0_2</text>
+<polygon fill="none" stroke="black" points="916.5,-706 916.5,-731 1062.5,-731 1062.5,-706 916.5,-706"/>
+<text text-anchor="start" x="921.5" y="-714.8" font-family="Times,serif" font-size="14.00">gpio, copi, pwm, tx</text>
+<polygon fill="none" stroke="black" points="832.5,-681 832.5,-706 916.5,-706 916.5,-681 832.5,-681"/>
+<text text-anchor="start" x="842" y="-689.8" font-family="Times,serif" font-size="14.00">pmod0_3</text>
+<polygon fill="none" stroke="black" points="916.5,-681 916.5,-706 1062.5,-706 1062.5,-681 916.5,-681"/>
+<text text-anchor="start" x="928.5" y="-689.8" font-family="Times,serif" font-size="14.00">gpio, cipo, scl, rx</text>
+<polygon fill="none" stroke="black" points="832.5,-656 832.5,-681 916.5,-681 916.5,-656 832.5,-656"/>
+<text text-anchor="start" x="842" y="-664.8" font-family="Times,serif" font-size="14.00">pmod0_4</text>
+<polygon fill="none" stroke="black" points="916.5,-656 916.5,-681 1062.5,-681 1062.5,-656 916.5,-656"/>
+<text text-anchor="start" x="938.5" y="-664.8" font-family="Times,serif" font-size="14.00">gpio, sclk, sda</text>
+<polygon fill="none" stroke="black" points="832.5,-631 832.5,-656 916.5,-656 916.5,-631 832.5,-631"/>
+<text text-anchor="start" x="842" y="-639.8" font-family="Times,serif" font-size="14.00">pmod0_7</text>
+<polygon fill="none" stroke="black" points="916.5,-631 916.5,-656 1062.5,-656 1062.5,-631 916.5,-631"/>
+<text text-anchor="start" x="974" y="-639.8" font-family="Times,serif" font-size="14.00">gpio</text>
+<polygon fill="none" stroke="black" points="832.5,-606 832.5,-631 916.5,-631 916.5,-606 832.5,-606"/>
+<text text-anchor="start" x="842" y="-614.8" font-family="Times,serif" font-size="14.00">pmod0_8</text>
+<polygon fill="none" stroke="black" points="916.5,-606 916.5,-631 1062.5,-631 1062.5,-606 916.5,-606"/>
+<text text-anchor="start" x="952" y="-614.8" font-family="Times,serif" font-size="14.00">gpio, pwm</text>
+<polygon fill="none" stroke="black" points="832.5,-581 832.5,-606 916.5,-606 916.5,-581 832.5,-581"/>
+<text text-anchor="start" x="842" y="-589.8" font-family="Times,serif" font-size="14.00">pmod0_9</text>
+<polygon fill="none" stroke="black" points="916.5,-581 916.5,-606 1062.5,-606 1062.5,-581 916.5,-581"/>
+<text text-anchor="start" x="962" y="-589.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="832.5,-556 832.5,-581 916.5,-581 916.5,-556 832.5,-556"/>
+<text text-anchor="start" x="837.5" y="-564.8" font-family="Times,serif" font-size="14.00">pmod0_10</text>
+<polygon fill="none" stroke="black" points="916.5,-556 916.5,-581 1062.5,-581 1062.5,-556 916.5,-556"/>
+<text text-anchor="start" x="962" y="-564.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
 </g>
 <!-- uart_1&#45;&gt;pmod0 -->
 <g id="edge9" class="edge">
 <title>uart_1:tx&#45;&gt;pmod0:2</title>
-<path fill="none" stroke="purple" d="M83.5,-1044C444.22,-1044 470.93,-725 825.45,-719.08"/>
-<polygon fill="purple" stroke="purple" points="825.53,-722.58 835.5,-719 825.47,-715.58 825.53,-722.58"/>
+<path fill="none" stroke="purple" d="M83.5,-1044C442.61,-1044 468.57,-725 821.5,-719.08"/>
+<polygon fill="purple" stroke="purple" points="821.53,-722.58 831.5,-719 821.47,-715.58 821.53,-722.58"/>
 </g>
 <!-- uart_1&#45;&gt;pmod0 -->
 <g id="edge10" class="edge">
 <title>uart_1:rx&#45;&gt;pmod0:3</title>
-<path fill="none" stroke="purple" d="M93.56,-1020.92C448.41,-1014.96 474.43,-694 835.5,-694"/>
+<path fill="none" stroke="purple" d="M93.51,-1020.92C446.77,-1014.96 472.04,-694 831.5,-694"/>
 <polygon fill="purple" stroke="purple" points="93.47,-1017.42 83.5,-1021 93.53,-1024.42 93.47,-1017.42"/>
 </g>
 <!-- uart_2 -->
@@ -440,52 +440,52 @@
 <!-- pmod1 -->
 <g id="node30" class="node">
 <title>pmod1</title>
-<polygon fill="none" stroke="black" points="836.5,-957 836.5,-982 911.5,-982 911.5,-957 836.5,-957"/>
-<text text-anchor="start" x="841.5" y="-965.8" font-family="Times,serif" font-size="14.00">pmod1_1</text>
-<polygon fill="none" stroke="black" points="911.5,-957 911.5,-982 1057.5,-982 1057.5,-957 911.5,-957"/>
-<text text-anchor="start" x="957" y="-965.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
-<polygon fill="none" stroke="black" points="1057.5,-782 1057.5,-982 1228.5,-982 1228.5,-782 1057.5,-782"/>
-<text text-anchor="start" x="1115.5" y="-885.8" font-family="Times,serif" font-size="14.00">Pmod 1</text>
-<text text-anchor="start" x="1062.5" y="-870.8" font-family="Times,serif" font-size="14.00">types 1A, 2A, 3A or 6A</text>
-<polygon fill="none" stroke="black" points="836.5,-932 836.5,-957 911.5,-957 911.5,-932 836.5,-932"/>
-<text text-anchor="start" x="841.5" y="-940.8" font-family="Times,serif" font-size="14.00">pmod1_2</text>
-<polygon fill="none" stroke="black" points="911.5,-932 911.5,-957 1057.5,-957 1057.5,-932 911.5,-932"/>
-<text text-anchor="start" x="916.5" y="-940.8" font-family="Times,serif" font-size="14.00">gpio, copi, pwm, tx</text>
-<polygon fill="none" stroke="black" points="836.5,-907 836.5,-932 911.5,-932 911.5,-907 836.5,-907"/>
-<text text-anchor="start" x="841.5" y="-915.8" font-family="Times,serif" font-size="14.00">pmod1_3</text>
-<polygon fill="none" stroke="black" points="911.5,-907 911.5,-932 1057.5,-932 1057.5,-907 911.5,-907"/>
-<text text-anchor="start" x="923.5" y="-915.8" font-family="Times,serif" font-size="14.00">gpio, cipo, scl, rx</text>
-<polygon fill="none" stroke="black" points="836.5,-882 836.5,-907 911.5,-907 911.5,-882 836.5,-882"/>
-<text text-anchor="start" x="841.5" y="-890.8" font-family="Times,serif" font-size="14.00">pmod1_4</text>
-<polygon fill="none" stroke="black" points="911.5,-882 911.5,-907 1057.5,-907 1057.5,-882 911.5,-882"/>
-<text text-anchor="start" x="934.5" y="-890.8" font-family="Times,serif" font-size="14.00">gpio, sclk, sca</text>
-<polygon fill="none" stroke="black" points="836.5,-857 836.5,-882 911.5,-882 911.5,-857 836.5,-857"/>
-<text text-anchor="start" x="841.5" y="-865.8" font-family="Times,serif" font-size="14.00">pmod1_5</text>
-<polygon fill="none" stroke="black" points="911.5,-857 911.5,-882 1057.5,-882 1057.5,-857 911.5,-857"/>
-<text text-anchor="start" x="969" y="-865.8" font-family="Times,serif" font-size="14.00">gpio</text>
-<polygon fill="none" stroke="black" points="836.5,-832 836.5,-857 911.5,-857 911.5,-832 836.5,-832"/>
-<text text-anchor="start" x="841.5" y="-840.8" font-family="Times,serif" font-size="14.00">pmod1_6</text>
-<polygon fill="none" stroke="black" points="911.5,-832 911.5,-857 1057.5,-857 1057.5,-832 911.5,-832"/>
-<text text-anchor="start" x="947" y="-840.8" font-family="Times,serif" font-size="14.00">gpio, pwm</text>
-<polygon fill="none" stroke="black" points="836.5,-807 836.5,-832 911.5,-832 911.5,-807 836.5,-807"/>
-<text text-anchor="start" x="841.5" y="-815.8" font-family="Times,serif" font-size="14.00">pmod1_7</text>
-<polygon fill="none" stroke="black" points="911.5,-807 911.5,-832 1057.5,-832 1057.5,-807 911.5,-807"/>
-<text text-anchor="start" x="957" y="-815.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
-<polygon fill="none" stroke="black" points="836.5,-782 836.5,-807 911.5,-807 911.5,-782 836.5,-782"/>
-<text text-anchor="start" x="841.5" y="-790.8" font-family="Times,serif" font-size="14.00">pmod1_8</text>
-<polygon fill="none" stroke="black" points="911.5,-782 911.5,-807 1057.5,-807 1057.5,-782 911.5,-782"/>
-<text text-anchor="start" x="957" y="-790.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="832.5,-957 832.5,-982 916.5,-982 916.5,-957 832.5,-957"/>
+<text text-anchor="start" x="842" y="-965.8" font-family="Times,serif" font-size="14.00">pmod1_1</text>
+<polygon fill="none" stroke="black" points="916.5,-957 916.5,-982 1062.5,-982 1062.5,-957 916.5,-957"/>
+<text text-anchor="start" x="962" y="-965.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="1062.5,-782 1062.5,-982 1233.5,-982 1233.5,-782 1062.5,-782"/>
+<text text-anchor="start" x="1120.5" y="-885.8" font-family="Times,serif" font-size="14.00">Pmod 1</text>
+<text text-anchor="start" x="1067.5" y="-870.8" font-family="Times,serif" font-size="14.00">types 1A, 2A, 3A or 6A</text>
+<polygon fill="none" stroke="black" points="832.5,-932 832.5,-957 916.5,-957 916.5,-932 832.5,-932"/>
+<text text-anchor="start" x="842" y="-940.8" font-family="Times,serif" font-size="14.00">pmod1_2</text>
+<polygon fill="none" stroke="black" points="916.5,-932 916.5,-957 1062.5,-957 1062.5,-932 916.5,-932"/>
+<text text-anchor="start" x="921.5" y="-940.8" font-family="Times,serif" font-size="14.00">gpio, copi, pwm, tx</text>
+<polygon fill="none" stroke="black" points="832.5,-907 832.5,-932 916.5,-932 916.5,-907 832.5,-907"/>
+<text text-anchor="start" x="842" y="-915.8" font-family="Times,serif" font-size="14.00">pmod1_3</text>
+<polygon fill="none" stroke="black" points="916.5,-907 916.5,-932 1062.5,-932 1062.5,-907 916.5,-907"/>
+<text text-anchor="start" x="928.5" y="-915.8" font-family="Times,serif" font-size="14.00">gpio, cipo, scl, rx</text>
+<polygon fill="none" stroke="black" points="832.5,-882 832.5,-907 916.5,-907 916.5,-882 832.5,-882"/>
+<text text-anchor="start" x="842" y="-890.8" font-family="Times,serif" font-size="14.00">pmod1_4</text>
+<polygon fill="none" stroke="black" points="916.5,-882 916.5,-907 1062.5,-907 1062.5,-882 916.5,-882"/>
+<text text-anchor="start" x="938.5" y="-890.8" font-family="Times,serif" font-size="14.00">gpio, sclk, sda</text>
+<polygon fill="none" stroke="black" points="832.5,-857 832.5,-882 916.5,-882 916.5,-857 832.5,-857"/>
+<text text-anchor="start" x="842" y="-865.8" font-family="Times,serif" font-size="14.00">pmod1_7</text>
+<polygon fill="none" stroke="black" points="916.5,-857 916.5,-882 1062.5,-882 1062.5,-857 916.5,-857"/>
+<text text-anchor="start" x="974" y="-865.8" font-family="Times,serif" font-size="14.00">gpio</text>
+<polygon fill="none" stroke="black" points="832.5,-832 832.5,-857 916.5,-857 916.5,-832 832.5,-832"/>
+<text text-anchor="start" x="842" y="-840.8" font-family="Times,serif" font-size="14.00">pmod1_8</text>
+<polygon fill="none" stroke="black" points="916.5,-832 916.5,-857 1062.5,-857 1062.5,-832 916.5,-832"/>
+<text text-anchor="start" x="952" y="-840.8" font-family="Times,serif" font-size="14.00">gpio, pwm</text>
+<polygon fill="none" stroke="black" points="832.5,-807 832.5,-832 916.5,-832 916.5,-807 832.5,-807"/>
+<text text-anchor="start" x="842" y="-815.8" font-family="Times,serif" font-size="14.00">pmod1_9</text>
+<polygon fill="none" stroke="black" points="916.5,-807 916.5,-832 1062.5,-832 1062.5,-807 916.5,-807"/>
+<text text-anchor="start" x="962" y="-815.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
+<polygon fill="none" stroke="black" points="832.5,-782 832.5,-807 916.5,-807 916.5,-782 832.5,-782"/>
+<text text-anchor="start" x="837.5" y="-790.8" font-family="Times,serif" font-size="14.00">pmod1_10</text>
+<polygon fill="none" stroke="black" points="916.5,-782 916.5,-807 1062.5,-807 1062.5,-782 916.5,-782"/>
+<text text-anchor="start" x="962" y="-790.8" font-family="Times,serif" font-size="14.00">gpio, cs</text>
 </g>
 <!-- uart_2&#45;&gt;pmod1 -->
 <g id="edge17" class="edge">
 <title>uart_2:tx&#45;&gt;pmod1:2</title>
-<path fill="none" stroke="purple" d="M83.5,-1510C498.18,-1510 418.78,-954.07 825.49,-945.11"/>
-<polygon fill="purple" stroke="purple" points="825.54,-948.61 835.5,-945 825.46,-941.61 825.54,-948.61"/>
+<path fill="none" stroke="purple" d="M83.5,-1510C496.67,-1510 416.26,-954.34 821.23,-945.12"/>
+<polygon fill="purple" stroke="purple" points="821.54,-948.61 831.5,-945 821.46,-941.61 821.54,-948.61"/>
 </g>
 <!-- uart_2&#45;&gt;pmod1 -->
 <g id="edge18" class="edge">
 <title>uart_2:rx&#45;&gt;pmod1:3</title>
-<path fill="none" stroke="purple" d="M93.52,-1486.89C500.74,-1477.9 420.29,-920 835.5,-920"/>
+<path fill="none" stroke="purple" d="M93.78,-1486.88C499.26,-1477.63 417.8,-920 831.5,-920"/>
 <polygon fill="purple" stroke="purple" points="93.46,-1483.39 83.5,-1487 93.54,-1490.39 93.46,-1483.39"/>
 </g>
 <!-- i2c_0 -->
@@ -551,16 +551,16 @@
 <!-- i2c_0&#45;&gt;pmod0 -->
 <g id="edge23" class="edge">
 <title>i2c_0:sda&#45;&gt;pmod0:4</title>
-<path fill="none" stroke="darkorange" d="M89.81,-1421.88C547.57,-1411.09 367.43,-679.83 825.26,-669.12"/>
+<path fill="none" stroke="darkorange" d="M89.79,-1421.88C546.3,-1411.09 364.7,-679.83 821.29,-669.12"/>
 <polygon fill="darkorange" stroke="darkorange" points="89.46,-1418.38 79.5,-1422 89.54,-1425.38 89.46,-1418.38"/>
-<polygon fill="darkorange" stroke="darkorange" points="825.54,-672.62 835.5,-669 825.46,-665.62 825.54,-672.62"/>
+<polygon fill="darkorange" stroke="darkorange" points="821.54,-672.62 831.5,-669 821.46,-665.62 821.54,-672.62"/>
 </g>
 <!-- i2c_0&#45;&gt;pmod0 -->
 <g id="edge24" class="edge">
 <title>i2c_0:scl&#45;&gt;pmod0:3</title>
-<path fill="none" stroke="darkorange" d="M89.82,-1398.88C533.12,-1388.45 381.89,-704.47 825.25,-694.12"/>
+<path fill="none" stroke="darkorange" d="M89.8,-1398.88C531.81,-1388.45 379.2,-704.47 821.28,-694.12"/>
 <polygon fill="darkorange" stroke="darkorange" points="89.46,-1395.38 79.5,-1399 89.54,-1402.38 89.46,-1395.38"/>
-<polygon fill="darkorange" stroke="darkorange" points="825.54,-697.62 835.5,-694 825.46,-690.62 825.54,-697.62"/>
+<polygon fill="darkorange" stroke="darkorange" points="821.54,-697.62 831.5,-694 821.46,-690.62 821.54,-697.62"/>
 </g>
 <!-- i2c_1 -->
 <g id="node5" class="node">
@@ -617,16 +617,16 @@
 <!-- i2c_1&#45;&gt;pmod1 -->
 <g id="edge31" class="edge">
 <title>i2c_1:sda&#45;&gt;pmod1:4</title>
-<path fill="none" stroke="darkorange" d="M89.65,-1333.9C464.38,-1326.38 450.65,-902.55 825.44,-895.1"/>
+<path fill="none" stroke="darkorange" d="M89.61,-1333.9C462.84,-1326.38 448.19,-902.55 821.48,-895.1"/>
 <polygon fill="darkorange" stroke="darkorange" points="89.46,-1330.4 79.5,-1334 89.53,-1337.4 89.46,-1330.4"/>
-<polygon fill="darkorange" stroke="darkorange" points="825.54,-898.6 835.5,-895 825.47,-891.6 825.54,-898.6"/>
+<polygon fill="darkorange" stroke="darkorange" points="821.54,-898.6 831.5,-895 821.47,-891.6 821.54,-898.6"/>
 </g>
 <!-- i2c_1&#45;&gt;pmod1 -->
 <g id="edge32" class="edge">
 <title>i2c_1:scl&#45;&gt;pmod1:3</title>
-<path fill="none" stroke="darkorange" d="M89.66,-1310.9C454.47,-1304.03 460.56,-926.91 825.43,-920.09"/>
+<path fill="none" stroke="darkorange" d="M89.62,-1310.9C452.89,-1304.03 458.14,-926.91 821.47,-920.09"/>
 <polygon fill="darkorange" stroke="darkorange" points="89.47,-1307.41 79.5,-1311 89.53,-1314.41 89.47,-1307.41"/>
-<polygon fill="darkorange" stroke="darkorange" points="825.53,-923.59 835.5,-920 825.47,-916.59 825.53,-923.59"/>
+<polygon fill="darkorange" stroke="darkorange" points="821.53,-923.59 831.5,-920 821.47,-916.59 821.53,-923.59"/>
 </g>
 <!-- spi_0 -->
 <g id="node6" class="node">
@@ -979,38 +979,38 @@
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge51" class="edge">
 <title>spi_1:copi&#45;&gt;pmod0:2</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-891C420.72,-891 489.58,-722.34 825.48,-719.05"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-722.55 835.5,-719 825.48,-715.55 825.52,-722.55"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-891C418.84,-891 487.26,-722.51 821.04,-719.05"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.52,-722.55 831.5,-719 821.48,-715.55 821.52,-722.55"/>
 </g>
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge52" class="edge">
 <title>spi_1:cipo&#45;&gt;pmod0:3</title>
-<path fill="none" stroke="dodgerblue" d="M89.52,-867.95C425.61,-864.62 494.08,-694 835.5,-694"/>
+<path fill="none" stroke="dodgerblue" d="M89.97,-867.95C423.93,-864.45 491.97,-694 831.5,-694"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.48,-864.45 79.5,-868 89.52,-871.45 89.48,-864.45"/>
 </g>
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge53" class="edge">
 <title>spi_1:sclk&#45;&gt;pmod0:4</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-845C421.12,-845 489.2,-672.42 825.47,-669.05"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-672.55 835.5,-669 825.48,-665.55 825.52,-672.55"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-845C419.23,-845 486.87,-672.59 821.03,-669.06"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.52,-672.55 831.5,-669 821.48,-665.55 821.52,-672.55"/>
 </g>
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge54" class="edge">
 <title>spi_1:cs_0&#45;&gt;pmod0:1</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-821C413.78,-821 496.08,-745.57 825.19,-744.02"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.51,-747.52 835.5,-744 825.49,-740.52 825.51,-747.52"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-821C412.02,-821 493.86,-745.57 821.25,-744.02"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.51,-747.52 831.5,-744 821.49,-740.52 821.51,-747.52"/>
 </g>
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge55" class="edge">
-<title>spi_1:cs_1&#45;&gt;pmod0:7</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-798C424.23,-798 486.17,-596.98 825.38,-593.06"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-596.56 835.5,-593 825.48,-589.56 825.52,-596.56"/>
+<title>spi_1:cs_1&#45;&gt;pmod0:9</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-798C422.54,-798 483.9,-596.98 821.43,-593.06"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.52,-596.56 831.5,-593 821.48,-589.56 821.52,-596.56"/>
 </g>
 <!-- spi_1&#45;&gt;pmod0 -->
 <g id="edge56" class="edge">
-<title>spi_1:cs_2&#45;&gt;pmod0:8</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-775C424.47,-775 485.95,-572.02 825.38,-568.06"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-571.56 835.5,-568 825.48,-564.56 825.52,-571.56"/>
+<title>spi_1:cs_2&#45;&gt;pmod0:10</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-775C422.77,-775 483.67,-572.02 821.43,-568.06"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.52,-571.56 831.5,-568 821.48,-564.56 821.52,-571.56"/>
 </g>
 <!-- spi_2 -->
 <g id="node10" class="node">
@@ -1095,38 +1095,38 @@
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge66" class="edge">
 <title>spi_2:copi&#45;&gt;pmod1:2</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-1247C437.87,-1247 473.04,-950.72 825.25,-945.08"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-948.58 835.5,-945 825.47,-941.58 825.53,-948.58"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-1247C436.24,-1247 470.7,-950.72 821.3,-945.08"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.53,-948.58 831.5,-945 821.47,-941.58 821.53,-948.58"/>
 </g>
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge67" class="edge">
 <title>spi_2:cipo&#45;&gt;pmod1:3</title>
-<path fill="none" stroke="dodgerblue" d="M89.76,-1223.92C442.28,-1218.24 476.8,-920 835.5,-920"/>
+<path fill="none" stroke="dodgerblue" d="M89.71,-1223.92C440.62,-1218.24 474.43,-920 831.5,-920"/>
 <polygon fill="dodgerblue" stroke="dodgerblue" points="89.47,-1220.42 79.5,-1224 89.53,-1227.42 89.47,-1220.42"/>
 </g>
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge68" class="edge">
 <title>spi_2:sclk&#45;&gt;pmod1:4</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-1201C438.62,-1201 472.42,-900.65 825.5,-895.08"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-898.58 835.5,-895 825.47,-891.58 825.53,-898.58"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-1201C436.9,-1201 470.06,-900.8 821.28,-895.08"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.53,-898.58 831.5,-895 821.47,-891.58 821.53,-898.58"/>
 </g>
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge69" class="edge">
 <title>spi_2:cs_0&#45;&gt;pmod1:1</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-1177C424.47,-1177 485.95,-974.02 825.38,-970.06"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.52,-973.56 835.5,-970 825.48,-966.56 825.52,-973.56"/>
+<path fill="none" stroke="dodgerblue" d="M79.5,-1177C422.77,-1177 483.67,-974.02 821.43,-970.06"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.52,-973.56 831.5,-970 821.48,-966.56 821.52,-973.56"/>
 </g>
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge70" class="edge">
-<title>spi_2:cs_1&#45;&gt;pmod1:7</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-1154C443.6,-1154 467.57,-825.19 825.36,-819.09"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-822.58 835.5,-819 825.47,-815.59 825.53,-822.58"/>
+<title>spi_2:cs_1&#45;&gt;pmod1:9</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-1154C441.99,-1154 465.21,-825.19 821.41,-819.09"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.53,-822.59 831.5,-819 821.47,-815.59 821.53,-822.59"/>
 </g>
 <!-- spi_2&#45;&gt;pmod1 -->
 <g id="edge71" class="edge">
-<title>spi_2:cs_2&#45;&gt;pmod1:8</title>
-<path fill="none" stroke="dodgerblue" d="M79.5,-1131C443.96,-1131 467.22,-800.22 825.35,-794.09"/>
-<polygon fill="dodgerblue" stroke="dodgerblue" points="825.53,-797.59 835.5,-794 825.47,-790.59 825.53,-797.59"/>
+<title>spi_2:cs_2&#45;&gt;pmod1:10</title>
+<path fill="none" stroke="dodgerblue" d="M79.5,-1131C442.35,-1131 464.86,-800.22 821.4,-794.09"/>
+<polygon fill="dodgerblue" stroke="dodgerblue" points="821.53,-797.59 831.5,-794 821.47,-790.59 821.53,-797.59"/>
 </g>
 <!-- gpio_board -->
 <g id="node11" class="node">
@@ -1518,58 +1518,58 @@
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge147" class="edge">
 <title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:1</title>
-<path fill="none" stroke="grey" d="M113.03,-484.07C445.85,-489 492.48,-738.8 825.07,-743.92"/>
-<polygon fill="grey" stroke="grey" points="113.03,-480.57 103,-484 112.97,-487.57 113.03,-480.57"/>
-<polygon fill="grey" stroke="grey" points="825.47,-747.42 835.5,-744 825.53,-740.42 825.47,-747.42"/>
+<path fill="none" stroke="grey" d="M113.48,-484.08C444.23,-489.25 490.32,-738.8 821.13,-743.92"/>
+<polygon fill="grey" stroke="grey" points="113.03,-480.58 103,-484 112.97,-487.58 113.03,-480.58"/>
+<polygon fill="grey" stroke="grey" points="821.47,-747.42 831.5,-744 821.53,-740.42 821.47,-747.42"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge148" class="edge">
 <title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:2</title>
-<path fill="none" stroke="grey" d="M113.43,-484.07C442.52,-488.75 496.03,-714.3 825.18,-718.93"/>
-<polygon fill="grey" stroke="grey" points="113.02,-480.57 103,-484 112.98,-487.57 113.02,-480.57"/>
-<polygon fill="grey" stroke="grey" points="825.48,-722.43 835.5,-719 825.52,-715.43 825.48,-722.43"/>
+<path fill="none" stroke="grey" d="M113.37,-484.07C440.83,-488.75 493.72,-714.3 821.23,-718.93"/>
+<polygon fill="grey" stroke="grey" points="113.02,-480.57 103,-484 112.97,-487.57 113.02,-480.57"/>
+<polygon fill="grey" stroke="grey" points="821.48,-722.43 831.5,-719 821.52,-715.43 821.48,-722.43"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge149" class="edge">
 <title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:3</title>
-<path fill="none" stroke="grey" d="M113.33,-484.07C439.45,-488.24 499.1,-689.8 825.28,-693.94"/>
+<path fill="none" stroke="grey" d="M113.28,-484.07C437.75,-488.24 496.8,-689.8 821.33,-693.94"/>
 <polygon fill="grey" stroke="grey" points="113.02,-480.56 103,-484 112.98,-487.56 113.02,-480.56"/>
-<polygon fill="grey" stroke="grey" points="825.48,-697.44 835.5,-694 825.52,-690.44 825.48,-697.44"/>
+<polygon fill="grey" stroke="grey" points="821.48,-697.44 831.5,-694 821.52,-690.44 821.48,-697.44"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge150" class="edge">
 <title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:4</title>
-<path fill="none" stroke="grey" d="M113.24,-484.06C436.71,-487.74 501.84,-665.3 825.36,-668.94"/>
+<path fill="none" stroke="grey" d="M113.19,-484.06C434.99,-487.74 499.56,-665.3 821.41,-668.94"/>
 <polygon fill="grey" stroke="grey" points="113.02,-480.56 103,-484 112.98,-487.56 113.02,-480.56"/>
-<polygon fill="grey" stroke="grey" points="825.48,-672.44 835.5,-669 825.52,-665.44 825.48,-672.44"/>
+<polygon fill="grey" stroke="grey" points="821.48,-672.44 831.5,-669 821.52,-665.44 821.48,-672.44"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge151" class="edge">
-<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:5</title>
-<path fill="none" stroke="grey" d="M113.16,-484.05C434.2,-487.21 504.35,-639.82 825.44,-642.95"/>
+<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:7</title>
+<path fill="none" stroke="grey" d="M113.11,-484.05C432.47,-487.21 502.08,-639.82 821.49,-642.95"/>
 <polygon fill="grey" stroke="grey" points="113.02,-480.55 103,-484 112.98,-487.55 113.02,-480.55"/>
-<polygon fill="grey" stroke="grey" points="825.48,-646.45 835.5,-643 825.52,-639.45 825.48,-646.45"/>
+<polygon fill="grey" stroke="grey" points="821.48,-646.45 831.5,-643 821.52,-639.45 821.48,-646.45"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge152" class="edge">
-<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:6</title>
-<path fill="none" stroke="grey" d="M113.1,-484.04C431.97,-486.71 506.35,-615.19 825.03,-617.95"/>
+<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:8</title>
+<path fill="none" stroke="grey" d="M113.05,-484.04C430.23,-486.71 504.09,-615.19 821.09,-617.95"/>
 <polygon fill="grey" stroke="grey" points="113.01,-480.54 103,-484 112.99,-487.54 113.01,-480.54"/>
-<polygon fill="grey" stroke="grey" points="825.48,-621.46 835.5,-618 825.52,-614.46 825.48,-621.46"/>
+<polygon fill="grey" stroke="grey" points="821.48,-621.46 831.5,-618 821.52,-614.46 821.48,-621.46"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge153" class="edge">
-<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:7</title>
-<path fill="none" stroke="grey" d="M113.05,-484.03C430.24,-486.2 508.07,-590.72 825.09,-592.96"/>
-<polygon fill="grey" stroke="grey" points="113.01,-480.53 103,-484 112.99,-487.53 113.01,-480.53"/>
-<polygon fill="grey" stroke="grey" points="825.49,-596.46 835.5,-593 825.51,-589.46 825.49,-596.46"/>
+<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:9</title>
+<path fill="none" stroke="grey" d="M113.46,-484.04C428.57,-486.3 505.98,-590.72 821.15,-592.96"/>
+<polygon fill="grey" stroke="grey" points="113.01,-480.54 103,-484 112.99,-487.54 113.01,-480.54"/>
+<polygon fill="grey" stroke="grey" points="821.49,-596.46 831.5,-593 821.51,-589.46 821.49,-596.46"/>
 </g>
 <!-- gpio_pmod0&#45;&gt;pmod0 -->
 <g id="edge154" class="edge">
-<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:8</title>
-<path fill="none" stroke="grey" d="M113,-484.03C428.87,-485.7 509.45,-566.24 825.13,-567.97"/>
+<title>gpio_pmod0:gpio_0&#45;7&#45;&gt;pmod0:10</title>
+<path fill="none" stroke="grey" d="M113.42,-484.03C427.19,-485.78 507.36,-566.24 821.19,-567.97"/>
 <polygon fill="grey" stroke="grey" points="113.01,-480.53 103,-484 112.99,-487.53 113.01,-480.53"/>
-<polygon fill="grey" stroke="grey" points="825.49,-571.47 835.5,-568 825.51,-564.47 825.49,-571.47"/>
+<polygon fill="grey" stroke="grey" points="821.49,-571.47 831.5,-568 821.51,-564.47 821.49,-571.47"/>
 </g>
 <!-- gpio_pmodc -->
 <g id="node15" class="node">
@@ -1662,58 +1662,58 @@
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge155" class="edge">
 <title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:1</title>
-<path fill="none" stroke="grey" d="M113.41,-955.01C426.99,-955.32 511.56,-969.69 825.2,-969.99"/>
+<path fill="none" stroke="grey" d="M113.35,-955.01C425.22,-955.32 509.33,-969.69 821.26,-969.99"/>
 <polygon fill="grey" stroke="grey" points="113,-951.51 103,-955 113,-958.51 113,-951.51"/>
-<polygon fill="grey" stroke="grey" points="825.5,-973.5 835.5,-970 825.5,-966.5 825.5,-973.5"/>
+<polygon fill="grey" stroke="grey" points="821.5,-973.49 831.5,-970 821.5,-966.49 821.5,-973.49"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge156" class="edge">
 <title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:2</title>
-<path fill="none" stroke="grey" d="M113.41,-955C426.96,-954.79 511.6,-945.21 825.2,-945"/>
+<path fill="none" stroke="grey" d="M113.35,-955C425.19,-954.79 509.37,-945.21 821.26,-945"/>
 <polygon fill="grey" stroke="grey" points="113,-951.5 103,-955 113,-958.5 113,-951.5"/>
-<polygon fill="grey" stroke="grey" points="825.5,-948.5 835.5,-945 825.5,-941.5 825.5,-948.5"/>
+<polygon fill="grey" stroke="grey" points="821.5,-948.5 831.5,-945 821.5,-941.5 821.5,-948.5"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge157" class="edge">
 <title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:3</title>
-<path fill="none" stroke="grey" d="M113.42,-954.99C427.28,-954.26 511.28,-920.73 825.19,-920.01"/>
+<path fill="none" stroke="grey" d="M113.36,-954.99C425.51,-954.26 509.04,-920.73 821.25,-920.01"/>
 <polygon fill="grey" stroke="grey" points="113,-951.49 103,-955 113,-958.49 113,-951.49"/>
-<polygon fill="grey" stroke="grey" points="825.5,-923.51 835.5,-920 825.5,-916.51 825.5,-923.51"/>
+<polygon fill="grey" stroke="grey" points="821.5,-923.51 831.5,-920 821.5,-916.51 821.5,-923.51"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge158" class="edge">
 <title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:4</title>
-<path fill="none" stroke="grey" d="M113.44,-954.98C427.96,-953.73 510.6,-896.25 825.17,-895.02"/>
+<path fill="none" stroke="grey" d="M113.38,-954.98C426.2,-953.73 508.36,-896.25 821.23,-895.02"/>
 <polygon fill="grey" stroke="grey" points="112.99,-951.48 103,-955 113.01,-958.48 112.99,-951.48"/>
-<polygon fill="grey" stroke="grey" points="825.51,-898.52 835.5,-895 825.49,-891.52 825.51,-898.52"/>
+<polygon fill="grey" stroke="grey" points="821.51,-898.52 831.5,-895 821.49,-891.52 821.51,-898.52"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge159" class="edge">
-<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:5</title>
-<path fill="none" stroke="grey" d="M113,-954.97C428.96,-953.26 509.35,-870.8 825.13,-869.03"/>
+<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:7</title>
+<path fill="none" stroke="grey" d="M113.42,-954.97C427.29,-953.18 507.27,-870.8 821.19,-869.03"/>
 <polygon fill="grey" stroke="grey" points="112.99,-951.47 103,-955 113.01,-958.47 112.99,-951.47"/>
-<polygon fill="grey" stroke="grey" points="825.51,-872.53 835.5,-869 825.49,-865.53 825.51,-872.53"/>
+<polygon fill="grey" stroke="grey" points="821.51,-872.53 831.5,-869 821.49,-865.53 821.51,-872.53"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge160" class="edge">
-<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:6</title>
-<path fill="none" stroke="grey" d="M113.05,-954.97C430.37,-952.76 507.95,-846.32 825.08,-844.04"/>
-<polygon fill="grey" stroke="grey" points="112.99,-951.47 103,-955 113.01,-958.47 112.99,-951.47"/>
-<polygon fill="grey" stroke="grey" points="825.51,-847.54 835.5,-844 825.49,-840.54 825.51,-847.54"/>
+<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:8</title>
+<path fill="none" stroke="grey" d="M113.47,-954.96C428.7,-952.65 505.86,-846.32 821.14,-844.04"/>
+<polygon fill="grey" stroke="grey" points="112.99,-951.46 103,-955 113.01,-958.46 112.99,-951.46"/>
+<polygon fill="grey" stroke="grey" points="821.51,-847.54 831.5,-844 821.49,-840.54 821.51,-847.54"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge161" class="edge">
-<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:7</title>
-<path fill="none" stroke="grey" d="M113.1,-954.96C432.28,-952.25 506.27,-821.72 825.5,-819.04"/>
+<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:9</title>
+<path fill="none" stroke="grey" d="M113.05,-954.96C430.38,-952.25 503.94,-821.85 821.08,-819.05"/>
 <polygon fill="grey" stroke="grey" points="112.99,-951.46 103,-955 113.01,-958.46 112.99,-951.46"/>
-<polygon fill="grey" stroke="grey" points="825.51,-822.54 835.5,-819 825.49,-815.54 825.51,-822.54"/>
+<polygon fill="grey" stroke="grey" points="821.52,-822.54 831.5,-819 821.48,-815.54 821.52,-822.54"/>
 </g>
 <!-- gpio_pmod1&#45;&gt;pmod1 -->
 <g id="edge162" class="edge">
-<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:8</title>
-<path fill="none" stroke="grey" d="M113.17,-954.95C434.38,-951.75 504.17,-797.22 825.43,-794.05"/>
+<title>gpio_pmod1:gpio_0&#45;7&#45;&gt;pmod1:10</title>
+<path fill="none" stroke="grey" d="M113.12,-954.95C432.65,-951.75 501.9,-797.22 821.49,-794.05"/>
 <polygon fill="grey" stroke="grey" points="112.98,-951.45 103,-955 113.02,-958.45 112.98,-951.45"/>
-<polygon fill="grey" stroke="grey" points="825.52,-797.55 835.5,-794 825.48,-790.55 825.52,-797.55"/>
+<polygon fill="grey" stroke="grey" points="821.52,-797.55 831.5,-794 821.48,-790.55 821.52,-797.55"/>
 </g>
 <!-- pwm -->
 <g id="node17" class="node">
@@ -1822,26 +1822,26 @@
 <!-- pwm&#45;&gt;pmod0 -->
 <g id="edge83" class="edge">
 <title>pwm:1&#45;&gt;pmod0:2</title>
-<path fill="none" stroke="hotpink" d="M79.5,-665C412.9,-665 496.93,-717.9 825.22,-718.98"/>
-<polygon fill="hotpink" stroke="hotpink" points="825.49,-722.48 835.5,-719 825.51,-715.48 825.49,-722.48"/>
+<path fill="none" stroke="hotpink" d="M79.5,-665C411.15,-665 494.71,-717.9 821.27,-718.98"/>
+<polygon fill="hotpink" stroke="hotpink" points="821.49,-722.48 831.5,-719 821.51,-715.48 821.49,-722.48"/>
 </g>
 <!-- pwm&#45;&gt;pmod0 -->
 <g id="edge84" class="edge">
-<title>pwm:2&#45;&gt;pmod0:6</title>
-<path fill="none" stroke="hotpink" d="M79.5,-642C412.22,-642 497.59,-618.49 825.24,-618.01"/>
-<polygon fill="hotpink" stroke="hotpink" points="825.5,-621.51 835.5,-618 825.5,-614.51 825.5,-621.51"/>
+<title>pwm:2&#45;&gt;pmod0:8</title>
+<path fill="none" stroke="hotpink" d="M79.5,-642C410.46,-642 495.37,-618.49 821.29,-618.01"/>
+<polygon fill="hotpink" stroke="hotpink" points="821.5,-621.51 831.5,-618 821.5,-614.51 821.5,-621.51"/>
 </g>
 <!-- pwm&#45;&gt;pmod1 -->
 <g id="edge85" class="edge">
 <title>pwm:3&#45;&gt;pmod1:2</title>
-<path fill="none" stroke="hotpink" d="M79.5,-618C442.19,-618 468.94,-938.96 825.4,-944.92"/>
-<polygon fill="hotpink" stroke="hotpink" points="825.47,-948.42 835.5,-945 825.53,-941.42 825.47,-948.42"/>
+<path fill="none" stroke="hotpink" d="M79.5,-618C440.57,-618 466.59,-938.96 821.44,-944.92"/>
+<polygon fill="hotpink" stroke="hotpink" points="821.47,-948.42 831.5,-945 821.53,-941.42 821.47,-948.42"/>
 </g>
 <!-- pwm&#45;&gt;pmod1 -->
 <g id="edge86" class="edge">
-<title>pwm:4&#45;&gt;pmod1:6</title>
-<path fill="none" stroke="hotpink" d="M79.5,-595C429.89,-595 480.79,-839.28 825.48,-843.93"/>
-<polygon fill="hotpink" stroke="hotpink" points="825.48,-847.43 835.5,-844 825.52,-840.43 825.48,-847.43"/>
+<title>pwm:4&#45;&gt;pmod1:8</title>
+<path fill="none" stroke="hotpink" d="M79.5,-595C428.13,-595 478.47,-839.16 821.27,-843.93"/>
+<polygon fill="hotpink" stroke="hotpink" points="821.48,-847.43 831.5,-844 821.52,-840.43 821.48,-847.43"/>
 </g>
 </g>
 </svg>

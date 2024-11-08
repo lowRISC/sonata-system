@@ -290,10 +290,10 @@ digraph {
         <tr><td port="2">pmod0_2</td><td>gpio, copi, pwm, tx</td></tr>
         <tr><td port="3">pmod0_3</td><td>gpio, cipo, scl, rx</td></tr>
         <tr><td port="4">pmod0_4</td><td>gpio, sclk, sda</td></tr>
-        <tr><td port="5">pmod0_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod0_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod0_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod0_8</td><td>gpio, cs</td></tr>
+        <tr><td port="7">pmod0_7</td><td>gpio</td></tr>
+        <tr><td port="8">pmod0_8</td><td>gpio, pwm</td></tr>
+        <tr><td port="9">pmod0_9</td><td>gpio, cs</td></tr>
+        <tr><td port="10">pmod0_10</td><td>gpio, cs</td></tr>
       </table>
     >];
 
@@ -305,11 +305,11 @@ digraph {
         </tr>
         <tr><td port="2">pmod1_2</td><td>gpio, copi, pwm, tx</td></tr>
         <tr><td port="3">pmod1_3</td><td>gpio, cipo, scl, rx</td></tr>
-        <tr><td port="4">pmod1_4</td><td>gpio, sclk, sca</td></tr>
-        <tr><td port="5">pmod1_5</td><td>gpio</td></tr>
-        <tr><td port="6">pmod1_6</td><td>gpio, pwm</td></tr>
-        <tr><td port="7">pmod1_7</td><td>gpio, cs</td></tr>
-        <tr><td port="8">pmod1_8</td><td>gpio, cs</td></tr>
+        <tr><td port="4">pmod1_4</td><td>gpio, sclk, sda</td></tr>
+        <tr><td port="7">pmod1_7</td><td>gpio</td></tr>
+        <tr><td port="8">pmod1_8</td><td>gpio, pwm</td></tr>
+        <tr><td port="9">pmod1_9</td><td>gpio, cs</td></tr>
+        <tr><td port="10">pmod1_10</td><td>gpio, cs</td></tr>
       </table>
     >];
 
@@ -409,8 +409,8 @@ digraph {
   spi_1:cipo -> pmod0:3 [dir=back];
   spi_1:sclk -> pmod0:4;
   spi_1:cs_0 -> pmod0:1;
-  spi_1:cs_1 -> pmod0:7;
-  spi_1:cs_2 -> pmod0:8;
+  spi_1:cs_1 -> pmod0:9;
+  spi_1:cs_2 -> pmod0:10;
 
   spi_1:copi -> rph:g10_spi0_copi;
   spi_1:cipo -> rph:g9_spi0_cipo [dir=back];
@@ -427,8 +427,8 @@ digraph {
   spi_2:cipo -> pmod1:3 [dir=back];
   spi_2:sclk -> pmod1:4;
   spi_2:cs_0 -> pmod1:1;
-  spi_2:cs_1 -> pmod1:7;
-  spi_2:cs_2 -> pmod1:8;
+  spi_2:cs_1 -> pmod1:9;
+  spi_2:cs_2 -> pmod1:10;
 
   spi_2:copi -> rph:g20_spi1_copi;
   spi_2:cipo -> rph:g19_spi1_cipo [dir=back];
@@ -447,9 +447,9 @@ digraph {
 
   pwm:0 -> mb:10;
   pwm:1 -> pmod0:2;
-  pwm:2 -> pmod0:6;
+  pwm:2 -> pmod0:8;
   pwm:3 -> pmod1:2;
-  pwm:4 -> pmod1:6;
+  pwm:4 -> pmod1:8;
 
   pwm:6 -> lcd:backlight;
 
@@ -526,19 +526,19 @@ digraph {
   gpio_pmod0:"gpio_0-7" -> pmod0:2;
   gpio_pmod0:"gpio_0-7" -> pmod0:3;
   gpio_pmod0:"gpio_0-7" -> pmod0:4;
-  gpio_pmod0:"gpio_0-7" -> pmod0:5;
-  gpio_pmod0:"gpio_0-7" -> pmod0:6;
   gpio_pmod0:"gpio_0-7" -> pmod0:7;
   gpio_pmod0:"gpio_0-7" -> pmod0:8;
+  gpio_pmod0:"gpio_0-7" -> pmod0:9;
+  gpio_pmod0:"gpio_0-7" -> pmod0:10;
 
   gpio_pmod1:"gpio_0-7" -> pmod1:1;
   gpio_pmod1:"gpio_0-7" -> pmod1:2;
   gpio_pmod1:"gpio_0-7" -> pmod1:3;
   gpio_pmod1:"gpio_0-7" -> pmod1:4;
-  gpio_pmod1:"gpio_0-7" -> pmod1:5;
-  gpio_pmod1:"gpio_0-7" -> pmod1:6;
   gpio_pmod1:"gpio_0-7" -> pmod1:7;
   gpio_pmod1:"gpio_0-7" -> pmod1:8;
+  gpio_pmod1:"gpio_0-7" -> pmod1:9;
+  gpio_pmod1:"gpio_0-7" -> pmod1:10;
 
   gpio_pmodc:"gpio_0-5" -> pmodc:1;
   gpio_pmodc:"gpio_0-5" -> pmodc:2;
