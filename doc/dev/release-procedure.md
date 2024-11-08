@@ -160,6 +160,11 @@ Hello from CHERI USB!
 ```
 Also type into the USB screen instance and see that it is echoed on the UART side.
 
+Here are some checks that you should also do for which there are no detailed instructions:
+- Check the Ethernet is working.
+- Check the manual pinmux test over PMOD.
+- Check the RS-485 is working.
+
 #### Vivado - Known errors
 
 None at the moment.
