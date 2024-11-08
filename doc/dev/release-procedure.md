@@ -263,13 +263,13 @@ These values will change as you move your hand over the proximity sensor.
 
 ### Snake demo
 
-Load snake demo and play snake:
+Load snake demo, set your software switch to 2 and play snake:
 
 ```shell
 # Copy to parent release dir
-cp ./build/cheriot/cheriot/release/snake_demo.slot1.uf2  ../snake_demo_vX.Y.slot1.uf2
+cp ./build/cheriot/cheriot/release/snake_demo.slot2.uf2  ../snake_demo_vX.Y.slot2.uf2
 # Program onto the FPGA
-cp ../snake_demo_vX.Y.slot1.uf2 /path/to/SONATA/
+cp ../snake_demo_vX.Y.slot2.uf2 /path/to/SONATA/
 ```
 
 Check that you see capability the exception LEDs light up and fade out when you hit the game boundaries ('tag' exception for top and left boundaries, 'bounds' exception for bottom and right boundaries).
@@ -365,4 +365,4 @@ An example release notes looks something like this:
 > 5. Once programming is successful, you should see the "CHERI" LED light up and the "LEGACY" LED turn off. If this is not the case, the bitstream loading may have failed and you should retry by unplugging and replugging the main USB on the Sonata board. Then re-drag the bitstream into the "SONATA" drive.
 > 6. After programming the bitstream, drag the `sonata_simple_demo_vX.Y.slot1.uf2` into the "SONATA" drive.
 > 7. You should now see the user LEDs turn on and off, as well as the lowRISC logo appear on the LCD.
-> 8. You can also drag `snake_demo_vX.Y.slot1.uf2` into the SONATA drive to play snake using the joystick. Watch the CHERI error LEDs as you hit the boundary.
+> 8. You can also drag `snake_demo_vX.Y.slot2.uf2` into the SONATA drive to play snake using the joystick. Make sure to switch to the second software slot (SW7) and reset the board with SW5. Watch the CHERI error LEDs as you hit the boundary.
