@@ -108,7 +108,15 @@ digraph {
       </table>
     >];
 
-    // missing rx485_{ro,de,ren,di}
+    rs485 [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+        <tr>
+          <td port="tx">rs485_tx</td><td>tx</td>
+          <td rowspan="2">rs485</td>
+        </tr>
+        <tr><td port="rx">rs485_rx</td><td>rx</td></tr>
+      </table>
+    >];
 
     rs232 [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
@@ -353,6 +361,9 @@ digraph {
 
   uart_2:tx -> rs232:tx;
   uart_2:rx -> rs232:rx [dir=back];
+
+  uart_2:tx -> rs485:tx;
+  uart_2:rx -> rs485:rx [dir=back];
 
   uart_2:tx -> pmod1:2;
   uart_2:rx -> pmod1:3 [dir=back];
