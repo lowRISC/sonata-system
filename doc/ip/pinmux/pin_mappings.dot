@@ -217,27 +217,27 @@ digraph {
           <td port="g0">rph_g0</td><td>gpio, sda</td>
           <td rowspan="28">Raspberry Pi HAT</td>
         </tr>
-        <tr><td port="g1"           >rph_g1</td><td>gpio, scl</td></tr>
-        <tr><td port="g2_sda"       >rph_g2_sda</td><td>gpio, sda</td></tr>
-        <tr><td port="g3_scl"       >rph_g3_scl</td><td>gpio, scl</td></tr>
-        <tr><td port="g4"           >rph_g4</td><td>gpio</td></tr>
-        <tr><td port="g5"           >rph_g5</td><td>gpio</td></tr>
-        <tr><td port="g6"           >rph_g6</td><td>gpio</td></tr>
-        <tr><td port="g7_spi0_ce1"  >rph_g7_spi0_ce1</td><td>gpio, cs</td></tr>
-        <tr><td port="g8_spi0_ce0"  >rph_g8_spi0_ce0</td><td>gpio, cs</td></tr>
-        <tr><td port="g9_spi0_cipo" >rph_g9_spi0_cipo</td><td>gpio, cipo</td></tr>
-        <tr><td port="g10_spi0_copi">rph_g10_spi0_copi</td><td>gpio, copi</td></tr>
-        <tr><td port="g11_spi0_sclk">rph_g11_spi0_sclk</td><td>gpio, sclk</td></tr>
+        <tr><td port="g1">rph_g1</td><td>gpio, scl</td></tr>
+        <tr><td port="g2_sda">rph_g2_sda</td><td>gpio, sda</td></tr>
+        <tr><td port="g3_scl">rph_g3_scl</td><td>gpio, scl</td></tr>
+        <tr><td port="g4">rph_g4</td><td>gpio</td></tr>
+        <tr><td port="g5">rph_g5</td><td>gpio</td></tr>
+        <tr><td port="g6">rph_g6</td><td>gpio</td></tr>
+        <tr><td port="g7">rph_g7</td><td>gpio, cs</td></tr>
+        <tr><td port="g8">rph_g8</td><td>gpio, cs</td></tr>
+        <tr><td port="g9">rph_g9</td><td>gpio, cipo</td></tr>
+        <tr><td port="g10">rph_g10</td><td>gpio, copi</td></tr>
+        <tr><td port="g11">rph_g11</td><td>gpio, sclk</td></tr>
         <tr><td port="g12">rph_g12</td><td>gpio, pwm</td></tr>
         <tr><td port="g13">rph_g13</td><td>gpio, pwm</td></tr>
         <tr><td port="txd0">rph_txd0</td><td>gpio, tx</td></tr>
         <tr><td port="rxd0">rph_rxd0</td><td>gpio, rx</td></tr>
-        <tr><td port="g16_spi1_ce2">rph_g16_spi1_ce2</td><td>gpio, cs</td></tr>
-        <tr><td port="g17_spi1_ce1">rph_g17_spi1_ce1</td><td>gpio, cs</td></tr>
-        <tr><td port="g18_spi1_ce0">rph_g18_spi1_ce0</td><td>gpio, cs, pwm</td></tr>
-        <tr><td port="g19_spi1_cipo">rph_g19_spi1_cipo</td><td>gpio, cipo, pwm</td></tr>
-        <tr><td port="g20_spi1_copi">rph_g20_spi1_copi</td><td>gpio, copi, pwm</td></tr>
-        <tr><td port="g21_spi1_sclk">rph_g21_spi1_sclk</td><td>gpio, sclk, pwm</td></tr>
+        <tr><td port="g16">rph_g16</td><td>gpio, cs</td></tr>
+        <tr><td port="g17">rph_g17</td><td>gpio, cs</td></tr>
+        <tr><td port="g18">rph_g18</td><td>gpio, cs, pwm</td></tr>
+        <tr><td port="g19">rph_g19</td><td>gpio, cipo, pwm</td></tr>
+        <tr><td port="g20">rph_g20</td><td>gpio, copi, pwm</td></tr>
+        <tr><td port="g21">rph_g21</td><td>gpio, sclk, pwm</td></tr>
         <tr><td port="g22">rph_g22</td><td>gpio</td></tr>
         <tr><td port="g23">rph_g23</td><td>gpio</td></tr>
         <tr><td port="g24">rph_g24</td><td>gpio</td></tr>
@@ -423,11 +423,11 @@ digraph {
   spi_1:cs_1 -> pmod0:9;
   spi_1:cs_2 -> pmod0:10;
 
-  spi_1:copi -> rph:g10_spi0_copi;
-  spi_1:cipo -> rph:g9_spi0_cipo [dir=back];
-  spi_1:sclk -> rph:g11_spi0_sclk;
-  spi_1:cs_1 -> rph:g7_spi0_ce1;
-  spi_1:cs_0 -> rph:g8_spi0_ce0;
+  spi_1:copi -> rph:g10;
+  spi_1:cipo -> rph:g9 [dir=back];
+  spi_1:sclk -> rph:g11;
+  spi_1:cs_1 -> rph:g7;
+  spi_1:cs_0 -> rph:g8;
 
   spi_1:copi -> ah:tmpio11;
   spi_1:cipo -> ah:tmpio12 [dir=back];
@@ -441,12 +441,12 @@ digraph {
   spi_2:cs_1 -> pmod1:9;
   spi_2:cs_2 -> pmod1:10;
 
-  spi_2:copi -> rph:g20_spi1_copi;
-  spi_2:cipo -> rph:g19_spi1_cipo [dir=back];
-  spi_2:sclk -> rph:g21_spi1_sclk;
-  spi_2:cs_0 -> rph:g18_spi1_ce0;
-  spi_2:cs_1 -> rph:g17_spi1_ce1;
-  spi_2:cs_2 -> rph:g16_spi1_ce2;
+  spi_2:copi -> rph:g20;
+  spi_2:cipo -> rph:g19 [dir=back];
+  spi_2:sclk -> rph:g21;
+  spi_2:cs_0 -> rph:g18;
+  spi_2:cs_1 -> rph:g17;
+  spi_2:cs_2 -> rph:g16;
 
   spi_2:copi -> mb:4;
   spi_2:cipo -> mb:3 [dir=back];
@@ -473,10 +473,10 @@ digraph {
 
   pwm:0 -> rph:g12;
   pwm:1 -> rph:g13;
-  pwm:2 -> rph:g18_spi1_ce0;
-  pwm:3 -> rph:g19_spi1_cipo;
-  pwm:4 -> rph:g20_spi1_copi;
-  pwm:5 -> rph:g21_spi1_sclk;
+  pwm:2 -> rph:g18;
+  pwm:3 -> rph:g19;
+  pwm:4 -> rph:g20;
+  pwm:5 -> rph:g21;
 
   // GPIOs
   edge [dir=forward color=grey];
@@ -496,21 +496,21 @@ digraph {
   gpio_rph:"gpio_0-27" -> rph:g4;
   gpio_rph:"gpio_0-27" -> rph:g5;
   gpio_rph:"gpio_0-27" -> rph:g6;
-  gpio_rph:"gpio_0-27" -> rph:g7_spi0_ce1;
-  gpio_rph:"gpio_0-27" -> rph:g8_spi0_ce0;
-  gpio_rph:"gpio_0-27" -> rph:g9_spi0_cipo;
-  gpio_rph:"gpio_0-27" -> rph:g10_spi0_copi;
-  gpio_rph:"gpio_0-27" -> rph:g11_spi0_sclk;
+  gpio_rph:"gpio_0-27" -> rph:g7;
+  gpio_rph:"gpio_0-27" -> rph:g8;
+  gpio_rph:"gpio_0-27" -> rph:g9;
+  gpio_rph:"gpio_0-27" -> rph:g10;
+  gpio_rph:"gpio_0-27" -> rph:g11;
   gpio_rph:"gpio_0-27" -> rph:g12;
   gpio_rph:"gpio_0-27" -> rph:g13;
   gpio_rph:"gpio_0-27" -> rph:txd0;
   gpio_rph:"gpio_0-27" -> rph:rxd0;
-  gpio_rph:"gpio_0-27" -> rph:g16_spi1_ce2;
-  gpio_rph:"gpio_0-27" -> rph:g17_spi1_ce1;
-  gpio_rph:"gpio_0-27" -> rph:g18_spi1_ce0;
-  gpio_rph:"gpio_0-27" -> rph:g19_spi1_cipo;
-  gpio_rph:"gpio_0-27" -> rph:g20_spi1_copi;
-  gpio_rph:"gpio_0-27" -> rph:g21_spi1_sclk;
+  gpio_rph:"gpio_0-27" -> rph:g16;
+  gpio_rph:"gpio_0-27" -> rph:g17;
+  gpio_rph:"gpio_0-27" -> rph:g18;
+  gpio_rph:"gpio_0-27" -> rph:g19;
+  gpio_rph:"gpio_0-27" -> rph:g20;
+  gpio_rph:"gpio_0-27" -> rph:g21;
   gpio_rph:"gpio_0-27" -> rph:g22;
   gpio_rph:"gpio_0-27" -> rph:g23;
   gpio_rph:"gpio_0-27" -> rph:g24;
