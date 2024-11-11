@@ -793,8 +793,16 @@ set_false_path -setup -from [get_ports {pmod0[2] pmod1[2]}] -to [get_clocks vclk
 set_false_path -hold -from [get_clocks vclk_sys] -to [get_ports {pmod0[1] pmod1[1]}]
 
 ## prim_flop_2sync
-# Explicit false_path not needed so long as ASYNC_REG property is correctly
-# set on the underlying flops earlier in the flow.
+# Set false_path timing exceptions on 2-stage synchroniser inputs.
+# Target the inputs because the flops inside are clocked by the destination.
+#
+# Reliant on the hierarchical pin names of the synchronisers remaining
+# unchanged during synthesis due to use of DONT_TOUCH or KEEP_HIERARCHY.
+set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
+set sync_pins [get_pins -filter {REF_PIN_NAME =~ d_i*} -of $sync_cells]
+# Filter out any that do not have a real timing path (fail to find leaf cell).
+set sync_endpoints [filter [all_fanout -endpoints_only -flat $sync_pins] IS_LEAF]
+set_false_path -to $sync_endpoints
 
 ## prim_fifo_async and prim_fifo_async_simple
 # Set false_path timing exceptions on asynchronous fifo outputs.
