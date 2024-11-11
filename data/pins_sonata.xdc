@@ -344,8 +344,8 @@ set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_flo
 set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async}]
 set_property DONT_TOUCH TRUE [get_cells -hier -filter {ORIG_REF_NAME == prim_fifo_async_simple}]
 # Set ASYNC_REG on the flops our flop-based CDC synchronisers to get
-# special place&route to reduce the MTBF from metastability, to prevent
-# dangerous optimisations, and to infer D-pin timing exceptions.
+# special place&route to reduce the MTBF from metastability, and to prevent
+# dangerous optimisations. Note, this appears NOT to include timing exceptions.
 # See the ASYNC_REG sections of UG901 or UG912 for details.
 set sync_cells [get_cells -hier -filter {ORIG_REF_NAME == prim_flop_2sync}]
 set sync_clk_in [get_pins -of $sync_cells -filter {REF_PIN_NAME == clk_i}]
