@@ -35,15 +35,15 @@ Wherever possible, we reuse existing, high-quality, open-source hardware IP bloc
 For all registers in this section, the functionality is mapped onto the least significant bits of registers and each register is 32 bits wide.
 
 | Base address |    Size | Functionality        |
-|--------------|--------:|----------------------|
-| 0x0010_0000  | 256 KiB | Internal SRAM        |
-| 0x3000_0000  |   4 KiB | Revocation tags      |
-| 0x4000_0000  |   1 MiB | Tagged RAM           |
-| 0x4010_0000  |   7 MiB | Untagged RAM         |
+|--------------|---------|----------------------|
+| 0x0010_0000  | 128 KiB | Internal SRAM        |
+| 0x3000_0000  |   2 KiB | Revocation tags      |
+| 0x4000_0000  |   1 MiB | Tagged [HyperRAM][]  |
+| 0x4010_0000  |   7 MiB | Reserved for untagged RAM |
 | 0x8000_0000  |   4 KiB | [GPIO][]             |
 | 0x8000_1000  |   4 KiB | [PWM][]              |
 | 0x8000_2000  |   4 KiB | Reserved for DMA     |
-| 0x8000_3000  |   4 KiB | [HyperRAM][]         |
+| 0x8000_3000  |   4 KiB | Reserved             |
 | 0x8000_4000  |   4 KiB | Reserved             |
 | 0x8000_5000  |   4 KiB | [Pinmux][]           |
 | 0x8000_6000  |   4 KiB | Reserved             |
@@ -59,7 +59,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8030_0000  |   1 MiB | [SPI host][]         |
 | 0x8040_0000  |   1 MiB | [USB device][]       |
 | 0x8800_0000  |  64 MiB | [PLIC][]             |
-| 0xB000_0000  |   4 KiB | [Debug module][]     |
+| 0xB000_0000  |   4 KiB | Reserved for debug module |
 
 [GPIO]: ../ip/gpio.md
 [PWM]: ../ip/pwm.md
