@@ -55,6 +55,7 @@ class Block(BaseModel, frozen=True):
     memory_start: int
     memory_size: int
     xbar: dict[str, str] = {}
+    which_xbar: str
 
     @field_validator("instances")
     @staticmethod
