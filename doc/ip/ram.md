@@ -1,20 +1,10 @@
-# HyperRAM controller
+# HyperRAM
 
 HyperRAM is used as an alternative to flash.
 Compared to flash, HyperRAM has similar performance but it avoids the need for a quad-speed SPI controller to interact with the flash.
-The HyperRAM controller is the interface between the Sonata system and the actual chip.
-
-| Offset | Register        |
-|--------|-----------------|
-| 0x00   | Configuration 0 |
-| 0x04   | Configuration 1 |
-
-For details of what these configuration registers do please consult Section 9.4 and 9.5 of the [datasheet](https://www.mouser.co.uk/datasheet/2/949/W956x8MBYA_64Mb_HyperBus_pSRAM_TFBGA24_datasheet_A-1760356.pdf).
-
-Because the latency of accessing data memory through the HyperRAM will be quite slow, we introduce a fully-associated cache of a few words to improve performance.
-It is anticipated main data storage will be in SRAM with the HyperRAM storing small amounts of data interleaved with code so more significant caching is unnecessary.
+For details on the Windbond W956D8MBYA5I HyperRAM chip used on the Sonata board, see the [datasheet](https://www.winbond.com/resource-files/W956x8MBYA_64Mb_HyperBus_pSRAM_TFBGA24_datasheet_A01-002_20191113.pdf).
+We anticipate mostly code to live in HyperRAM and to make sure that we don't suffer from access latency, we enable the instruction cache in Ibex.
 
 ## Capability enabled RAM
 
-The HyperRAM controller is also where the capability tags live for the tagged part of the RAM.
-In Sonata we allocate 32 KiB for capability tags for RAM which translates in to 1 MiB for tagged RAM.
+Currently only 1 MiB of HyperRAM is accessible and all of that has associated capability tags, these tags are stored in 16 KiB of SRAM.
