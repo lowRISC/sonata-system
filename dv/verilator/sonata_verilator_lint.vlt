@@ -30,9 +30,6 @@ lint_off -rule UNOPTFLAT -file "*tlul_adapter_sram.sv" -match "*Signal unoptimiz
 // to the error responder for the HyperRAM disabled config).
 lint_off -rule UNOPTFLAT -file "*tlul_socket_m1.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.u_hyperram_tl_socket.*'"
 
-// False warning we're using 32-bit initial values for DisableHyperram parameter
-lint_off -rule WIDTHTRUNC -file "*" -match "Operator VAR 'DisableHyperram' expects 1 bits on the Initial value*"
-
 // Unimportant warning where compressed and uncompress instructions are printed in the same place.
 lint_off -rule WIDTHEXPAND -file "*ibex_controller.sv" -match "*Conditional True's VARREF 'instr_compressed_i' generates 16 bits."
 

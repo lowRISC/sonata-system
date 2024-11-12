@@ -31,7 +31,7 @@ using namespace CHERI;
   uart.address()                          = UART_ADDRESS;
   uart.bounds()                           = UART_BOUNDS;
 
-  unsigned int size_of_revocation_tags = 0x4000;  // 16 KiB
+  unsigned int size_of_revocation_tags = 0x0800;  // 2 KiB
   unsigned int number_of_words         = size_of_revocation_tags / 4;
 
   Capability<volatile uint32_t> revocation_tags = root.cast<volatile uint32_t>();

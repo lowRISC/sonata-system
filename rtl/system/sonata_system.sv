@@ -12,8 +12,7 @@ module sonata_system
   parameter int unsigned CheriErrWidth =  9,
   parameter SRAMInitFile               = "",
   parameter int unsigned SysClkFreq    = 30_000_000,
-  parameter int unsigned HRClkFreq     = 100_000_000,
-  parameter bit DisableHyperram        = 1'b0
+  parameter int unsigned HRClkFreq     = 100_000_000
 ) (
   // Main system clock and reset
   input logic                      clk_sys_i,
@@ -107,7 +106,7 @@ module sonata_system
   // Signals, types and parameters for system. //
   ///////////////////////////////////////////////
 
-  localparam int unsigned MemSize       = DisableHyperram ? 256 * 1024 : 128 * 1024; // 256 KiB
+  localparam int unsigned MemSize       = 128 * 1024; // 128 KiB
   localparam int unsigned SRAMAddrWidth = $clog2(MemSize);
   localparam int unsigned HyperRAMSize  = 1024 * 1024; // 1 MiB
   localparam int unsigned DebugStart    = 32'h1a110000;
@@ -499,54 +498,28 @@ module sonata_system
     .tl_b_o (tl_sram_b_d2h)
   );
 
-  if (DisableHyperram) begin : g_no_hyperram
-    logic unused_clk_hr;
-    logic unused_clk_hr90p;
-    logic unused_clk_hr3x;
-    logic unused_rst_hr;
+  hyperram #(
+    .HRClkFreq   (HRClkFreq),
+    .HyperRAMSize(HyperRAMSize)
+  ) u_hyperram (
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
 
-    assign unused_clk_hr    = clk_hr_i;
-    assign unused_clk_hr90p = clk_hr90p_i;
-    assign unused_clk_hr3x  = clk_hr3x_i;
-    assign unused_rst_hr    = rst_hr_ni;
+    .clk_hr_i,
+    .clk_hr90p_i,
+    .clk_hr3x_i,
+    .rst_hr_ni,
 
-    assign hyperram_dq   = '0;
-    assign hyperram_rwds = '0;
-    assign hyperram_ckp  = 1'b0;
-    assign hyperram_ckn  = 1'b0;
-    assign hyperram_nrst = 1'b0;
-    assign hyperram_cs   = 1'b0;
+    .tl_i (tl_hyperram_ds_h2d),
+    .tl_o (tl_hyperram_ds_d2h),
 
-    tlul_err_resp u_hyperram_err (
-      .clk_i (clk_sys_i),
-      .rst_ni (rst_sys_ni),
-      .tl_h_i(tl_hyperram_ds_h2d),
-      .tl_h_o(tl_hyperram_ds_d2h)
-    );
-  end else begin : g_hyperram
-    hyperram #(
-      .HRClkFreq   (HRClkFreq),
-      .HyperRAMSize(HyperRAMSize)
-    ) u_hyperram (
-      .clk_i  (clk_sys_i),
-      .rst_ni (rst_sys_ni),
-
-      .clk_hr_i,
-      .clk_hr90p_i,
-      .clk_hr3x_i,
-      .rst_hr_ni,
-
-      .tl_i (tl_hyperram_ds_h2d),
-      .tl_o (tl_hyperram_ds_d2h),
-
-      .hyperram_dq,
-      .hyperram_rwds,
-      .hyperram_ckp,
-      .hyperram_ckn,
-      .hyperram_nrst,
-      .hyperram_cs
-    );
-  end
+    .hyperram_dq,
+    .hyperram_rwds,
+    .hyperram_ckp,
+    .hyperram_ckn,
+    .hyperram_nrst,
+    .hyperram_cs
+  );
 
   // Manual M:1 socket instantiation as xbar generator cannot deal with multiple ports for one
   // device and we want to utilize the dual port SRAM. So totally separate crossbars are generated
@@ -668,8 +641,8 @@ module sonata_system
     end
   end
 
-  // Size of revocation tag memory is 4 KiB, one bit for each 64 in SRAM
-  localparam int unsigned RevTagDepth = 4 * 1024 * 8 / BusDataWidth;
+  // Size of revocation tag memory is one bit for each 64 in SRAM.
+  localparam int unsigned RevTagDepth = (MemSize / 8) / BusDataWidth;
   localparam int unsigned RevTagAddrWidth = $clog2(RevTagDepth);
 
   tlul_adapter_sram #(

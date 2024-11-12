@@ -6,8 +6,6 @@
 module top_verilator (input logic clk_i, rst_ni);
   import sonata_pkg::*;
 
-  parameter bit DisableHyperram = 1'b0;
-
   // System clock frequency.
   localparam int unsigned SysClkFreq = 40_000_000;
   // HyperRAM clock frequency.
@@ -301,8 +299,7 @@ module top_verilator (input logic clk_i, rst_ni);
   sonata_system #(
     .CheriErrWidth   ( CheriErrWidth   ),
     .SysClkFreq      ( SysClkFreq      ),
-    .HRClkFreq       ( HRClkFreq       ),
-    .DisableHyperram ( DisableHyperram )
+    .HRClkFreq       ( HRClkFreq       )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_i),
