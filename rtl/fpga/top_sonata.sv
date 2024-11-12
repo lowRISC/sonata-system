@@ -206,7 +206,6 @@ module top_sonata
   parameter int unsigned HRClkFreq  = 100_000_000;
 
   parameter SRAMInitFile    = "";
-  parameter DisableHyperram = 1'b0;
 
   // Main/board clock and reset
   logic main_clk_buf;
@@ -270,8 +269,7 @@ module top_sonata
     .CheriErrWidth   (  9             ),
     .SRAMInitFile    ( SRAMInitFile   ),
     .SysClkFreq      ( SysClkFreq     ),
-    .HRClkFreq       ( HRClkFreq      ),
-    .DisableHyperram ( DisableHyperram )
+    .HRClkFreq       ( HRClkFreq      )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_sys),

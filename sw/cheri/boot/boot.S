@@ -32,7 +32,7 @@ start:
 	li               a0, 0x30000000
 	csetaddr         ca0, cs0, a0
 	li               a1, 0
-	li               a2, 4096
+	li               a2, 2048
 	ccall            bl_memset
 
 	// Set cgp to correct location so globals can be used.

@@ -89,11 +89,6 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
 
-  DisableHyperram:
-    datatype: bool
-    paramtype: vlogparam
-    description: Remove hyperram controller from the system (providing a larger SRAM)
-
   USE_HYPERRAM_SIM_MODEL:
     datatype: bool
     paramtype: vlogdefine
@@ -118,7 +113,6 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
-      - DisableHyperram=false
 
   sim:
     <<: *default_target
@@ -146,7 +140,6 @@ targets:
           - "--unroll-count 72"
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
-      - DisableHyperram=false
       - USE_HYPERRAM_SIM_MODEL=true
 
   lint:
@@ -160,7 +153,6 @@ targets:
         mode: lint-only
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
-      - DisableHyperram=false
       # TODO: Introduce some blackboxes for the Xilinx IP used in the hyperram
       # controller so we can lint it, for now just exclude it from the lint run.
       - USE_HYPERRAM_SIM_MODEL=true

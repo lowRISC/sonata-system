@@ -38,7 +38,7 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x00100000",
-        size_byte: "0x00040000",
+        size_byte: "0x00020000",
       }],
     },
     { name:  "hyperram", // HyperRAM memory
@@ -58,7 +58,7 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x30000000",
-        size_byte: "0x00004000",
+        size_byte: "0x00000800",
       }],
     },
     { name:  "gpio", // General purpose input and output
