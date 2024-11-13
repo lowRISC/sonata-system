@@ -497,15 +497,12 @@ void spi_tests(CapRoot root, Log &log) {
 
   SpiFlash spi_flash(spis[2]);
 
-  // Create a bounded capability for pinmux & initialise the driver
-  Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
-  pinmux.address()                    = PINMUX_ADDRESS;
-  pinmux.bounds()                     = PINMUX_BOUNDS;
-  SonataPinmux Pinmux                 = SonataPinmux(pinmux);
+  // Create a bounded capability for pinmux
+  auto spi_2_cipo = block_sinks_ptr(root)->get(SonataPinmux::BlockSink::spi_2_cipo);
 
   if (SPI_TEST_EXT_LOOPBACK_CONN == 4) {
     // Mux SPI2 to receive from MB3.
-    Pinmux.block_input_select(SonataPinmux::BlockInput::spi_2_cipo, 2);
+    spi_2_cipo.select(2);
   }
 
   // Initialise 8-bit PRNG for use in random test data
@@ -590,6 +587,6 @@ void spi_tests(CapRoot root, Log &log) {
 
   if (SPI_TEST_EXT_LOOPBACK_CONN == 4) {
     // Mux SPI2 back to its default
-    Pinmux.block_input_select(SonataPinmux::BlockInput::spi_2_cipo, 1);
+    spi_2_cipo.default_selection();
   }
 }

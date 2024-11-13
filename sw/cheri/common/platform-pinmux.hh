@@ -1,368 +1,370 @@
-/**
- * Copyright lowRISC contributors.
- * Licensed under the Apache License, Version 2.0, see LICENSE for details.
- * SPDX-License-Identifier: Apache-2.0
- */
+// SPDX-FileCopyrightText: lowRISC contributors
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 #include <debug.hh>
 #include <stdint.h>
 #include <utils.hh>
+#include <cheri.hh>
+
+namespace SonataPinmux {
+/// The number of pin sinks (pin outputs)
+static constexpr size_t NumPinSinks = 85;
+
+/// The number of block sinks (block inputs)
+static constexpr size_t NumBlockSinks = 70;
+
+/// Flag to set when debugging the driver for UART log messages.
+static constexpr bool DebugDriver = false;
+
+/// Helper for conditional debug logs and assertions.
+using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
 
 /**
- * A driver for Sonata's Pin Multiplexer (Pinmux).
+ * Each pin sink is configured by an 8-bit register. This enum maps pin sink
+ * names to the offset of their configuration registers. The offsets are relative
+ * to the first pin sink register.
  *
- * This driver can be used to select which block output is placed on a given
- * output pin, and to select which input pin is provided to a given block
- * input. Sonata's pinmux only allows certain selections per output pin / block
- * input, which this driver describes.
- *
- * Rendered documentation is served from:
- * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
+ * Documentation sources:
+ * 1. https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
+ * 2. https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
+ * 3. https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
  */
-class SonataPinmux : private utils::NoCopyNoMove {
-  /**
-   * Flag to set when debugging the driver for UART log messages.
-   */
-  static constexpr bool DebugDriver = false;
-
-  /**
-   * Helper for conditional debug logs and assertions.
-   */
-  using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
-
-  /**
-   * A pointer/capability to the Pin Multiplexer's registers, where
-   * each sequential byte potentially corresponds to some mapped pinmux
-   * selector used to select the pin configuration.
-   */
-  volatile uint8_t *registers;
-
- public:
-  /**
-   * The Output Pins defined for the Sonata board. These output pins can be
-   * multiplexed, meaning that they can be changed to output the outputs
-   * of different blocks (or disabled). The block outputs that can be
-   * selected are limited, and vary on a per-pin basis.
-   *
-   * Documentation sources:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   * https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
-   * https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
-   */
-  enum class OutputPin : uint16_t {
-    ser0_tx      = 0x000,
-    ser1_tx      = 0x001,
-    rs232_tx     = 0x002,
-    rs485_tx     = 0x003,
-    scl0         = 0x004,
-    sda0         = 0x005,
-    scl1         = 0x006,
-    sda1         = 0x007,
-    rph_g0       = 0x008,
-    rph_g1       = 0x009,
-    rph_g2_sda   = 0x00a,
-    rph_g3_scl   = 0x00b,
-    rph_g4       = 0x00c,
-    rph_g5       = 0x00d,
-    rph_g6       = 0x00e,
-    rph_g7       = 0x00f,
-    rph_g8       = 0x010,
-    rph_g9       = 0x011,
-    rph_g10      = 0x012,
-    rph_g11      = 0x013,
-    rph_g12      = 0x014,
-    rph_g13      = 0x015,
-    rph_txd0     = 0x016,
-    rph_rxd0     = 0x017,
-    rph_g16      = 0x018,
-    rph_g17      = 0x019,
-    rph_g18      = 0x01a,
-    rph_g19      = 0x01b,
-    rph_g20      = 0x01c,
-    rph_g21      = 0x01d,
-    rph_g22      = 0x01e,
-    rph_g23      = 0x01f,
-    rph_g24      = 0x020,
-    rph_g25      = 0x021,
-    rph_g26      = 0x022,
-    rph_g27      = 0x023,
-    ah_tmpio0    = 0x024,
-    ah_tmpio1    = 0x025,
-    ah_tmpio2    = 0x026,
-    ah_tmpio3    = 0x027,
-    ah_tmpio4    = 0x028,
-    ah_tmpio5    = 0x029,
-    ah_tmpio6    = 0x02a,
-    ah_tmpio7    = 0x02b,
-    ah_tmpio8    = 0x02c,
-    ah_tmpio9    = 0x02d,
-    ah_tmpio10   = 0x02e,
-    ah_tmpio11   = 0x02f,
-    ah_tmpio12   = 0x030,
-    ah_tmpio13   = 0x031,
-    mb1          = 0x032,
-    mb2          = 0x033,
-    mb4          = 0x034,
-    mb5          = 0x035,
-    mb6          = 0x036,
-    mb7          = 0x037,
-    mb10         = 0x038,
-    pmod0_1      = 0x039,
-    pmod0_2      = 0x03a,
-    pmod0_3      = 0x03b,
-    pmod0_4      = 0x03c,
-    pmod0_7      = 0x03d,
-    pmod0_8      = 0x03e,
-    pmod0_9      = 0x03f,
-    pmod0_10     = 0x040,
-    pmod1_1      = 0x041,
-    pmod1_2      = 0x042,
-    pmod1_3      = 0x043,
-    pmod1_4      = 0x044,
-    pmod1_7      = 0x045,
-    pmod1_8      = 0x046,
-    pmod1_9      = 0x047,
-    pmod1_10     = 0x048,
-    pmodc_1      = 0x049,
-    pmodc_2      = 0x04a,
-    pmodc_3      = 0x04b,
-    pmodc_4      = 0x04c,
-    pmodc_5      = 0x04d,
-    pmodc_6      = 0x04e,
-    appspi_d0    = 0x04f,
-    appspi_clk   = 0x050,
-    appspi_cs    = 0x051,
-    microsd_cmd  = 0x052,
-    microsd_clk  = 0x053,
-    microsd_dat3 = 0x054,
-  };
-
-  /**
-   * The Block Inputs defined for the Sonata board. These block inputs can
-   * be multiplexed, meaning that they can be changed to take the input of
-   * different pins (or be disabled). The pin inputs that can be selected
-   * are limited, and vary on a per-block-input basis.
-   *
-   * For reference:
-   *   gpio_0 = Raspberry Pi
-   *   gpio_1 = ArduinoShield
-   *   gpio_2 = Pmod
-   *
-   * Documentation source:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   * */
-  enum class BlockInput : uint16_t {
-    gpio_0_ios_0  = 0x800,
-    gpio_0_ios_1  = 0x801,
-    gpio_0_ios_2  = 0x802,
-    gpio_0_ios_3  = 0x803,
-    gpio_0_ios_4  = 0x804,
-    gpio_0_ios_5  = 0x805,
-    gpio_0_ios_6  = 0x806,
-    gpio_0_ios_7  = 0x807,
-    gpio_0_ios_8  = 0x808,
-    gpio_0_ios_9  = 0x809,
-    gpio_0_ios_10 = 0x80a,
-    gpio_0_ios_11 = 0x80b,
-    gpio_0_ios_12 = 0x80c,
-    gpio_0_ios_13 = 0x80d,
-    gpio_0_ios_14 = 0x80e,
-    gpio_0_ios_15 = 0x80f,
-    gpio_0_ios_16 = 0x810,
-    gpio_0_ios_17 = 0x811,
-    gpio_0_ios_18 = 0x812,
-    gpio_0_ios_19 = 0x813,
-    gpio_0_ios_20 = 0x814,
-    gpio_0_ios_21 = 0x815,
-    gpio_0_ios_22 = 0x816,
-    gpio_0_ios_23 = 0x817,
-    gpio_0_ios_24 = 0x818,
-    gpio_0_ios_25 = 0x819,
-    gpio_0_ios_26 = 0x81a,
-    gpio_0_ios_27 = 0x81b,
-    gpio_1_ios_0  = 0x81c,
-    gpio_1_ios_1  = 0x81d,
-    gpio_1_ios_2  = 0x81e,
-    gpio_1_ios_3  = 0x81f,
-    gpio_1_ios_4  = 0x820,
-    gpio_1_ios_5  = 0x821,
-    gpio_1_ios_6  = 0x822,
-    gpio_1_ios_7  = 0x823,
-    gpio_1_ios_8  = 0x824,
-    gpio_1_ios_9  = 0x825,
-    gpio_1_ios_10 = 0x826,
-    gpio_1_ios_11 = 0x827,
-    gpio_1_ios_12 = 0x828,
-    gpio_1_ios_13 = 0x829,
-    gpio_2_ios_0  = 0x82a,
-    gpio_2_ios_1  = 0x82b,
-    gpio_2_ios_2  = 0x82c,
-    gpio_2_ios_3  = 0x82d,
-    gpio_2_ios_4  = 0x82e,
-    gpio_2_ios_5  = 0x82f,
-    gpio_2_ios_6  = 0x830,
-    gpio_2_ios_7  = 0x831,
-    gpio_3_ios_0  = 0x832,
-    gpio_3_ios_1  = 0x833,
-    gpio_3_ios_2  = 0x834,
-    gpio_3_ios_3  = 0x835,
-    gpio_3_ios_4  = 0x836,
-    gpio_3_ios_5  = 0x837,
-    gpio_3_ios_6  = 0x838,
-    gpio_3_ios_7  = 0x839,
-    gpio_4_ios_0  = 0x83a,
-    gpio_4_ios_1  = 0x83b,
-    gpio_4_ios_2  = 0x83c,
-    gpio_4_ios_3  = 0x83d,
-    gpio_4_ios_4  = 0x83e,
-    gpio_4_ios_5  = 0x83f,
-    uart_0_rx     = 0x840,
-    uart_1_rx     = 0x841,
-    uart_2_rx     = 0x842,
-    spi_0_cipo    = 0x843,
-    spi_1_cipo    = 0x844,
-    spi_2_cipo    = 0x845,
-  };
-
-  /**
-   * A helper function that returns the number of block outputs that can be
-   * selected from in the pin multiplexer for a given output pin. This will
-   * always be at least 2, as option 0 represents 'OFF' i.e. no connection,
-   * and option 1 represents the default connection.
-   *
-   * @param output_pin The output pin to query
-   * @returns The number of selections available for that output pin
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  static constexpr uint8_t output_pin_options(OutputPin output_pin) {
-    switch (output_pin) {
-      case OutputPin::pmod0_2:
-      case OutputPin::pmod1_2:
-        return 5;
-      case OutputPin::rph_g18:
-      case OutputPin::rph_g20:
-      case OutputPin::rph_g21:
-      case OutputPin::ah_tmpio10:
-      case OutputPin::ah_tmpio11:
-      case OutputPin::pmod0_4:
-      case OutputPin::pmod1_4:
-        return 4;
-      case OutputPin::ser1_tx:
-      case OutputPin::rph_g0:
-      case OutputPin::rph_g1:
-      case OutputPin::rph_g2_sda:
-      case OutputPin::rph_g3_scl:
-      case OutputPin::rph_g7:
-      case OutputPin::rph_g8:
-      case OutputPin::rph_g10:
-      case OutputPin::rph_g11:
-      case OutputPin::rph_g12:
-      case OutputPin::rph_g13:
-      case OutputPin::rph_txd0:
-      case OutputPin::rph_g16:
-      case OutputPin::rph_g17:
-      case OutputPin::rph_g19:
-      case OutputPin::ah_tmpio1:
-      case OutputPin::ah_tmpio3:
-      case OutputPin::ah_tmpio5:
-      case OutputPin::ah_tmpio6:
-      case OutputPin::ah_tmpio9:
-      case OutputPin::ah_tmpio13:
-      case OutputPin::pmod0_1:
-      case OutputPin::pmod0_3:
-      case OutputPin::pmod0_8:
-      case OutputPin::pmod0_9:
-      case OutputPin::pmod0_10:
-      case OutputPin::pmod1_1:
-      case OutputPin::pmod1_3:
-      case OutputPin::pmod1_8:
-      case OutputPin::pmod1_9:
-      case OutputPin::pmod1_10:
-        return 3;
-      default:
-        return 2;
-    }
-  }
-
-  /**
-   * A helper function that returns the number of input pins that can be
-   * selected from in the pin multiplexer for a given block input. This will
-   * always be at least 2, as option 0 represents 'OFF' i.e. no connection,
-   * and option 1 represents the default connection.
-   *
-   * @param block_input The block input to query.
-   * @returns The number of selections available for that block input.
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  static constexpr uint8_t block_input_options(BlockInput block_input) {
-    switch (block_input) {
-      case BlockInput::uart_1_rx:
-        return 6;
-      case BlockInput::uart_2_rx:
-        return 5;
-      case BlockInput::spi_1_cipo:
-      case BlockInput::spi_2_cipo:
-        return 4;
-      case BlockInput::spi_0_cipo:
-        return 3;
-      default:
-        return 2;
-    }
-  }
-
-  /**
-   * For a given output pin, selects a given block output to use for that pin
-   * via the pin multiplexer.
-   *
-   * @param output_pin The output pin to pinmux.
-   * @param option The option to select for that pin. This value should be
-   * less than the value returned by `output_pin_options` for the given pin.
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  bool output_pin_select(OutputPin output_pin, uint8_t option) {
-    if (option >= output_pin_options(output_pin)) {
-      Debug::log("Selected option is not valid for this pin.");
-      return false;
-    }
-    uint16_t registerOffset   = static_cast<uint16_t>(output_pin);
-    registers[registerOffset] = (1 << option);
-    return true;
-  }
-
-  /**
-   * For a given block input, selects a pin to use for that input via the pin
-   * multiplexer.
-   *
-   * @param block_input The block input to pinmux.
-   * @param option The option to select for that block input. This value
-   * should be less than the value returned by `block_input_options` for the
-   * given block input.
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  bool block_input_select(BlockInput block_input, uint8_t option) {
-    if (option >= block_input_options(block_input)) {
-      Debug::log("Selected option is not valid for this block.");
-      return false;
-    }
-    uint16_t registerOffset   = static_cast<uint16_t>(block_input);
-    registers[registerOffset] = (1 << option);
-    return true;
-  }
-
-  /**
-   * A constructor for the SonataPinmux driver, which takes a bounded
-   * capability to the pinmux registers. This should be replaced with
-   * an appropriate `MMIO_CAPABILITY` call in the version of the driver
-   * that runs in CHERIoT RTOS, rather than baremetal.
-   */
-  SonataPinmux(volatile uint8_t *registers) : registers(registers) {}
+enum class PinSink : uint16_t {
+  ser0_tx      = 0x000,
+  ser1_tx      = 0x001,
+  rs232_tx     = 0x002,
+  rs485_tx     = 0x003,
+  scl0         = 0x004,
+  sda0         = 0x005,
+  scl1         = 0x006,
+  sda1         = 0x007,
+  rph_g0       = 0x008,
+  rph_g1       = 0x009,
+  rph_g2_sda   = 0x00a,
+  rph_g3_scl   = 0x00b,
+  rph_g4       = 0x00c,
+  rph_g5       = 0x00d,
+  rph_g6       = 0x00e,
+  rph_g7       = 0x00f,
+  rph_g8       = 0x010,
+  rph_g9       = 0x011,
+  rph_g10      = 0x012,
+  rph_g11      = 0x013,
+  rph_g12      = 0x014,
+  rph_g13      = 0x015,
+  rph_txd0     = 0x016,
+  rph_rxd0     = 0x017,
+  rph_g16      = 0x018,
+  rph_g17      = 0x019,
+  rph_g18      = 0x01a,
+  rph_g19      = 0x01b,
+  rph_g20      = 0x01c,
+  rph_g21      = 0x01d,
+  rph_g22      = 0x01e,
+  rph_g23      = 0x01f,
+  rph_g24      = 0x020,
+  rph_g25      = 0x021,
+  rph_g26      = 0x022,
+  rph_g27      = 0x023,
+  ah_tmpio0    = 0x024,
+  ah_tmpio1    = 0x025,
+  ah_tmpio2    = 0x026,
+  ah_tmpio3    = 0x027,
+  ah_tmpio4    = 0x028,
+  ah_tmpio5    = 0x029,
+  ah_tmpio6    = 0x02a,
+  ah_tmpio7    = 0x02b,
+  ah_tmpio8    = 0x02c,
+  ah_tmpio9    = 0x02d,
+  ah_tmpio10   = 0x02e,
+  ah_tmpio11   = 0x02f,
+  ah_tmpio12   = 0x030,
+  ah_tmpio13   = 0x031,
+  mb1          = 0x032,
+  mb2          = 0x033,
+  mb4          = 0x034,
+  mb5          = 0x035,
+  mb6          = 0x036,
+  mb7          = 0x037,
+  mb10         = 0x038,
+  pmod0_1      = 0x039,
+  pmod0_2      = 0x03a,
+  pmod0_3      = 0x03b,
+  pmod0_4      = 0x03c,
+  pmod0_7      = 0x03d,
+  pmod0_8      = 0x03e,
+  pmod0_9      = 0x03f,
+  pmod0_10     = 0x040,
+  pmod1_1      = 0x041,
+  pmod1_2      = 0x042,
+  pmod1_3      = 0x043,
+  pmod1_4      = 0x044,
+  pmod1_7      = 0x045,
+  pmod1_8      = 0x046,
+  pmod1_9      = 0x047,
+  pmod1_10     = 0x048,
+  pmodc_1      = 0x049,
+  pmodc_2      = 0x04a,
+  pmodc_3      = 0x04b,
+  pmodc_4      = 0x04c,
+  pmodc_5      = 0x04d,
+  pmodc_6      = 0x04e,
+  appspi_d0    = 0x04f,
+  appspi_clk   = 0x050,
+  appspi_cs    = 0x051,
+  microsd_cmd  = 0x052,
+  microsd_clk  = 0x053,
+  microsd_dat3 = 0x054,
 };
+
+/**
+ * Each block sink is configured by an 8-bit register. This enum maps block sink
+ * names to the offset of their configuration registers. The offsets are relative
+ * to the first block sink register.
+ *
+ * For GPIO block reference:
+ *   gpio_0 = Raspberry Pi Header Pins
+ *   gpio_1 = Arduino Shield Header Pins
+ *   gpio_2 = Pmod0 Pins
+ *   gpio_3 = Pmod1 Pins
+ *   gpio_4 = PmodC Pins
+ *
+ * Documentation source:
+ * https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
+ */
+enum class BlockSink : uint16_t {
+  gpio_0_ios_0  = 0x000,
+  gpio_0_ios_1  = 0x001,
+  gpio_0_ios_2  = 0x002,
+  gpio_0_ios_3  = 0x003,
+  gpio_0_ios_4  = 0x004,
+  gpio_0_ios_5  = 0x005,
+  gpio_0_ios_6  = 0x006,
+  gpio_0_ios_7  = 0x007,
+  gpio_0_ios_8  = 0x008,
+  gpio_0_ios_9  = 0x009,
+  gpio_0_ios_10 = 0x00a,
+  gpio_0_ios_11 = 0x00b,
+  gpio_0_ios_12 = 0x00c,
+  gpio_0_ios_13 = 0x00d,
+  gpio_0_ios_14 = 0x00e,
+  gpio_0_ios_15 = 0x00f,
+  gpio_0_ios_16 = 0x010,
+  gpio_0_ios_17 = 0x011,
+  gpio_0_ios_18 = 0x012,
+  gpio_0_ios_19 = 0x013,
+  gpio_0_ios_20 = 0x014,
+  gpio_0_ios_21 = 0x015,
+  gpio_0_ios_22 = 0x016,
+  gpio_0_ios_23 = 0x017,
+  gpio_0_ios_24 = 0x018,
+  gpio_0_ios_25 = 0x019,
+  gpio_0_ios_26 = 0x01a,
+  gpio_0_ios_27 = 0x01b,
+  gpio_1_ios_0  = 0x01c,
+  gpio_1_ios_1  = 0x01d,
+  gpio_1_ios_2  = 0x01e,
+  gpio_1_ios_3  = 0x01f,
+  gpio_1_ios_4  = 0x020,
+  gpio_1_ios_5  = 0x021,
+  gpio_1_ios_6  = 0x022,
+  gpio_1_ios_7  = 0x023,
+  gpio_1_ios_8  = 0x024,
+  gpio_1_ios_9  = 0x025,
+  gpio_1_ios_10 = 0x026,
+  gpio_1_ios_11 = 0x027,
+  gpio_1_ios_12 = 0x028,
+  gpio_1_ios_13 = 0x029,
+  gpio_2_ios_0  = 0x02a,
+  gpio_2_ios_1  = 0x02b,
+  gpio_2_ios_2  = 0x02c,
+  gpio_2_ios_3  = 0x02d,
+  gpio_2_ios_4  = 0x02e,
+  gpio_2_ios_5  = 0x02f,
+  gpio_2_ios_6  = 0x030,
+  gpio_2_ios_7  = 0x031,
+  gpio_3_ios_0  = 0x032,
+  gpio_3_ios_1  = 0x033,
+  gpio_3_ios_2  = 0x034,
+  gpio_3_ios_3  = 0x035,
+  gpio_3_ios_4  = 0x036,
+  gpio_3_ios_5  = 0x037,
+  gpio_3_ios_6  = 0x038,
+  gpio_3_ios_7  = 0x039,
+  gpio_4_ios_0  = 0x03a,
+  gpio_4_ios_1  = 0x03b,
+  gpio_4_ios_2  = 0x03c,
+  gpio_4_ios_3  = 0x03d,
+  gpio_4_ios_4  = 0x03e,
+  gpio_4_ios_5  = 0x03f,
+  uart_0_rx     = 0x040,
+  uart_1_rx     = 0x041,
+  uart_2_rx     = 0x042,
+  spi_0_cipo    = 0x043,
+  spi_1_cipo    = 0x044,
+  spi_2_cipo    = 0x045,
+};
+
+/**
+ * Returns the number of sources available for a pin sink (output pin).
+ *
+ * @param pin_sink The pin sink to query.
+ * @returns The number of sources available for the given sink.
+ */
+static constexpr uint8_t sources_number(PinSink pin_sink) {
+  switch (pin_sink) {
+    case PinSink::pmod0_2:
+    case PinSink::pmod1_2:
+      return 5;
+    case PinSink::rph_g18:
+    case PinSink::rph_g20:
+    case PinSink::rph_g21:
+    case PinSink::ah_tmpio10:
+    case PinSink::ah_tmpio11:
+    case PinSink::pmod0_4:
+    case PinSink::pmod1_4:
+      return 4;
+    case PinSink::ser1_tx:
+    case PinSink::rph_g0:
+    case PinSink::rph_g1:
+    case PinSink::rph_g2_sda:
+    case PinSink::rph_g3_scl:
+    case PinSink::rph_g7:
+    case PinSink::rph_g8:
+    case PinSink::rph_g10:
+    case PinSink::rph_g11:
+    case PinSink::rph_g12:
+    case PinSink::rph_g13:
+    case PinSink::rph_txd0:
+    case PinSink::rph_g16:
+    case PinSink::rph_g17:
+    case PinSink::rph_g19:
+    case PinSink::ah_tmpio1:
+    case PinSink::ah_tmpio3:
+    case PinSink::ah_tmpio5:
+    case PinSink::ah_tmpio6:
+    case PinSink::ah_tmpio9:
+    case PinSink::ah_tmpio13:
+    case PinSink::pmod0_1:
+    case PinSink::pmod0_3:
+    case PinSink::pmod0_8:
+    case PinSink::pmod0_9:
+    case PinSink::pmod0_10:
+    case PinSink::pmod1_1:
+    case PinSink::pmod1_3:
+    case PinSink::pmod1_8:
+    case PinSink::pmod1_9:
+    case PinSink::pmod1_10:
+      return 3;
+    default:
+      return 2;
+  }
+}
+
+/**
+ * Returns the number of sources available for a block sink (block input).
+ *
+ * @param block_sink The block sink to query.
+ * @returns The number of sources available for the given sink.
+ */
+static constexpr uint8_t sources_number(BlockSink block_sink) {
+  switch (block_sink) {
+    case BlockSink::uart_1_rx:
+      return 6;
+    case BlockSink::uart_2_rx:
+      return 5;
+    case BlockSink::spi_1_cipo:
+    case BlockSink::spi_2_cipo:
+      return 4;
+    case BlockSink::spi_0_cipo:
+      return 3;
+    default:
+      return 2;
+  }
+}
+
+/**
+ * A handle to a sink configuration register. This can be used to select
+ * the source of the handle's associated sink.
+ */
+template <typename SinkEnum>
+struct Sink {
+  CHERI::Capability<volatile uint8_t> reg;
+  const SinkEnum sink;
+
+  /**
+   * Select a source to connect to the sink.
+   *
+   * To see the sources available for a given sink see the Sonata system
+   * documentation:
+   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
+   *
+   * Note, source 0 disconnects the sink from any source disabling it,
+   * and source 1 is the default source for any given sink.
+   */
+  bool select(uint8_t source) {
+    if (source >= sources_number(sink)) {
+      Debug::log("Selected source not within the range of valid sources.");
+      return false;
+    }
+    *reg = 1 << source;
+    return true;
+  }
+
+  /// Disconnect the sink from all available sources.
+  void disable() { *reg = 0b01; }
+
+  /// Reset the sink to it's default source.
+  void default_selection() { *reg = 0b10; }
+};
+
+namespace {
+template <typename SinkEnum>
+// This is used by `BlockSinks` and `PinSinks`
+// to return a capability to a single sink's configuration register.
+inline Sink<SinkEnum> _get_sink(volatile uint8_t *base_register, const SinkEnum sink) {
+  CHERI::Capability reg = {base_register + static_cast<ptrdiff_t>(sink)};
+  reg.bounds()          = sizeof(uint8_t);
+  return Sink<SinkEnum>{reg, sink};
+};
+}  // namespace
+
+/**
+ * A driver for the Sonata system's pin multiplexed output pins.
+ *
+ * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * registers and the block sink registers. This structure provides access to the
+ * pin sinks registers. Pin sinks are output onto the Sonata system's pins that
+ * can be connected to a number block outputs (their sources). The sources a sink
+ * can connect to are limited. See the documentation for the possible sources for
+ * a given pin:
+ *
+ * https://lowrisc.github.io/sonata-system/doc/ip/
+ */
+struct PinSinks : private utils::NoCopyNoMove {
+  volatile uint8_t registers[NumPinSinks];
+
+  /// Returns a handle to a pin sink (an output pin).
+  Sink<PinSink> get(PinSink sink) volatile { return _get_sink<PinSink>(registers, sink); };
+};
+
+/**
+ * A driver for the Sonata system's pin multiplexed block inputs.
+ *
+ * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * registers and the block sink registers. This structure provides access to the
+ * block sinks registers. Block sinks are inputs into the Sonata system's devices
+ * that can be connected to a number system input pins (their sources). The sources
+ * a sink can connect to are limited. See the documentation for the possible sources
+ * for a given pin:
+ *
+ * https://lowrisc.github.io/sonata-system/doc/ip/
+ */
+struct BlockSinks : private utils::NoCopyNoMove {
+  volatile uint8_t registers[NumBlockSinks];
+
+  /// Returns a handle to a block sink (a block input).
+  Sink<BlockSink> get(BlockSink sink) volatile { return _get_sink<BlockSink>(registers, sink); };
+};
+}  // namespace SonataPinmux

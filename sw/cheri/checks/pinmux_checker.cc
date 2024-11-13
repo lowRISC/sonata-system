@@ -151,7 +151,7 @@ static inline bool joystick_moved(SonataGpioFull *gpio) {
  * otherwise.
  */
 bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                  UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux) {
+                  UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], PinmuxPtrs pinmux) {
   // If manual intervention is required, print out the test instruction and wait
   // for the user to press the joystick to signal that they are ready.
   if (test.manual_required) {
@@ -172,7 +172,7 @@ bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::
   // Configure the output pins and block inputs via pinmux
   for (uint32_t i = 0; i < test.num_output_pins; i++) {
     auto pin_assign = test.output_pins[i];
-    if (!pinmux->output_pin_select(pin_assign.pin, pin_assign.select)) {
+    if (!std::get<PinSinksPtr>(pinmux)->get(pin_assign.pin).select(pin_assign.select)) {
       log.println("");
       log.print("{}Error: invalid pinmux output pin selection.", prefix);
       return false;
@@ -180,7 +180,7 @@ bool execute_test(const Test &test, uint32_t test_num, Log &log, ds::xoroshiro::
   }
   for (uint32_t i = 0; i < test.num_block_inputs; i++) {
     auto block_assign = test.block_inputs[i];
-    if (!pinmux->block_input_select(block_assign.input, block_assign.select)) {
+    if (!std::get<BlockSinksPtr>(pinmux)->get(block_assign.input).select(block_assign.select)) {
       log.println("");
       log.print("{}Error: invalid pinmux block input selection.", prefix);
       return false;
@@ -264,7 +264,7 @@ bool ask_retry_last_test(Log &log, SonataGpioFull *gpio) {
  * otherwise. Will return true even if there were retries.
  */
 bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                      UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux) {
+                      UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], PinmuxPtrs pinmux) {
   log.println("");
   log.println("{}Starting check.", prefix);
   log.println("");

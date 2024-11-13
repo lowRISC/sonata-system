@@ -79,13 +79,13 @@ struct SpiTest {
 
 // An output pin assignment to be made via Pinmux for a test
 struct OutputPinAssignment {
-  SonataPinmux::OutputPin pin;
+  SonataPinmux::PinSink pin;
   uint8_t select;
 };
 
 // A block input assignment to be made via Pinmux for a test
 struct BlockInputAssignment {
-  SonataPinmux::BlockInput input;
+  SonataPinmux::BlockSink input;
   uint8_t select;
 };
 
@@ -126,4 +126,4 @@ struct Test {
 };
 
 bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                      UartPtr uarts[4], SpiPtr spis[3], I2cPtr i2cs[2], SonataPinmux *pinmux);
+                      UartPtr uarts[4], SpiPtr spis[3], I2cPtr i2cs[2], PinmuxPtrs pinmux);

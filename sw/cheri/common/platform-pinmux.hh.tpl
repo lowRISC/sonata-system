@@ -1,195 +1,201 @@
-/**
- * Copyright lowRISC contributors.
- * Licensed under the Apache License, Version 2.0, see LICENSE for details.
- * SPDX-License-Identifier: Apache-2.0
- */
+// SPDX-FileCopyrightText: lowRISC contributors
+// SPDX-License-Identifier: Apache-2.0
 
 ${"#"}pragma once
 ${"#"}include <debug.hh>
 ${"#"}include <stdint.h>
 ${"#"}include <utils.hh>
+${"#"}include <cheri.hh>
+
+namespace SonataPinmux {
+/// The number of pin sinks (pin outputs)
+static constexpr size_t NumPinSinks = ${len(output_pins)};
+
+/// The number of block sinks (block inputs)
+static constexpr size_t NumBlockSinks = ${len(output_block_ios)};
+
+/// Flag to set when debugging the driver for UART log messages.
+static constexpr bool DebugDriver = false;
+
+/// Helper for conditional debug logs and assertions.
+using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
 
 /**
- * A driver for Sonata's Pin Multiplexer (Pinmux).
+ * Each pin sink is configured by an 8-bit register. This enum maps pin sink
+ * names to the offset of their configuration registers. The offsets are relative
+ * to the first pin sink register.
  *
- * This driver can be used to select which block output is placed on a given
- * output pin, and to select which input pin is provided to a given block
- * input. Sonata's pinmux only allows certain selections per output pin / block
- * input, which this driver describes.
- *
- * Rendered documentation is served from:
- * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
+ * Documentation sources:
+ * 1. https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
+ * 2. https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
+ * 3. https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
  */
-class SonataPinmux : private utils::NoCopyNoMove {
-  /**
-   * Flag to set when debugging the driver for UART log messages.
-   */
-  static constexpr bool DebugDriver = false;
-
-  /**
-   * Helper for conditional debug logs and assertions.
-   */
-  using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
-
-  /**
-   * A pointer/capability to the Pin Multiplexer's registers, where
-   * each sequential byte potentially corresponds to some mapped pinmux
-   * selector used to select the pin configuration.
-   */
-  volatile uint8_t *registers;
-
- public:
-  /**
-   * The Output Pins defined for the Sonata board. These output pins can be
-   * multiplexed, meaning that they can be changed to output the outputs
-   * of different blocks (or disabled). The block outputs that can be
-   * selected are limited, and vary on a per-pin basis.
-   *
-   * Documentation sources:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   * https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
-   * https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
-   */
-  enum class OutputPin : uint16_t {
+enum class PinSink : uint16_t {
 % for output_idx, (pin, _, _) in enumerate(output_pins):
-    ${pin.doc_name.replace("[","_").replace("]","")} = ${f"{output_idx:#0{5}x}"},
+  ${pin.name} = ${f"{output_idx:#0{5}x}"},
 % endfor
-  };
+};
 
-  /**
-   * The Block Inputs defined for the Sonata board. These block inputs can
-   * be multiplexed, meaning that they can be changed to take the input of
-   * different pins (or be disabled). The pin inputs that can be selected
-   * are limited, and vary on a per-block-input basis.
-   *
-   * For reference:
-   *   gpio_0 = Raspberry Pi
-   *   gpio_1 = ArduinoShield
-   *   gpio_2 = Pmod
-   *
-   * Documentation source:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   * */
-  enum class BlockInput : uint16_t {
+/**
+ * Each block sink is configured by an 8-bit register. This enum maps block sink
+ * names to the offset of their configuration registers. The offsets are relative
+ * to the first block sink register.
+ *
+ * For GPIO block reference:
+ *   gpio_0 = Raspberry Pi Header Pins
+ *   gpio_1 = Arduino Shield Header Pins
+ *   gpio_2 = Pmod0 Pins
+ *   gpio_3 = Pmod1 Pins
+ *   gpio_4 = PmodC Pins
+ *
+ * Documentation source:
+ * https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
+ */
+enum class BlockSink : uint16_t {
 % for input_idx, (block_io, possible_pins, num_options) in enumerate(output_block_ios):
-    ${block_io.doc_name.replace("[","_").replace(".","_").replace("]","")} = ${f"{(0x800+input_idx):#0{5}x}"}, 
+  ${block_io.doc_name.replace("[","_").replace(".","_").replace("]","")} = ${f"{input_idx:#0{5}x}"}, 
 % endfor
-  };
+};
 
-  /**
-   * A helper function that returns the number of block outputs that can be
-   * selected from in the pin multiplexer for a given output pin. This will
-   * always be at least 2, as option 0 represents 'OFF' i.e. no connection,
-   * and option 1 represents the default connection.
-   *
-   * @param output_pin The output pin to query
-   * @returns The number of selections available for that output pin
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  static constexpr uint8_t output_pin_options(OutputPin output_pin) {
-    switch (output_pin) {
+/**
+ * Returns the number of sources available for a pin sink (output pin).
+ *
+ * @param pin_sink The pin sink to query.
+ * @returns The number of sources available for the given sink.
+ */
+static constexpr uint8_t sources_number(PinSink pin_sink) {
+  switch (pin_sink) {
 <%
-    prev_num_options = 0
+  prev_num_options = 0
 %>
 % for (pin, _, num_options) in filter(lambda pin: pin[2] > 2, sorted(output_pins, key=lambda pin: pin[2], reverse=True)):
-    % if prev_num_options != 0 and prev_num_options != num_options:
-        return ${prev_num_options};
-    % endif
-    <%
-        prev_num_options = num_options 
-    %>      case OutputPin::${pin.doc_name.replace("[","_").replace("]","")}:
+  % if prev_num_options != 0 and prev_num_options != num_options:
+	  return ${prev_num_options};
+  % endif
+  <%
+	  prev_num_options = num_options
+  %>      case PinSink::${pin.name}:
 % endfor
 % if prev_num_options != 0:
-        return ${prev_num_options};
+	  return ${prev_num_options};
 % endif
-      default:
-        return 2;
-    }
+	default:
+	  return 2;
   }
+}
 
-  /**
-   * A helper function that returns the number of input pins that can be
-   * selected from in the pin multiplexer for a given block input. This will
-   * always be at least 2, as option 0 represents 'OFF' i.e. no connection,
-   * and option 1 represents the default connection.
-   *
-   * @param block_input The block input to query.
-   * @returns The number of selections available for that block input.
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  static constexpr uint8_t block_input_options(BlockInput block_input) {
-    switch (block_input) {
+/**
+ * Returns the number of sources available for a block sink (block input).
+ *
+ * @param block_sink The block sink to query.
+ * @returns The number of sources available for the given sink.
+ */
+static constexpr uint8_t sources_number(BlockSink block_sink) {
+  switch (block_sink) {
 <%
-    prev_num_options = 0
+  prev_num_options = 0
 %>
 % for (block_io, _, num_options) in filter(lambda block: block[2] > 2, sorted(output_block_ios, key=lambda block: block[2], reverse=True)):
-    % if prev_num_options != 0 and prev_num_options != num_options:
-        return ${prev_num_options};
-    % endif
-    <%
-        prev_num_options = num_options 
-    %>      case BlockInput::${block_io.doc_name.replace("[","_").replace(".","_").replace("]","")}:
+  % if prev_num_options != 0 and prev_num_options != num_options:
+	  return ${prev_num_options};
+  % endif
+  <%
+	  prev_num_options = num_options
+  %>      case BlockSink::${block_io.doc_name.replace("[","_").replace(".","_").replace("]","")}:
 % endfor
 % if prev_num_options != 0:
-        return ${prev_num_options};
+	  return ${prev_num_options};
 % endif
-      default:
-        return 2;
-    }
+	default:
+	  return 2;
   }
+}
+
+/**
+ * A handle to a sink configuration register. This can be used to select
+ * the source of the handle's associated sink.
+ */
+template <typename SinkEnum>
+struct Sink {
+  CHERI::Capability<volatile uint8_t> reg;
+  const SinkEnum sink;
 
   /**
-   * For a given output pin, selects a given block output to use for that pin
-   * via the pin multiplexer.
+   * Select a source to connect to the sink.
    *
-   * @param output_pin The output pin to pinmux.
-   * @param option The option to select for that pin. This value should be
-   * less than the value returned by `output_pin_options` for the given pin.
+   * To see the sources available for a given sink see the Sonata system
+   * documentation:
+   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
    *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
+   * Note, source 0 disconnects the sink from any source disabling it,
+   * and source 1 is the default source for any given sink.
    */
-  bool output_pin_select(OutputPin output_pin, uint8_t option) {
-    if (option >= output_pin_options(output_pin)) {
-      Debug::log("Selected option is not valid for this pin.");
+  bool select(uint8_t source) {
+    if (source >= sources_number(sink)) {
+      Debug::log("Selected source not within the range of valid sources.");
       return false;
     }
-    uint16_t registerOffset   = static_cast<uint16_t>(output_pin);
-    registers[registerOffset] = (1 << option);
+    *reg = 1 << source;
     return true;
   }
 
-  /**
-   * For a given block input, selects a pin to use for that input via the pin
-   * multiplexer.
-   *
-   * @param block_input The block input to pinmux.
-   * @param option The option to select for that block input. This value
-   * should be less than the value returned by `block_input_options` for the
-   * given block input.
-   *
-   * The meanings of these selections can be found in the documentation:
-   * https://lowrisc.github.io/sonata-system/doc/ip/pinmux.html
-   */
-  bool block_input_select(BlockInput block_input, uint8_t option) {
-    if (option >= block_input_options(block_input)) {
-      Debug::log("Selected option is not valid for this block.");
-      return false;
-    }
-    uint16_t registerOffset   = static_cast<uint16_t>(block_input);
-    registers[registerOffset] = (1 << option);
-    return true;
-  }
+  /// Disconnect the sink from all available sources.
+  void disable() { *reg = 0b01; }
 
-  /**
-   * A constructor for the SonataPinmux driver, which takes a bounded
-   * capability to the pinmux registers. This should be replaced with
-   * an appropriate `MMIO_CAPABILITY` call in the version of the driver
-   * that runs in CHERIoT RTOS, rather than baremetal.
-   */
-  SonataPinmux(volatile uint8_t *registers) : registers(registers) {}
+  /// Reset the sink to it's default source.
+  void default_selection() { *reg = 0b10; }
 };
+
+namespace {
+template <typename SinkEnum>
+// This is used by `BlockSinks` and `PinSinks`
+// to return a capability to a single sink's configuration register.
+inline Sink<SinkEnum> _get_sink(volatile uint8_t *base_register, const SinkEnum sink) {
+  CHERI::Capability reg = {base_register + static_cast<ptrdiff_t>(sink)};
+  reg.bounds()          = sizeof(uint8_t);
+  return Sink<SinkEnum>{reg, sink};
+};
+}  // namespace
+
+/**
+ * A driver for the Sonata system's pin multiplexed output pins.
+ *
+ * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * registers and the block sink registers. This structure provides access to the
+ * pin sinks registers. Pin sinks are output onto the Sonata system's pins that
+ * can be connected to a number block outputs (their sources). The sources a sink
+ * can connect to are limited. See the documentation for the possible sources for
+ * a given pin:
+ *
+ * https://lowrisc.github.io/sonata-system/doc/ip/
+ */
+struct PinSinks : private utils::NoCopyNoMove {
+  volatile uint8_t registers[NumPinSinks];
+
+  /// Returns a handle to a pin sink (an output pin).
+  Sink<PinSink> get(PinSink sink) volatile {
+    return _get_sink<PinSink>(registers, sink);
+  };
+};
+
+/**
+ * A driver for the Sonata system's pin multiplexed block inputs.
+ *
+ * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * registers and the block sink registers. This structure provides access to the
+ * block sinks registers. Block sinks are inputs into the Sonata system's devices
+ * that can be connected to a number system input pins (their sources). The sources
+ * a sink can connect to are limited. See the documentation for the possible sources
+ * for a given pin:
+ *
+ * https://lowrisc.github.io/sonata-system/doc/ip/
+ */
+struct BlockSinks : private utils::NoCopyNoMove {
+  volatile uint8_t registers[NumBlockSinks];
+
+  /// Returns a handle to a block sink (a block input).
+  Sink<BlockSink> get(BlockSink sink) volatile {
+    return _get_sink<BlockSink>(registers, sink);
+  };
+};
+}  // namespace SonataPinmux

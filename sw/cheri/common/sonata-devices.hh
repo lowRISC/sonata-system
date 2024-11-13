@@ -29,7 +29,9 @@ typedef volatile SonataSpi *SpiPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile uint32_t *HyperramPtr;
 typedef PLIC::SonataPlic *PlicPtr;
-typedef SonataPinmux *PinmuxPtr;
+typedef volatile SonataPinmux::PinSinks *PinSinksPtr;
+typedef volatile SonataPinmux::BlockSinks *BlockSinksPtr;
+using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 
 [[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root) {
   CHERI::Capability<volatile SonataGpioBoard> gpio = root.cast<volatile SonataGpioBoard>();
@@ -74,4 +76,22 @@ typedef SonataPinmux *PinmuxPtr;
   usbdev.address()                                   = USBDEV_ADDRESS;
   usbdev.bounds()                                    = USBDEV_BOUNDS;
   return usbdev;
+}
+
+[[maybe_unused]] static PinSinksPtr pin_sinks_ptr(CapRoot root) {
+  using namespace SonataPinmux;
+  CHERI::Capability pinSinks = root.cast<volatile PinSinks>();
+  pinSinks.address()         = PINMUX_PIN_SINKS_ADDRESS;
+  pinSinks.bounds()          = PINMUX_PIN_SINKS_BOUNDS;
+  static_assert(sizeof(PinSinks) == PINMUX_PIN_SINKS_BOUNDS);
+  return pinSinks;
+}
+
+[[maybe_unused]] static BlockSinksPtr block_sinks_ptr(CapRoot root) {
+  using namespace SonataPinmux;
+  CHERI::Capability blockSinks = root.cast<volatile BlockSinks>();
+  blockSinks.address()         = PINMUX_BLOCK_SINKS_ADDRESS;
+  blockSinks.bounds()          = PINMUX_BLOCK_SINKS_BOUNDS;
+  static_assert(sizeof(BlockSinks) == PINMUX_BLOCK_SINKS_BOUNDS);
+  return blockSinks;
 }

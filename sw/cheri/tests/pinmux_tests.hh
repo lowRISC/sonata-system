@@ -16,7 +16,7 @@
 #include <platform-uart.hh>
 #include <ds/xoroshiro.h>
 
-using namespace CHERI;
+using namespace SonataPinmux;
 
 /**
  * Configures the number of test iterations to perform.
@@ -68,36 +68,37 @@ static constexpr uint8_t PmxToDefault  = 1;
  *
  * Returns the number of failures during the test.
  */
-static int pinmux_uart_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, UartPtr uart1) {
-  constexpr uint8_t PmxMikroBusUartTransmitToUartTx1 = 1;
-  constexpr uint8_t PmxUartReceive1ToMb8             = 4;
+static int pinmux_uart_test(PinmuxPtrs sinks, ds::xoroshiro::P32R8 &prng, UartPtr uart1) {
+  constexpr uint8_t PmxUartReceive1ToMb8 = 4;
 
-  int failures = 0;
+  auto mb7       = std::get<PinSinksPtr>(sinks)->get(PinSink::mb7);
+  auto uart_1_rx = get<BlockSinksPtr>(sinks)->get(BlockSink::uart_1_rx);
+  int failures   = 0;
 
   // Mux UART1 over mikroBus P7 RX & TX via default.
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::mb7, PmxMikroBusUartTransmitToUartTx1);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxUartReceive1ToMb8);
+  mb7.default_selection();
+  failures += !uart_1_rx.select(PmxUartReceive1ToMb8);
 
   // Check that messages are sent and received via UART1
   failures += !uart_send_receive_test(prng, uart1, UartTimeoutUsec, UartTestBytes);
 
   // Disable UART1 TX through pinmux, and check the test now fails (no TX sent)
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::mb7, PmxToDisabled);
+  mb7.disable();
   failures += uart_send_receive_test(prng, uart1, UartTimeoutUsec, UartTestBytes);
 
   // Re-enable UART1 TX and disable UART1 RX through pinmux, and check that the test
   // still fails (no RX received)
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::mb7, PmxMikroBusUartTransmitToUartTx1);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxToDisabled);
+  mb7.default_selection();
+  uart_1_rx.disable();
   failures += uart_send_receive_test(prng, uart1, UartTimeoutUsec, UartTestBytes);
 
   // Re-enable UART1 RX and check the test now passes again
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxUartReceive1ToMb8);
+  failures += !uart_1_rx.select(PmxUartReceive1ToMb8);
   failures += !uart_send_receive_test(prng, uart1, UartTimeoutUsec, UartTestBytes);
 
   // Reset muxed pins to not interfere with future tests
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::mb7, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxToDefault);
+  mb7.default_selection();
+  uart_1_rx.default_selection();
 
   return failures;
 }
@@ -124,19 +125,23 @@ static void reset_spi_flash(SpiPtr spi) {
  * via pinmux and repeats the JEDEC ID read, checking that it succeeds.
  * Returns the number of failures during the test.
  */
-static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
+static int pinmux_spi_flash_test(PinmuxPtrs sinks, SpiPtr spi) {
   constexpr uint8_t PmxPmod1Io1ToSpi2Cs   = 2;
   constexpr uint8_t PmxPmod1Io2ToSpi2Copi = 2;
   constexpr uint8_t PmxPmod1Io4ToSpi2Sclk = 2;
   constexpr uint8_t PmxSpi2CipoToPmod1Io3 = 3;
 
-  int failures = 0;
+  int failures    = 0;
+  auto pmod1_1    = std::get<PinSinksPtr>(sinks)->get(PinSink::pmod1_1);
+  auto spi_2_cipo = std::get<BlockSinksPtr>(sinks)->get(BlockSink::spi_2_cipo);
+  auto pmod1_2    = std::get<PinSinksPtr>(sinks)->get(PinSink::pmod1_2);
+  auto pmod1_4    = std::get<PinSinksPtr>(sinks)->get(PinSink::pmod1_4);
 
   // Ensure the SPI Flash pins are enabled using Pinmux
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxSpi2CipoToPmod1Io3);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi2Copi);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi2Sclk);
+  failures += !pmod1_1.select(PmxPmod1Io1ToSpi2Cs);
+  failures += !spi_2_cipo.select(PmxSpi2CipoToPmod1Io3);
+  failures += !pmod1_2.select(PmxPmod1Io2ToSpi2Copi);
+  failures += !pmod1_4.select(PmxPmod1Io4ToSpi2Sclk);
 
   // Configure the SPI to be MSB-first.
   spi->wait_idle();
@@ -148,10 +153,10 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Disable the SPI Flash pins through pinmux
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxToDisabled);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxToDisabled);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxToDisabled);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxToDisabled);
+  pmod1_1.disable();
+  spi_2_cipo.disable();
+  pmod1_2.disable();
+  pmod1_4.disable();
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test again; we expect it to fail.
@@ -159,10 +164,10 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Re-enable the SPI Flash pins through pinmux
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxSpi2CipoToPmod1Io3);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxPmod1Io2ToSpi2Copi);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxPmod1Io4ToSpi2Sclk);
+  failures += !pmod1_1.select(PmxPmod1Io1ToSpi2Cs);
+  failures += !spi_2_cipo.select(PmxSpi2CipoToPmod1Io3);
+  failures += !pmod1_2.select(PmxPmod1Io2ToSpi2Copi);
+  failures += !pmod1_4.select(PmxPmod1Io4ToSpi2Sclk);
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test one more time; it should pass.
@@ -170,7 +175,7 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Disable specifically the Chip Select through Pinmux.
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxToDisabled);
+  pmod1_1.disable();
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test again; we expect it to fail.
@@ -178,17 +183,17 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
 
   // Re-enable the Chip Select through Pinmux.
   spi->wait_idle();
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxPmod1Io1ToSpi2Cs);
+  failures += !pmod1_1.select(PmxPmod1Io1ToSpi2Cs);
   reset_spi_flash(spi);
 
   // Run the JEDEC ID Test again; it should pass.
   failures += !spi_n25q256a_read_jedec_id(spi);
 
   // Reset muxed pins to not interfere with future tests
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_1, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::spi_2_cipo, PmxToDefault);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_2, PmxToDefault);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::pmod1_4, PmxToDefault);
+  pmod1_1.default_selection();
+  spi_2_cipo.default_selection();
+  pmod1_2.default_selection();
+  pmod1_4.default_selection();
 
   return failures;
 }
@@ -204,19 +209,23 @@ static int pinmux_spi_flash_test(SonataPinmux *pinmux, SpiPtr spi) {
  *
  * Returns the number of failures during the test.
  */
-static int pinmux_i2c_test(SonataPinmux *pinmux, I2cPtr i2c0, I2cPtr i2c1) {
+static int pinmux_i2c_test(PinSinksPtr pinSinks, I2cPtr i2c0, I2cPtr i2c1) {
   constexpr uint8_t PmxRPiHat27ToI2cSda0 = 1;
   constexpr uint8_t PmxRPiHat28ToI2cScl0 = 1;
   constexpr uint8_t PmxRPiHat3ToI2cSda1  = 1;
   constexpr uint8_t PmxRPiHat5ToI2cScl1  = 1;
 
-  int failures = 0;
+  int failures    = 0;
+  auto rph_g0     = pinSinks->get(PinSink::rph_g0);
+  auto rph_g1     = pinSinks->get(PinSink::rph_g1);
+  auto rph_g2_sda = pinSinks->get(PinSink::rph_g2_sda);
+  auto rph_g3_scl = pinSinks->get(PinSink::rph_g3_scl);
 
   // Ensure the RPI Hat I2C pins are enabled via Pinmux
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g0, PmxRPiHat27ToI2cSda0);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g1, PmxRPiHat28ToI2cScl0);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g2_sda, PmxRPiHat3ToI2cSda1);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g3_scl, PmxRPiHat5ToI2cScl1);
+  failures += !rph_g0.select(PmxRPiHat27ToI2cSda0);
+  failures += !rph_g1.select(PmxRPiHat28ToI2cScl0);
+  failures += !rph_g2_sda.select(PmxRPiHat3ToI2cSda1);
+  failures += !rph_g3_scl.select(PmxRPiHat5ToI2cScl1);
 
   // Run the normal I2C RPI Hat ID_EEPROM and WHO_AM_I tests
   failures += i2c_rpi_hat_id_eeprom_test(i2c0);
@@ -224,34 +233,34 @@ static int pinmux_i2c_test(SonataPinmux *pinmux, I2cPtr i2c0, I2cPtr i2c1) {
 
   // Disable the RPI Hat I2C0 output pins, and check that the ID EEPROM test
   // now fails (and the WHOAMI test still succeeds).
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g0, PmxToDisabled);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g1, PmxToDisabled);
+  rph_g0.disable();
+  rph_g1.disable();
   failures += (i2c_rpi_hat_id_eeprom_test(i2c0) == 0);
   failures += i2c_rpi_hat_imu_whoami_test(i2c1);
 
   // Re-enables the RPI Hat I2C0 pins and disables the I2C1 pins, and check that the
   // ID EEPROM test now passes. and the WHOAMI test now fails.
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g0, PmxRPiHat27ToI2cSda0);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g1, PmxRPiHat28ToI2cScl0);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g2_sda, PmxToDisabled);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g3_scl, PmxToDisabled);
+  failures += !rph_g0.select(PmxRPiHat27ToI2cSda0);
+  failures += !rph_g1.select(PmxRPiHat28ToI2cScl0);
+  rph_g2_sda.disable();
+  rph_g3_scl.disable();
   reset_i2c_controller(i2c0);
   failures += i2c_rpi_hat_id_eeprom_test(i2c0);
   failures += (i2c_rpi_hat_imu_whoami_test(i2c1) == 0);
 
   // Re-enables both the RPI Hat I2C0 and I2C1 pins via pinmux, and checks that both
   // tests now pass again.
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g2_sda, PmxRPiHat3ToI2cSda1);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g3_scl, PmxRPiHat5ToI2cScl1);
+  failures += !rph_g2_sda.select(PmxRPiHat3ToI2cSda1);
+  failures += !rph_g3_scl.select(PmxRPiHat5ToI2cScl1);
   reset_i2c_controller(i2c1);
   failures += i2c_rpi_hat_id_eeprom_test(i2c0);
   failures += i2c_rpi_hat_imu_whoami_test(i2c1);
 
   // Reset muxed pins to not interfere with future tests
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g0, PmxToDefault);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g1, PmxToDefault);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g2_sda, PmxToDefault);
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::rph_g3_scl, PmxToDefault);
+  rph_g0.default_selection();
+  rph_g1.default_selection();
+  rph_g2_sda.default_selection();
+  rph_g3_scl.default_selection();
 
   return failures;
 }
@@ -265,39 +274,41 @@ static int pinmux_i2c_test(SonataPinmux *pinmux, I2cPtr i2c0, I2cPtr i2c1) {
  *
  * Returns the number of failures durign the test.
  */
-static int pinmux_gpio_test(SonataPinmux *pinmux, SonataGpioFull *gpio) {
+static int pinmux_gpio_test(PinmuxPtrs sinks, SonataGpioFull *gpio) {
   constexpr uint8_t PmxArduinoD8ToGpios_1_8   = 1;
   constexpr uint8_t PmxArduinoGpio9ToAhTmpio9 = 1;
 
   constexpr GpioPin GpioPinInput  = {GpioInstance::ArduinoShield, 9};
   constexpr GpioPin GpioPinOutput = {GpioInstance::ArduinoShield, 8};
 
-  int failures = 0;
+  int failures      = 0;
+  auto ah_tmpio8    = std::get<PinSinksPtr>(sinks)->get(PinSink::ah_tmpio8);
+  auto gpio_1_ios_9 = std::get<BlockSinksPtr>(sinks)->get(BlockSink::gpio_1_ios_9);
 
   // Configure the Arduino D9 GPIO as input and D8 as output.
   set_gpio_output_enable(gpio, GpioPinOutput, true);
   set_gpio_output_enable(gpio, GpioPinInput, false);
 
   // Ensure the GPIO (Arduino Shield D8 & D9) are enabled via Pinmux
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio8, PmxArduinoD8ToGpios_1_8);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_9, PmxArduinoGpio9ToAhTmpio9);
+  failures += !ah_tmpio8.select(PmxArduinoD8ToGpios_1_8);
+  failures += !gpio_1_ios_9.select(PmxArduinoGpio9ToAhTmpio9);
 
   // Check that reading & writing from/to GPIO works as expected.
   failures += !gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Disable the GPIO via pinmux, and check that the test now fails.
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio8, PmxToDisabled);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_9, PmxToDisabled);
+  ah_tmpio8.disable();
+  gpio_1_ios_9.disable();
   failures += gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Re-enable the GPIO via pinmux, and check that the test passes once more
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio8, PmxArduinoD8ToGpios_1_8);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_9, PmxArduinoGpio9ToAhTmpio9);
+  failures += !ah_tmpio8.select(PmxArduinoD8ToGpios_1_8);
+  failures += !gpio_1_ios_9.select(PmxArduinoGpio9ToAhTmpio9);
   failures += !gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Reset muxed pins to not interfere with future tests
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio8, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_9, PmxToDefault);
+  ah_tmpio8.default_selection();
+  gpio_1_ios_9.default_selection();
 
   return failures;
 }
@@ -314,7 +325,7 @@ static int pinmux_gpio_test(SonataPinmux *pinmux, SonataGpioFull *gpio) {
  *
  * Returns the number of failures during the test.
  */
-static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, UartPtr uart1, SonataGpioFull *gpio) {
+static int pinmux_mux_test(PinmuxPtrs sinks, ds::xoroshiro::P32R8 &prng, UartPtr uart1, SonataGpioFull *gpio) {
   constexpr uint8_t PmxArduinoD1ToUartTx1     = 1;
   constexpr uint8_t PmxArduinoD1ToGpio_1_1    = 2;
   constexpr uint8_t PmxUartReceive1ToAhTmpio0 = 3;
@@ -323,15 +334,18 @@ static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Uar
   constexpr GpioPin GpioPinInput  = {GpioInstance::ArduinoShield, 0};
   constexpr GpioPin GpioPinOutput = {GpioInstance::ArduinoShield, 1};
 
-  int failures = 0;
+  int failures      = 0;
+  auto ah_tmpio1    = std::get<PinSinksPtr>(sinks)->get(PinSink::ah_tmpio1);
+  auto uart_1_rx    = std::get<BlockSinksPtr>(sinks)->get(BlockSink::uart_1_rx);
+  auto gpio_1_ios_0 = std::get<BlockSinksPtr>(sinks)->get(BlockSink::gpio_1_ios_0);
 
   // Set the Arduino GPIO D0 as input and D1 as output.
   set_gpio_output_enable(gpio, GpioPinOutput, true);
   set_gpio_output_enable(gpio, GpioPinInput, false);
 
   // Mux UART1 over Arduino Shield D0 (RX) & D1 (TX)
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio1, PmxArduinoD1ToUartTx1);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxUartReceive1ToAhTmpio0);
+  failures += !ah_tmpio1.select(PmxArduinoD1ToUartTx1);
+  failures += !uart_1_rx.select(PmxUartReceive1ToAhTmpio0);
 
   // Test that UART1 works over the muxed Arduino Shield D0 & D1 pins,
   // and that GPIO does not work, as these pins are not muxed for GPIO.
@@ -339,8 +353,8 @@ static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Uar
   failures += gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Mux GPIO over Arduino Shield D0 (GPIO input) & D1 (GPIO output)
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio1, PmxArduinoD1ToGpio_1_1);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_0, PmxArduinoGpio0ToAhTmpio0);
+  failures += !ah_tmpio1.select(PmxArduinoD1ToGpio_1_1);
+  failures += !gpio_1_ios_0.select(PmxArduinoGpio0ToAhTmpio0);
 
   // Test that UART1 no longer works (no longer muxed over D0 & D1),
   // and that our muxed GPIO now works.
@@ -348,15 +362,15 @@ static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Uar
   failures += !gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Mux back to UART1 again, and test that UART again passes and GPIO fails.
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio1, PmxArduinoD1ToUartTx1);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxUartReceive1ToAhTmpio0);
+  failures += !ah_tmpio1.select(PmxArduinoD1ToUartTx1);
+  failures += !uart_1_rx.select(PmxUartReceive1ToAhTmpio0);
   failures += !uart_send_receive_test(prng, uart1, UartTimeoutUsec, UartTestBytes);
   failures += gpio_write_read_test(gpio, GpioPinOutput, GpioPinInput, GpioWaitUsec, GpioTestLength);
 
   // Reset muxed pins to not interfere with future tests
-  failures += !pinmux->output_pin_select(SonataPinmux::OutputPin::ah_tmpio1, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::uart_1_rx, PmxToDefault);
-  failures += !pinmux->block_input_select(SonataPinmux::BlockInput::gpio_1_ios_0, PmxToDefault);
+  ah_tmpio1.default_selection();
+  uart_1_rx.default_selection();
+  gpio_1_ios_0.default_selection();
 
   return failures;
 }
@@ -365,11 +379,8 @@ static int pinmux_mux_test(SonataPinmux *pinmux, ds::xoroshiro::P32R8 &prng, Uar
  * Run the whole suite of pinmux tests.
  */
 void pinmux_tests(CapRoot root, Log &log) {
-  // Create a bounded capability for pinmux & initialise the driver
-  Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
-  pinmux.address()                    = PINMUX_ADDRESS;
-  pinmux.bounds()                     = PINMUX_BOUNDS;
-  SonataPinmux Pinmux                 = SonataPinmux(pinmux);
+  // Create a bounded capability for pinmux sinks
+  PinmuxPtrs sinks = std::pair{pin_sinks_ptr(root), block_sinks_ptr(root)};
 
   // Create bounded capabilities for other devices, to be used in testing.
   SpiPtr spi = spi_ptr(root, 4);
@@ -398,31 +409,31 @@ void pinmux_tests(CapRoot root, Log &log) {
 
     if (PINMUX_PMOD1_PMODSF3_AVAILABLE) {
       log.print("  Running SPI Flash Pinmux test... ");
-      failures = pinmux_spi_flash_test(&Pinmux, spi);
+      failures = pinmux_spi_flash_test(sinks, spi);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
 
     if (I2C_RPI_HAT_AVAILABLE) {
       log.print("  Running I2C Pinmux test... ");
-      failures = pinmux_i2c_test(&Pinmux, i2c0, i2c1);
+      failures = pinmux_i2c_test(std::get<PinSinksPtr>(sinks), i2c0, i2c1);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
 
     if (PINMUX_CABLE_CONNECTIONS_AVAILABLE) {
       log.print("  Running GPIO Pinmux test... ");
-      failures = pinmux_gpio_test(&Pinmux, &gpio_full);
+      failures = pinmux_gpio_test(sinks, &gpio_full);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
 
       log.print("  Running UART Pinmux test... ");
-      failures = pinmux_uart_test(&Pinmux, prng, uart1);
+      failures = pinmux_uart_test(sinks, prng, uart1);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
 
       log.print("  Running Mux test... ");
-      failures = pinmux_mux_test(&Pinmux, prng, uart1, &gpio_full);
+      failures = pinmux_mux_test(sinks, prng, uart1, &gpio_full);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
     }
