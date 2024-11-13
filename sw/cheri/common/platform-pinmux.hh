@@ -20,6 +20,12 @@ static constexpr bool DebugDriver = false;
 /// Helper for conditional debug logs and assertions.
 using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
 
+/// The disable bit that disables a sink
+constexpr uint8_t SourceDisabled = 0;
+
+/// The bit that resets a sink to it's default value
+constexpr uint8_t SourceDefault = 1;
+
 /**
  * Each pin sink is configured by an 8-bit register. This enum maps pin sink
  * names to the offset of their configuration registers. The offsets are relative
@@ -27,7 +33,7 @@ using Debug = ConditionalDebug<DebugDriver, "Pinmux">;
  *
  * Documentation sources:
  * 1. https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
- * 2. https://github.com/lowRISC/sonata-system/blob/4b72d8c07c727846c6ccb27754352388f3b2ac9a/data/pins_sonata.xdc
+ * 2. https://github.com/lowRISC/sonata-system/blob/v1.0/data/pins_sonata.xdc
  * 3. https://github.com/newaetech/sonata-pcb/blob/649b11c2fb758f798966605a07a8b6b68dd434e9/sonata-schematics-r09.pdf
  */
 enum class PinSink : uint16_t {
@@ -305,7 +311,7 @@ struct Sink {
    */
   bool select(uint8_t source) {
     if (source >= sources_number(sink)) {
-      Debug::log("Selected source not within the range of valid sources.");
+      Debug::log("{} is outside the range of valid sources, [0-{}), of pin {}.", source, sources_number(sink), sink);
       return false;
     }
     *reg = 1 << source;
@@ -313,10 +319,10 @@ struct Sink {
   }
 
   /// Disconnect the sink from all available sources.
-  void disable() { *reg = 0b01; }
+  void disable() { *reg = 1 << SourceDisabled; }
 
   /// Reset the sink to it's default source.
-  void default_selection() { *reg = 0b10; }
+  void default_selection() { *reg = 1 << SourceDefault; }
 };
 
 namespace {
@@ -333,14 +339,14 @@ inline Sink<SinkEnum> _get_sink(volatile uint8_t *base_register, const SinkEnum 
 /**
  * A driver for the Sonata system's pin multiplexed output pins.
  *
- * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * The Sonata system's Pin Multiplexer (pinmux) has two sets of registers: the pin sink
  * registers and the block sink registers. This structure provides access to the
- * pin sinks registers. Pin sinks are output onto the Sonata system's pins that
- * can be connected to a number block outputs (their sources). The sources a sink
+ * pin sinks registers. Pin sinks are output onto the Sonata system's pins, which
+ * can be connected to a number of block outputs (their sources). The sources each sink
  * can connect to are limited. See the documentation for the possible sources for
  * a given pin:
  *
- * https://lowrisc.github.io/sonata-system/doc/ip/
+ * https://lowrisc.github.io/sonata-system/doc/ip/pinmux/
  */
 struct PinSinks : private utils::NoCopyNoMove {
   volatile uint8_t registers[NumPinSinks];
@@ -352,14 +358,14 @@ struct PinSinks : private utils::NoCopyNoMove {
 /**
  * A driver for the Sonata system's pin multiplexed block inputs.
  *
- * The Sonata's Pin Multiplexer (pinmux) has two sets of registers. The pin sink
+ * The Sonata system's Pin Multiplexer (pinmux) has two sets of registers: the pin sink
  * registers and the block sink registers. This structure provides access to the
  * block sinks registers. Block sinks are inputs into the Sonata system's devices
- * that can be connected to a number system input pins (their sources). The sources
- * a sink can connect to are limited. See the documentation for the possible sources
+ * that can be connected to a number of system input pins (their sources). The sources
+ * each sink can connect to are limited. See the documentation for the possible sources
  * for a given pin:
  *
- * https://lowrisc.github.io/sonata-system/doc/ip/
+ * https://lowrisc.github.io/sonata-system/doc/ip/pinmux
  */
 struct BlockSinks : private utils::NoCopyNoMove {
   volatile uint8_t registers[NumBlockSinks];

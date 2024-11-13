@@ -53,9 +53,6 @@ static constexpr uint32_t UartTestBytes   = 100;
 static constexpr uint32_t GpioWaitUsec    = 20;  // short wire bridge between FGPA pins.
 static constexpr uint32_t GpioTestLength  = 10;
 
-static constexpr uint8_t PmxToDisabled = 0;
-static constexpr uint8_t PmxToDefault  = 1;
-
 /**
  * Test pinmux by enabling and disabling the UART1 TX pin output and UART1 RX
  * block input. Tests the UART itself by sending and receiving some data over
@@ -72,7 +69,7 @@ static int pinmux_uart_test(PinmuxPtrs sinks, ds::xoroshiro::P32R8 &prng, UartPt
   constexpr uint8_t PmxUartReceive1ToMb8 = 4;
 
   auto mb7       = std::get<PinSinksPtr>(sinks)->get(PinSink::mb7);
-  auto uart_1_rx = get<BlockSinksPtr>(sinks)->get(BlockSink::uart_1_rx);
+  auto uart_1_rx = std::get<BlockSinksPtr>(sinks)->get(BlockSink::uart_1_rx);
   int failures   = 0;
 
   // Mux UART1 over mikroBus P7 RX & TX via default.

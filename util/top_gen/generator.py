@@ -55,10 +55,11 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def doc_name(self) -> str:
         uid = self.uid
+        suffix = f"_{uid.io_index}" if uid.io_index is not None else ""
         if self.only_instance:
-            return f"{uid.block}_{uid.io}{self.io_idx_str}"
+            return f"{uid.block}_{uid.io}{suffix}"
         else:
-            return f"{uid.block}[{uid.instance}].{uid.io}{self.io_idx_str}"
+            return f"{uid.block}_{uid.instance}_{uid.io}{suffix}"
 
 
 @dataclass(frozen=True)
