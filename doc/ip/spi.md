@@ -12,15 +12,18 @@ In Sonata, there are multiple uses for SPI:
 - Arduino shield
 - mikroBUS click
 
-The offset for each of the blocks is shown below, with each additional block having a `0x1000` offset from the previous.
+The offset for each of the blocks is shown below, with each additional block having a 0x1000 offset from the previous.
+The offsets in the table below are from the SPI base address, which is 0x8030_0000.
+The table also shows the connections of the chip select (CS) wires.
+CS1 for LCD and Ethernet and CS2 for LCD are *not* used as chip selects but rather for block specific functions like reset and data/control signals.
 
-| SPI Instance          | Offset (from SPI base) |
-|-----------------------|------------------------|
-| LCD Screen            | 0x0000                 |
-| Ethernet MAC          | 0x1000                 |
-| SPI0                  | 0x2000                 |
-| SPI1                  | 0x3000                 |
-| SPI2                  | 0x4000                 |
+| Name         | Offset | Blocks                    | CS0          | CS1          | CS2          | CS3      |
+|--------------|--------|---------------------------|--------------|--------------|--------------|----------|
+| LCD Screen   | 0x0000 | *Only* LCD                | CS           | Data/control | Reset        |          |
+| Ethernet MAC | 0x1000 | *Only* Ethernet           | CS           | Reset        |              |          |
+| SPI0         | 0x2000 | Flash or MicroSD          | Flash        | MicroSD      |              |          |
+| SPI1         | 0x3000 | HAT SPI0, Shield, Pmod0   | HAT or Pmod0 | HAT or Pmod0 | Pmod0        | Shield   |
+| SPI2         | 0x4000 | HAT SPI1, mikroBUS, Pmod1 | HAT or Pmod1 | HAT or Pmod1 | HAT or Pmod1 | mikroBUS |
 
 Please refer to the [pin multiplexer](pinmux/pin-mappings.md) on how to connect SPI 0, 1 and 2.
 
