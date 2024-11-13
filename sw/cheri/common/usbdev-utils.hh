@@ -167,11 +167,9 @@ class UsbdevUtils {
   }
 
   /// Disconnect the device from the USB.
-  bool disconnect() {
-    int rc = usbdev->disconnect();
-    if (rc) return false;
+  void disconnect() {
+    usbdev->disconnect();
     devState = Device_Powered;
-    return true;
   }
 
   /// Indicate whether the device is connected to the USB (pullup enabled).
@@ -212,7 +210,7 @@ class UsbdevUtils {
   /// Configure an OUT endpoint within the USB device; packet reception invokes the supplied
   /// callback function.
   bool setup_out_endpoint(uint8_t ep, bool enabled, bool setup, bool iso, UsbdevRecvCB callback, void *handle) {
-    int rc = usbdev->configure_out_endpoint(ep, enabled, setup, iso);
+    int rc = usbdev->out_endpoint_configure(ep, enabled, setup, iso);
     if (rc) return false;
     // Remember the callback function for this endpoint and its handle.
     epOutCtx[ep].recvCallback = callback;
@@ -223,7 +221,7 @@ class UsbdevUtils {
   /// Configure an IN endpoint within the USB device; packet collection from this endpoint results
   /// in the supplied callback function being invoked.
   bool setup_in_endpoint(uint8_t ep, bool enabled, bool iso, UsbdevDoneCB callback, void *handle) {
-    int rc = usbdev->configure_in_endpoint(ep, enabled, iso);
+    int rc = usbdev->in_endpoint_configure(ep, enabled, iso);
     if (rc) return false;
     // Remember the callback function or this endpoint and its handle.
     epInCtx[ep].txDoneCallback = callback;
@@ -239,10 +237,7 @@ class UsbdevUtils {
     uint8_t bufNum;
     assert(pktLen <= OpenTitanUsbdev::MaxPacketLength);
     if (!buf_alloc(bufNum)) return false;
-    if (usbdev->packet_send(bufNum, ep, data, (uint8_t)pktLen)) {
-      buf_release(bufNum);
-      return false;
-    }
+    usbdev->packet_send(bufNum, ep, data, (uint8_t)pktLen);
     return true;
   }
 
@@ -268,17 +263,17 @@ class UsbdevUtils {
     supply_buffers();
 
     // Process received packets.
-    uint16_t pktLen;
-    bool isSetup;
-    rc = usbdev->packet_receive(bufNum, ep, pktLen, isSetup, packetData);
-    while (!rc) {
-      // Release the buffer for reuse.
-      buf_release(bufNum);
+    auto bufferInfo = usbdev->packet_take();
+    while (bufferInfo) {
+      usbdev->packet_data_get(*bufferInfo, packetData);
+      buf_release(bufferInfo->buffer_id());
+      ep = bufferInfo->endpoint_id();
       if (epOutCtx[ep].recvCallback) {
         const uint8_t *pktData = reinterpret_cast<uint8_t *>(packetData);
-        epOutCtx[ep].recvCallback(epOutCtx[ep].recvHandle, ep, isSetup, pktData, pktLen);
+        epOutCtx[ep].recvCallback(epOutCtx[ep].recvHandle, bufferInfo->endpoint_id(), bufferInfo->is_setup(), pktData,
+                                  bufferInfo->size());
       }
-      rc = usbdev->packet_receive(bufNum, ep, pktLen, isSetup, packetData);
+      bufferInfo = usbdev->packet_take();
     }
   }
 
@@ -315,22 +310,20 @@ class UsbdevUtils {
               switch (data[3]) {
                 case kUsbDescTypeDevice:
                   if (wLen > devLen) wLen = devLen;
-                  rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)devDscr, (uint8_t)wLen);
-                  assert(!rc);
+                  usbdev->packet_send(bufNum, 0u, (uint32_t *)devDscr, (uint8_t)wLen);
                   ctrlState = Ctrl_StatusGetDesc;
                   release   = false;
                   break;
 
                 case kUsbDescTypeConfiguration:
                   if (wLen > cfgLen) wLen = cfgLen;
-                  rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)cfgDscr, (uint8_t)wLen);
-                  assert(!rc);
+                  usbdev->packet_send(bufNum, 0u, (uint32_t *)cfgDscr, (uint8_t)wLen);
                   ctrlState = Ctrl_StatusGetDesc;
                   release   = false;
                   break;
 
                 default:
-                  rc = usbdev->set_endpoint_stalling(0u, true);
+                  rc = usbdev->endpoint_stalling_set(0u, true);
                   assert(!rc);
                   break;
               }
@@ -340,16 +333,14 @@ class UsbdevUtils {
             case kUsbSetupReqSetAddress:
               devAddr = (uint8_t)wValue;
               // Send a Zero Length Packet as ACK.
-              rc = usbdev->packet_send(bufNum, 0u, nullptr, 0u);
-              assert(!rc);
+              usbdev->packet_send(bufNum, 0u, nullptr, 0u);
               ctrlState = Ctrl_StatusSetAddr;
               release   = false;
               break;
 
             // SET_CONFIGURATION request.
             case kUsbSetupReqSetConfiguration:
-              rc = usbdev->packet_send(bufNum, 0u, nullptr, 0u);  // ZLP ACK.
-              assert(!rc);
+              usbdev->packet_send(bufNum, 0u, nullptr, 0u);  // ZLP ACK.
               ctrlState = Ctrl_StatusSetConfig;
               release   = false;
               break;
@@ -358,8 +349,7 @@ class UsbdevUtils {
             // configuration.
             case kVendorSetupReqTestConfig:
               if (wLen > testLen) wLen = testLen;
-              rc = usbdev->packet_send(bufNum, 0u, (uint32_t *)testDscr, (uint8_t)wLen);
-              assert(!rc);
+              usbdev->packet_send(bufNum, 0u, (uint32_t *)testDscr, (uint8_t)wLen);
               ctrlState = Ctrl_StatusGetDesc;
               release   = false;
               break;
@@ -385,7 +375,7 @@ class UsbdevUtils {
     switch (ctrlState) {
       case Ctrl_StatusSetAddr:
         devState = Device_Addressed;
-        rc       = usbdev->set_device_address(devAddr);
+        rc       = usbdev->device_address_set(devAddr);
         assert(!rc);
         ctrlState = Ctrl_Setup;
         break;
