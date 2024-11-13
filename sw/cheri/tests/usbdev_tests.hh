@@ -88,8 +88,7 @@ static int usbdev_configure_test(Capability<volatile OpenTitanUsbdev> usbdev) {
 
   // Disconnect at the end of the test
   if (usbdev->connected()) {
-    int return_code = usbdev->disconnect();
-    if (return_code) failures++;
+    usbdev->disconnect();
   }
 
   return failures;

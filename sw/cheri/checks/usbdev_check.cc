@@ -111,8 +111,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
       if (do_disconnect) {
         if (usbdev->connected()) {
           // Disconnect from the USB/host controller.
-          int rc = usbdev->disconnect();
-          assert(!rc);
+          usbdev->disconnect();
           LOG("Test passed; disconnected from USB.\r\n");
         }
       } else if (!sent) {
