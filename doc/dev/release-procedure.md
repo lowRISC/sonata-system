@@ -62,7 +62,8 @@ cp sonata-vX.Y.bit.slot3.uf2 ../
 
 ### Automated testing
 
-Run tests on simulation (note python3.11 or above required). FPGA testing is currently done in CI and requires quite a few add-ons to your board.
+Run tests on simulation (note python3.11 or above required).
+FPGA testing is currently done in CI and requires quite a few add-ons to your board.
 
 ```shell
 # Build the simulator
@@ -71,7 +72,8 @@ fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc
 util/test_runner.py sim -e sw/cheri/build/tests/test_runner --simulator-binary build/lowrisc_sonata_system_0/sim-verilator/Vtop_verilator
 ```
 
-Run tests on FPGA (note python3.11 or above required), adjust the /dev part to the UART as required. You will need to connect a Raspberry Pi sense HAT and a temperature sensor to QWIIC 1.
+Run tests on FPGA (note python3.11 or above required), adjust the /dev part to the UART as required.
+You will need to connect a Raspberry Pi sense HAT and a temperature sensor to QWIIC 1.
 
 ```shell
 ./util/test_runner.py fpga -e ./sw/cheri/build/tests/test_runner -t ./util/sonata-openocd-cfg.tcl /dev/ttyUSB2
@@ -118,14 +120,16 @@ Run the USB connection test:
 ```shell
 util/mem_helper.sh load_program -e sw/cheri/build/checks/usbdev_check
 ```
-Connect the user USB to a laptop's USB-A port. The UART should show this:
+Connect the user USB to a laptop's USB-A port.
+The UART should show this:
 ```
 Initialising USB
 Connected
 Test passed; disconnected from USB.
 ```
 
-Run the USB echo test. First you need to apply the following diff:
+Run the USB echo test.
+First you need to apply the following diff:
 ```diff
 diff --git a/sw/cheri/checks/usbdev_check.cc b/sw/cheri/checks/usbdev_check.cc
 index 4212ae7..7c68507 100644
@@ -154,7 +158,9 @@ Connected
 Sent sign-on message over USB.
 ```
 
-Open USB serial output. For me this is `screen /dev/ttyUSB1`. Check that the output is:
+Open USB serial output.
+For me this is `screen /dev/ttyUSB1`.
+Check that the output is:
 ```
 Hello from CHERI USB!
 ```
@@ -213,7 +219,8 @@ Open screen:
 screen /dev/ttyUSB2 921600
 ```
 
-You should see output from the simple demo after you press the reset button (SW5). The git SHA will depend on the commit your built your bitstream on, please confirm this is the same as you expect.
+You should see output from the simple demo after you press the reset button (SW5).
+The git SHA will depend on the commit your built your bitstream on, please confirm this is the same as you expect.
 
 ```
 bootloader: Sonata system git SHA: 9f794fe3bd4eec8d
