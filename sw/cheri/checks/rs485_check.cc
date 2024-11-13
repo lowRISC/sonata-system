@@ -12,6 +12,7 @@
 #include "../common/uart-utils.hh"
 #include "../common/platform-pinmux.hh"
 #include "../common/timer-utils.hh"
+#include "../common/sonata-devices.hh"
 #include <cheri.hh>
 
 #define RS485_UART 2
@@ -21,18 +22,10 @@ using namespace CHERI;
 [[noreturn]] extern "C" void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
-  Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
-  pinmux.address()                    = PINMUX_ADDRESS;
-  pinmux.bounds()                     = PINMUX_BOUNDS;
+  pin_sinks_ptr(root)->get(SonataPinmux::PinSink::rs485_tx).select(1);
+  block_sinks_ptr(root)->get(SonataPinmux::BlockSink::uart_2_rx).select(3);
 
-  SonataPinmux Pinmux = SonataPinmux(pinmux);
-
-  Pinmux.output_pin_select(SonataPinmux::OutputPin::rs485_tx, 1);
-  Pinmux.block_input_select(SonataPinmux::BlockInput::uart_2_rx, 3);
-
-  Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address()                          = UART_ADDRESS;
-  uart.bounds()                           = UART_BOUNDS;
+  UartPtr uart = uart_ptr(root, 0);
   uart->init(BAUD_RATE);
 
   Capability<volatile OpenTitanUart> rs485_uart = root.cast<volatile OpenTitanUart>();

@@ -11,6 +11,7 @@
 #include "../../common/defs.h"
 #include "../common/uart-utils.hh"
 #include "../common/platform-pinmux.hh"
+#include "../common/sonata-devices.hh"
 #include <cheri.hh>
 
 #define LOG(...) write_str(uart, __VA_ARGS__)
@@ -38,16 +39,10 @@ void block_until_uart_tx_done(Capability<volatile OpenTitanUart> uart) {
 [[noreturn]] extern "C" void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
-  Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address()                          = UART_ADDRESS;
-  uart.bounds()                           = UART_BOUNDS;
+  UartPtr uart = uart_ptr(root);
   uart->init(BAUD_RATE);
 
-  Capability<volatile uint8_t> pinmux = root.cast<volatile uint8_t>();
-  pinmux.address()                    = PINMUX_ADDRESS;
-  pinmux.bounds()                     = PINMUX_BOUNDS;
-
-  SonataPinmux Pinmux = SonataPinmux(pinmux);
+  SonataPinmux::Sink ser0_tx = pin_sinks_ptr(root)->get(SonataPinmux::PinSink::ser0_tx);
 
   LOG("Starting check.\r\n");
 
@@ -55,12 +50,13 @@ void block_until_uart_tx_done(Capability<volatile OpenTitanUart> uart) {
   block_until_uart_tx_done(uart);
 
   // Pinmux Serial 0 TX (used by console UART) to OFF.
-  Pinmux.output_pin_select(SonataPinmux::OutputPin::ser0_tx, PINMUX_SER0_TX_DISABLED);
+
+  ser0_tx.disable();
   LOG("You should NOT see this message, as we just used pinmux to disable UART0 output.\r\n");
   block_until_uart_tx_done(uart);
 
   // Pinmux Serial 0 TX (used by console UART) to UART0_TX.
-  Pinmux.output_pin_select(SonataPinmux::OutputPin::ser0_tx, PINMUX_SER0_TX_UART0_TX);
+  ser0_tx.select(PINMUX_SER0_TX_UART0_TX);
   LOG("You should see this message, as UART0 has just been re-enabled.\r\n");
 
   LOG("Check completed.\r\n");
