@@ -8,8 +8,8 @@
 // don't want to include the full hyperram controller RTL and BFM (which in
 // particular require Xilinx encrypted IP models).
 module hyperram import tlul_pkg::*; #(
-  parameter HRClkFreq    = 100_000_000,
-  parameter HyperRAMSize = 1024 * 1024
+  parameter HyperRAMClkFreq = 100_000_000,
+  parameter HyperRAMSize    = 1024 * 1024
 ) (
   input             clk_i,
   input             rst_ni,
@@ -31,7 +31,7 @@ module hyperram import tlul_pkg::*; #(
 );
 `ifdef USE_HYPERRAM_SIM_MODEL
   localparam int SRAMModelAddrWidth = $clog2(HyperRAMSize);
-  localparam int UnusedParams = HRClkFreq + HyperRAMSize;
+  localparam int UnusedParams = HyperRAMClkFreq + HyperRAMSize;
 
   tl_h2d_t unused_tl_b;
   assign unused_tl_b = '0;
@@ -73,7 +73,7 @@ module hyperram import tlul_pkg::*; #(
 
 `else
   hbmc_tl_top #(
-    .C_HBMC_CLOCK_HZ(HRClkFreq),
+    .C_HBMC_CLOCK_HZ(HyperRAMClkFreq),
     .C_HBMC_CS_MAX_LOW_TIME_US(4),
     .C_HBMC_FIXED_LATENCY(1'B0),
     .C_IDELAYCTRL_INTEGRATED(1'B0),

@@ -4,11 +4,11 @@
 
 module clkgen_sonata  #(
   // System Clock Frequency is parameterised, allowing it to be adjusted.
-  parameter int unsigned SysClkFreq = 50_000_000,
-  parameter int unsigned HRClkFreq  = 100_000_000,
+  parameter int unsigned SysClkFreq      =  50_000_000,
+  parameter int unsigned HyperRAMClkFreq = 100_000_000,
 
   // Frequency of IO_CLK input on the FPGA board.
-  parameter int unsigned IOClkFreq = 25_000_000
+  parameter int unsigned IOClkFreq       =  25_000_000
 ) (
     // Board clock signal
     input IO_CLK,
@@ -67,15 +67,15 @@ module clkgen_sonata  #(
     .CLKOUT1_PHASE        (0.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
 
-    .CLKOUT2_DIVIDE       ((48 * IOClkFreq) / HRClkFreq),
+    .CLKOUT2_DIVIDE       ((48 * IOClkFreq) / HyperRAMClkFreq),
     .CLKOUT2_PHASE        (0.000),
     .CLKOUT2_DUTY_CYCLE   (0.500),
 
-    .CLKOUT3_DIVIDE       ((48 * IOClkFreq) / HRClkFreq),
+    .CLKOUT3_DIVIDE       ((48 * IOClkFreq) / HyperRAMClkFreq),
     .CLKOUT3_PHASE        (90.000),
     .CLKOUT3_DUTY_CYCLE   (0.500),
 
-    .CLKOUT4_DIVIDE       ((48 * IOClkFreq) / (HRClkFreq * 3)),
+    .CLKOUT4_DIVIDE       ((48 * IOClkFreq) / (HyperRAMClkFreq * 3)),
     .CLKOUT4_PHASE        (0.000),
     .CLKOUT4_DUTY_CYCLE   (0.500),
 

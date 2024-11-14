@@ -8,11 +8,11 @@
 module sonata_system
   import sonata_pkg::*;
 #(
-  parameter int unsigned ArdAniWidth   = 6,
-  parameter int unsigned CheriErrWidth =  9,
-  parameter SRAMInitFile               = "",
-  parameter int unsigned SysClkFreq    = 30_000_000,
-  parameter int unsigned HRClkFreq     = 100_000_000
+  parameter int unsigned ArdAniWidth     = 6,
+  parameter int unsigned CheriErrWidth   =  9,
+  parameter SRAMInitFile                 = "",
+  parameter int unsigned SysClkFreq      = 30_000_000,
+  parameter int unsigned HyperRAMClkFreq = 100_000_000
 ) (
   // Main system clock and reset
   input logic                      clk_sys_i,
@@ -499,8 +499,8 @@ module sonata_system
   );
 
   hyperram #(
-    .HRClkFreq   (HRClkFreq),
-    .HyperRAMSize(HyperRAMSize)
+    .HyperRAMClkFreq ( HyperRAMClkFreq ),
+    .HyperRAMSize    ( HyperRAMSize    )
   ) u_hyperram (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),

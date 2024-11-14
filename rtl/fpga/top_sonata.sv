@@ -202,8 +202,8 @@ module top_sonata
   import sonata_pkg::*;
 
   // System clock frequency.
-  parameter int unsigned SysClkFreq = 40_000_000;
-  parameter int unsigned HRClkFreq  = 100_000_000;
+  parameter int unsigned SysClkFreq      =  40_000_000;
+  parameter int unsigned HyperRAMClkFreq = 100_000_000;
 
   parameter SRAMInitFile    = "";
 
@@ -266,10 +266,10 @@ module top_sonata
   logic rs485_rx_enable, rs485_tx_enable;
 
   sonata_system #(
-    .CheriErrWidth   (  9             ),
-    .SRAMInitFile    ( SRAMInitFile   ),
-    .SysClkFreq      ( SysClkFreq     ),
-    .HRClkFreq       ( HRClkFreq      )
+    .CheriErrWidth   ( 9               ),
+    .SRAMInitFile    ( SRAMInitFile    ),
+    .SysClkFreq      ( SysClkFreq      ),
+    .HyperRAMClkFreq ( HyperRAMClkFreq )
   ) u_sonata_system (
     // Main system clock and reset
     .clk_sys_i      (clk_sys),
@@ -384,8 +384,8 @@ module top_sonata
 
   // Produce 50 MHz system clock from 25 MHz Sonata board clock.
   clkgen_sonata #(
-    .SysClkFreq(SysClkFreq),
-    .HRClkFreq (HRClkFreq)
+    .SysClkFreq      ( SysClkFreq      ),
+    .HyperRAMClkFreq ( HyperRAMClkFreq )
   ) u_clkgen(
     .IO_CLK    (mainClk),
     .IO_CLK_BUF(main_clk_buf),
