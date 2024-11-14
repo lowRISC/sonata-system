@@ -22,9 +22,7 @@ using namespace CHERI;
  * Blocks until the UART transmit FIFO is empty.
  */
 void block_until_uart_tx_done(Capability<volatile OpenTitanUart> uart) {
-  while (uart->transmit_fifo_level() > 0) {
-    asm volatile("");
-  }
+  while (!(uart->status & uart->StatusTransmitIdle));
 }
 
 /**
