@@ -1,0 +1,112 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+  name:               "rev_ctl",
+  human_name:         "Control for hardware revoker",
+  one_line_desc:      "This module contains control registers for the hardware revoker inside CHERIoT Ibex.",
+  one_paragraph_desc: "",
+  cip_id:             "1",
+
+  revisions: [
+    {
+      version:            "1.0.0",
+      life_stage:         "L2",
+      design_stage:       "D1",
+      verification_stage: "V1",
+      notes:              "",
+    },
+  ],
+
+  clocking: [
+    {clock: "clk_i", reset: "rst_ni", primary: true},
+  ],
+  bus_interfaces: [
+    { protocol: "tlul", direction: "device" },
+  ],
+  available_input_list: [],
+  available_output_list: [],
+  interrupt_list: [],
+  regwidth: "32",
+  registers: [
+    { name: "START_ADDR",
+      desc: '''Start address for the hardware revoker.''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0",
+          name: "ADDRESS",
+          desc: '''Start address.''',
+        },
+      ],
+    },
+    { name: "END_ADDR",
+      desc: '''End address for the hardware revoker.''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0",
+          name: "ADDRESS",
+          desc: '''End address.''',
+        },
+      ],
+    },
+    { name: "GO",
+      desc: '''Start the revocation engine.''',
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwext: "true",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0",
+          name: "GO",
+          desc: '''Any value written here will start the engine, it always reads a constant value.''',
+          resval: "0x55000000",
+        },
+      ],
+    },
+    { name: "EPOCH",
+      desc: '''Epoch to keep track of revocation cycles.''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:1",
+          name: "Epoch",
+          desc: '''Epoch counter that increases after each sweep.''',
+        },
+        { bits: "0",
+          name: "Running",
+          desc: '''One bit indicating whether a sweep is ongoing. (0 means idle.)''',
+        },
+      ],
+    },
+    { name: "INTERRUPT_STATUS",
+      desc: '''Used to clear the interrupt and read it out if enabled.''',
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwext: "true",
+      hwqe: "true",
+      fields: [
+        { bits: "0",
+          name: "Status",
+          desc: '''High when interrupt is raised and low if not.
+                   Writing anything here will clear the interrupt.
+                ''',
+        },
+      ],
+    },
+    { name: "INTERRUPT_ENABLE",
+      desc: '''Used to clear the interrupt and read it out if enabled.''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0",
+          name: "Enable",
+          desc: '''High when interrupt is enabled and low if not.
+                ''',
+        },
+      ],
+    },
+  ],
+}
