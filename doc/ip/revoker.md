@@ -16,5 +16,3 @@ These are the register offsets:
 | 0x000C | Epoch, where the last bit means a sweep is currently happening.
 | 0x0010 | Used to read interrupt status and clear it.
 | 0x0014 | Enable bit for raising an interrupt when sweeping is done.
-| 0x0040 | Debug: FIFO empty and read data values.
-| 0x0044 | Debug FIFO full, empty and depth values.
