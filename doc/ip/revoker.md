@@ -12,9 +12,9 @@ These are the register offsets:
 |--------|----------|
 | 0x0000 | Start address to begin sweeping.
 | 0x0004 | End address to stop sweeping.
-| 0x0008 | Most significant byte is set to constant `0x55`. least significant bit is asserted for one cycle when sweeping starts.
+| 0x0008 | Writing any value to this register sets the hardware revoker to run. When read, the most significant byte is set to constant `0x55`.
 | 0x000C | Epoch, where the last bit means a sweep is currently happening.
-| 0x0010 | Read interrupt status, but is only high for one cycle.
+| 0x0010 | Used to read interrupt status and clear it.
 | 0x0014 | Enable bit for raising an interrupt when sweeping is done.
 | 0x0040 | Debug: FIFO empty and read data values.
 | 0x0044 | Debug FIFO full, empty and depth values.
