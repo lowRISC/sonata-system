@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/microsoft/cheriot-safe.git
-    rev: 27e4c61a980414315571d158821e24976f060c4c
+    rev: 5fd7f427a65da675bd214e752c3e30fc1d19a54a
   }
 }
