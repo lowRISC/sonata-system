@@ -138,8 +138,7 @@ module sonata_system
   typedef enum int {
     Pwm,
     Timer,
-    RevTags,
-    HwRev
+    RevTags
   } bus_device_e;
 
   localparam int NrDevices = 4;
@@ -240,7 +239,6 @@ module sonata_system
   // Generate requests from read and write enables.
   assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
   assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
-  assign device_req[HwRev]    = device_re[HwRev]    | device_we[HwRev];
 
   // Instruction fetch signals.
   logic                    core_instr_req;
@@ -280,7 +278,6 @@ module sonata_system
 
   // Tie-off unused error signals.
   assign device_err[Pwm]      = 1'b0;
-  assign device_err[HwRev]    = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -547,34 +544,6 @@ module sonata_system
 
   tlul_adapter_reg #(
     .AccessLatency    ( 1 )
-  ) hardware_revoker_control_reg_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_hw_rev_h2d),
-    .tl_o         (tl_hw_rev_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[HwRev]),
-    .we_o         (device_we[HwRev]),
-    .addr_o       (device_addr[HwRev][RegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[HwRev]),
-    .be_o         (device_be[HwRev]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[HwRev]),
-    .error_i      (device_err[HwRev])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[HwRev][BusAddrWidth-1:RegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
-    .AccessLatency    ( 1 )
   ) pwm_device_adapter (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
@@ -804,20 +773,16 @@ module sonata_system
     .core_sleep_o           (  )
   );
 
-  msftDvIp_mmreg hardware_revoker_control_reg (
-    .clk_i           (clk_sys_i),
-    .rstn_i          (rst_core_n),
+  rev_ctl u_rev_ctl (
+    .clk_i         (clk_sys_i),
+    .rst_ni        (rst_core_n),
 
-    .reg_en_i        (device_req[HwRev]),
-    .reg_addr_i      (device_addr[HwRev]),
-    .reg_wdata_i     (device_wdata[HwRev]),
-    .reg_we_i        (device_we[HwRev]),
-    .reg_rdata_o     (device_rdata[HwRev]),
-    .reg_ready_o     (),
+    .core_to_ctl_i (hardware_revoker_control_reg_wdata),
+    .ctl_to_core_o (hardware_revoker_control_reg_rdata),
+    .rev_ctl_irq_o (hardware_revoker_irq),
 
-    .mmreg_coreout_i (hardware_revoker_control_reg_wdata),
-    .mmreg_corein_o  (hardware_revoker_control_reg_rdata),
-    .tbre_intr_o     (hardware_revoker_irq)
+    .tl_i          (tl_hw_rev_h2d),
+    .tl_o          (tl_hw_rev_d2h)
   );
 
   // GPIOs

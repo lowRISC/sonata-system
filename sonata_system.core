@@ -17,6 +17,7 @@ filesets:
       - lowrisc:ip:xbar_ifetch
       - lowrisc:ip:spi
       - lowrisc:ip:gpio
+      - lowrisc:ip:rev_ctl
       - lowrisc:ip:rgbled_ctrl
       - lowrisc:ip:hyperram
       - lowrisc:ip:xadc
@@ -40,7 +41,6 @@ filesets:
       - rtl/system/sram.sv
       - rtl/system/rst_sync.sv
       - rtl/system/rv_timer.sv
-      - vendor/cheriot_safe/ip/msftDvIp_mmreg.sv
     file_type: systemVerilogSource
 
 targets:
