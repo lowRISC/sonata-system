@@ -25,7 +25,7 @@ CS1 for LCD and Ethernet and CS2 for LCD are *not* used as chip selects but rath
 | SPI1         | 0x3000 | HAT SPI0, Shield, Pmod0   | HAT or Pmod0 | HAT or Pmod0 | Pmod0        | Shield   |
 | SPI2         | 0x4000 | HAT SPI1, mikroBUS, Pmod1 | HAT or Pmod1 | HAT or Pmod1 | HAT or Pmod1 | mikroBUS |
 
-Please refer to the [pin multiplexer](pinmux/pin-mappings.md) on how to connect SPI 0, 1 and 2.
+Please refer to the [pin multiplexer](pinmux/README.md) and [pin mappings](pinmux/pin-mappings.md) on how to connect SPI 0, 1 and 2.
 
 ## Overview
 
