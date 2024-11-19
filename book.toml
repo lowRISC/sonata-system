@@ -27,3 +27,18 @@ additional-css = [
 
 [preprocessor.wavejson]
 command = "./util/mdbook_wavejson.py"
+
+[preprocessor.replace]
+after = ["links"]
+
+# Replace all links to a README.md to with a link to an index.md
+link_replacements = [
+    {regex = '^(?P<path>[^:#\?]*)README\.md(?P<suffix>[?#].*)?', replacement = '${path}index.md${suffix}'},
+]
+
+[[preprocessor.replace.local_link_replacements]]
+# Replace all paths pointing to something in this repository,
+# that ends with .sv, .core, .S, .cc, .hh, .h or / (for directories)
+# to a link pointing to to in GitHub.
+regex = '.*(\/|\.(sv|core|S|cc|hh|h))$'
+replacement = 'https://github.com/lowRISC/sonata-system/tree/main/${0}'

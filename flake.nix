@@ -9,6 +9,10 @@
     nixpkgs.follows = "lowrisc-nix/nixpkgs";
     flake-utils.follows = "lowrisc-nix/flake-utils";
     poetry2nix.follows = "lowrisc-nix/poetry2nix";
+    mdutils = {
+      url = "git+https://codeberg.org/HU90m/mdutils.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -22,6 +26,7 @@
     flake-utils,
     lowrisc-nix,
     lowrisc-it,
+    mdutils,
     ...
   } @ inputs: let
     system_outputs = system: let
@@ -37,6 +42,7 @@
       pkgs = import nixpkgs {inherit system;};
       lrDoc = lowrisc-nix.lib.doc {inherit pkgs;};
       lrPkgs = lowrisc-nix.outputs.packages.${system};
+      mdutilsPkgs = mdutils.outputs.packages.${system};
       inherit (pkgs.lib) fileset getExe;
 
       pythonEnv = let
@@ -63,6 +69,7 @@
             ./util/mdbook_wavejson.py
           ];
         };
+        buildInputs = [mdutilsPkgs.default];
       };
 
       cheriotPkgs = lowrisc-nix.outputs.devShells.${system}.cheriot.nativeBuildInputs;
@@ -170,7 +177,8 @@
             # For legacy software
             lowrisc-toolchain-gcc-rv32imcb
           ])
-          ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs);
+          ++ (with sonata-simulator; buildInputs ++ nativeBuildInputs)
+          ++ [mdutilsPkgs.default];
       };
       filesets = {inherit (bitstream) bitstreamDependancies;};
       packages = {
