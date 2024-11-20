@@ -138,6 +138,43 @@ revtags:
   cgettag a3, ct1
   beqz a3, fail
 
+// Test of hardware revoker
+hw_rev:
+  // Capability to revocation tags
+  li t0, 0x30000000
+  csetaddr ct0, ca0, t0
+  // Zero revocation tags
+  csw zero, 0(ct0)
+  // Capability to hardware revoker control
+  li t1, 0x8000A000
+  csetaddr ct1, ca0, t1
+  li t2, 0x00120000 // End of SRAM
+  addi t2, t2, -8 // Point to last capability aligned region in SRAM
+  csw t2, 4(ct1) // Set end of memory to sweep
+  addi t2, t2, -8 // Second to last capability in SRAM.
+  csw t2, 0(ct1) // Set start of memory to sweep
+  clw t2, 12(ct1) // Read current epoch
+  andi t2, t2, 1 // Get running bit
+  bnez t2, fail
+  li t2, 1
+  csw t2, 8(ct1) // Start sweep
+  // Wait for some cycles while the sweep happens.
+  li t2, 10
+wait_loop:
+  addi t2, t2, -1
+  bnez t2, wait_loop
+  // Check that interrupt status is high after sweep.
+  clw t2, 16(ct1)
+  beqz t2, fail
+  csw zero, 16(ct1) // Clear interrupt status
+  li t2, 1
+  csw t2, 20(ct1) // Enable interrupts
+  csw t2, 8(ct1) // Start sweep
+  // This last interrupt is currently not checked.
+  // There will first need a trap handler installed.
+  // Then we need to enable the revocation interrupt in the PLIC.
+  // For now you can check that this is functioning properly by checking the rev_ctl_irq_o in the waveform.
+
 success:
   j success
 
