@@ -225,7 +225,7 @@ bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
  */
 void reset_i2c_controller(I2cPtr i2c) {
   i2c->control = i2c->control & ~(i2c->ControlEnableHost | i2c->ControlEnableTarget);
-  if (i2c->interrupt_is_asserted(OpenTitanI2cInterrupt::ControllerHalt)) {
+  if (i2c->interrupt_is_asserted(OpenTitanI2c::Interrupt::ControllerHalt)) {
     i2c->reset_controller_events();
   }
 }

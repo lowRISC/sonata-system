@@ -118,26 +118,26 @@ struct PlicTest {
     instance = i2c_instance;
 
     struct i2c_irq {
-      OpenTitanI2cInterrupt id;
+      OpenTitanI2c::Interrupt id;
       bool can_clear;
     };
     static constexpr std::array<i2c_irq, 15> i2cMap = {{
-        {OpenTitanI2cInterrupt::ReceiveOverflow, true},
-        {OpenTitanI2cInterrupt::SclInterference, true},
-        {OpenTitanI2cInterrupt::SdaInterference, true},
-        {OpenTitanI2cInterrupt::StretchTimeout, true},
-        {OpenTitanI2cInterrupt::SdaUnstable, true},
-        {OpenTitanI2cInterrupt::CommandComplete, true},
-        {OpenTitanI2cInterrupt::UnexpectedStop, true},
-        {OpenTitanI2cInterrupt::HostTimeout, true},
+        {OpenTitanI2c::Interrupt::ReceiveOverflow, true},
+        {OpenTitanI2c::Interrupt::SclInterference, true},
+        {OpenTitanI2c::Interrupt::SdaInterference, true},
+        {OpenTitanI2c::Interrupt::StretchTimeout, true},
+        {OpenTitanI2c::Interrupt::SdaUnstable, true},
+        {OpenTitanI2c::Interrupt::CommandComplete, true},
+        {OpenTitanI2c::Interrupt::UnexpectedStop, true},
+        {OpenTitanI2c::Interrupt::HostTimeout, true},
 
-        {OpenTitanI2cInterrupt::ControllerHalt, false},
-        {OpenTitanI2cInterrupt::TransmitStretch, false},
-        {OpenTitanI2cInterrupt::AcquiredFull, false},
-        {OpenTitanI2cInterrupt::TransmitThreshold, false},
-        {OpenTitanI2cInterrupt::FormatThreshold, false},
-        {OpenTitanI2cInterrupt::ReceiveThreshold, false},
-        {OpenTitanI2cInterrupt::AcquiredThreshold, false},
+        {OpenTitanI2c::Interrupt::ControllerHalt, false},
+        {OpenTitanI2c::Interrupt::TransmitStretch, false},
+        {OpenTitanI2c::Interrupt::AcquiredFull, false},
+        {OpenTitanI2c::Interrupt::TransmitThreshold, false},
+        {OpenTitanI2c::Interrupt::FormatThreshold, false},
+        {OpenTitanI2c::Interrupt::ReceiveThreshold, false},
+        {OpenTitanI2c::Interrupt::AcquiredThreshold, false},
     }};
 
     auto i2c = i2c_ptr(root, instance);
@@ -181,29 +181,29 @@ struct PlicTest {
       i2c->interruptTest = 0;
     }
     // Disable interrupt to prevent interference with other tests.
-    i2c->interrupt_disable(static_cast<OpenTitanI2cInterrupt>(ip_irq_id));
+    i2c->interrupt_disable(static_cast<OpenTitanI2c::Interrupt>(ip_irq_id));
   }
 
   void spi_test(size_t spi_instance) {
     instance = spi_instance;
 
     struct spi_irq {
-      SonataSpi::SonataSpiInterrupt id;
+      SonataSpi::Interrupt id;
       bool can_clear;
     };
     static constexpr std::array<spi_irq, 5> spiMap = {{
-        {SonataSpi::SonataSpiInterrupt::InterruptComplete, true},
+        {SonataSpi::Interrupt::InterruptComplete, true},
 
-        {SonataSpi::SonataSpiInterrupt::InterruptReceiveFull, false},
-        {SonataSpi::SonataSpiInterrupt::InterruptReceiveWatermark, false},
-        {SonataSpi::SonataSpiInterrupt::InterruptTransmitEmpty, false},
-        {SonataSpi::SonataSpiInterrupt::InterruptTransmitWatermark, false},
+        {SonataSpi::Interrupt::InterruptReceiveFull, false},
+        {SonataSpi::Interrupt::InterruptReceiveWatermark, false},
+        {SonataSpi::Interrupt::InterruptTransmitEmpty, false},
+        {SonataSpi::Interrupt::InterruptTransmitWatermark, false},
     }};
 
     auto spi = spi_ptr(root, instance);
 
     // Ensure that initially all interrupts are cleared and disabled.
-    spi->interrupt_disable(static_cast<SonataSpi::SonataSpiInterrupt>(~0u));
+    spi->interrupt_disable(static_cast<SonataSpi::Interrupt>(~0u));
     spi->interruptState = ~0u;
     spi->interruptTest  = 0u;
 
@@ -241,7 +241,7 @@ struct PlicTest {
       spi->interruptTest = 0;
     }
     // Disable interrupt to prevent interference with other tests.
-    spi->interrupt_disable(static_cast<SonataSpi::SonataSpiInterrupt>(ip_irq_id));
+    spi->interrupt_disable(static_cast<SonataSpi::Interrupt>(ip_irq_id));
   }
 
   void usbdev_test() {
