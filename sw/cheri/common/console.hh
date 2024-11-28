@@ -59,3 +59,16 @@ using Log = reisfmt::Fmt<WriteUart>;
     }
   }
 }
+
+// Emit the UCS-2 long filename in a readable form; we cannot do this properly; we're just
+// handling ASCII in practice.
+[[maybe_unused]] static void write_str_ucs2(Log& log, const uint16_t* ucs, size_t ucs_max = ~0u) {
+  size_t idx = 0u;
+  char str[2];
+  str[1] = '\0';
+  while (idx < ucs_max && ucs[idx]) {
+    str[0] = (ucs[idx] >= 0x20u && ucs[idx] < 0x80u) ? ucs[idx] : '.';
+    log.print(str);
+    idx++;
+  }
+}
