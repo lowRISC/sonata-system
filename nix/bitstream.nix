@@ -61,7 +61,11 @@ in {
     runtimeInputs = [pythonEnv pkgs.openfpgaloader];
     text = ''
       BITSTREAM=$(find ./ -type f -name "lowrisc_sonata_system_0.bit")
-      openFPGALoader -c ft4232 "$BITSTREAM"
+      if [[ -n "''${DEVICE-}" ]]; then
+        openFPGALoader -c ft4232 -d "$DEVICE" "$BITSTREAM"
+      else
+        openFPGALoader -c ft4232 "$BITSTREAM"
+      fi
     '';
   };
 }

@@ -150,7 +150,7 @@ jobs:
 
     - name: Flash bitstream
       run: |
-        nix run .#bitstream-load
+        DEVICE=/dev/ttySONATA_JTAG_FPGA nix run .#bitstream-load
 
     - name: Run software tests
       run: |
