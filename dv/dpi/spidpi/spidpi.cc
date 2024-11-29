@@ -6,8 +6,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "spi_lcd.hh"
 #include "spi_flash.hh"
+#include "spi_lcd.hh"
+#include "spi_microsd.hh"
 
 void spidpi::reset() {
   // Write data to device (COPI).
@@ -91,6 +92,8 @@ void *spidpi_create(const char *id,      // Bus identification.
     ctx = new spi_flash(dataW, oobInW, oobOutW, 0xef4019);
   } else if (!strcmp(id, "lcd")) {
     ctx = new spi_lcd(dataW, oobInW, oobOutW);
+  } else if (!strcmp(id, "microsd")) {
+    ctx = new spi_microsd(dataW, oobInW, oobOutW, "sd.img");
   } else if (!strcmp(id, "pmod_sf3")) {
     ctx = new spi_flash(dataW, oobInW, oobOutW, 0x20ba19);
   } else {
