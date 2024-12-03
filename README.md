@@ -14,7 +14,7 @@ Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funde
 ## Current status
 
 We are delighted to announce the release of the Sonata system!
-The latest release is available now from GitHub [here][release-v0.4.1].
+The latest release is available now from GitHub [here][release-v1.0].
 
 This new release provides a base FPGA image with I2C/SPI/UART peripherals that are suitable for use with the expansion headers as well as the on-board hardware.
 
@@ -25,7 +25,7 @@ Environment setup and build instructions are available for Windows, macOS and Li
 If you find any issues with the Sonata system, or have features you would like to propose, please create an issue on GitHub.
 For support with the board itself please use the [forum][newae-forum] on the NewAE website, create an issue on the [sonata-pcb repository][sonata-pcb], or reach out to NewAE directly.
 
-[release-v0.4.1]: https://github.com/lowRISC/sonata-system/releases/tag/v0.4.1
+[release-v1.0]: https://github.com/lowRISC/sonata-system/releases/tag/v1.0
 [sonata-software]: https://github.com/lowRISC/sonata-software
 [newae-forum]: https://forum.newae.com/c/sonata-board/15
 [sonata-pcb]: https://github.com/newaetech/sonata-pcb
