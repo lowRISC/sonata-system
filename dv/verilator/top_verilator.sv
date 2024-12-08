@@ -121,17 +121,11 @@ module top_verilator (input logic clk_i, rst_ni);
   wire appspi_cs = out_to_pins[OUT_PIN_APPSPI_CS];
 
   // microSD card interface.
-  // Note: no DPI model presently.
-  wire microsd_clk = out_to_pins[OUT_PIN_MICROSD_CLK];
-  // SPI mode: CIPO
-  wire microsd_dat0 = 1'b1;
-  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
-  // SPI mode: CS_N
-  wire microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
-  // SPI mode: COPI
-  wire microsd_cmd = out_to_pins[OUT_PIN_MICROSD_CMD];
-  // pulled high to indicate the _absence_ of a microSD card.
-  wire microsd_det = 1'b1;
+  wire microsd_clk;  // SPI mode: SCLK
+  wire microsd_dat0; // SPI mode: CIPO
+  wire microsd_dat3; // SPI mode: CS_N
+  wire microsd_cmd;  // SPI mode: COPI
+  wire microsd_det;  // microSD card detection; 0 = card present.
 
   // LCD interface.
   wire lcd_rst;
@@ -154,7 +148,7 @@ module top_verilator (input logic clk_i, rst_ni);
   // None of these signals is used presently.
   wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
-                      usrLed, microsd_clk, microsd_cmd, microsd_dat3};
+                      usrLed};
 
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
@@ -211,6 +205,12 @@ module top_verilator (input logic clk_i, rst_ni);
   assign uart_sys_tx = out_to_pins[OUT_PIN_SER0_TX];
   assign uart_aux_tx = out_to_pins[OUT_PIN_SER1_TX];
   assign rs485_tx    = out_to_pins[OUT_PIN_RS485_TX];
+
+  // Traffic to/from microSD card.
+  assign microsd_cmd  = out_to_pins[OUT_PIN_MICROSD_CMD ];
+  assign microsd_clk  = out_to_pins[OUT_PIN_MICROSD_CLK ];
+  assign microsd_dat3 = out_to_pins[OUT_PIN_MICROSD_DAT3];
+  assign in_from_pins[IN_PIN_MICROSD_DAT0] = microsd_dat0;
 
   // Output I2C traffic to the RPi HAT ID EEPROM.
   assign {scl_rpi0_o, scl_rpi0_oe} = {inout_to_pins[INOUT_PIN_RPH_G1],
@@ -526,6 +526,25 @@ module top_verilator (input logic clk_i, rst_ni);
 
     .oob_in   ({lcd_dc, lcd_rst, lcd_backlight}),
     .oob_out  ( )  // not used.
+  );
+
+  // SPI connection to microSD card.
+  spidpi #(
+    .ID       ("microsd"),
+    .NDevices (1),
+    .DataW    (1),
+    .OOB_InW  (1),
+    .OOB_OutW (1)
+  ) u_spidpi_microsd (
+    .rst_ni   (rst_ni),
+
+    .sck      (microsd_clk),
+    .cs       (microsd_dat3),
+    .copi     (microsd_cmd),
+    .cipo     (microsd_dat0),
+
+    .oob_in   ( ),
+    .oob_out  (microsd_det)
   );
 
   // SPI connection to PMOD SF3 flash via PMOD1 pins
