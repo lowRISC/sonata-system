@@ -140,8 +140,9 @@ revtags:
 
 // Test of hardware revoker
 hw_rev:
-  // Capability to revocation tags
-  li t0, 0x30000000
+  // Capability to end of revocation tags
+  li t0, 0x30000800
+  addi t0, t0, -4
   csetaddr ct0, ca0, t0
   // Zero revocation tags
   csw zero, 0(ct0)
@@ -150,14 +151,29 @@ hw_rev:
   csetaddr ct1, ca0, t1
   li t2, 0x00120000 // End of SRAM
   addi t2, t2, -8 // Point to last capability aligned region in SRAM
+  csetaddr ct2, ca0, t2
+  csc ct0, 0(ct2) // Write capability with base 0, which should not be cleared.
   csw t2, 4(ct1) // Set end of memory to sweep
   addi t2, t2, -8 // Second to last capability in SRAM.
+  csetaddr ca3, ca0, t2
+  csetboundsimm ca3, ca3, 1
+  csetaddr ct2, ca0, t2
+  csc ca3, 0(ct2) // Write capability with base 0x11FFE0, which should be cleared
+  // Revoke end of SRAM
+  li a3, 0xFFFFFFFF
+  csw a3, 0(ct0)
   csw t2, 0(ct1) // Set start of memory to sweep
   clw t2, 12(ct1) // Read current epoch
-  andi t2, t2, 1 // Get running bit
+  andi t2, t2, 1 // Get running bit, which should be 0
   bnez t2, fail
   li t2, 1
   csw t2, 8(ct1) // Start sweep
+  nop // Wait a few cycles to allow run to be set to 1
+  nop
+  nop
+  clw t2, 12(ct1) // Read current epoch
+  andi t2, t2, 1 // Get running bit, which should be 1
+  beqz t2, fail
   // Wait for some cycles while the sweep happens.
   li t2, 10
 wait_loop:
@@ -167,6 +183,21 @@ wait_loop:
   clw t2, 16(ct1)
   beqz t2, fail
   csw zero, 16(ct1) // Clear interrupt status
+  // Unrevoke end of SRAM to disable load capability barrier.
+  csw zero, 0(ct0)
+  li t2, 0x00120000 // End of SRAM
+  addi t2, t2, -8 // Point to last capability aligned region in SRAM
+  csetaddr ct2, ca0, t2
+  clc ca3, 0(ct2) // Read capability for which tag should stay 1.
+  cgettag a3, ca3
+  beqz a3, fail
+  addi t2, t2, -8 // Second to last capability in SRAM.
+  csetaddr ct2, ca0, t2
+  clc ca3, 0(ct2) // Read capability for which tag should be 0.
+  cgettag a3, ca3
+  bnez a3, fail
+
+hw_rev_intr:
   li t2, 1
   csw t2, 20(ct1) // Enable interrupts
   csw t2, 8(ct1) // Start sweep
