@@ -5,7 +5,7 @@ for the microcontroller core & peripherals. The "release version" of the bitstre
 configuration you use to build the software, as if the bitstream is a different version than what
 the software is expecting, you are not going to have fun!
 
-When you download a release from the Sonata System page, you'll have a matching bitstream and
+When you download a release from the [Sonata System page](https://github.com/lowRISC/sonata-system/releases/), you'll have a matching bitstream and
 software setup.
 
 While you can build your own bitstream as described
@@ -15,20 +15,20 @@ process is much slower than a software compile, so adds delay until you can play
 
 ## Selecting a Bitstream
 
-When the Sonata board is plugged in, it loads one of three bitstreams. This is selected by the switch below the USB port labeled `Bitstream`:
+When the Sonata board is plugged in, it loads one of three bitstreams. This is selected by the switch below the USB port labeled "Bitstream":
 
 ![](img/sonata-selectbs.jpeg)
 
 The LEDs besides the switch show the current image selected as well for confirmation.
 
 The slot used by a bitstream is selected by the UF2 file.
-The bitstream UF2 provided in the release uses Slot 1.
+The bitstream UF2s provided in the release are labeled with which slot they use in the filename.
 
 ## Drag & Drop Programming
 
 To program the Sonata bitstream:
 
-1. Download the bitstream from [our releases](https://github.com/lowRISC/sonata-system/releases)
+1. Download the bitstream from [our releases](https://github.com/lowRISC/sonata-system/releases).
 2. Make sure that you have the bitstream switch (SW3) set to 1.
 3. Plug in your Sonata board using the main USB. You should see a 'SONATA' drive (see troubleshooting section if unsure).
 4. Copy the updated FPGA `sonata-vX.Y.bit.slot1.uf2` file to the drive and wait for the copy to complete (on Linux note the copy command may return immediately, so you need to wait until it's done.)
