@@ -6,6 +6,7 @@ set(CHECKS
   gpio_check.cc
   lcd_check.cc
   uart_check.cc
+  uart_simexit_check.cc
   sdraw_check.cc
   spi_test.cc
   system_info_check.cc
