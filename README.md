@@ -22,11 +22,12 @@ On the software side a full build flow for Microsoft's CHERIoT RTOS is available
 A flash bootloader enables easy 'drag and drop' programming where a generated UF2 is copied to Sonata’s virtual USB drive (in a similar manner to the RP2040 and arm Mbed platforms).
 Environment setup and build instructions are available for Windows, macOS and Linux.
 
-If you find any issues with the Sonata system, or have features you would like to propose, please create an issue on GitHub.
+If you find any issues with the Sonata system, or have features you would like to propose, please [create an issue on GitHub][create-issue].
 For support with the board itself please use the [forum][newae-forum] on the NewAE website, create an issue on the [sonata-pcb repository][sonata-pcb], or reach out to NewAE directly.
 
 [release-v1.0]: https://github.com/lowRISC/sonata-system/releases/tag/v1.0
 [sonata-software]: https://github.com/lowRISC/sonata-software
+[create-issue]: https://github.com/lowRISC/sonata-system/issues/new
 [newae-forum]: https://forum.newae.com/c/sonata-board/15
 [sonata-pcb]: https://github.com/newaetech/sonata-pcb
 
