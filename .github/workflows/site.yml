@@ -27,7 +27,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: nixos-24.05
+    runs-on: nixos
     steps:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
