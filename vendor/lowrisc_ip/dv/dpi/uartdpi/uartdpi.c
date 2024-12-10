@@ -19,9 +19,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#define EXIT_MESSAGE_LENGTH (32)
+
 // This keeps the necessary uart state.
 struct uartdpi_ctx {
   char ptyname[64];
+  char exitstring[EXIT_MESSAGE_LENGTH];
+  int exittracker;
   int host;
   int device;
   char tmp_read;
@@ -84,6 +88,9 @@ void *uartdpi_create(const char *name, const char *log_file_path) {
     }
   }
 
+  ctx->exittracker = 0;
+  strncpy(ctx->exitstring, "Safe to exit simulator.\xd8\xaf\xfb\xa0\xc7\xe1\xa9\xd7", EXIT_MESSAGE_LENGTH);
+
   return (void *)ctx;
 }
 
@@ -123,11 +130,12 @@ char uartdpi_read(void *ctx_void) {
   return ctx->tmp_read;
 }
 
-void uartdpi_write(void *ctx_void, char c) {
+// Returns true when simulator should exit.
+int uartdpi_write(void *ctx_void, char c) {
   int rv;
   struct uartdpi_ctx *ctx = (struct uartdpi_ctx *)ctx_void;
   if (ctx == NULL) {
-    return;
+    return 0;
   }
 
   rv = write(ctx->host, &c, 1);
@@ -143,4 +151,13 @@ void uartdpi_write(void *ctx_void, char c) {
       fprintf(stderr, "UART: Write to log file failed: %s\n", strerror(errno));
     }
   }
+
+  if (c == ctx->exitstring[ctx->exittracker]) {
+    ctx->exittracker++;
+  } else {
+    ctx->exittracker = 0;
+  }
+
+  // Don't require 0 to be sent at the end.
+  return ctx->exittracker == (EXIT_MESSAGE_LENGTH - 1);
 }
