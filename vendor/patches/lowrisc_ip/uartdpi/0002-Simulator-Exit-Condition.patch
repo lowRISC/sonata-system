@@ -1,0 +1,95 @@
+diff --git a/uartdpi.c b/uartdpi.c
+index f99b9da3..97366a91 100644
+--- a/uartdpi.c
++++ b/uartdpi.c
+@@ -19,9 +19,13 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#define EXIT_MESSAGE_LENGTH (32)
++
+ // This keeps the necessary uart state.
+ struct uartdpi_ctx {
+   char ptyname[64];
++  char exitstring[EXIT_MESSAGE_LENGTH];
++  int exittracker;
+   int host;
+   int device;
+   char tmp_read;
+@@ -84,6 +88,9 @@ void *uartdpi_create(const char *name, const char *log_file_path) {
+     }
+   }
+ 
++  ctx->exittracker = 0;
++  strncpy(ctx->exitstring, "Safe to exit simulator.\xd8\xaf\xfb\xa0\xc7\xe1\xa9\xd7", EXIT_MESSAGE_LENGTH);
++
+   return (void *)ctx;
+ }
+ 
+@@ -123,11 +130,12 @@ char uartdpi_read(void *ctx_void) {
+   return ctx->tmp_read;
+ }
+ 
+-void uartdpi_write(void *ctx_void, char c) {
++// Returns true when simulator should exit.
++int uartdpi_write(void *ctx_void, char c) {
+   int rv;
+   struct uartdpi_ctx *ctx = (struct uartdpi_ctx *)ctx_void;
+   if (ctx == NULL) {
+-    return;
++    return 0;
+   }
+ 
+   rv = write(ctx->host, &c, 1);
+@@ -143,4 +151,13 @@ void uartdpi_write(void *ctx_void, char c) {
+       fprintf(stderr, "UART: Write to log file failed: %s\n", strerror(errno));
+     }
+   }
++
++  if (c == ctx->exitstring[ctx->exittracker]) {
++    ctx->exittracker++;
++  } else {
++    ctx->exittracker = 0;
++  }
++
++  // Don't require 0 to be sent at the end.
++  return ctx->exittracker == (EXIT_MESSAGE_LENGTH - 1);
+ }
+diff --git a/uartdpi.h b/uartdpi.h
+index 63834078..5e1152c9 100644
+--- a/uartdpi.h
++++ b/uartdpi.h
+@@ -13,7 +13,7 @@ void *uartdpi_create(const char *name, const char *log_file_path);
+ void uartdpi_close(void *ctx_void);
+ int uartdpi_can_read(void *ctx_void);
+ char uartdpi_read(void *ctx_void);
+-void uartdpi_write(void *ctx_void, char c);
++int uartdpi_write(void *ctx_void, char c);
+ 
+ #ifdef __cplusplus
+ }  // extern "C"
+diff --git a/uartdpi.sv b/uartdpi.sv
+index d476c519..0d46e79e 100644
+--- a/uartdpi.sv
++++ b/uartdpi.sv
+@@ -33,7 +33,7 @@ module uartdpi #(
+     int uartdpi_can_read(input chandle ctx);
+ 
+   import "DPI-C" function
+-    void uartdpi_write(input chandle ctx, int data);
++    int uartdpi_write(input chandle ctx, int data);
+ 
+   chandle ctx;
+   string log_file_path = DEFAULT_LOG_FILE;
+@@ -133,7 +133,10 @@ module uartdpi #(
+           if (rxcyccount == CYCLES_PER_SYMBOL - 1) begin
+             rxactive <= 0;
+             if (rx_i) begin
+-              uartdpi_write(ctx, rxsymbol);
++              if(uartdpi_write(ctx, rxsymbol)) begin
++                $display("Exiting the Sonata simulator because the magic UART string was seen.");
++                $exit;
++              end
+             end
+           end
+         end
