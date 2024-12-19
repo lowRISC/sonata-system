@@ -89,6 +89,32 @@ captags:
   clc ct1, 16(ct0)
   cgettag t2, ct1
   bnez t2, fail
+  // Store valid capabilities
+  csc ct0,  0(ct0)
+  csc ct0,  8(ct0)
+  csc ct0, 16(ct0)
+  // Check that tags are all valid
+  clc ct1,  0(ct0)
+  cgettag t2, ct1
+  beqz t2, fail
+  clc ct1,  8(ct0)
+  cgettag t2, ct1
+  beqz t2, fail
+  clc ct1, 16(ct0)
+  cgettag t2, ct1
+  beqz t2, fail
+  // Store null cap to second capability
+  csc cnull,  8(ct0)
+  // Check that tags are 1,0,1
+  clc ct1,  0(ct0)
+  cgettag t2, ct1
+  beqz t2, fail
+  clc ct1,  8(ct0)
+  cgettag t2, ct1
+  bnez t2, fail
+  clc ct1, 16(ct0)
+  cgettag t2, ct1
+  beqz t2, fail
 
 // Test for revocation tags
 revtags:
