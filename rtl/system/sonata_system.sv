@@ -1208,8 +1208,8 @@ module sonata_system
     .clk_i(clk_sys_i),
     .rst_ni(rst_sys_ni),
 
-    .pwm_out_i('{pwm_modulated}),
-    .pwm_out_en_i('{'b1}),
+    .pwm_out_i('{PWM_NUM{pwm_modulated}}),
+    .pwm_out_en_i('{PWM_NUM{{PWM_OUT_WIDTH{1'b1}}}}),
 
     .uart_rx_o(uart_rx),
     .uart_tx_i(uart_tx),
