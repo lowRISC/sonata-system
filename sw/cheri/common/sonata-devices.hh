@@ -14,6 +14,7 @@
 
 #include <cheri.hh>
 #include <platform-gpio.hh>
+#include <platform-pwm.hh>
 #include <platform-uart.hh>
 #include <platform-i2c.hh>
 #include <platform-spi.hh>
@@ -22,6 +23,7 @@
 
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGpioBoard *GpioPtr;
+typedef volatile SonataPwm *PwmPtr;
 typedef volatile OpenTitanUart *UartPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile OpenTitanI2c *I2cPtr;
@@ -38,6 +40,13 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
   gpio.address()                                   = GPIO_ADDRESS;
   gpio.bounds()                                    = GPIO_BOUNDS;
   return gpio;
+}
+
+[[maybe_unused]] static PwmPtr pwm_ptr(CapRoot root) {
+  CHERI::Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();
+  pwm.address()                             = PWM_ADDRESS;
+  pwm.bounds()                              = PWM_BOUNDS * PWM_NUM;
+  return pwm;
 }
 
 [[maybe_unused]] static UartPtr uart_ptr(CapRoot root, uint32_t idx = 0) {

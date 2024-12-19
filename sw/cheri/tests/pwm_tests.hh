@@ -9,7 +9,6 @@
 #include "test_runner.hh"
 #include <cheri.hh>
 #include <platform-gpio.hh>
-#include <platform-pwm.hh>
 
 using namespace CHERI;
 
@@ -54,11 +53,9 @@ constexpr bool LogPwmTests               = false;
  *
  * @returns The integer number of failures during the test
  */
-int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm,
-                      uint8_t period, uint8_t duty_cycle, uint8_t cycles, uint8_t error_delta, Log &log) {
-  constexpr uint8_t PwmInstance = 0;
-  constexpr uint8_t InputPin    = 0;
-
+int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, uint8_t input_pin, PwmPtr pwm,
+                      uint8_t pwm_instance, uint8_t period, uint8_t duty_cycle, uint8_t cycles, uint8_t error_delta,
+                      Log &log) {
   // Calculate error bounds & timeouts for use in testing
   const uint32_t period_lower     = period - (error_delta > period ? period : error_delta);
   const uint32_t period_upper     = period + error_delta;
@@ -69,34 +66,34 @@ int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capabilit
   int failures = 0;
 
   // Configure GPIO, timer and PWM respectively.
-  gpio_pmod0->set_output_enable(InputPin, false);
+  gpio_pmod0->set_output_enable(input_pin, false);
   reset_mcycle();
-  pwm->output_set(PwmInstance, period, duty_cycle);
+  pwm->output_set(pwm_instance, period, duty_cycle);
 
   uint32_t cycles_observed = 0;
-  const bool inputState    = gpio_pmod0->read_input(0);
+  const bool inputState    = gpio_pmod0->read_input(input_pin);
   while (cycles_observed < cycles) {
     // Wait for the next cycle to avoid missing measurements due to arithmetic/logging.
     uint32_t start_mcycle  = get_mcycle();
     uint32_t timeout_cycle = start_mcycle + timeout;
-    while (gpio_pmod0->read_input(0) == inputState && get_mcycle() < timeout_cycle) {
+    while (gpio_pmod0->read_input(input_pin) == inputState && get_mcycle() < timeout_cycle) {
       asm volatile("");
     }
     start_mcycle  = get_mcycle();
     timeout_cycle = start_mcycle + timeout;
-    while (gpio_pmod0->read_input(0) != inputState && get_mcycle() < timeout_cycle) {
+    while (gpio_pmod0->read_input(input_pin) != inputState && get_mcycle() < timeout_cycle) {
       asm volatile("");
     }
 
     // Measure PWM period & duty cycle times
     start_mcycle  = get_mcycle();
     timeout_cycle = start_mcycle + timeout;
-    while (gpio_pmod0->read_input(0) == inputState && get_mcycle() < timeout_cycle) {
+    while (gpio_pmod0->read_input(input_pin) == inputState && get_mcycle() < timeout_cycle) {
       asm volatile("");
     }
     uint32_t changed_mcycle = get_mcycle();
     timeout_cycle           = changed_mcycle + timeout;
-    while (gpio_pmod0->read_input(0) != inputState && get_mcycle() < timeout_cycle) {
+    while (gpio_pmod0->read_input(input_pin) != inputState && get_mcycle() < timeout_cycle) {
       asm volatile("");
     }
     uint32_t end_mcycle = get_mcycle();
@@ -204,9 +201,7 @@ void pwm_tests(CapRoot root, Log &log) {
   gpio_pmod0.bounds()                             = GPIO_BOUNDS;
 
   // Create bounded capability for PWM
-  Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();
-  pwm.address()                      = PWM_ADDRESS;
-  pwm.bounds()                       = PWM_BOUNDS;
+  PwmPtr pwm = pwm_ptr(root);
 
   // Execute the specified number of iterations of each test.
   for (size_t i = 0; i < PWM_TEST_ITERATIONS; i++) {
@@ -226,8 +221,8 @@ void pwm_tests(CapRoot root, Log &log) {
         uint8_t period     = periods[i];
         uint8_t duty_cycle = duty_cycles[i];
         log.print("  Running PWM Loopback ({}/{}) test... ", duty_cycle, period);
-        failures =
-            pwm_loopback_test(gpio_pmod0, pwm, period, duty_cycle, NumPwmCyclesObserved, AllowedCycleDeviation, log);
+        failures = pwm_loopback_test(gpio_pmod0, 0, pwm, 0, period, duty_cycle, NumPwmCyclesObserved,
+                                     AllowedCycleDeviation, log);
         test_failed |= (failures > 0);
         write_test_result(log, failures);
       }
