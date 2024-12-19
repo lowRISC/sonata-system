@@ -12,6 +12,7 @@
 #include "../common/block_tests.hh"
 #include "test_runner.hh"
 #include "i2c_tests.hh"
+#include "pwm_tests.hh"
 #include <cheri.hh>
 #include <platform-uart.hh>
 #include <ds/xoroshiro.h>
@@ -32,6 +33,7 @@ using namespace SonataPinmux;
  *  - mikroBus       (P7) RX & TX
  *  - Arduino Shield (P4) D0 & D1
  *  - Arduino Shield (P4) D8 & D9
+ *  - PMOD0                8 & 10
  * This can be overriden via a compilation flag.
  */
 #ifndef PINMUX_CABLE_CONNECTIONS_AVAILABLE
@@ -310,6 +312,55 @@ static int pinmux_gpio_test(PinmuxPtrs sinks, SonataGpioFull *gpio) {
   return failures;
 }
 
+static int pinmux_pwm_test(PinmuxPtrs sinks, PwmPtr pwm, SonataGpioFull *gpio, Log &log) {
+  constexpr uint8_t PmxPmod0_8ToPwmOut2     = 2;
+  constexpr uint8_t PmxPmod0Gpio7ToPmod0_10 = 1;
+
+  constexpr GpioPin GpioPinInput = {GpioInstance::Pmod0, 7};
+  constexpr uint8_t PwmInstance  = 2;
+
+  int failures     = 0;
+  auto pmod0_8     = std::get<PinSinksPtr>(sinks)->get(PinSink::pmod0_8);
+  auto pmod0_gpio7 = std::get<BlockSinksPtr>(sinks)->get(BlockSink::gpio_2_ios_7);
+
+  constexpr size_t NumLoopbackTests              = 3;
+  constexpr uint8_t Periods[NumLoopbackTests]    = {255, 255, 128};
+  constexpr uint8_t DutyCycles[NumLoopbackTests] = {213, 128, 40};
+
+  // Configure the PMOD 0 Pin 10 as GPIO input.
+  set_gpio_output_enable(gpio, GpioPinInput, false);
+
+  // Ensure that the GPIO (PMOD 0 Pin 10) and PWM (PMOD 0 Pin 8) are enabled via Pinmux
+  failures += !pmod0_8.select(PmxPmod0_8ToPwmOut2);
+  failures += !pmod0_gpio7.select(PmxPmod0Gpio7ToPmod0_10);
+
+  // Check that the PWM works as expected in loopback tests
+  for (uint8_t i = 0; i < NumLoopbackTests; i++) {
+    failures += pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+                                  NumPwmCyclesObserved, AllowedCycleDeviation, log);
+  }
+
+  // Disable the PWM via pinmux, and check that the test now fails:
+  pmod0_8.disable();
+  for (uint8_t i = 0; i < NumLoopbackTests; i++) {
+    failures += !pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+                                   NumPwmCyclesObserved, AllowedCycleDeviation, log);
+  }
+
+  // Re-enable the PWM via pinmux, and check that the test now passes again
+  failures += !pmod0_8.select(PmxPmod0_8ToPwmOut2);
+  for (uint8_t i = 0; i < NumLoopbackTests; i++) {
+    failures += pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+                                  NumPwmCyclesObserved, AllowedCycleDeviation, log);
+  }
+
+  // Reset muxed pins to not interfere with future tests
+  pmod0_8.default_selection();
+  pmod0_gpio7.default_selection();
+
+  return failures;
+}
+
 /**
  * Test the muxing capability of pinmux, by dynamically switching between using
  * (and testing) UART and pinmux on the same two pins - specifically the Arduino
@@ -387,6 +438,8 @@ void pinmux_tests(CapRoot root, Log &log) {
   I2cPtr i2c0 = i2c_ptr(root, 0);
   I2cPtr i2c1 = i2c_ptr(root, 1);
 
+  PwmPtr pwm = pwm_ptr(root);
+
   // Create bounded capabilities for the full range of GPIO
   SonataGpioFull gpio_full = get_full_gpio_ptrs(root);
 
@@ -421,6 +474,11 @@ void pinmux_tests(CapRoot root, Log &log) {
     if (PINMUX_CABLE_CONNECTIONS_AVAILABLE) {
       log.print("  Running GPIO Pinmux test... ");
       failures = pinmux_gpio_test(sinks, &gpio_full);
+      test_failed |= (failures > 0);
+      write_test_result(log, failures);
+
+      log.print("  Running PWM Pinmux test... ");
+      failures = pinmux_pwm_test(sinks, pwm, &gpio_full, log);
       test_failed |= (failures > 0);
       write_test_result(log, failures);
 
