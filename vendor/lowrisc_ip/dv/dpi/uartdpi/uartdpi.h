@@ -13,7 +13,7 @@ void *uartdpi_create(const char *name, const char *log_file_path);
 void uartdpi_close(void *ctx_void);
 int uartdpi_can_read(void *ctx_void);
 char uartdpi_read(void *ctx_void);
-void uartdpi_write(void *ctx_void, char c);
+int uartdpi_write(void *ctx_void, char c);
 
 #ifdef __cplusplus
 }  // extern "C"
