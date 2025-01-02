@@ -8,7 +8,7 @@ All selectors are byte addressable, this means that you can write four selectors
 
 There are output pin selectors, which select which block output is connected to a particular FPGA pin.
 The selector is one-hot, so you need to write `8'b100` if you want to select input 3 for example.
-The default value for all of these selectors is `'b10`.
+The default value for all of these selectors is `'b10`. As a consequence, you will need to use the pinmux before attempting use the additional headers as GPIO (e.g. the Raspberry Pi header's GPIO).
 
 | Address | Pin output | Possible block outputs |
 |---------|------------|------------------------|
