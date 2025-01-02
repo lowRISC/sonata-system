@@ -72,6 +72,8 @@ The input and output registers have the same bit mapping.
 
 When the output enable is set to zero it instead acts as an input pin.
 
+Note: Before using the Raspberry Pi HAT header's GPIO you should use the pinmux to configure them as input or output.
+
 ## Arduino Shield
 
 The Arduino Shield header has 14 pins that can act as GPIO.
