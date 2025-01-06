@@ -24,6 +24,10 @@ module rev_ctl import rev_ctl_reg_pkg::*; (
   // Internal registers.
   logic go;
 
+  // Internal wires.
+  logic done;
+  assign done = reg2hw.epoch.running.q & ~core_to_ctl_i[0];
+
   // Architectural registers.
   logic interrupt_status;
 
@@ -45,10 +49,6 @@ module rev_ctl import rev_ctl_reg_pkg::*; (
       end
     end
   end
-
-  // Internal wires.
-  logic done;
-  assign done = reg2hw.epoch.running.q & ~core_to_ctl_i[0];
 
   // Control to core.
   always @(posedge clk_i or negedge rst_ni) begin
