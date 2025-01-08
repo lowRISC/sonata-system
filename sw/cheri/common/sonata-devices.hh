@@ -23,11 +23,11 @@
 
 typedef CHERI::Capability<void> CapRoot;
 typedef volatile SonataGpioBoard *GpioPtr;
-typedef volatile SonataPwm *PwmPtr;
+typedef volatile SonataPulseWidthModulation::General *PwmPtr;
 typedef volatile OpenTitanUart *UartPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile OpenTitanI2c *I2cPtr;
-typedef volatile SonataSpi *SpiPtr;
+typedef volatile SonataSpi::Generic<> *SpiPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile uint32_t *HyperramPtr;
 typedef PLIC::SonataPlic *PlicPtr;
@@ -43,6 +43,7 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 }
 
 [[maybe_unused]] static PwmPtr pwm_ptr(CapRoot root) {
+  using SonataPwm = SonataPulseWidthModulation::General;
   CHERI::Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();
   pwm.address()                             = PWM_ADDRESS;
   pwm.bounds()                              = PWM_BOUNDS * PWM_NUM;
@@ -66,6 +67,7 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 }
 
 [[maybe_unused]] static SpiPtr spi_ptr(CapRoot root, uint32_t idx = 0) {
+  using SonataSpi = SonataSpi::Generic<>;
   CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   assert(idx < SPI_NUM);
   spi.address() = SPI_ADDRESS + (idx * SPI_RANGE);
