@@ -20,7 +20,7 @@
 class SdCard {
  private:
   // Access to SPI controller.
-  volatile SonataSpi *spi;
+  volatile SonataSpi::Generic<> *spi;
   // Access to GPIO block (required for SD card detection).
   volatile SonataGpioBase *gpio;
   // Chip select (single bit set).
@@ -51,7 +51,7 @@ class SdCard {
   // with or without CRC checking.
   //
   // Logging may optionally be requested.
-  SdCard(volatile SonataSpi *spi_, volatile SonataGpioBase *gpio_, unsigned cs_ = 1u, unsigned det_ = 16u,
+  SdCard(volatile SonataSpi::Generic<> *spi_, volatile SonataGpioBase *gpio_, unsigned cs_ = 1u, unsigned det_ = 16u,
          bool crc_ = true, Log *log_ = nullptr)
       : spi(spi_), gpio(gpio_), cs(1u << cs_), det(1u << det_), crcOn(crc_), log(log_) {}
 
