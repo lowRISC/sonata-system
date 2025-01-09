@@ -97,8 +97,8 @@ inline uint32_t random_flash_sector_addr(ds::xoroshiro::P32R8 &prng) {
  * assumed to be sector-aligned.
  * Returns the number of failures during the test.
  */
-static int spi_flash_erase_test_sector(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R8 &prng,
-                                       SpiFlash spi_flash, uint32_t start_addr) {
+static int spi_flash_erase_test_sector(SpiPtr spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash,
+                                       uint32_t start_addr) {
   int failures = 0;
   std::array<uint8_t, SpiFlashPageSize> write_values, read_values;
 
@@ -145,8 +145,8 @@ static int spi_flash_erase_test_sector(Capability<volatile SonataSpi> spi, ds::x
  * appropriately configured. The address is assumed to be page-aligned.
  * Returns the number of failures during the test.
  */
-static int spi_flash_random_data_test_page(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R8 &prng,
-                                           SpiFlash spi_flash, uint32_t start_addr) {
+static int spi_flash_random_data_test_page(SpiPtr spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash,
+                                           uint32_t start_addr) {
   int failures = 0;
 
   std::array<uint8_t, SpiFlashPageSize> write_values, read_values;
@@ -183,7 +183,7 @@ static int spi_flash_random_data_test_page(Capability<volatile SonataSpi> spi, d
  * known value.
  * Returns the number of failures during the test.
  */
-int spi_read_flash_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash spi_flash) {
+int spi_read_flash_jedec_id_test(SpiPtr spi, SpiFlash spi_flash) {
   int failures = 0;
 
   // Configure the SPI to be MSB-first.
@@ -211,7 +211,7 @@ int spi_read_flash_jedec_id_test(Capability<volatile SonataSpi> spi, SpiFlash sp
  * `SPI_TEST_FLASH_SECTORS_ERASED` definition.
  * Returns the number of failures during the test.
  */
-int spi_flash_erase_test(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
+int spi_flash_erase_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
   int failures = 0;
 
   // Configure the SPI to be MSB-first.
@@ -234,7 +234,7 @@ int spi_flash_erase_test(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R
  * by the `SPI_TEST_FLASH_PAGES_WRITTEN` definition.
  * Returns the number of failures during the test.
  */
-int spi_flash_random_data_test(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
+int spi_flash_random_data_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
   int failures = 0;
 
   // Configure the SPI to be MSB-first.
@@ -256,7 +256,7 @@ int spi_flash_random_data_test(Capability<volatile SonataSpi> spi, ds::xoroshiro
  * issues with the SPI when running at a slower speed.
  * Returns the number of failures during the test.
  */
-int spi_flash_slow_clock_test(Capability<volatile SonataSpi> spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
+int spi_flash_slow_clock_test(SpiPtr spi, ds::xoroshiro::P32R8 &prng, SpiFlash spi_flash) {
   int failures = 0;
 
   // Configure the SPI to be MSB first, and run such that 1 SPI clock period is
