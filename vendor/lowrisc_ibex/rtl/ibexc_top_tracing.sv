@@ -14,12 +14,13 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
   parameter int unsigned DmHaltAddr       = 32'h1A110800,
   parameter int unsigned DmExceptionAddr  = 32'h1A110808,
   parameter bit          RV32E            = 1'b0,
+  parameter rv32m_e      RV32M            = RV32MFast,
+  parameter rv32b_e      RV32B            = RV32BNone,
   parameter bit          CheriTBRE        = 1'b1,
   parameter bit          CheriStkZ        = 1'b1,
   parameter bit          DbgTriggerEn     = 1'b1,
   parameter int unsigned DbgHwBreakNum    = 4,
   parameter int unsigned MHPMCounterNum   = 0,
-  parameter rv32b_e      RV32B            = RV32BFull,
   parameter int unsigned HeapBase         = 32'h2001_0000,
   parameter int unsigned TSMapBase        = 32'h2004_0000, // 4kB default
   parameter int unsigned TSMapSize        = 1024,          // in words
@@ -155,6 +156,7 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
     .DbgTriggerEn     (DbgTriggerEn),
     .DbgHwBreakNum    (DbgHwBreakNum),
     .RV32E            (RV32E),
+    .RV32M            (RV32M),
     .RV32B            (RV32B),
     .WritebackStage   (1'b1),
     .BranchPredictor  (1'b0),
