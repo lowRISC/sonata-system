@@ -33,7 +33,6 @@ Each SPI block has two 8-entry FIFOs - one for transmit and one for receive.
 To begin an SPI transaction write to the [`START`](#start) register.
 Bytes do not need to be immediately available in the transmit FIFO nor space available in the receive FIFO to begin the transaction.
 The SPI block will only run the clock when its able to proceed.
-Note that the CS pin is not handled by the SPI block and must be dealt with via GPIO and controlled with software.
 
 **Note Interrupts are not yet implemented**
 
@@ -45,12 +44,14 @@ Note that the CS pin is not handled by the SPI block and must be dealt with via 
 | spi.[`INTR_STATE`](#intr_state)   | 0x0      |        4 | Interrupt State Register                                          |
 | spi.[`INTR_ENABLE`](#intr_enable) | 0x4      |        4 | Interrupt Enable Register                                         |
 | spi.[`INTR_TEST`](#intr_test)     | 0x8      |        4 | Interrupt Test Register                                           |
-| spi.[`CFG`](#cfg)                 | 0xc      |        4 | Configuration register. Controls how the SPI block transmits      |
-| spi.[`CONTROL`](#control)         | 0x10     |        4 | Controls the operation of the SPI block. This register can        |
-| spi.[`STATUS`](#status)           | 0x14     |        4 | Status information about the SPI block                            |
-| spi.[`START`](#start)             | 0x18     |        4 | When written begins an SPI operation. Writes are ignored when the |
-| spi.[`RX_FIFO`](#rx_fifo)         | 0x1c     |        4 | Data from the receive FIFO. When read the data is popped from the |
-| spi.[`TX_FIFO`](#tx_fifo)         | 0x20     |        4 | Bytes written here are pushed to the transmit FIFO. If the FIFO   |
+| spi.[`CFG`](#cfg)                 | 0xc      |        4 | Configuration register.                                           |
+| spi.[`CONTROL`](#control)         | 0x10     |        4 | Controls the operation of the SPI block.                          |
+| spi.[`STATUS`](#status)           | 0x14     |        4 | Status information about the SPI block.                           |
+| spi.[`START`](#start)             | 0x18     |        4 | When written begins an SPI operation.                             |
+| spi.[`RX_FIFO`](#rx_fifo)         | 0x1c     |        4 | Data from the receive FIFO.                                       |
+| spi.[`TX_FIFO`](#tx_fifo)         | 0x20     |        4 | Bytes written here are pushed to the transmit FIFO.               |
+| spi.[`INFO`](#info)               | 0x24     |        4 | Returns information on the SPI controller.                        |
+| spi.[`CS`](#cs)                   | 0x28     |        4 | Specifies which peripherals are selected for SPI operations.      |
 
 ## INTR_STATE
 Interrupt State Register
@@ -290,3 +291,40 @@ Bytes written here are pushed to the transmit FIFO. If the FIFO is full writes a
 |:------:|:------:|:-------:|:-------|:-------------------------|
 |  31:8  |        |         |        | Reserved                 |
 |  7:0   |   wo   |   0x0   | DATA   | Byte to push to the FIFO |
+
+## INFO
+Returns information on the SPI controller.
+- Offset: `0x24`
+- Reset default: `0x0`
+- Reset mask: `0xff`
+
+### Fields
+
+```wavejson_reg
+[{"name": "TX_FIFO_DEPTH", "bits": 8, "attr": ["ro"], "rotate": 0}, {"name": "RX_FIFO_DEPTH", "bits": 8, "attr": ["ro"], "rotate": 0}, {"bits": 16}]
+```
+
+|  Bits  |  Type  |  Reset  | Name          | Description                                   |
+|:------:|:------:|:-------:|:--------------|:----------------------------------------------|
+|  31:16 |        |         |               | Reserved                                      |
+|  15:8  |   ro   |   0x0   | RX_FIFO_DEPTH | Maximum number of items in the receive FIFO.  |
+|  7:0   |   ro   |   0x0   | TX_FIFO_DEPTH | Maximum number of items in the transmit FIFO. |
+
+## CS
+Specifies which peripherals are selected for transmit/receive operations.
+An operation may select multiple peripherals simultaneously but this functionality shall be used only for transmit operations.
+This register shall be changed only when the SPI controller is idle, not whilst a transmit/receive operation may be in progress.
+- Offset: `0x28`
+- Reset default: `0xff`
+- Reset mask: `0xff`
+
+### Fields
+
+```wavejson_reg
+[{"name": "CS", "bits": 4, "attr": ["rw"], "rotate": 0}, {"bits": 28}]
+```
+
+|  Bits  |  Type  |  Reset  | Name   | Description              |
+|:------:|:------:|:-------:|:-------|:-------------------------|
+|  31:5  |        |         |        | Reserved                 |
+|  4:0   |   rw   |   0xf   | cs     | If this bit is clear the peripheral is selected for transmit/receive operations. |
