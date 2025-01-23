@@ -1015,7 +1015,8 @@ module ibex_cs_registers import cheri_pkg::*;  #(
     .rd_error_o()
   );
 
-  logic  cheri_exception_code = mcause_q == 6'h1C;
+  logic  cheri_exception_code;
+  assign cheri_exception_code = mcause_q == 6'h1C;
   // Bounds violation
   assign cheri_err_o[0] = cheri_exception_code ? (mtval_q[4:0] == 5'h01) : 1'b0;
   // Tag violation

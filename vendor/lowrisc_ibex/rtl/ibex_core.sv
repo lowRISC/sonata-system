@@ -50,16 +50,17 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   // CHERIoT paramters
   parameter bit          CHERIoTEn         = 1'b1,
   parameter int unsigned DataWidth         = 33,
-  parameter int unsigned HeapBase          = '0,
-  parameter int unsigned TSMapBase         = '0,
-  parameter int unsigned TSMapSize         = '0,
+  parameter int unsigned HeapBase          = 32'h2001_0000,
+  parameter int unsigned TSMapBase         = 32'h2002_f000,
+  parameter int unsigned TSMapSize         = 1024,
   parameter bit          MemCapFmt         = 1'b0,
   parameter bit          CheriPPLBC        = 1'b1,
   parameter bit          CheriSBND2        = 1'b0,
   parameter bit          CheriTBRE         = 1'b1,
   parameter bit          CheriStkZ         = 1'b1,
   parameter int unsigned MMRegDinW         = 128,
-  parameter int unsigned MMRegDoutW        = 64
+  parameter int unsigned MMRegDoutW        = 64,
+  parameter bit          CheriCapIT8       = 1'b0
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -880,7 +881,8 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
       .TSMapSize            (TSMapSize),
       .CheriPPLBC           (CheriPPLBC),
       .CheriSBND2           (CheriSBND2),
-      .CheriStkZ            (CheriStkZ)
+      .CheriStkZ            (CheriStkZ),
+      .CheriCapIT8          (CheriCapIT8)
     ) u_cheri_ex (
       .clk_i                (clk_i),
       .rst_ni               (rst_ni),
@@ -1144,7 +1146,8 @@ module ibex_core import ibex_pkg::*; import cheri_pkg::*; #(
   ibex_load_store_unit #(
     .CHERIoTEn(CHERIoTEn),
     .MemCapFmt(MemCapFmt),
-    .CheriTBRE(CheriTBRE)
+    .CheriTBRE(CheriTBRE),
+    .CheriCapIT8(CheriCapIT8)
     ) load_store_unit_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -1717,9 +1720,9 @@ end
   logic            rvfi_ext_stage_debug_req    [RVFI_STAGES+1];
   logic [63:0]     rvfi_ext_stage_mcycle       [RVFI_STAGES];
 
-
-
   logic        rvfi_stage_valid_d   [RVFI_STAGES];
+  
+  logic        insn_c_hint;
 
   assign rvfi_valid     = rvfi_stage_valid    [RVFI_STAGES-1];
   assign rvfi_order     = rvfi_stage_order    [RVFI_STAGES-1];
@@ -1737,7 +1740,6 @@ end
   assign rvfi_rs1_rcap  = rvfi_stage_rs1_rcap [RVFI_STAGES-1];
   assign rvfi_rs2_rcap  = rvfi_stage_rs2_rcap [RVFI_STAGES-1];
   assign rvfi_rs3_rdata = rvfi_stage_rs3_rdata[RVFI_STAGES-1];
-  assign rvfi_rd_addr   = rvfi_stage_rd_addr  [RVFI_STAGES-1];
   assign rvfi_rd_wdata  = rvfi_stage_rd_wdata [RVFI_STAGES-1];
   assign rvfi_rd_wcap   = rvfi_stage_rd_wcap  [RVFI_STAGES-1];
   assign rvfi_pc_rdata  = rvfi_stage_pc_rdata [RVFI_STAGES-1];
@@ -1750,6 +1752,24 @@ end
   assign rvfi_mem_is_cap = rvfi_stage_mem_is_cap[RVFI_STAGES-1];
   assign rvfi_mem_rcap  = rvfi_stage_mem_rcap[RVFI_STAGES-1];
   assign rvfi_mem_wcap  = rvfi_stage_mem_wcap[RVFI_STAGES-1];
+
+  // for HINT instructions like c.srai64/c.slli64, force rvfi_rd_addr output to 0 to match sail implementation
+  assign rvfi_rd_addr   = insn_c_hint ? 0 : rvfi_stage_rd_addr [RVFI_STAGES-1];
+
+  always_comb begin
+    if ((rvfi_insn[1:0] == 2'b01) && (rvfi_insn[15:13] == 3'b100) && (rvfi_insn[11:10] == 2'b00) &&      // c.srli64
+       ({rvfi_insn[12], rvfi_insn[6:2]} == 6'h0) &&
+        (rvfi_rs1_addr == rvfi_rd_addr) && (rvfi_rs1_rdata == rvfi_rd_wdata))
+      insn_c_hint = 1'b1;
+    else if ((rvfi_insn[1:0] == 2'b01) && (rvfi_insn[15:13] == 3'b100) && (rvfi_insn[11:10] == 2'b01) && // c.srai64
+       ({rvfi_insn[12], rvfi_insn[6:2]} == 6'h0) &&
+        (rvfi_rs1_addr == rvfi_rd_addr) && (rvfi_rs1_rdata == rvfi_rd_wdata))
+      insn_c_hint = 1'b1;
+    else 
+      insn_c_hint = 1'b0;
+   
+     
+  end 
 
   assign rvfi_rd_addr_wb  = rf_waddr_wb;
   assign rvfi_rd_wdata_wb = rf_we_wb ? rf_wdata_wb : rf_wdata_lsu; // this doesn't look right but ok

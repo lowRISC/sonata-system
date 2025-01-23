@@ -67,6 +67,7 @@ module ibex_decoder import cheri_pkg::*; #(
   // register file
   output ibex_pkg::rf_wd_sel_e rf_wdata_sel_o,   // RF write data selection
   output logic                 rf_we_o,          // write enable for regfile
+  output logic                 rf_we_or_load_o,
   output logic [4:0]           rf_raddr_a_o,
   output logic [4:0]           rf_raddr_b_o,
   output logic [4:0]           rf_waddr_o,
@@ -234,12 +235,15 @@ module ibex_decoder import cheri_pkg::*; #(
   // rf_we from decoder doesn't cover memory load case (where regfile write signal comes from LSU response)
   logic rf_we_or_load;
   assign rf_we_or_load = rf_we | (opcode == OPCODE_LOAD);
+
+  assign rf_we_or_load_o = rf_we_or_load;
  
   if (RV32E) begin : gen_rv32e_reg_check_active
     //assign illegal_reg_rv32e = ((rf_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
     //                            (rf_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
     assign illegal_reg_rv32e = ((rf_raddr_a_o[4] & rf_ren_a_o) |
                                 (rf_raddr_b_o[4] & rf_ren_b_o) |
+                                (instr_rs3[4] & use_rs3_d & rf_ren_a_o) | 
                                 (rf_waddr_o[4]   & rf_we_or_load));
   end else begin : gen_rv32e_reg_check_inactive
     assign illegal_reg_rv32e = 1'b0;
@@ -249,6 +253,7 @@ module ibex_decoder import cheri_pkg::*; #(
     assign illegal_reg_cheri = cheri_pmode_i & 
                                ((raddr_a[4]  & rf_ren_a_o) |
                                 (raddr_b[4]  & rf_ren_b_o) |
+                                (instr_rs3[4] & use_rs3_d & rf_ren_a_o) | 
                                 (instr_rd[4] & rf_we_or_load ));
   end else begin : gen_cheri_reg_check_inactive
     assign illegal_reg_cheri = 1'b0;
@@ -499,7 +504,8 @@ module ibex_decoder import cheri_pkg::*; #(
               end
               5'b0_1001,                                                              // bclri
               5'b0_0101,                                                              // bseti
-              5'b0_1101: illegal_insn = (RV32B != RV32BNone) ? 1'b0 : 1'b1;           // binvi
+              // 5'b0_1101: illegal_insn = (RV32B != RV32BNone) ? 1'b0 : 1'b1;           // binvi
+              5'b0_1101: illegal_insn = (RV32B != RV32BNone) ? (instr[26:25] != 2'b00) : 1'b1;    // binvi
               5'b0_0001: begin
                 if (instr[26] == 1'b0) begin                                          // shfl
                   illegal_insn = (RV32B == RV32BOTEarlGrey || RV32B == RV32BFull) ? 1'b0 : 1'b1;
@@ -541,7 +547,8 @@ module ibex_decoder import cheri_pkg::*; #(
                   illegal_insn = (RV32B == RV32BOTEarlGrey || RV32B == RV32BFull) ? 1'b0 : 1'b1;
                 end
                 5'b0_1100,                                                             // rori
-                5'b0_1001: illegal_insn = (RV32B != RV32BNone) ? 1'b0 : 1'b1;          // bexti
+                // 5'b0_1001: illegal_insn = (RV32B != RV32BNone) ? 1'b0 : 1'b1;          // bexti
+                5'b0_1001: illegal_insn = (RV32B != RV32BNone) ? (instr[26:25] != 2'b00) : 1'b1;          // bexti
 
                 5'b0_1101: begin
                   if (RV32B == RV32BOTEarlGrey || RV32B == RV32BFull) begin
