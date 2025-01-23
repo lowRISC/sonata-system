@@ -231,6 +231,10 @@
       "usbdev",
       "rv_plic",
     ],
-    dbg_host: ["sram"],
+    dbg_host: [
+      "sram",
+      "hyperram",
+      "system_info",
+    ],
   },
 }
