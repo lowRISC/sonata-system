@@ -90,6 +90,9 @@ lint_off -rule UNOPTFLAT -file "*/rtl/prim_fifo_async_simple.sv"
 lint_off -rule UNOPTFLAT -file "*/rtl/prim_subreg_ext.sv"
 lint_off -rule BLKSEQ -file "*/rtl/ibex_tracer.sv"
 
+// Build warns of circular logic, but this is functioning correctly so it is safe to ignore.
+lint_off -rule UNOPTFLAT -file "*/rtl/ibexc_top_tracing.sv" -match "*rvfi_rd_addr*"
+
 // Bug seem in Verilator v5.020 where trace chandles produces a C++ compilation
 // error (generated C++ doesn't currently specify a type an internal verilator
 // function)
