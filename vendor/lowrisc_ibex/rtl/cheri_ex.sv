@@ -7,12 +7,13 @@
 module cheri_ex import cheri_pkg::*; #(
   parameter bit          WritebackStage = 1'b0,
   parameter bit          MemCapFmt      = 1'b0,
-  parameter int unsigned HeapBase       = '0,
-  parameter int unsigned TSMapBase      = '0,
-  parameter int unsigned TSMapSize      = '0,
+  parameter int unsigned HeapBase       = 32'h2001_0000,
+  parameter int unsigned TSMapBase      = 32'h2002_f000,
+  parameter int unsigned TSMapSize      = 1024,
   parameter bit          CheriPPLBC     = 1'b1,
   parameter bit          CheriSBND2     = 1'b0,
-  parameter bit          CheriStkZ      = 1'b1
+  parameter bit          CheriStkZ      = 1'b1,
+  parameter bit          CheriCapIT8    = 1'b0
 )(
    // Clock and Reset
   input  logic          clk_i,
@@ -195,7 +196,7 @@ module cheri_ex import cheri_pkg::*; #(
   logic          lc_cglg, lc_csdlm, lc_ctag;
   logic  [31:0]  pc_id_nxt;
 
-  full_cap_t     setaddr1_outcap, setbounds_outcap;
+  full_cap_t     setaddr1_outcap, setbounds_outcap, setbounds_rndn_outcap;
   logic  [15:0]  cheri_wb_err_info_q, cheri_wb_err_info_d;
   logic          set_bounds_done;
 
@@ -306,7 +307,7 @@ module cheri_ex import cheri_pkg::*; #(
     unique case (1'b1)
       cheri_operator_i[CGET_PERM]:
         begin
-          result_data_o       = {19'h0, rf_fullcap_a.perms};
+          result_data_o       = {20'h0, rf_fullcap_a.perms};
           result_cap_o        = NULL_REG_CAP;   // zerout the cap msw
           cheri_rf_we_raw     = 1'b1;
           cheri_ex_valid_raw  = 1'b1;
@@ -356,8 +357,10 @@ module cheri_ex import cheri_pkg::*; #(
       cheri_operator_i[CGET_HIGH]:
         begin
           logic [65:0] tmp66;
-          tmp66 = MemCapFmt ? reg2mem_fmt1(rf_rcap_a, rf_rdata_a) : 
-                              {reg2memcap_fmt0(rf_rcap_a), 1'b0, rf_rdata_a[31:0]};
+          tmp66 = MemCapFmt ? (CheriCapIT8 ? reg2mem_it8_fmt1(rf_rcap_a, rf_rdata_a) : 
+                                             reg2mem_fmt1(rf_rcap_a, rf_rdata_a)) :
+                              (CheriCapIT8 ? {reg2memcap_it8_fmt0(rf_rcap_a), 1'b0, rf_rdata_a[31:0]} :
+                                             {reg2memcap_fmt0(rf_rcap_a), 1'b0, rf_rdata_a[31:0]});
           result_data_o       = tmp66[64:33];
           result_cap_o        = NULL_REG_CAP;
           cheri_rf_we_raw     = 1'b1;
@@ -382,11 +385,15 @@ module cheri_ex import cheri_pkg::*; #(
         end
       cheri_operator_i[CAND_PERM]:         // cd <-- cs1; cd.perm <-- cd.perm & rs2
         begin
+          logic [PERMS_W-1:0] pmask;
           result_data_o      = rf_rdata_a;
           tfcap              = rf_fullcap_a;
           tfcap.perms        = tfcap.perms & rf_rdata_b[PERMS_W-1:0];
           tfcap.cperms       = compress_perms(tfcap.perms, tfcap.cperms[5:4]);
-          tfcap.valid        = tfcap.valid & ~is_cap_sealed(rf_fullcap_a);
+          // for sealed caps, clear tag unless perm mask (excluding GL) == all '1'
+          pmask              = rf_rdata_b[PERMS_W-1:0];
+          pmask[PERM_GL]     = 1'b1;
+          tfcap.valid        = tfcap.valid & (~is_cap_sealed(rf_fullcap_a) | (&pmask));
           result_cap_o       = full2regcap(tfcap);
           cheri_rf_we_raw    = 1'b1;
           cheri_ex_valid_raw = 1'b1;
@@ -395,7 +402,8 @@ module cheri_ex import cheri_pkg::*; #(
         begin
           // this only works for memcap_fmt0 for now QQQ
           result_data_o      = rf_rdata_a;
-          result_cap_o       = mem2regcap_fmt0({1'b0, rf_rdata_b}, {1'b0, rf_rdata_a}, 4'h0);
+          result_cap_o       = CheriCapIT8 ? mem2regcap_it8_fmt0({1'b0, rf_rdata_b}, {1'b0, rf_rdata_a}, 4'h0) :
+                                             mem2regcap_fmt0({1'b0, rf_rdata_b}, {1'b0, rf_rdata_a}, 4'h0);
           cheri_rf_we_raw    = 1'b1;
           cheri_ex_valid_raw = 1'b1;
         end
@@ -422,11 +430,11 @@ module cheri_ex import cheri_pkg::*; #(
           cheri_ex_valid_raw   = 1'b1;
         end
       (cheri_operator_i[CSET_BOUNDS] | cheri_operator_i[CSET_BOUNDS_IMM] | cheri_operator_i[CSET_BOUNDS_EX] |
-       cheri_operator_i[CRRL] | cheri_operator_i[CRAM]):
+       cheri_operator_i[CRRL] | cheri_operator_i[CRAM] | cheri_operator_i[CSET_BOUNDS_RNDN]):
         begin                  // cd <-- cs1; cd.base <-- cs1.address, cd.len <-- rs2 or imm12
           logic instr_fault;
 
-          tfcap            = setbounds_outcap;
+          tfcap            = cheri_operator_i[CSET_BOUNDS_RNDN] ? setbounds_rndn_outcap : setbounds_outcap;
           tfcap.valid      = tfcap.valid & ~is_cap_sealed(rf_fullcap_a);
 
           if (cheri_operator_i[CRRL]) begin
@@ -443,7 +451,7 @@ module cheri_ex import cheri_pkg::*; #(
           cheri_ex_valid_raw = set_bounds_done;
           instr_fault        = csr_dbg_tclr_fault_i & rf_fullcap_a.valid & ~result_cap_o.valid &
                              (cheri_operator_i[CSET_BOUNDS] | cheri_operator_i[CSET_BOUNDS_IMM] |
-                              cheri_operator_i[CSET_BOUNDS_EX]);
+                              cheri_operator_i[CSET_BOUNDS_EX] | cheri_operator_i[CSET_BOUNDS_RNDN]);
           cheri_rf_we_raw    = ~instr_fault;
           cheri_wb_err_raw   = instr_fault;
         end
@@ -580,7 +588,9 @@ module cheri_ex import cheri_pkg::*; #(
           //  if branch prediction works)
           result_data_o        = pc_id_nxt;
           seal_type            = csr_mstatus_mie_i ? OTYPE_SENTRY_IE_BKWD : OTYPE_SENTRY_ID_BKWD;
-          tfcap                = seal_cap(setaddr1_outcap, seal_type);
+          //tfcap                = seal_cap(setaddr1_outcap, seal_type);
+          tfcap                = (rf_waddr_i == 5'h1) ? seal_cap(setaddr1_outcap, seal_type) : 
+                                                        setaddr1_outcap;
           result_cap_o         = full2regcap(tfcap);
 
           // problem with instr_fault: the pcc_cap.valid check causing timing issue on instr_addr_o
@@ -715,7 +725,7 @@ module cheri_ex import cheri_pkg::*; #(
     full_cap_t   tfcap3;
 
     // set_bounds
-    if (cheri_operator_i[CSET_BOUNDS]) begin
+    if (cheri_operator_i[CSET_BOUNDS] | cheri_operator_i[CSET_BOUNDS_RNDN]) begin
       newlen    = rf_rdata_b;
       req_exact = 1'b0;
       tfcap3 = rf_fullcap_a;
@@ -742,9 +752,13 @@ module cheri_ex import cheri_pkg::*; #(
       tmp_addr  = 0;
     end
 
-    bound_req1 = prep_bound_req (tmp_addr, newlen);
+    bound_req1 = CheriCapIT8 ? prep_bound_req_it8 (tfcap3, tmp_addr, newlen) :
+                               prep_bound_req (tfcap3, tmp_addr, newlen);
 
     setbounds_outcap = set_bounds(tfcap3, tmp_addr, bound_req1, req_exact);
+
+    setbounds_rndn_outcap = CheriCapIT8 ? set_bounds_rndn_it8(tfcap3, tmp_addr, bound_req1) :
+                                          set_bounds_rndn(tfcap3, tmp_addr, bound_req1);
   end
 
   assign set_bounds_done = 1'b1;
@@ -833,8 +847,11 @@ module cheri_ex import cheri_pkg::*; #(
     logic        cs2_otype_45;
 
     // generate the address used to check top bound violation
-    if (cheri_operator_i[CSEAL] | cheri_operator_i[CUNSEAL])
+    if (cheri_operator_i[CSEAL])
       base_chkaddr = rf_rdata_b;           // cs2.address
+    else if (cheri_operator_i[CUNSEAL])
+      // inCapBounds(cs2_val, zero_extend(cs1_val.otype), 1)
+      base_chkaddr =  {28'h0, decode_otype(rf_fullcap_a.otype, rf_fullcap_a.perms[PERM_EX])};  
     else if (cheri_operator_i[CIS_SUBSET])
       base_chkaddr = rf_fullcap_b.base32;  // cs2.base32
     else   // CLC/CSC
@@ -901,22 +918,21 @@ module cheri_ex import cheri_pkg::*; #(
       perm_vio_vec[PVIO_SEAL]  = is_cap_sealed(rf_fullcap_a);
       perm_vio_vec[PVIO_SD]    = ~rf_fullcap_a.perms[PERM_SD];
       perm_vio_vec[PVIO_SC]    = (~rf_fullcap_a.perms[PERM_MC] && rf_fullcap_b.valid);
-      perm_vio_vec[PVIO_ALIGN] = (cheri_ls_chkaddr[2:0] != 0); 
+      perm_vio_vec[PVIO_ALIGN] = (cheri_ls_chkaddr[2:0] != 0);
       perm_vio_slc             = ~rf_fullcap_a.perms[PERM_SL] && rf_fullcap_b.valid && 
-                                (~rf_fullcap_b.perms[PERM_GL] | cs2_otype_45) ;
+                                (~rf_fullcap_b.perms[PERM_GL]) ;
     end else if (cheri_operator_i[CSEAL]) begin
       cs2_bad_type = rf_fullcap_a.perms[PERM_EX] ? 
                      ((rf_rdata_b[31:3]!=0)||(rf_rdata_b[2:0]==0)) : 
                      ((|rf_rdata_b[31:4]) || (rf_rdata_b[3:0] <= 8));
       // cs2.addr check : ex: 0-7, non-ex: 9-15
-      perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_a.valid || ~rf_fullcap_b.valid;
+      perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_b.valid;
       perm_vio_vec[PVIO_SEAL]  = is_cap_sealed(rf_fullcap_a) || is_cap_sealed(rf_fullcap_b) || 
                                   (~rf_fullcap_b.perms[PERM_SE]) || cs2_bad_type;
     end else if (cheri_operator_i[CUNSEAL]) begin
-      perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_a.valid || ~rf_fullcap_b.valid; 
+      perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_b.valid; 
       perm_vio_vec[PVIO_SEAL]  = (~is_cap_sealed(rf_fullcap_a)) || is_cap_sealed(rf_fullcap_b) ||
-                                   (rf_rdata_b != {28'h0, decode_otype(rf_fullcap_a.otype, rf_fullcap_a.perms[PERM_EX])}) ||
-                                   (~rf_fullcap_b.perms[PERM_US]);
+                                 (~rf_fullcap_b.perms[PERM_US]);
     end else if (cheri_operator_i[CJALR]) begin
       perm_vio_vec[PVIO_TAG]   = ~rf_fullcap_a.valid;
       perm_vio_vec[PVIO_SEAL]  = (is_cap_sealed(rf_fullcap_a) && (cheri_imm12_i != 0)) ||
@@ -1108,26 +1124,26 @@ module cheri_ex import cheri_pkg::*; #(
   // debug signal for FPGA only
   //
   logic [15:0] dbg_status;
-  logic [67:0] dbg_cs1_vec, dbg_cs2_vec, dbg_cd_vec;
+  logic [66:0] dbg_cs1_vec, dbg_cs2_vec, dbg_cd_vec;
 
   assign dbg_status = {4'h0,
                        instr_is_rv32lsu_i, rv32_lsu_req_i, rv32_lsu_we_i,  rv32_lsu_err,
                        cheri_exec_id_i, cheri_lsu_err, rf_fullcap_a.valid, result_cap_o.valid,
                        addr_bound_vio, perm_vio, addr_bound_vio_rv32, perm_vio_rv32};
 
-  assign dbg_cs1_vec = {rf_fullcap_a.top_cor, rf_fullcap_a.base_cor, // 67:64
+  assign dbg_cs1_vec = {rf_fullcap_a.top_cor, rf_fullcap_a.base_cor, // 66:64
                         rf_fullcap_a.exp,                            // 63:59
                         rf_fullcap_a.top, rf_fullcap_a.base,         // 58:41
                         rf_fullcap_a.otype, rf_fullcap_a.cperms,     // 40:32
                         rf_rdata_a};                                 // 31:0
 
-  assign dbg_cs2_vec = {rf_fullcap_b.top_cor, rf_fullcap_b.base_cor, // 67:64
+  assign dbg_cs2_vec = {rf_fullcap_b.top_cor, rf_fullcap_b.base_cor, // 66:64
                         rf_fullcap_b.exp,                            // 63:59
                         rf_fullcap_b.top, rf_fullcap_b.base,         // 58:41
                         rf_fullcap_b.otype, rf_fullcap_b.cperms,     // 40:32
                         rf_rdata_b};                                 // 31:0
 
-  assign dbg_cd_vec = {result_cap_o.top_cor, result_cap_o.base_cor,  // 67:64
+  assign dbg_cd_vec = {result_cap_o.top_cor, result_cap_o.base_cor,  // 66:64
                         result_cap_o.exp,                            // 63:59
                         result_cap_o.top, result_cap_o.base,         // 58:41
                         result_cap_o.otype, result_cap_o.cperms,     // 40:32

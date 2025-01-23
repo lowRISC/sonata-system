@@ -14,18 +14,20 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
   parameter int unsigned DmHaltAddr       = 32'h1A110800,
   parameter int unsigned DmExceptionAddr  = 32'h1A110808,
   parameter bit          RV32E            = 1'b0,
+  parameter rv32m_e      RV32M            = RV32MFast,
+  parameter rv32b_e      RV32B            = RV32BNone,
   parameter bit          CheriTBRE        = 1'b1,
   parameter bit          CheriStkZ        = 1'b1,
   parameter bit          DbgTriggerEn     = 1'b1,
   parameter int unsigned DbgHwBreakNum    = 4,
   parameter int unsigned MHPMCounterNum   = 0,
-  parameter rv32b_e      RV32B            = RV32BFull,
   parameter int unsigned HeapBase         = 32'h2001_0000,
   parameter int unsigned TSMapBase        = 32'h2004_0000, // 4kB default
   parameter int unsigned TSMapSize        = 1024,          // in words
   parameter int unsigned MMRegDinW        = 128,
   parameter int unsigned MMRegDoutW       = 64,
-  parameter int unsigned DataWidth        = 33,      // this enables testbench to use defparam to override
+  parameter int unsigned DataWidth        = 33,     // this enables testbench to use defparam to override
+  parameter bit          CheriCapIT8      = 1'b0,
   parameter bit          ICache           = 1'b0
 ) (
   // Clock and Reset
@@ -155,6 +157,7 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
     .DbgTriggerEn     (DbgTriggerEn),
     .DbgHwBreakNum    (DbgHwBreakNum),
     .RV32E            (RV32E),
+    .RV32M            (RV32M),
     .RV32B            (RV32B),
     .WritebackStage   (1'b1),
     .BranchPredictor  (1'b0),
@@ -170,6 +173,7 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
     .CheriStkZ        (CheriStkZ),
     .MMRegDinW        (MMRegDinW),
     .MMRegDoutW       (MMRegDoutW),
+    .CheriCapIT8      (CheriCapIT8),
     .ICache           (ICache)
   ) u_ibex_top (
     .clk_i,
@@ -274,7 +278,8 @@ module ibexc_top_tracing import ibex_pkg::*; import cheri_pkg::*; #(
 // synthesis translate_off
 `ifdef RVFI
   ibex_tracer #(
-    .DataWidth        (DataWidth)
+    .DataWidth        (DataWidth),
+    .CheriCapIT8      (CheriCapIT8)
   ) u_ibex_tracer (
     .clk_i,
     .rst_ni,
