@@ -42,6 +42,10 @@ lint_off -rule UNOPTFLAT -file "*ibex_load_store_unit.sv" -match "*Signal unopti
 lint_off -rule UNOPTFLAT -file "*ibex_load_store_unit.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.cpu_req_valid'"
 lint_off -rule UNOPTFLAT -file "*cheri_tbre_wrapper.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.mstr_arbit_comb'"
 
+// Many width issues have been introduced upstream. These should be fixed there but are relatively harmless.
+lint_off -rule WIDTHEXPAND -file "*/rtl/cheri_pkg.sv"
+lint_off -rule WIDTHTRUNC -file "*/rtl/cheri_pkg.sv"
+
 // Lint error for PULP debug module.
 lint_off -rule UNUSED -file "*pulp_riscv_dbg*" -match "*not used*"
 lint_off -rule IMPERFECTSCH -file "*pulp_riscv_dbg*"
