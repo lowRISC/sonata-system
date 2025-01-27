@@ -113,16 +113,16 @@ In CHERIoT Safe the size of the revocation tag memory is 16 KiB.
 ### List of SRAM blocks
 
 Here's a list of blocks by size that we need to allocate in SRAM.
-The XC7A35T has 100 blocks of 18 kilobit block RAM, [see datasheet](https://docs.xilinx.com/v/u/en-US/ds180_7Series_Overview).
-In total that gives use 225 KiB of block RAM, but we may not efficiently map onto 18 kilobit blocks and thus lose some memory.
-The block RAM usage in the table below was calculated using Vivado 2023.2's block memory generator.
+The XC7A50T has 150 blocks of 18 kilobit block RAM, [see datasheet](https://docs.xilinx.com/v/u/en-US/ds180_7Series_Overview).
+In total that gives use 337 KiB of block RAM, but we may not efficiently map onto 18 kilobit blocks and thus lose some memory.
+The block RAM usage in the table below was calculated using Vivado 2024.1's block memory generator:
 
 | Type                   | Size    | Width | Depth  | RAM Blocks |
 |------------------------|---------|-------|--------|------------|
 | Internal memory        | 128 KiB |    33 | 32,768 |         60 |
-| Revocation tags        |  16 KiB |    32 |  4,096 |          8 |
-| RAM capability tags    |  32 KiB |    32 |  8,192 |         15 |
+| Revocation tags        |   2 KiB |    32 |    512 |          1 |
+| RAM capability tags    |  36 KiB |    32 |  9,216 |         18 |
 | Instruction cache data |   4 KiB |    64 |    512 |          2 |
 | Instruction cache tags |   1 KiB |    22 |    512 |          1 |
-| Total                  | 181 KiB |       |        |         86 |
-| Available              | 225 KiB |       |        |        100 |
+| Total                  | 171 KiB |       |        |         82 |
+| Available              | 337 KiB |       |        |        150 |
