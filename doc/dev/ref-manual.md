@@ -91,14 +91,8 @@ Any memory that needs to be revocable must have one revocation tag per 32 bits.
 
 ### Capability tags
 
-All capability tags live in SRAM.
-All SRAM that is allocated for code and data will have corresponding capability tags.
-Any data stored to HyperRAM and flash are not expected to be tagged.
-Since capability tags are out of band information and do not need to be memory mapped, we can store these within the error correction bits that are available on the FPGA's memory.
-
-We envision that code can live in HyperRAM with an instruction cache for improved performance.
-However, this does require code to be able to live in untagged memory.
-This should be fine as CHERI capabilities are derived and manipulated at runtime, but does require toolchain changes to LLVM and the corresponding RTOS.
+All of SRAM and 1 MiB of HyperRAM have corresponding capability tags.
+We envision code and read-only data to live in HyperRAM, while the stack and the heap live in SRAM.
 
 ### Revocation tags
 
@@ -109,7 +103,7 @@ This is a temporary step as the revocation engine scans through memory to invali
 Once the complete memory is scanned, the revocation bit can be unset and the memory can be reused.
 
 In Sonata, the revocation tags only cover a subset of mapped memory.
-They should apply to memory regions that are most likely to be used as heap, it is likely this will cover all of internal SRAM and some of HyperRAM.
+They apply to memory regions that are most likely to be used as heap, it covers all of the internal SRAM but none of HyperRAM.
 Unlike capability tags, revocation tags need to be memory mapped so the memory allocator can manipulate them.
 
 In CHERIoT Ibex the size of memory allocated for this is defined by `TSMapSize` which indicates how many 32-bit words can be used for revocation bits.
