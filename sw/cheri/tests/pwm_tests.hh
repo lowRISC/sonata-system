@@ -53,9 +53,8 @@ constexpr bool LogPwmTests               = false;
  *
  * @returns The integer number of failures during the test
  */
-int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, uint8_t input_pin, PwmPtr pwm,
-                      uint8_t pwm_instance, uint8_t period, uint8_t duty_cycle, uint8_t cycles, uint8_t error_delta,
-                      Log &log) {
+int pwm_loopback_test(GpioPtr gpio_pmod0, uint8_t input_pin, PwmPtr pwm, uint8_t pwm_instance, uint8_t period,
+                      uint8_t duty_cycle, uint8_t cycles, uint8_t error_delta, Log &log) {
   // Calculate error bounds & timeouts for use in testing
   const uint32_t period_lower     = period - (error_delta > period ? period : error_delta);
   const uint32_t period_upper     = period + error_delta;
@@ -68,7 +67,7 @@ int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, uint8_t i
   // Configure GPIO, timer and PWM respectively.
   gpio_pmod0->set_output_enable(input_pin, false);
   reset_mcycle();
-  pwm->output_set(pwm_instance, period, duty_cycle);
+  pwm->output[pwm_instance].output_set(period, duty_cycle);
 
   uint32_t cycles_observed = 0;
   const bool inputState    = gpio_pmod0->read_input(input_pin);
@@ -129,20 +128,20 @@ int pwm_loopback_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, uint8_t i
  *
  * @returns The integer number of failures during the test.
  */
-int pwm_zero_counter_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
-  constexpr uint8_t PwmInstance        = 0;
+int pwm_zero_counter_test(GpioPtr gpio_pmod0, PwmPtr pwm) {
   constexpr uint8_t InputPin           = 0;
   constexpr uint8_t PropagationWaitOps = 25;
 
+  auto pwm0    = pwm->get<0>();
   int failures = 0;
 
   // Configure GPIO, timer and PWM respectively.
   gpio_pmod0->set_output_enable(InputPin, false);
   reset_mcycle();
-  pwm->output_set(PwmInstance, 0, 0);
+  pwm0->output_set(0, 0);
 
   for (uint32_t duty_cycle = 0; duty_cycle <= 255; duty_cycle++) {
-    pwm->output_set(PwmInstance, 0, duty_cycle);
+    pwm0->output_set(0, duty_cycle);
     // Wait a (very) short while to be sure the signal propagated
     for (uint32_t i = 0; i < PropagationWaitOps; i++) {
       asm volatile("nop");
@@ -161,21 +160,21 @@ int pwm_zero_counter_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capab
  *
  * @returns The integer number of failures during the test.
  */
-int pwm_always_high_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capability<volatile SonataPwm> pwm) {
-  constexpr uint8_t PwmInstance = 0;
-  constexpr uint8_t InputPin    = 0;
+int pwm_always_high_test(GpioPtr gpio_pmod0, PwmPtr pwm) {
+  constexpr uint8_t InputPin = 0;
 
+  auto pwm0    = pwm->get<0>();
   int failures = 0;
 
   // Configure GPIO, timer and PWM respectively.
   gpio_pmod0->set_output_enable(InputPin, false);
   reset_mcycle();
-  pwm->output_set(PwmInstance, 0, 1);
+  pwm0->output_set(0, 1);
 
   for (uint32_t period = 1; period < 255; period++) {
     // Choose a duty cycle about 50% between the period end and the max (255)
     uint32_t duty_cycle = (256 - period) / 2 + period;
-    pwm->output_set(PwmInstance, period, duty_cycle);
+    pwm0->output_set(period, duty_cycle);
     // Check that output is always high for 2 PWM periods (+ a small constant)
     constexpr uint8_t MinimumCycles = 50;
     uint32_t start_mcycle           = get_mcycle();
@@ -186,7 +185,7 @@ int pwm_always_high_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capabi
   }
 
   // Disable PWM output
-  pwm->output_set(PwmInstance, 0, 0);
+  pwm0->output_set(0, 0);
 
   return failures;
 }
@@ -196,9 +195,7 @@ int pwm_always_high_test(Capability<volatile SonataGpioPmod0> gpio_pmod0, Capabi
  */
 void pwm_tests(CapRoot root, Log &log) {
   // Create bounded capabilities for PMOD0's GPIO
-  Capability<volatile SonataGpioPmod0> gpio_pmod0 = root.cast<volatile SonataGpioPmod0>();
-  gpio_pmod0.address()                            = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_pmod0.bounds()                             = GPIO_BOUNDS;
+  auto gpio_pmod0 = gpio_ptr(root, 3);
 
   // Create bounded capability for PWM
   PwmPtr pwm = pwm_ptr(root);

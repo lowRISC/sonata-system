@@ -9,18 +9,8 @@
 #include <cheri.hh>
 #include <platform-gpio.hh>
 #include <ds/xoroshiro.h>
-
-using namespace CHERI;
-
-// The full definition of Sonata's GPIO array.
-struct SonataGpioFull {
-  Capability<volatile SonataGpioBoard> general;
-  Capability<volatile SonataGpioRaspberryPiHat> rpi;
-  Capability<volatile SonataGpioArduinoShield> arduino;
-  Capability<volatile SonataGpioPmod0> pmod0;
-  Capability<volatile SonataGpioPmod1> pmod1;
-  Capability<volatile SonataGpioPmodC> pmodc;
-};
+using namespace CHERI;  // The full definition of Sonata's GPIO array.
+using SonataGpioFull = std::array<GpioPtr, 6>;
 
 // Enum representing possible GPIO instances, and their ordering
 enum class GpioInstance : uint8_t {
@@ -39,6 +29,7 @@ struct GpioPin {
 };
 
 SonataGpioFull get_full_gpio_ptrs(Capability<void> CapRoot);
+GpioPtr get_gpio_instance(SonataGpioFull *gpio, GpioInstance instance);
 void set_gpio_output(SonataGpioFull *gpio, GpioPin pin, bool value);
 void set_gpio_output_enable(SonataGpioFull *gpio, GpioPin pin, bool value);
 bool get_gpio_input(SonataGpioFull *gpio, GpioPin pin);

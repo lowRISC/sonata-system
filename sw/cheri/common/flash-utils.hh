@@ -27,7 +27,7 @@ class SpiFlash {
  private:
   SpiPtr spi;
 
-  void set_cs(bool enable) { spi->cs = enable ? (spi->cs & ~1u) : (spi->cs | 1u); }
+  void set_cs(bool enable) { spi->chipSelects = enable ? (spi->chipSelects & ~1u) : (spi->chipSelects | 1u); }
 
  public:
   SpiFlash(SpiPtr spi_) : spi(spi_) {}
