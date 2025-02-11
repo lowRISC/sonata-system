@@ -22,7 +22,7 @@ class SdCard {
   // Access to SPI controller.
   volatile SonataSpi::Generic<> *spi;
   // Access to GPIO block (required for SD card detection).
-  volatile SonataGpioBase *gpio;
+  GpioPtr gpio;
   // Chip select (single bit set).
   uint32_t cs;
   // SD card `detect` pin (single bit set).
@@ -51,8 +51,8 @@ class SdCard {
   // with or without CRC checking.
   //
   // Logging may optionally be requested.
-  SdCard(volatile SonataSpi::Generic<> *spi_, volatile SonataGpioBase *gpio_, unsigned cs_ = 1u, unsigned det_ = 16u,
-         bool crc_ = true, Log *log_ = nullptr)
+  SdCard(volatile SonataSpi::Generic<> *spi_, GpioPtr gpio_, unsigned cs_ = 1u, unsigned det_ = 16u, bool crc_ = true,
+         Log *log_ = nullptr)
       : spi(spi_), gpio(gpio_), cs(1u << cs_), det(1u << det_), crcOn(crc_), log(log_) {}
 
   // SD command codes. (Section 7.3.1)
@@ -87,7 +87,7 @@ class SdCard {
   // Indicates whether there is an SD card present in the slot.
   bool present() const { return !(gpio->debouncedInput & det); }
 
-  void select_card(bool enable) { spi->cs = enable ? (spi->cs & ~cs) : (spi->cs | cs); }
+  void select_card(bool enable) { spi->chipSelects = enable ? (spi->chipSelects & ~cs) : (spi->chipSelects | cs); }
 
   // Initialise the SD card ready for use.
   bool init() {

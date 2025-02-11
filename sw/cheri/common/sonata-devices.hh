@@ -22,7 +22,7 @@
 #include "platform-pinmux.hh"
 
 typedef CHERI::Capability<void> CapRoot;
-typedef volatile SonataGpioBoard *GpioPtr;
+typedef volatile SonataGpioBase<> *GpioPtr;
 typedef volatile SonataPulseWidthModulation::General *PwmPtr;
 typedef volatile OpenTitanUart *UartPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
@@ -35,15 +35,15 @@ typedef volatile SonataPinmux::PinSinks *PinSinksPtr;
 typedef volatile SonataPinmux::BlockSinks *BlockSinksPtr;
 using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 
-[[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root) {
-  CHERI::Capability<volatile SonataGpioBoard> gpio = root.cast<volatile SonataGpioBoard>();
-  gpio.address()                                   = GPIO_ADDRESS;
-  gpio.bounds()                                    = GPIO_BOUNDS;
+[[maybe_unused]] static GpioPtr gpio_ptr(CapRoot root, uint8_t index = 0) {
+  CHERI::Capability<volatile SonataGpioBase<>> gpio = root.cast<volatile SonataGpioBase<>>();
+  gpio.address()                                    = GPIO_ADDRESS + GPIO_RANGE * index;
+  gpio.bounds()                                     = GPIO_BOUNDS;
   return gpio;
 }
 
 [[maybe_unused]] static PwmPtr pwm_ptr(CapRoot root) {
-  using SonataPwm = SonataPulseWidthModulation::General;
+  using SonataPwm                           = SonataPulseWidthModulation::General;
   CHERI::Capability<volatile SonataPwm> pwm = root.cast<volatile SonataPwm>();
   pwm.address()                             = PWM_ADDRESS;
   pwm.bounds()                              = PWM_BOUNDS * PWM_NUM;
@@ -67,7 +67,7 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 }
 
 [[maybe_unused]] static SpiPtr spi_ptr(CapRoot root, uint32_t idx = 0) {
-  using SonataSpi = SonataSpi::Generic<>;
+  using SonataSpi                           = SonataSpi::Generic<>;
   CHERI::Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
   assert(idx < SPI_NUM);
   spi.address() = SPI_ADDRESS + (idx * SPI_RANGE);

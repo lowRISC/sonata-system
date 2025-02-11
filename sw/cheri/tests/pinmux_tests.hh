@@ -103,15 +103,15 @@ static int pinmux_uart_test(PinmuxPtrs sinks, ds::xoroshiro::P32R8 &prng, UartPt
 }
 
 static void reset_spi_flash(SpiPtr spi) {
-  spi->cs = (spi->cs & ~1u);  // Enable CS
+  spi->chip_select_assert<0>();
   spi->blocking_write(&CmdEnableReset, 1);
   spi->wait_idle();
-  spi->cs = (spi->cs | 1u);  // Disable CS
+  spi->chip_select_assert<0>(false);
 
-  spi->cs = (spi->cs & ~1u);  // Enable CS
+  spi->chip_select_assert<0>();
   spi->blocking_write(&CmdReset, 1);
   spi->wait_idle();
-  spi->cs = (spi->cs | 1u);  // Disable CS
+  spi->chip_select_assert<0>(false);
 
   // Need to wait at least 30us for the reset to complete.
   wait_mcycle(2000);
@@ -322,6 +322,7 @@ static int pinmux_pwm_test(PinmuxPtrs sinks, PwmPtr pwm, SonataGpioFull *gpio, L
   int failures     = 0;
   auto pmod0_8     = std::get<PinSinksPtr>(sinks)->get(PinSink::pmod0_8);
   auto pmod0_gpio7 = std::get<BlockSinksPtr>(sinks)->get(BlockSink::gpio_2_ios_7);
+  auto gpio_pmod0  = get_gpio_instance(gpio, GpioPinInput.instance);
 
   constexpr size_t NumLoopbackTests              = 3;
   constexpr uint8_t Periods[NumLoopbackTests]    = {255, 255, 128};
@@ -336,21 +337,21 @@ static int pinmux_pwm_test(PinmuxPtrs sinks, PwmPtr pwm, SonataGpioFull *gpio, L
 
   // Check that the PWM works as expected in loopback tests
   for (uint8_t i = 0; i < NumLoopbackTests; i++) {
-    failures += pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+    failures += pwm_loopback_test(gpio_pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
                                   NumPwmCyclesObserved, AllowedCycleDeviation, log);
   }
 
   // Disable the PWM via pinmux, and check that the test now fails:
   pmod0_8.disable();
   for (uint8_t i = 0; i < NumLoopbackTests; i++) {
-    failures += !pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+    failures += !pwm_loopback_test(gpio_pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
                                    NumPwmCyclesObserved, AllowedCycleDeviation, log);
   }
 
   // Re-enable the PWM via pinmux, and check that the test now passes again
   failures += !pmod0_8.select(PmxPmod0_8ToPwmOut2);
   for (uint8_t i = 0; i < NumLoopbackTests; i++) {
-    failures += pwm_loopback_test(gpio->pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
+    failures += pwm_loopback_test(gpio_pmod0, GpioPinInput.bit, pwm, PwmInstance, Periods[i], DutyCycles[i],
                                   NumPwmCyclesObserved, AllowedCycleDeviation, log);
   }
 

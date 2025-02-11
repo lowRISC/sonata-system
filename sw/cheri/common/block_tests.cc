@@ -18,45 +18,17 @@ static constexpr uint32_t CyclesPerMicrosecond = (CPU_TIMER_HZ + 999'999) / 1'00
  */
 SonataGpioFull get_full_gpio_ptrs(Capability<void> root) {
   SonataGpioFull gpio_full;
-  gpio_full.general           = root.cast<volatile SonataGpioBoard>();
-  gpio_full.general.address() = GPIO_ADDRESS;
-  gpio_full.general.bounds()  = GPIO_BOUNDS;
-  gpio_full.rpi               = root.cast<volatile SonataGpioRaspberryPiHat>();
-  gpio_full.rpi.address()     = GPIO_ADDRESS + GPIO_RANGE;
-  gpio_full.rpi.bounds()      = GPIO_BOUNDS;
-  gpio_full.arduino           = root.cast<volatile SonataGpioArduinoShield>();
-  gpio_full.arduino.address() = GPIO_ADDRESS + GPIO_RANGE * 2;
-  gpio_full.arduino.bounds()  = GPIO_BOUNDS;
-  gpio_full.pmod0             = root.cast<volatile SonataGpioPmod0>();
-  gpio_full.pmod0.address()   = GPIO_ADDRESS + GPIO_RANGE * 3;
-  gpio_full.pmod0.bounds()    = GPIO_BOUNDS;
-  gpio_full.pmod1             = root.cast<volatile SonataGpioPmod1>();
-  gpio_full.pmod1.address()   = GPIO_ADDRESS + GPIO_RANGE * 4;
-  gpio_full.pmod1.bounds()    = GPIO_BOUNDS;
-  gpio_full.pmodc             = root.cast<volatile SonataGpioPmodC>();
-  gpio_full.pmodc.address()   = GPIO_ADDRESS + GPIO_RANGE * 5;
-  gpio_full.pmodc.bounds()    = GPIO_BOUNDS;
+  for (uint8_t idx = 0; idx < gpio_full.size(); ++idx) {
+    gpio_full[idx] = gpio_ptr(root, idx);
+  }
   return gpio_full;
 }
 
 /**
  * Get a capability for a specific GPIO instance from the full range of GPIO.
  */
-Capability<volatile SonataGpioBase> get_gpio_instance(SonataGpioFull *gpio, GpioInstance instance) {
-  switch (instance) {
-    case GpioInstance::General:
-      return gpio->general.cast<volatile SonataGpioBase>();
-    case GpioInstance::RaspberryPiHat:
-      return gpio->rpi.cast<volatile SonataGpioBase>();
-    case GpioInstance::ArduinoShield:
-      return gpio->arduino.cast<volatile SonataGpioBase>();
-    case GpioInstance::Pmod0:
-      return gpio->pmod0.cast<volatile SonataGpioBase>();
-    case GpioInstance::Pmod1:
-      return gpio->pmod1.cast<volatile SonataGpioBase>();
-    case GpioInstance::PmodC:
-      return gpio->pmodc.cast<volatile SonataGpioBase>();
-  }
+GpioPtr get_gpio_instance(SonataGpioFull *gpio, GpioInstance instance) {
+  return (*gpio)[static_cast<size_t>(instance)];
 }
 
 /**
@@ -201,10 +173,10 @@ bool spi_n25q256a_read_jedec_id(SpiPtr spi) {
 
   // Read the JEDEC ID from the external flash
   uint8_t jedec_id[3] = {0x12, 0x34, 0x56};  // (Dummy data)
-  spi->cs             = (spi->cs & ~1u);     // Set ¬CS High
+  spi->chip_select_assert<0>();
   spi->blocking_write(&CmdReadJEDECId, 1);
   spi->blocking_read(jedec_id, 3);
-  spi->cs = (spi->cs | 1u);  // Set ¬CS Low
+  spi->chip_select_assert<0>(false);
 
   // Check that the retrieved ID matches our expected value
   for (size_t index = 0; index < sizeof(jedec_id); index++) {
