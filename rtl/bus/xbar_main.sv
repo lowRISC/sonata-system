@@ -10,12 +10,14 @@
 //   -> s1n_26
 //     -> sm1_27
 //       -> sram
-//     -> hyperram
+//     -> sm1_28
+//       -> hyperram
 //     -> rev_tag
 //     -> dbg_dev
 //     -> gpio
 //     -> pinmux
-//     -> system_info
+//     -> sm1_29
+//       -> system_info
 //     -> rgbled_ctrl
 //     -> hw_rev
 //     -> xadc
@@ -31,12 +33,17 @@
 //     -> spi0
 //     -> spi1
 //     -> spi2
-//     -> asf_28
+//     -> asf_30
 //       -> usbdev
 //     -> rv_plic
 // dbg_host
-//   -> sm1_27
-//     -> sram
+//   -> s1n_31
+//     -> sm1_27
+//       -> sram
+//     -> sm1_28
+//       -> hyperram
+//     -> sm1_29
+//       -> system_info
 
 module xbar_main (
   input clk_sys_i,
@@ -128,18 +135,42 @@ module xbar_main (
   tl_h2d_t tl_sm1_27_ds_h2d ;
   tl_d2h_t tl_sm1_27_ds_d2h ;
 
-  tl_h2d_t tl_asf_28_us_h2d ;
-  tl_d2h_t tl_asf_28_us_d2h ;
-  tl_h2d_t tl_asf_28_ds_h2d ;
-  tl_d2h_t tl_asf_28_ds_d2h ;
+
+  tl_h2d_t tl_sm1_28_us_h2d [2];
+  tl_d2h_t tl_sm1_28_us_d2h [2];
+
+  tl_h2d_t tl_sm1_28_ds_h2d ;
+  tl_d2h_t tl_sm1_28_ds_d2h ;
+
+
+  tl_h2d_t tl_sm1_29_us_h2d [2];
+  tl_d2h_t tl_sm1_29_us_d2h [2];
+
+  tl_h2d_t tl_sm1_29_ds_h2d ;
+  tl_d2h_t tl_sm1_29_ds_d2h ;
+
+  tl_h2d_t tl_asf_30_us_h2d ;
+  tl_d2h_t tl_asf_30_us_d2h ;
+  tl_h2d_t tl_asf_30_ds_h2d ;
+  tl_d2h_t tl_asf_30_ds_d2h ;
+
+  tl_h2d_t tl_s1n_31_us_h2d ;
+  tl_d2h_t tl_s1n_31_us_d2h ;
+
+
+  tl_h2d_t tl_s1n_31_ds_h2d [3];
+  tl_d2h_t tl_s1n_31_ds_d2h [3];
+
+  // Create steering signal
+  logic [1:0] dev_sel_s1n_31;
 
 
 
   assign tl_sm1_27_us_h2d[0] = tl_s1n_26_ds_h2d[0];
   assign tl_s1n_26_ds_d2h[0] = tl_sm1_27_us_d2h[0];
 
-  assign tl_hyperram_o = tl_s1n_26_ds_h2d[1];
-  assign tl_s1n_26_ds_d2h[1] = tl_hyperram_i;
+  assign tl_sm1_28_us_h2d[0] = tl_s1n_26_ds_h2d[1];
+  assign tl_s1n_26_ds_d2h[1] = tl_sm1_28_us_d2h[0];
 
   assign tl_rev_tag_o = tl_s1n_26_ds_h2d[2];
   assign tl_s1n_26_ds_d2h[2] = tl_rev_tag_i;
@@ -153,8 +184,8 @@ module xbar_main (
   assign tl_pinmux_o = tl_s1n_26_ds_h2d[5];
   assign tl_s1n_26_ds_d2h[5] = tl_pinmux_i;
 
-  assign tl_system_info_o = tl_s1n_26_ds_h2d[6];
-  assign tl_s1n_26_ds_d2h[6] = tl_system_info_i;
+  assign tl_sm1_29_us_h2d[0] = tl_s1n_26_ds_h2d[6];
+  assign tl_s1n_26_ds_d2h[6] = tl_sm1_29_us_d2h[0];
 
   assign tl_rgbled_ctrl_o = tl_s1n_26_ds_h2d[7];
   assign tl_s1n_26_ds_d2h[7] = tl_rgbled_ctrl_i;
@@ -201,14 +232,20 @@ module xbar_main (
   assign tl_spi2_o = tl_s1n_26_ds_h2d[21];
   assign tl_s1n_26_ds_d2h[21] = tl_spi2_i;
 
-  assign tl_asf_28_us_h2d = tl_s1n_26_ds_h2d[22];
-  assign tl_s1n_26_ds_d2h[22] = tl_asf_28_us_d2h;
+  assign tl_asf_30_us_h2d = tl_s1n_26_ds_h2d[22];
+  assign tl_s1n_26_ds_d2h[22] = tl_asf_30_us_d2h;
 
   assign tl_rv_plic_o = tl_s1n_26_ds_h2d[23];
   assign tl_s1n_26_ds_d2h[23] = tl_rv_plic_i;
 
-  assign tl_sm1_27_us_h2d[1] = tl_dbg_host_i;
-  assign tl_dbg_host_o = tl_sm1_27_us_d2h[1];
+  assign tl_sm1_27_us_h2d[1] = tl_s1n_31_ds_h2d[0];
+  assign tl_s1n_31_ds_d2h[0] = tl_sm1_27_us_d2h[1];
+
+  assign tl_sm1_28_us_h2d[1] = tl_s1n_31_ds_h2d[1];
+  assign tl_s1n_31_ds_d2h[1] = tl_sm1_28_us_d2h[1];
+
+  assign tl_sm1_29_us_h2d[1] = tl_s1n_31_ds_h2d[2];
+  assign tl_s1n_31_ds_d2h[2] = tl_sm1_29_us_d2h[1];
 
   assign tl_s1n_26_us_h2d = tl_ibex_lsu_i;
   assign tl_ibex_lsu_o = tl_s1n_26_us_d2h;
@@ -216,8 +253,17 @@ module xbar_main (
   assign tl_sram_o = tl_sm1_27_ds_h2d;
   assign tl_sm1_27_ds_d2h = tl_sram_i;
 
-  assign tl_usbdev_o = tl_asf_28_ds_h2d;
-  assign tl_asf_28_ds_d2h = tl_usbdev_i;
+  assign tl_hyperram_o = tl_sm1_28_ds_h2d;
+  assign tl_sm1_28_ds_d2h = tl_hyperram_i;
+
+  assign tl_system_info_o = tl_sm1_29_ds_h2d;
+  assign tl_sm1_29_ds_d2h = tl_system_info_i;
+
+  assign tl_usbdev_o = tl_asf_30_ds_h2d;
+  assign tl_asf_30_ds_d2h = tl_usbdev_i;
+
+  assign tl_s1n_31_us_h2d = tl_dbg_host_i;
+  assign tl_dbg_host_o = tl_s1n_31_us_d2h;
 
   always_comb begin
     // default steering to generate error response if address is not within the range
@@ -320,6 +366,23 @@ module xbar_main (
 end
   end
 
+  always_comb begin
+    // default steering to generate error response if address is not within the range
+    dev_sel_s1n_31 = 2'd3;
+    if ((tl_s1n_31_us_h2d.a_address &
+         ~(ADDR_MASK_SRAM)) == ADDR_SPACE_SRAM) begin
+      dev_sel_s1n_31 = 2'd0;
+
+    end else if ((tl_s1n_31_us_h2d.a_address &
+                  ~(ADDR_MASK_HYPERRAM)) == ADDR_SPACE_HYPERRAM) begin
+      dev_sel_s1n_31 = 2'd1;
+
+    end else if ((tl_s1n_31_us_h2d.a_address &
+                  ~(ADDR_MASK_SYSTEM_INFO)) == ADDR_SPACE_SYSTEM_INFO) begin
+      dev_sel_s1n_31 = 2'd2;
+end
+  end
+
 
   // Instantiation phase
   tlul_socket_1n #(
@@ -340,9 +403,8 @@ end
     .dev_select_i (dev_sel_s1n_26)
   );
   tlul_socket_m1 #(
-    .HReqPass  (2'h1),
-    .HReqDepth (8'h10),
-    .HRspDepth (8'h10),
+    .HReqDepth (8'h0),
+    .HRspDepth (8'h0),
     .DReqDepth (4'h0),
     .DRspDepth (4'h0),
     .M         (2)
@@ -354,18 +416,61 @@ end
     .tl_d_o       (tl_sm1_27_ds_h2d),
     .tl_d_i       (tl_sm1_27_ds_d2h)
   );
+  tlul_socket_m1 #(
+    .HReqDepth (8'h0),
+    .HRspDepth (8'h0),
+    .DReqDepth (4'h0),
+    .DRspDepth (4'h0),
+    .M         (2)
+  ) u_sm1_28 (
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
+    .tl_h_i       (tl_sm1_28_us_h2d),
+    .tl_h_o       (tl_sm1_28_us_d2h),
+    .tl_d_o       (tl_sm1_28_ds_h2d),
+    .tl_d_i       (tl_sm1_28_ds_d2h)
+  );
+  tlul_socket_m1 #(
+    .HReqDepth (8'h0),
+    .HRspDepth (8'h0),
+    .DReqDepth (4'h0),
+    .DRspDepth (4'h0),
+    .M         (2)
+  ) u_sm1_29 (
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
+    .tl_h_i       (tl_sm1_29_us_h2d),
+    .tl_h_o       (tl_sm1_29_us_d2h),
+    .tl_d_o       (tl_sm1_29_ds_h2d),
+    .tl_d_i       (tl_sm1_29_ds_d2h)
+  );
   tlul_fifo_async #(
     .ReqDepth        (1),
     .RspDepth        (1)
-  ) u_asf_28 (
+  ) u_asf_30 (
     .clk_h_i      (clk_sys_i),
     .rst_h_ni     (rst_sys_ni),
     .clk_d_i      (clk_usb_i),
     .rst_d_ni     (rst_usb_ni),
-    .tl_h_i       (tl_asf_28_us_h2d),
-    .tl_h_o       (tl_asf_28_us_d2h),
-    .tl_d_o       (tl_asf_28_ds_h2d),
-    .tl_d_i       (tl_asf_28_ds_d2h)
+    .tl_h_i       (tl_asf_30_us_h2d),
+    .tl_h_o       (tl_asf_30_us_d2h),
+    .tl_d_o       (tl_asf_30_ds_h2d),
+    .tl_d_i       (tl_asf_30_ds_d2h)
+  );
+  tlul_socket_1n #(
+    .HReqPass  (1'b0),
+    .HRspPass  (1'b0),
+    .DReqDepth (12'h0),
+    .DRspDepth (12'h0),
+    .N         (3)
+  ) u_s1n_31 (
+    .clk_i        (clk_sys_i),
+    .rst_ni       (rst_sys_ni),
+    .tl_h_i       (tl_s1n_31_us_h2d),
+    .tl_h_o       (tl_s1n_31_us_d2h),
+    .tl_d_o       (tl_s1n_31_ds_h2d),
+    .tl_d_i       (tl_s1n_31_ds_d2h),
+    .dev_select_i (dev_sel_s1n_31)
   );
 
 endmodule
