@@ -281,6 +281,17 @@
         size_byte: "0x00001000",
       }],
     },
+    { name:     "dbg_dev", // Debug module fetch interface
+      type:     "device",
+      clock:    "clk_sys_i",
+      reset:    "rst_sys_ni",
+      xbar:     false,
+      pipeline: true,
+      addr_range: [{
+        base_addr: "0xB0000000",
+        size_byte: "0x00001000",
+      }],
+    },
     { name:  "rv_plic", // RISC-V platform interrupt controller
       type:  "device",
       clock: "clk_sys_i",
@@ -301,6 +312,7 @@
       "sram",
       "hyperram",
       "rev_tag",
+      "dbg_dev",
       "gpio",
       "pinmux",
       "system_info",
