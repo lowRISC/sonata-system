@@ -80,6 +80,8 @@ load_program() {
   openocd -f "$TCL_FILE" \
     -c "load_image $ELF_FILE 0x0" \
     -c "verify_image $ELF_FILE 0x0" \
+    -c "echo \"Doing reset\"" \
+    -c "reset run" \
     -c "exit"
 }
 
