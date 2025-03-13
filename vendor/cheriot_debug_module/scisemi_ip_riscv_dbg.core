@@ -1,0 +1,42 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "scisemi:ip:debug_module"
+description: "RISC-V Debug Module"
+
+filesets:
+  files_src:
+    depend:
+      - lowrisc:prim:fifo
+      - lowrisc:prim:clock_inv
+    files:
+      - debug_rom/debug_rom.sv
+#     - debug_rom/debug_rom_one_scratch.sv
+      - src/dm_pkg.sv
+      - src/dm_sba.sv
+      - src/dm_csrs.sv
+      - src/dm_mem.sv
+      - src/dmi_cdc.sv
+      - src/dmi_jtag.sv
+    file_type: systemVerilogSource
+
+  files_vivado:
+    files:
+      - src/dmi_bscane_tap.sv
+    file_type: systemVerilogSource
+
+  files_verilator:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+    files:
+      - src/dmi_jtag_tap.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - files_src
+      - tool_verilator ? (files_verilator)
+      - tool_vivado ? (files_vivado)
