@@ -1,0 +1,160 @@
+diff --git a/debug_rom/Makefile b/debug_rom/Makefile
+index fa558b0..228bab1 100644
+--- a/debug_rom/Makefile
++++ b/debug_rom/Makefile
+@@ -1,7 +1,7 @@
+ # See LICENSE.SiFive for license details
+ 
+-// Conversion to CHERIoT Ibex ISA from RISC-V
+-//   Copyright SCI Semiconductor 2025
++## Conversion to CHERIoT Ibex ISA from RISC-V
++##   Copyright SCI Semiconductor 2025
+ 
+ debug_rom = debug_rom.sv debug_rom.dump
+ 
+diff --git a/debug_rom/debug_rom.dump b/debug_rom/debug_rom.dump
+index a227224..fe66e5b 100644
+--- a/debug_rom/debug_rom.dump
++++ b/debug_rom/debug_rom.dump
+@@ -41,7 +41,7 @@ Disassembly of section .text:
+      860: 23 26 05 10  	csw	zero, 268(ca0)
+      864: 5b 05 a0 03  	cspecialr	ca0, 26
+      868: 5b 04 90 03  	cspecialr	cs0, 25
+-     86c: 73 00 10 00  	ebreak	
++     86c: 73 00 10 00  	ebreak
+ 
+ 00000870 <going>:
+      870: 23 22 05 10  	csw	zero, 260(ca0)
+@@ -54,4 +54,4 @@ Disassembly of section .text:
+      884: 23 24 85 10  	csw	s0, 264(ca0)
+      888: 5b 05 a0 03  	cspecialr	ca0, 26
+      88c: 5b 04 90 03  	cspecialr	cs0, 25
+-     890: 73 00 20 7b  	dret	
++     890: 73 00 20 7b  	dret
+diff --git a/src/dmi_cdc.sv b/src/dmi_cdc.sv
+index 1299b09..7dd550e 100644
+--- a/src/dmi_cdc.sv
++++ b/src/dmi_cdc.sv
+@@ -44,42 +44,38 @@ module dmi_cdc (
+ 
+   // TODO: Make it clean for synthesis.
+ 
+-  prim_fifo_async #(
++  prim_fifo_async_simple #(
+     .Width       ( $bits(dm::dmi_req_t) ),
+-    .Depth       ( 4 )
++    .EnRzHs      ( 1                    )
+   ) i_cdc_req (
+     .clk_wr_i    ( tck_i            ),
+     .rst_wr_ni   ( trst_ni          ),
+     .wvalid_i    ( jtag_dmi_valid_i ),
+     .wready_o    ( jtag_dmi_ready_o ), // wrclk
+     .wdata_i     ( jtag_dmi_req_i   ),
+-    .wdepth_o    (                  ),
+ 
+     .clk_rd_i    ( clk_i            ),
+     .rst_rd_ni   ( rst_ni           ),
+     .rvalid_o    ( core_dmi_valid_o ),
+     .rready_i    ( core_dmi_ready_i ),
+-    .rdata_o     ( core_dmi_req_o   ),
+-    .rdepth_o    (                  )
++    .rdata_o     ( core_dmi_req_o   )
+   );
+ 
+-  prim_fifo_async #(
++  prim_fifo_async_simple #(
+     .Width       ( $bits(dm::dmi_resp_t) ),
+-    .Depth       ( 4 )
++    .EnRzHs      ( 1                    )
+   ) i_cdc_resp (
+     .clk_wr_i    ( clk_i            ),
+     .rst_wr_ni   ( rst_ni           ),
+     .wvalid_i    ( core_dmi_valid_i ),
+     .wready_o    ( core_dmi_ready_o ), // wrclk
+     .wdata_i     ( core_dmi_resp_i  ),
+-    .wdepth_o    (                  ),
+ 
+     .clk_rd_i    ( tck_i            ),
+     .rst_rd_ni   ( trst_ni          ),
+     .rvalid_o    ( jtag_dmi_valid_o ),
+     .rready_i    ( jtag_dmi_ready_i ),
+-    .rdata_o     ( jtag_dmi_resp_o  ),
+-    .rdepth_o    (                  )
++    .rdata_o     ( jtag_dmi_resp_o  )
+   );
+ 
+ endmodule : dmi_cdc
+diff --git a/src/dmi_jtag_tap.sv b/src/dmi_jtag_tap.sv
+index ce56ea8..c665cbc 100644
+--- a/src/dmi_jtag_tap.sv
++++ b/src/dmi_jtag_tap.sv
+@@ -72,7 +72,7 @@ module dmi_jtag_tap #(
+   logic [IrLength-1:0]  jtag_ir_shift_d, jtag_ir_shift_q;
+   // IR register -> this gets captured from shift register upon update_ir
+   ir_reg_e              jtag_ir_d, jtag_ir_q;
+-  logic capture_ir, shift_ir, update_ir; // pause_ir
++  logic capture_ir, shift_ir, update_ir, test_logic_reset; // pause_ir
+ 
+   always_comb begin : p_jtag
+     jtag_ir_shift_d = jtag_ir_shift_q;
+@@ -92,6 +92,12 @@ module dmi_jtag_tap #(
+     if (update_ir) begin
+       jtag_ir_d = ir_reg_e'(jtag_ir_shift_q);
+     end
++
++    if (test_logic_reset) begin
++      // Bring all TAP state to the initial value.
++      jtag_ir_shift_d = '0;
++      jtag_ir_d = IDCODE;
++    end
+   end
+ 
+   always_ff @(posedge tck_i, negedge trst_ni) begin : p_jtag_ir_reg
+@@ -129,6 +135,12 @@ module dmi_jtag_tap #(
+       if (idcode_select)  idcode_d = {td_i, 31'(idcode_q >> 1)};
+       if (bypass_select)  bypass_d = td_i;
+     end
++
++    if (test_logic_reset) begin
++      // Bring all TAP state to the initial value.
++      idcode_d = IdcodeValue;
++      bypass_d = 1'b0;
++    end
+   end
+ 
+   // ----------------
+@@ -199,7 +211,7 @@ module dmi_jtag_tap #(
+   // Determination of next state; purely combinatorial
+   always_comb begin : p_tap_fsm
+ 
+-    trst_no            = trst_ni;
++    test_logic_reset   = 1'b0;
+ 
+     capture_dr         = 1'b0;
+     shift_dr           = 1'b0;
+@@ -213,7 +225,7 @@ module dmi_jtag_tap #(
+     unique case (tap_state_q)
+       TestLogicReset: begin
+         tap_state_d = (tms_i) ? TestLogicReset : RunTestIdle;
+-        trst_no = 1'b1;
++        test_logic_reset = 1'b1;
+       end
+       RunTestIdle: begin
+         tap_state_d = (tms_i) ? SelectDrScan : RunTestIdle;
+@@ -287,7 +299,7 @@ module dmi_jtag_tap #(
+ 
+   always_ff @(posedge tck_i or negedge trst_ni) begin : p_regs
+     if (!trst_ni) begin
+-      tap_state_q <= RunTestIdle;
++      tap_state_q <= TestLogicReset;
+       idcode_q    <= IdcodeValue;
+       bypass_q    <= 1'b0;
+     end else begin
+@@ -300,6 +312,7 @@ module dmi_jtag_tap #(
+   // Pass through JTAG signals to debug custom DR logic.
+   // In case of a single TAP those are just feed-through.
+   assign tck_o = tck_i;
++  assign trst_no = !test_logic_reset;
+   assign tdi_o = td_i;
+   assign update_o = update_dr;
+   assign shift_o = shift_dr;
