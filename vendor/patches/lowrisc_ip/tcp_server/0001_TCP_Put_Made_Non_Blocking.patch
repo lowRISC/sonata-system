@@ -1,0 +1,13 @@
+diff --git a/tcp_server.c b/tcp_server.c
+index 4d42665a..e1ce4027 100644
+--- a/tcp_server.c
++++ b/tcp_server.c
+@@ -361,7 +361,7 @@ static void *server_create(void *ctx_void) {
+ 
+     // New client data
+     if (FD_ISSET(ctx->cfd, &read_fds)) {
+-      while (get_byte(ctx, &xfer_data)) {
++      while (!tcp_buffer_is_full(ctx->buf_in) && get_byte(ctx, &xfer_data)) {
+         tcp_buffer_put_byte(ctx->buf_in, xfer_data);
+       }
+     }
