@@ -6,9 +6,9 @@
 //
 // This module implements the RISC-V debug specification version 0.13,
 //
-// This toplevel wraps the PULP debug module available from
-// https://github.com/pulp-platform/riscv-dbg to match the needs of
-// the TL-UL-based lowRISC chip design.
+// This toplevel wraps the CHERIoT debug module available from
+// https://github.com/CHERIoT-Platform/cheriot-dbg-module to match the needs of
+// the TL-UL-based Sonata design.
 
 `include "prim_assert.sv"
 
@@ -177,8 +177,6 @@ module dm_top #(
     .master_be_o             ( host_be_o             ),
     .master_gnt_i            ( host_gnt_i            ),
     .master_r_valid_i        ( host_r_valid_i        ),
-    .master_r_err_i          ( 1'b0                  ),
-    .master_r_other_err_i    ( 1'b0                  ),
     .master_r_rdata_i        ( host_r_rdata_i        ),
     .dmactive_i              ( dmactive_o            ),
     .sbaddress_i             ( sbaddress_csrs_sba    ),
@@ -243,7 +241,6 @@ module dm_top #(
     .clk_i            (clk_i        ),
     .rst_ni           (rst_ni       ),
     .testmode_i       (testmode_i   ),
-    .test_rst_ni      (1'b1         ),
 
     .dmi_rst_no       (dmi_rst_n    ),
     .dmi_req_o        (dmi_req      ),

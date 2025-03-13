@@ -47,11 +47,7 @@ lint_off -rule WIDTHEXPAND -file "*/rtl/cheri_pkg.sv"
 lint_off -rule WIDTHTRUNC -file "*/rtl/cheri_pkg.sv"
 
 // Lint error for PULP debug module.
-lint_off -rule UNUSED -file "*pulp_riscv_dbg*" -match "*not used*"
-lint_off -rule IMPERFECTSCH -file "*pulp_riscv_dbg*"
-lint_off -rule DECLFILENAME -file "*pulp_riscv_dbg*"
-lint_off -rule PINMISSING -file "*pulp_riscv_dbg*"
-lint_off -rule WIDTH -file "*pulp_riscv_dbg/src/dm_mem.sv"
+lint_off -rule UNUSEDSIGNAL -file "*pulp_cheriot_debug_module*" -match "*not used*"
 
 lint_off -rule IMPERFECTSCH -file "*lowrisc_prim_flop_2sync_0/rtl/prim_flop_2sync.sv"
 lint_off -rule UNUSED -file "*ibex_register_file_fpga*"
@@ -89,6 +85,11 @@ lint_off -rule UNOPTFLAT -file "*/rtl/ibex_decoder.sv" -match "*cheri_rf_we_dec*
 lint_off -rule UNOPTFLAT -file "*/rtl/prim_fifo_async_simple.sv"
 lint_off -rule UNOPTFLAT -file "*/rtl/prim_subreg_ext.sv"
 lint_off -rule BLKSEQ -file "*/rtl/ibex_tracer.sv"
+
+// UNOPTFLAT warnings when connecting debug module to instruction fetch crossbar
+lint_off -rule UNOPTFLAT -file "*/rtl/ibex_controller.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.store_err_d'"
+lint_off -rule UNOPTFLAT -file "*/rtl/ibex_controller.sv" -match "*Signal unoptimizable: Circular combinational logic: '*.load_err_d'"
+lint_off -rule UNOPTFLAT -file "*/rtl/ibex_id_stage.sv" -match "*Signal unoptimizable: Circular combinational logic: '*'"
 
 // Build warns of circular logic, but this is functioning correctly so it is safe to ignore.
 lint_off -rule UNOPTFLAT -file "*/rtl/ibexc_top_tracing.sv" -match "*rvfi_rd_addr*"
