@@ -7,9 +7,10 @@
 //
 // Interconnect
 // ibex_ifetch
-//   -> s1n_3
+//   -> s1n_4
 //     -> sram
 //     -> hyperram
+//     -> dbg_dev
 
 module xbar_ifetch (
   input clk_sys_i,
@@ -24,6 +25,8 @@ module xbar_ifetch (
   input  tlul_pkg::tl_d2h_t tl_sram_i,
   output tlul_pkg::tl_h2d_t tl_hyperram_o,
   input  tlul_pkg::tl_d2h_t tl_hyperram_i,
+  output tlul_pkg::tl_h2d_t tl_dbg_dev_o,
+  input  tlul_pkg::tl_d2h_t tl_dbg_dev_i,
 
   input prim_mubi_pkg::mubi4_t scanmode_i
 );
@@ -36,37 +39,44 @@ module xbar_ifetch (
   logic unused_scanmode;
   assign unused_scanmode = ^scanmode_i;
 
-  tl_h2d_t tl_s1n_3_us_h2d ;
-  tl_d2h_t tl_s1n_3_us_d2h ;
+  tl_h2d_t tl_s1n_4_us_h2d ;
+  tl_d2h_t tl_s1n_4_us_d2h ;
 
 
-  tl_h2d_t tl_s1n_3_ds_h2d [2];
-  tl_d2h_t tl_s1n_3_ds_d2h [2];
+  tl_h2d_t tl_s1n_4_ds_h2d [3];
+  tl_d2h_t tl_s1n_4_ds_d2h [3];
 
   // Create steering signal
-  logic [1:0] dev_sel_s1n_3;
+  logic [1:0] dev_sel_s1n_4;
 
 
 
-  assign tl_sram_o = tl_s1n_3_ds_h2d[0];
-  assign tl_s1n_3_ds_d2h[0] = tl_sram_i;
+  assign tl_sram_o = tl_s1n_4_ds_h2d[0];
+  assign tl_s1n_4_ds_d2h[0] = tl_sram_i;
 
-  assign tl_hyperram_o = tl_s1n_3_ds_h2d[1];
-  assign tl_s1n_3_ds_d2h[1] = tl_hyperram_i;
+  assign tl_hyperram_o = tl_s1n_4_ds_h2d[1];
+  assign tl_s1n_4_ds_d2h[1] = tl_hyperram_i;
 
-  assign tl_s1n_3_us_h2d = tl_ibex_ifetch_i;
-  assign tl_ibex_ifetch_o = tl_s1n_3_us_d2h;
+  assign tl_dbg_dev_o = tl_s1n_4_ds_h2d[2];
+  assign tl_s1n_4_ds_d2h[2] = tl_dbg_dev_i;
+
+  assign tl_s1n_4_us_h2d = tl_ibex_ifetch_i;
+  assign tl_ibex_ifetch_o = tl_s1n_4_us_d2h;
 
   always_comb begin
     // default steering to generate error response if address is not within the range
-    dev_sel_s1n_3 = 2'd2;
-    if ((tl_s1n_3_us_h2d.a_address &
+    dev_sel_s1n_4 = 2'd3;
+    if ((tl_s1n_4_us_h2d.a_address &
          ~(ADDR_MASK_SRAM)) == ADDR_SPACE_SRAM) begin
-      dev_sel_s1n_3 = 2'd0;
+      dev_sel_s1n_4 = 2'd0;
 
-    end else if ((tl_s1n_3_us_h2d.a_address &
+    end else if ((tl_s1n_4_us_h2d.a_address &
                   ~(ADDR_MASK_HYPERRAM)) == ADDR_SPACE_HYPERRAM) begin
-      dev_sel_s1n_3 = 2'd1;
+      dev_sel_s1n_4 = 2'd1;
+
+    end else if ((tl_s1n_4_us_h2d.a_address &
+                  ~(ADDR_MASK_DBG_DEV)) == ADDR_SPACE_DBG_DEV) begin
+      dev_sel_s1n_4 = 2'd2;
 end
   end
 
@@ -75,17 +85,19 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqDepth (8'h0),
-    .DRspDepth (8'h0),
-    .N         (2)
-  ) u_s1n_3 (
+    .DReqPass  (3'h3),
+    .DRspPass  (3'h3),
+    .DReqDepth (12'h100),
+    .DRspDepth (12'h100),
+    .N         (3)
+  ) u_s1n_4 (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
-    .tl_h_i       (tl_s1n_3_us_h2d),
-    .tl_h_o       (tl_s1n_3_us_d2h),
-    .tl_d_o       (tl_s1n_3_ds_h2d),
-    .tl_d_i       (tl_s1n_3_ds_d2h),
-    .dev_select_i (dev_sel_s1n_3)
+    .tl_h_i       (tl_s1n_4_us_h2d),
+    .tl_h_o       (tl_s1n_4_us_d2h),
+    .tl_d_o       (tl_s1n_4_ds_h2d),
+    .tl_d_i       (tl_s1n_4_ds_d2h),
+    .dev_select_i (dev_sel_s1n_4)
   );
 
 endmodule

@@ -9,7 +9,7 @@ filesets:
   files_rtl_sonata_system:
     depend:
       - lowrisc:ibex:ibex_top_tracing
-      - pulp:riscv:debug_module
+      - pulp:cheriot:debug_module
       - lowrisc:ip:i2c
       - lowrisc:ip:uart
       - lowrisc:ip:usbdev
