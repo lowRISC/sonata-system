@@ -1,0 +1,37 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "pulp:cheriot:debug_module"
+description: "CHERIoT RISC-V Debug Module"
+
+filesets:
+  files_src:
+    depend:
+      - lowrisc:prim:all
+    files:
+      - vendor/cheriot_debug_module/debug_rom/debug_rom.sv
+      - vendor/cheriot_debug_module/src/dm_pkg.sv
+      - vendor/cheriot_debug_module/src/dm_sba.sv
+      - vendor/cheriot_debug_module/src/dm_csrs.sv
+      - vendor/cheriot_debug_module/src/dm_mem.sv
+      - vendor/cheriot_debug_module/src/dmi_cdc.sv
+      - vendor/cheriot_debug_module/src/dmi_jtag.sv
+    file_type: systemVerilogSource
+
+  files_jtag_tap:
+    files:
+      - vendor/cheriot_debug_module/src/dmi_jtag_tap.sv
+    file_type: systemVerilogSource
+
+  files_verilator:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+
+targets:
+  default:
+    filesets:
+      - files_src
+      - tool_verilator ? (files_verilator)
+      - files_jtag_tap
