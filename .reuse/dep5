@@ -20,7 +20,7 @@ Files: vendor/cheriot_safe/*
 Copyright: Microsoft Corporation
 License: Apache-2.0
 
-Files: vendor/pulp_riscv_dbg/*
+Files: vendor/cheriot_debug_module/*
 Copyright: 2020 ETH Zurich and University of Bologna
 License: SHL-0.51
 
