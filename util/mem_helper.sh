@@ -7,6 +7,7 @@ set -ue
 NAME="$(basename "$0")"
 SCRIPT_DIR="$(dirname "$(readlink -e "$0")")"
 TCL_FILE=$SCRIPT_DIR/sonata-openocd-cfg.tcl
+EXIT_COMMAND='-c "exit"'
 
 USAGE="Example Usage of $NAME
 
@@ -17,7 +18,7 @@ USAGE="Example Usage of $NAME
 
   Load an ELF file onto the FPGA:
 
-    $NAME load_program -e \$elf_file"
+    $NAME load_program -e \$elf_file [-t \$tcl_file] [-x \$exit_command]"
 
 usage_then_exit() {
   echo "$USAGE"
@@ -66,10 +67,11 @@ rtos_img() {
 }
 
 load_program() {
-  while getopts "e:t:h" opt; do
+  while getopts "e:t:x:h" opt; do
       case "${opt}" in
           e) ELF_FILE="$OPTARG";;
           t) TCL_FILE="$OPTARG";;
+          x) EXIT_COMMAND="$OPTARG";;
           *) usage_then_exit;;
       esac
   done
@@ -82,7 +84,7 @@ load_program() {
     -c "verify_image $ELF_FILE 0x0" \
     -c "echo \"Doing reset\"" \
     -c "reset run" \
-    -c "exit"
+    $EXIT_COMMAND
 }
 
 main() {
