@@ -51,7 +51,7 @@ static int compare_bytes(const uint8_t *ref, const uint8_t *data, size_t len, Lo
   return mismatches;
 }
 
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   CapRoot root{rwRoot};
 
   auto uart0 = uart_ptr(root);

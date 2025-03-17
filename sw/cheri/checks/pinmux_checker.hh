@@ -126,4 +126,4 @@ struct Test {
 };
 
 bool execute_testplan(Test *testplan, uint8_t NumTests, Log &log, ds::xoroshiro::P32R8 &prng, SonataGpioFull *gpio,
-                      UartPtr uarts[4], SpiPtr spis[3], I2cPtr i2cs[2], PinmuxPtrs pinmux);
+                      UartPtr uarts[2], SpiPtr spis[3], I2cPtr i2cs[2], PinmuxPtrs pinmux);

@@ -22,7 +22,7 @@ using namespace CHERI;
  * extreme scenario that all muxed blocks are actually being muxed over the
  * same pins.
  */
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   // Initialise capabilities for UART0 (the console), and all other UARTS (1-4)
