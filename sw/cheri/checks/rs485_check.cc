@@ -19,7 +19,7 @@
 
 using namespace CHERI;
 
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   pin_sinks_ptr(root)->get(SonataPinmux::PinSink::rs485_tx).select(1);

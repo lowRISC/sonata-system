@@ -20,7 +20,7 @@
 using namespace CHERI;
 
 // Continuosly outputs a message with an incrementing number on RS485 serial
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   pin_sinks_ptr(root)->get(SonataPinmux::PinSink::rs485_tx).select(1);

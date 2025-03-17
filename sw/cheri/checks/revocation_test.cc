@@ -23,7 +23,7 @@ using namespace CHERI;
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   // Create a bounded capability to the UART

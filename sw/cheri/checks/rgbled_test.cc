@@ -56,7 +56,7 @@ void busy_wait(uint64_t cycles) {
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   Capability<volatile SonataRGBLEDCtrl> rgbled_ctrl = root.cast<volatile SonataRGBLEDCtrl>();

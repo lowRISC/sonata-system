@@ -65,7 +65,7 @@ static void rxCallback(void *rxHandle, uint8_t ep, bool setup, const uint8_t *da
   write_strn(*uart, reinterpret_cast<const char *>(data), pktLen);
 }
 
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   // Buffer for data transfer to/from the USB device.
   //  uint8_t _Alignas(uint32_t) data[OpenTitanUsbdev::MaxPacketLength];
 

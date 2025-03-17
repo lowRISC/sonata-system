@@ -31,7 +31,7 @@ void block_until_uart_tx_done(Capability<volatile OpenTitanUart> uart) {
  * Then logs again. Then re-enables the connection, and logs one more time.
  * If pinmux is working, then you should not see the middle message.
  */
-[[noreturn]] extern "C" void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   Capability<void> root{rwRoot};
 
   UartPtr uart = uart_ptr(root);
