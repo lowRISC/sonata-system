@@ -35,7 +35,7 @@ proc uhl args {unhighlight_objects {*}$args}
 #  17: pink-lavender     18: gold (nearly) 19: blue (nearly)   20: dark blue
 #  (or see for yourself: Tools -> Settings... -> Colors -expand-> Highlight)
 set hlg_default_groups {
-  {*ibex_core* 7} {*hardware_revoker* 13} {*cheri_stkz* 5} {*plic* 17} {*rv_timer* 1}
+  {*ibex_core* 7} {*rev_ctl* 13} {*cheri_stkz* 5} {*plic* 17} {*rv_timer* 1}
   {*register_file* 15} {*tag_bank* 13} {*u_sram_top* 20} {*hyperram* 4}
   {*pinmux* 6} {*gpio* 18} {*usbdev* 12} {*uart* 16} {*spi* 3} {*i2c* 11} {*pwm* 2}
   {*dm_top* 14} {*xbar* 10}
@@ -49,6 +49,7 @@ set hlg_default_groups {
 proc hlg [list [list name_colour_pairs $hlg_default_groups] [list comb_prob 0.00]] {
   unhighlight_objects
   set used_colours {}
+  puts {name    sequential    combinatorial}
   foreach name_and_colour $name_colour_pairs {
     lassign $name_and_colour name colour
     # If no colour index specified, find lowest unused colour index
@@ -69,6 +70,9 @@ proc hlg [list [list name_colour_pairs $hlg_default_groups] [list comb_prob 0.00
       set comb_subset {}
       foreach c $comb {if {rand() < $comb_prob} {lappend comb_subset $comb}}
       highlight_objects -color_index $colour $comb_subset
+      puts "$name [llength $sequ] [llength $comb]"
+    } else {
+      puts "$name [llength $sequ]"
     }
   }
 }
