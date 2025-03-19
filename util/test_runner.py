@@ -211,6 +211,7 @@ def load_fpga(config: Config) -> None:
             str(config.tcl_file),
             f"-c load_image {config.elf_file}  0x0",
             f"-c verify_image {config.elf_file}  0x0",
+            "-c reset run",
             "-c exit",
         ]
         run(command, check=True)
