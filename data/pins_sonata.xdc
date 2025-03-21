@@ -2,7 +2,7 @@
 ## Licensed under the Apache License, Version 2.0, see LICENSE for details.
 ## SPDX-License-Identifier: Apache-2.0
 
-# This file is for physical constraints.
+# This file is for physical constraints for the Sonata board (Sonata ONE).
 
 # Using the names in the PCB design, they should match this file with a case-insensitive search:
 # https://github.com/newaetech/sonata-pcb/tree/main
