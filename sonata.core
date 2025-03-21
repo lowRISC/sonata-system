@@ -26,6 +26,8 @@ filesets:
       - lowrisc:dv_verilator:memutil_verilator
       - lowrisc:dv_verilator:simutil_verilator
       - lowrisc:dv_verilator:ibex_pcounts
+      - lowrisc:dv_dpi_c:jtagdpi:0.1
+      - lowrisc:dv_dpi_sv:jtagdpi:0.1
       - lowrisc:dv_dpi_c:uartdpi:0.1
       - lowrisc:dv_dpi_sv:uartdpi:0.1
       - lowrisc:dv_dpi_c:usbdpi:0.1

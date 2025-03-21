@@ -1,0 +1,13 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "cheriot_debug_module",
+  target_dir: "cheriot_debug_module",
+  patch_dir: "patches/cheriot_debug_module",
+
+  upstream: {
+    url: "git@github.com:CHERIoT-Platform/cheriot-dbg-module.git",
+    rev: "main",
+  }
+}

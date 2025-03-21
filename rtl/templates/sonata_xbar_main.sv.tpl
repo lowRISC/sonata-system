@@ -53,6 +53,8 @@ module sonata_xbar_main
   % endfor
   output tlul_pkg::tl_h2d_t tl_usbdev_o,
   input  tlul_pkg::tl_d2h_t tl_usbdev_i,
+  output tlul_pkg::tl_h2d_t tl_dbg_dev_o,
+  input  tlul_pkg::tl_d2h_t tl_dbg_dev_i,
   output tlul_pkg::tl_h2d_t tl_rv_plic_o,
   input  tlul_pkg::tl_d2h_t tl_rv_plic_i
 );
@@ -105,6 +107,8 @@ module sonata_xbar_main
     % endfor
     .tl_usbdev_o      (tl_usbdev_o),
     .tl_usbdev_i      (tl_usbdev_i),
+    .tl_dbg_dev_o     (tl_dbg_dev_o),
+    .tl_dbg_dev_i     (tl_dbg_dev_i),
     .tl_rv_plic_o     (tl_rv_plic_o),
     .tl_rv_plic_i     (tl_rv_plic_i),
 

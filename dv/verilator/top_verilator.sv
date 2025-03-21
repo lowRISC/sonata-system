@@ -291,6 +291,13 @@ module top_verilator (input logic clk_i, rst_ni);
           in_from_pins[IN_PIN_MB3],
           inout_from_pins[INOUT_PIN_PMOD0_10]} = loopback_q;
 
+  // JTAG signals
+  wire jtag_tck;
+  wire jtag_tms;
+  wire jtag_tdi;
+  wire jtag_tdo;
+  wire jtag_trst;
+
   // Switch inputs have pull-ups and switches pull to ground when on, but in `top_sonata`
   // they are inverted, so 0 here means 'not pressed' or 'off'.
   wire [4:0] nav_sw_n = '0;
@@ -375,11 +382,11 @@ module top_verilator (input logic clk_i, rst_ni);
     .usb_rx_enable_o  (usb_rx_enable),
 
     // User JTAG
-    .tck_i  ('0),
-    .tms_i  ('0),
-    .trst_ni(rst_ni),
-    .td_i   ('0),
-    .td_o   (),
+    .tck_i  (jtag_tck),
+    .tms_i  (jtag_tms),
+    .trst_ni(jtag_trst),
+    .td_i   (jtag_tdi),
+    .td_o   (jtag_tdo),
 
     .rgbled_dout_o (),
 
@@ -445,6 +452,19 @@ module top_verilator (input logic clk_i, rst_ni);
     // Out-Of-Band data.
     .oob_in   (1'b0),
     .oob_out  ()  // not used
+  );
+
+  // Virtual JTAG
+  jtagdpi u_jtagdpi (
+    .clk_i,
+    .rst_ni,
+
+    .jtag_tck    (jtag_tck),
+    .jtag_tms    (jtag_tms),
+    .jtag_tdi    (jtag_tdi),
+    .jtag_tdo    (jtag_tdo),
+    .jtag_trst_n (jtag_trst),
+    .jtag_srst_n ( )
   );
 
   // Virtual UART

@@ -80,7 +80,7 @@
         ./sonata.core
         ./sonata_system.core
         ./rv_timer.core
-        ./pulp_riscv_dbg.core
+        ./cheriot_debug_module.core
         ./open_hbmc.core
       ];
 

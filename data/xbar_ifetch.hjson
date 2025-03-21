@@ -39,12 +39,24 @@
         base_addr: "0x40000000",
         size_byte: "0x00100000",
       }],
-    }
+    },
+    { name:     "dbg_dev", // Debug module fetch interface
+      type:     "device",
+      clock:    "clk_sys_i",
+      reset:    "rst_sys_ni",
+      xbar:     false,
+      pipeline: true,
+      addr_range: [{
+        base_addr: "0xB0000000",
+        size_byte: "0x00001000",
+      }],
+    },
   ],
   connections: {
     ibex_ifetch: [
       "sram",
-      "hyperram"
-    ]
-  }
+      "hyperram",
+      "dbg_dev",
+    ],
+  },
 }
