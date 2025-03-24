@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/lowrisc/cheriot-ibex.git
-    rev: 515481d29a4b927548498bd314a704340adb1ca3
+    rev: 158a03fd338f9a5aa977edbe7452bff67c499e93
   }
 }

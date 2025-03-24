@@ -359,7 +359,8 @@ module cheri_regfile import cheri_pkg::*; #(
   if (TRVKBypass) begin
     // Bypass the registier update cycle and directly update the read ports
     always_comb begin
-      reg_rdy_o = reg_rdy_vec | ({NREGS{trvk_en_i}} & {trvk_dec, 1'b0});
+      reg_rdy_o = reg_rdy_vec;
+      reg_rdy_o[NREGS-1:0] |= ({NREGS{trvk_en_i}} & {trvk_dec, 1'b0});
       
       rcap_a_rvkd = rcap_a;
       if (trvk_en_i && trvk_clrtag_i && (trvk_addr_i == raddr_a_i))

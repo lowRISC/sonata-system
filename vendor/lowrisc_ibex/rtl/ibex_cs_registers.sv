@@ -98,6 +98,7 @@ module ibex_cs_registers import cheri_pkg::*;  #(
 
   // debug
   input  logic                 debug_mode_i,
+  input  logic                 debug_mode_entering_i,
   input  ibex_pkg::dbg_cause_e debug_cause_i,
   input  logic                 debug_csr_save_i,
   output logic [31:0]          csr_depc_o,
@@ -336,8 +337,15 @@ module ibex_cs_registers import cheri_pkg::*;  #(
 
   logic [31:0] misa_value_masked;
 
-  assign misa_value_masked = MISA_VALUE & ~{8'h0, ~cheri_pmode_i, 23'h0};
-
+  // Set both the X bit and the E bit dynamically based on cheri_pmode_i.
+  assign misa_value_masked = {MISA_VALUE[31:24],
+                              CHERIoTEn ? cheri_pmode_i : MISA_VALUE[23], // X
+                              MISA_VALUE[22:9],
+                              CHERIoTEn ? ~cheri_pmode_i : MISA_VALUE[8], // I
+                              MISA_VALUE[7:5],
+                              CHERIoTEn ? cheri_pmode_i : MISA_VALUE[4], // E
+                              MISA_VALUE[3:0]
+                             };
 
   /////////////
   // CSR reg //
@@ -1778,7 +1786,8 @@ module ibex_cs_registers import cheri_pkg::*;  #(
   assign cpuctrl_wdata.double_fault_seen = cpuctrl_wdata_raw.double_fault_seen;
   assign cpuctrl_wdata.sync_exc_seen     = cpuctrl_wdata_raw.sync_exc_seen;
 
-  assign icache_enable_o = cpuctrl_q.icache_enable;
+  assign icache_enable_o =
+    cpuctrl_q.icache_enable & ~(debug_mode_i | debug_mode_entering_i);
 
   ibex_csr #(
     .Width     ($bits(cpu_ctrl_t)),
