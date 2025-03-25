@@ -172,6 +172,7 @@
             openfpgaloader
             openocd
           ])
+          ++ cheriotPkgs
           ++ (with lrPkgs; [
             uf2conv
             # For legacy software
