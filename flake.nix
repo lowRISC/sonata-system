@@ -8,10 +8,14 @@
 
     nixpkgs.follows = "lowrisc-nix/nixpkgs";
     flake-utils.follows = "lowrisc-nix/flake-utils";
-    poetry2nix.follows = "lowrisc-nix/poetry2nix";
     mdutils = {
       url = "git+https://codeberg.org/HU90m/mdutils.git";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
   };
 
@@ -25,7 +29,6 @@
     nixpkgs,
     flake-utils,
     lowrisc-nix,
-    lowrisc-it,
     mdutils,
     ...
   } @ inputs: let
