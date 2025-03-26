@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.13)
 include(FetchContent)
 
 FetchContent_Declare(CHERIOT_RTOS
-  GIT_REPOSITORY    https://github.com/lowRISC/CHERIoT-RTOS
-  GIT_TAG           bf7584e971c553160d266c21e17a38635b349a38
+  GIT_REPOSITORY    https://github.com/CHERIoT-Platform/CHERIoT-RTOS
+  GIT_TAG           e34c07efeb1919df6ee57d40c0f23fe8a22921b3
 )
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
