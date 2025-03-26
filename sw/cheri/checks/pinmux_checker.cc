@@ -126,7 +126,7 @@ static bool execute_spi_test(const Test &test, SpiPtr spis[3]) {
  */
 static inline bool joystick_pressed(SonataGpioFull *gpio) {
   constexpr uint16_t SonataJoystickPressed = (1 << 10);
-  return gpio->general->input & SonataJoystickPressed;
+  return get_gpio_instance(gpio, GpioInstance::General)->input & SonataJoystickPressed;
 }
 
 /**
@@ -135,7 +135,7 @@ static inline bool joystick_pressed(SonataGpioFull *gpio) {
  */
 static inline bool joystick_moved(SonataGpioFull *gpio) {
   constexpr uint16_t SonataJoystickMoveMask = (0b11011) << 8;
-  return (gpio->general->input & SonataJoystickMoveMask) > 0;
+  return (get_gpio_instance(gpio, GpioInstance::General)->input & SonataJoystickMoveMask) > 0;
 }
 
 /**
