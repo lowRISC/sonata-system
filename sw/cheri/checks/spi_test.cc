@@ -13,9 +13,8 @@
 #include "../../common/defs.h"
 // clang-format on
 #include <cheri.hh>
-#include <platform-spi.hh>
-#include <platform-uart.hh>
 
+#include "../common/sonata-devices.hh"
 #include "../common/flash-utils.hh"
 #include "../common/uart-utils.hh"
 
@@ -32,13 +31,8 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   uint8_t read_data[256];
 
   // Create a bounded capability to the UART
-  Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
-  uart.address()                          = UART_ADDRESS;
-  uart.bounds()                           = UART_BOUNDS;
-
-  Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
-  spi.address()                      = SPI_ADDRESS + 2 * SPI_RANGE;
-  spi.bounds()                       = SPI_BOUNDS;
+  UartPtr uart = uart_ptr(root, 0);
+  SpiPtr spi   = spi_ptr(root, 2);
 
   SpiFlash spi_flash(spi);
 
