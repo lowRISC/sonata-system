@@ -9,11 +9,11 @@
   inherit (pkgs.lib) fileset;
 
   cheriotRtosSource = pkgs.fetchFromGitHub {
-    owner = "lowRISC";
+    owner = "CHERIoT-Platform";
     repo = "CHERIoT-RTOS";
-    rev = "bf7584e971c553160d266c21e17a38635b349a38";
+    rev = "e34c07efeb1919df6ee57d40c0f23fe8a22921b3";
     fetchSubmodules = true;
-    hash = "sha256-3K09j2Haw++AuThVtEP0o6wX0ZWUNzdW7Pk2qPwInb0=";
+    hash = "sha256-36+fnc7hn7i6+jWeaBuFvrG0A7K+NcF4eaYpztolHes=";
   };
 
   reisfmtSource = pkgs.fetchFromGitHub {
