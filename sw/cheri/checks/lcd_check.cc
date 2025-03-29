@@ -16,6 +16,8 @@
 #include "../common/uart-utils.hh"
 
 using namespace CHERI;
+using SonataPulseWidthModulation::LcdBacklight;
+using SpiLcdCap = Capability<volatile SonataSpi::Lcd>;
 
 #include "../../../vendor/display_drivers/st7735/lcd_st7735_init.h"
 #include "lowrisc_logo_native.h"
@@ -40,7 +42,8 @@ const uint32_t height = 160u;
 const uint32_t img_width  = 105u;
 const uint32_t img_height = 80u;
 
-#define set_output_bit(a, b, c) (a)->cs = (c) ? ((a)->cs | (1 << (b))) : ((a)->cs & ~(1 << (b)))
+#define set_output_bit(a, b, c)                                                                                        \
+  (a)->chipSelects = (c) ? ((a)->chipSelects | (1 << (b))) : ((a)->chipSelects & ~(1 << (b)))
 
 // Commonly-used LCD command codes.
 static const uint8_t madctl = ST7735_MADCTL;
@@ -55,18 +58,18 @@ static inline void delay(int delay_ms) {
 #endif
 }
 
-static inline void set_cs_dc(Capability<volatile SonataSpi> &spi, bool cs, bool d) {
+static inline void set_cs_dc(SpiLcdCap &spi, bool cs, bool d) {
   set_output_bit(spi, LcdDcPin, d);
-  spi->cs = cs ? (spi->cs | 1u) : (spi->cs & ~1u);
+  spi->chipSelects = cs ? (spi->chipSelects | 1u) : (spi->chipSelects & ~1u);
 }
 
-static void write_command(Capability<volatile SonataSpi> &spi, const uint8_t *cmd, size_t len) {
+static void write_command(SpiLcdCap &spi, const uint8_t *cmd, size_t len) {
   set_cs_dc(spi, false, false);
   spi->blocking_write(cmd, len);
   spi->wait_idle();
 }
 
-static void write_buffer(Capability<volatile SonataSpi> &spi, const uint8_t *data, size_t len) {
+static void write_buffer(SpiLcdCap &spi, const uint8_t *data, size_t len) {
   while (len > 0u) {
     // SPI controller supports only 0x7ff bytes in a single command.
     size_t chunk = len;
@@ -77,14 +80,14 @@ static void write_buffer(Capability<volatile SonataSpi> &spi, const uint8_t *dat
   }
 }
 
-static void write_data(Capability<volatile SonataSpi> &spi, const uint8_t *data, size_t len) {
+static void write_data(SpiLcdCap &spi, const uint8_t *data, size_t len) {
   set_cs_dc(spi, false, true);
   write_buffer(spi, data, len);
   spi->wait_idle();
   set_cs_dc(spi, true, true);
 }
 
-static void set_address(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
+static void set_address(SpiLcdCap &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
   uint8_t coord[4];
 
   coord[0] = (uint8_t)(x0 >> 8);
@@ -102,8 +105,7 @@ static void set_address(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16
   write_data(spi, coord, 4u);
 }
 
-static void fill_rect(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
-                      uint32_t pix) {
+static void fill_rect(SpiLcdCap &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t pix) {
   set_address(spi, x0, y0, x1, y1);
 
   write_command(spi, &ramwr, 1u);
@@ -114,8 +116,7 @@ static void fill_rect(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16_t
   set_cs_dc(spi, true, true);
 }
 
-static void draw_image(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
-                       const uint8_t *data) {
+static void draw_image(SpiLcdCap &spi, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t *data) {
   uint32_t npix = (1 + y1 - y0) * (1 + x1 - x0);
 
   set_address(spi, x0, y0, x1, y1);
@@ -123,8 +124,7 @@ static void draw_image(Capability<volatile SonataSpi> &spi, uint16_t x0, uint16_
   write_data(spi, data, npix << 1);
 }
 
-static void run_script(Capability<volatile OpenTitanUart> &uart, Capability<volatile SonataSpi> &spi,
-                       const uint8_t *addr) {
+static void run_script(Capability<volatile OpenTitanUart> &uart, SpiLcdCap &spi, const uint8_t *addr) {
   uint8_t numCommands, numArgs;
   uint16_t delay_ms;
 
@@ -163,15 +163,15 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   uart.bounds()                           = UART_BOUNDS;
 
   // The LCD is driven by SPI controller 0.
-  Capability<volatile SonataSpi> spi = root.cast<volatile SonataSpi>();
-  spi.address()                      = SPI_ADDRESS;
-  spi.bounds()                       = SPI_BOUNDS;
+  SpiLcdCap spi = root.cast<volatile SonataSpi::Lcd>();
+  spi.address() = SPI_ADDRESS;
+  spi.bounds()  = SPI_BOUNDS;
 
   // Create a bounded capability for the final PWM channel since this drives the LCD backlight.
-  Capability<volatile SonataLcdPwm> pwm = root.cast<volatile SonataLcdPwm>();
+  Capability<volatile LcdBacklight> pwm = root.cast<volatile LcdBacklight>();
   pwm.address()                         = PWM_ADDRESS + PWM_LCD * PWM_RANGE;
   pwm.bounds()                          = PWM_BOUNDS;
-  pwm->output_set(0, 1u, 255u);
+  pwm->output_set(1u, 255u);
 
   uart->init(BAUD_RATE);
   write_str(uart, "LCD check\r\n");
