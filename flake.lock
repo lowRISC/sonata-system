@@ -45,11 +45,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1742833599,
-        "narHash": "sha256-5AWhHXvw4+8pSxu47ne1y38nMgCuZbrkrtasCR/zWcA=",
+        "lastModified": 1743518716,
+        "narHash": "sha256-xOOj7ssUZ2+QCzYZ+UBn7ZOd1UDUIQgc9bFMg3YqlRw=",
         "owner": "lowRISC",
         "repo": "lowrisc-nix",
-        "rev": "9807303d8515fdb8a22a35b0b00ce98edfecee0b",
+        "rev": "cd1c0399cac54b431491473f319a0586801ddfce",
         "type": "github"
       },
       "original": {
