@@ -65,6 +65,27 @@ cp sonata-vX.Y.bit.slot3.uf2 ../
 Run tests on simulation (note python3.11 or above required).
 FPGA testing is currently done in CI and requires quite a few add-ons to your board.
 
+test_runner external connections:
+
+- microSD card slot (SD1) -> microSD card with formatting & contents as specified by *sdcard_tests.hh*.
+- Loopback connections
+  - mikroBUS (P7) MB10 "PWM" pin -> PMOD0 pin 1/IO1 (top-row, 6th from left)
+  - mikroBUS (P6) MB3 "CIPO" pin -> mikroBUS (P6) MB4 "COPI" pin
+  - mikroBUS (P7) MB8 "RX" pin -> mikroBUS (P7) MB7 "TX" pin
+  - Arduino (P4) "D0" -> Arduino (P4) "D1"
+  - Arduino (P4) "D8" -> Arduino (P4) "D9"
+  - PMOD0 pin 8/IO6 (bottom-row, 5th from left) -> PMOD0 pin 10/IO8 (bottom-row, 3rd from left)
+  - UART header (P12) TX0 -> UART header (P12) RXC
+- Raspberry Pi Header (P3) -> Raspberry Pi Sense HAT
+- qwiic1 (J7) -> Sparkfun AS6212 temperature sensor module
+- PMOD1 -> Digilent PmodSF3 SPI flash module
+- User USB -> USB type-A port of any USB Host
+- Main USB -> a USB port of your computer
+
+![Annotated image showing where to make the specified external connections](img/test_runner-ext-conn.svg)
+
+Run tests in Verilator sim.
+
 ```shell
 # Build the simulator
 fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:sonata:system
