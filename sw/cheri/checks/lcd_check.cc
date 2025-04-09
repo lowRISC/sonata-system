@@ -25,7 +25,9 @@ using SpiLcdCap = Capability<volatile SonataSpi::Lcd>;
 // When running in simulation, eliminate the delays?
 #define SIMULATION 0
 
-const int LcdRstPin = 2, LcdDcPin = 1;
+const int LcdWrPin = 3, LcdRstPin = 2, LcdDcPin = 1, LcdCsPin = 0;
+
+const bool debug = false;
 
 // Use landscape orientation rather than portrait?
 #define LANDSCAPE 0
@@ -47,20 +49,22 @@ const uint32_t img_height = 80u;
 
 // Commonly-used LCD command codes.
 static const uint8_t madctl = ST7735_MADCTL;
+static const uint8_t srst   = ST7735_SWRESET;
 static const uint8_t caset  = ST7735_CASET;
 static const uint8_t raset  = ST7735_RASET;
 static const uint8_t ramwr  = ST7735_RAMWR;
+static const uint8_t ramrd  = ST7735_RAMRD;
+static const uint8_t colmod = ST7735_COLMOD;
 
-// TODO: adjust for clock frequency.
 static inline void delay(int delay_ms) {
 #if !SIMULATION
-  wait_mcycle(30000 * delay_ms);
+  wait_mcycle((CPU_TIMER_HZ / 1000) * delay_ms);
 #endif
 }
 
 static inline void set_cs_dc(SpiLcdCap &spi, bool cs, bool d) {
   set_output_bit(spi, LcdDcPin, d);
-  spi->chipSelects = cs ? (spi->chipSelects | 1u) : (spi->chipSelects & ~1u);
+  set_output_bit(spi, LcdCsPin, cs);
 }
 
 static void write_command(SpiLcdCap &spi, const uint8_t *cmd, size_t len) {
@@ -150,6 +154,232 @@ static void run_script(Capability<volatile OpenTitanUart> &uart, SpiLcdCap &spi,
   }
 }
 
+// LCD_Interface expanded to support reading data as well as writing
+typedef struct LCD_Interface_st {
+  void *handle; /*!< Pointer that will passed to the callbacks calls. It is reserved for exclusive use of the
+                   application. If not intended to be used it can be `NULL` */
+
+  /**
+   * @brief Send data through spi interface.
+   *
+   * @param data Pointer to data array to be sent.
+   * @param len Number of data bytes to be sent.
+   *
+   * @return the number of data bytes sent.
+   */
+  uint32_t (*spi_write)(void *handle, uint8_t *data, size_t len);
+
+  /**
+   * @brief Receive data through spi interface.
+   *
+   * @param data Pointer to array to receive data.
+   * @param len Number of data bytes to receive.
+   *
+   * @return the number of data bytes received.
+   */
+  uint32_t (*spi_read)(void *handle, uint8_t *data, size_t len);
+
+  /**
+   * @brief Set the state of the chip select and D/C pins.
+   *
+   * @param cs_high Set chip select pin to 1 if true, otherwise 0.
+   * @param dc_high Set D/C pin to 1 if true, otherwise 0.
+   *
+   */
+  uint32_t (*gpio_write)(void *handle, bool cs_high, bool dc_high);
+
+  /**
+   * @brief Set the state of the data line output enable.
+   *
+   * @param oe Enable output if true, otherwise disable output (high-Z).
+   *
+   */
+  uint32_t (*oe_write)(void *handle, bool oe);
+
+  /**
+   * @brief Simple cpu delay
+   *
+   * @param ms Time the delay should take in milliseconds.
+   *
+   */
+  void (*timer_delay)(void *handle, uint32_t ms);
+} LCD_Interface;
+
+uint32_t spi_write(void *handle, uint8_t *data, size_t len) {
+  SpiLcdCap spi = *(SpiLcdCap *)handle;
+  spi->blocking_write(data, len);
+  spi->wait_idle();
+  return len;
+}
+
+uint32_t spi_read(void *handle, uint8_t *data, size_t len) {
+  SpiLcdCap spi = *(SpiLcdCap *)handle;
+  spi->blocking_read(data, len);
+  spi->wait_idle();
+  return len;
+}
+
+uint32_t gpio_write(void *handle, bool cs_high, bool dc_high) {
+  SpiLcdCap spi = *(SpiLcdCap *)handle;
+  set_output_bit(spi, LcdDcPin, dc_high);
+  set_output_bit(spi, LcdCsPin, cs_high);
+  return 0;
+}
+
+uint32_t oe_write(void *handle, bool oe) {
+  SpiLcdCap spi = *(SpiLcdCap *)handle;
+  set_output_bit(spi, LcdWrPin, oe);
+  return 0;
+}
+
+void timer_delay(void *handle, uint32_t ms) { delay((int)ms); }
+
+// Determine if an LCD offset of 2 pixels in the narrow dimension and
+// 1 pixel in the wide dimension must be applied for correct function.
+// Involves writing a bundle of pixels to the LCD and reading some back
+// from the start of the affected rows to discover the default width.
+//
+// The state of the GM[2:0] config pads of the ST7735 controller within
+// the LCD is the root value we wish to discover, but can only do so
+// by observing side-effects. This function infers GM state from the
+// reset value the of CASET register, which itself must be inferred from
+// pixel buffer behaviour after a reset as it cannot be read directly.
+// The test used is whether the 129th pixel or the 133rd pixel written
+// ends up at the start of the second row, as distinguished by writing
+// different values after the 132nd. We check multiple rows to be sure.
+// Wrapping at 128 infers CASET XE[7:0]=0x7F, which infers GM[2:0]='011'.
+// Wrapping at 132 infers CASET XE[7:0]=0x83, which infers GM[2:0]='000'.
+//
+// GM[2:0]='000' (132x162) is incorrect for the 128x160 panel actually present,
+// meaning minor coordinate offsets are needed. The offsets are 2 pixels
+// in the narrow dimension (x if portrait) and 1 pixel in the wide dimension
+// (y if portrait). This is due to how the ST7735 controller maps the
+// contents of the internal frame buffer to display itself. See the
+// (unfortunately error-ridden) ST7735 datasheet for more details.
+//
+// NOTE1: Must be run after a HW or SW reset and before any CASET commands.
+// NOTE2: Does NOT always perform a reset before returning. State may be dirty.
+bool need_offset(Capability<volatile OpenTitanUart> &uart, const LCD_Interface *interface) {
+  const unsigned attempts = 3;
+  const unsigned buf_len  = 4;
+  uint8_t buf[buf_len];
+  uint8_t patterns[4] = {0b10101000, 0b11001100, 0b11100000, 0b10010000};
+  uint8_t result;
+
+  for (unsigned iter = 0; iter < attempts; iter++) {
+    // Ensure CS line is de-asserted and output enabled ahead of any commands
+    interface->gpio_write(interface->handle, true, false);
+    interface->oe_write(interface->handle, true);
+    interface->timer_delay(interface->handle, 1u);
+
+    // Select 18-bit pixel format. Affects writes only (reads always 18-bit).
+    // 18-bit pixel format (as per ST7735 datasheet):
+    //
+    //  MSB                                                                 LSB
+    //  R5 R4 R3 R2 R1 R0 -- -- G5 G4 G3 G2 G1 G0 -- -- B5 B4 B3 B2 B1 B0 -- --
+    // | First pixel byte      | Second pixel byte     | Last pixel byte       |
+    //
+    // Where "R5" is the first bit on the wire, and "--" bits are ignored.
+    buf[0] = colmod;
+    buf[1] = 0x06;
+    interface->gpio_write(interface->handle, false, false);
+    interface->spi_write(interface->handle, &buf[0], 1u);
+    interface->gpio_write(interface->handle, false, true);
+    interface->spi_write(interface->handle, &buf[1], 1u);
+
+    // Write 4 lots (possibly lines) of 132 pixels into the frame buffer.
+    // Change the value being written every 132 pixels.
+    buf[0] = ramwr;
+    interface->gpio_write(interface->handle, false, false);
+    interface->spi_write(interface->handle, &buf[0], 1u);
+    interface->gpio_write(interface->handle, false, true);
+    for (unsigned ln = 0u; ln < 4u; ln++) {
+      // 18-bit pixel value packed into 24-bit (3 bytes) payload.
+      // Two padding LSBs and 6 MSBs of real data per byte/channel.
+      buf[0] = patterns[ln];  // red
+      buf[1] = patterns[ln];  // green
+      buf[2] = patterns[ln];  // blue
+      for (unsigned p = 0u; p < 132u; p++) {
+        interface->spi_write(interface->handle, buf, 3u);
+      }
+    }
+    interface->gpio_write(interface->handle, true, false);
+
+    // Read back a pixel from the start of the second, third, and fourth lines
+    // of the external frame buffer to determine whether the ST7735 controller
+    // in the LCD assembly is configured for 128x160 or 132x162 (by GM pads).
+    // Pixels are always read back in 18-bit format, regardless of COLMOD.
+    result = 0;
+    for (unsigned ln = 1u; ln < 4u; ln++) {
+      buf[0] = raset;
+      interface->gpio_write(interface->handle, false, false);
+      interface->spi_write(interface->handle, &buf[0], 1u);
+      buf[0] = ln >> 8;
+      buf[1] = ln;
+      buf[2] = 99u >> 8;
+      buf[3] = 99u;
+      interface->gpio_write(interface->handle, false, true);
+      interface->spi_write(interface->handle, buf, 4u);
+
+      buf[0] = ramrd;
+      interface->gpio_write(interface->handle, false, false);
+      interface->spi_write(interface->handle, &buf[0], 1u);
+      // Read 1 dummy byte and 3 actual bytes (offset by a dummy clock cycle)
+      interface->oe_write(interface->handle, false);
+      interface->spi_read(interface->handle, buf, 4u);
+      interface->gpio_write(interface->handle, true, false);
+      interface->oe_write(interface->handle, true);
+
+      if (debug) {
+        // Debug printout of values read from LCD frame buffer
+        write_hex8b(uart, ln);
+        write_str(uart, ": ");
+        write_hex(uart, (buf[0] << 25) | (buf[1] << 17) | (buf[2] << 9) | (buf[3] << 1));
+        write_str(uart, "\r\n");
+      }
+
+      // Check the values read back from this line.
+      // The first byte read back is a dummy *byte* to be ignored.
+      // The subsequent bytes were all shifted by an additional dummy *cycle*
+      // after the dummy byte. Easier to shift the pattern to match the
+      // expected read data than to shift all three read bytes.
+      uint8_t prev = patterns[ln - 1] >> 1;
+      uint8_t curr = patterns[ln] >> 1;
+      if (buf[1] == prev && buf[2] == prev && buf[3] == prev) {
+        // Value read was that written to the previous line,
+        // so controller is configured for 128x160 mode (GM=011).
+        result |= 0u << ln;
+      } else if (buf[1] == curr && buf[2] == curr && buf[3] == curr) {
+        // Value read was that written for that line,
+        // so controller is configured for 132x162 mode (GM=000).
+        result |= 1u << ln;
+      } else {
+        // Unexpected value. Reset and retry, or give up and use default.
+        result = 0xFFu;
+        break;
+      }
+    }
+
+    if (result == 0x00u) {
+      // Three out of three agree, 128-wide it gladly be
+      return 0;
+    } else if (result == 0x0Eu) {
+      // Three out of three agree, 132-wide it sadly be
+      return 1;
+    }
+
+    // Software reset to restore most state to default
+    buf[0] = srst;
+    interface->gpio_write(interface->handle, false, false);
+    interface->spi_write(interface->handle, &buf[0], 1u);
+    interface->timer_delay(interface->handle, 120u);  // 120ms minimum
+  }
+
+  // Ran out of attempts, use default (correct 128-wide)
+  write_str(uart, "Warning: Unable to determine LCD offset. Try slower SPI clock.\r\n");
+  return 0;
+}
+
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
@@ -176,34 +406,73 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   uart->init(BAUD_RATE);
   write_str(uart, "LCD check\r\n");
 
-  // This is maximum speed (15Mbps presently) which works fine, but we can run at a lower speed
-  // to exercise interrupts/FIFO behaviour more thoroughly.
-  const uint8_t SpiSpeed = 0u;
+  // Run at a slower speed at first so that read operations function correctly.
+  const uint16_t SpiReadSpeed = 0x1u;
+  spi->init(false, false, true, SpiReadSpeed);
+
+  // Set the initial state of the LCD control pins.
+  // The CS line in particular needs to be high (deasserted) to allow a
+  // subsequent deasserted->asserted transition at the start of the first cmd.
+  set_cs_dc(spi, true, false);
+
+  // Reset LCD.
+  set_output_bit(spi, LcdRstPin, false);
+  delay(1);  // 10us minimum
+  set_output_bit(spi, LcdRstPin, true);
+  delay(120);  // 120ms minimum
+
+  // Prepare portable interface.
+  LCD_Interface interface = {
+      .handle      = &spi,         // SPI handle.
+      .spi_write   = spi_write,    // SPI write callback.
+      .spi_read    = spi_read,     // SPI read callback.
+      .gpio_write  = gpio_write,   // GPIO write callback.
+      .oe_write    = oe_write,     // Output enable callback.
+      .timer_delay = timer_delay,  // Timer delay callback.
+  };
+
+  // Test if we need to add coordinate offsets when writing pixels to the LCD.
+  bool do_offset = need_offset(uart, &interface);
+  if (do_offset) {
+    write_str(uart, "need_offset: YES\r\n");
+  } else {
+    write_str(uart, "need_offset: NO\r\n");
+  }
+
+  // This is maximum speed (20Mbps presently) which works fine when
+  // only performing writes.
+  const uint16_t SpiSpeed = 0u;
   spi->init(false, false, true, SpiSpeed);
 
   // Set the initial state of the LCD control pins.
-  set_output_bit(spi, LcdDcPin, 0x0);
+  // The CS line in particular needs to be high (deasserted) for the first
+  // command to work.
+  set_cs_dc(spi, true, false);
 
   // Reset LCD.
-  set_output_bit(spi, LcdRstPin, 0x0);
-  delay(150);
-  set_output_bit(spi, LcdRstPin, 0x1);
+  set_output_bit(spi, LcdRstPin, false);
+  delay(1);  // 10us minimum
+  set_output_bit(spi, LcdRstPin, true);
+  delay(120);  // 120ms minimum
 
   // Send display initialisation commands.
-  run_script(uart, spi, init_script_b);
   run_script(uart, spi, init_script_r);
   run_script(uart, spi, init_script_r3);
 
 #if LANDSCAPE
-  uint8_t data = ST77_MADCTL_MX | ST77_MADCTL_MV | ST77_MADCTL_RGB;
+  uint8_t data   = ST77_MADCTL_MX | ST77_MADCTL_MV | ST77_MADCTL_RGB;
+  uint16_t off_x = do_offset ? 1 : 0;
+  uint16_t off_y = do_offset ? 2 : 0;
 #else
-  uint8_t data = ST77_MADCTL_MX | ST77_MADCTL_MY | ST77_MADCTL_RGB;
+  uint8_t data   = ST77_MADCTL_MX | ST77_MADCTL_MY | ST77_MADCTL_RGB;
+  uint16_t off_x = do_offset ? 2 : 0;
+  uint16_t off_y = do_offset ? 1 : 0;
 #endif
   write_command(spi, &madctl, 1u);
   write_data(spi, &data, 1u);
 
   const uint32_t back_pix = 0x1f00u;
-  fill_rect(spi, 0u, 0u, width - 1u, height - 1u, back_pix);
+  fill_rect(spi, 0u + off_x, 0u + off_y, width + off_x - 1u, height + off_y - 1u, back_pix);
 
   int32_t logo_x = (width - img_width) >> 1;
   int32_t logo_y = (height - img_height) >> 1;
@@ -216,7 +485,11 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
     uint16_t logo_x1 = logo_x + img_width - 1u;
 
     // Render the logo.
-    draw_image(spi, logo_x, logo_y, logo_x1, logo_y1, (uint8_t *)lowrisc_logo_native);
+    uint16_t logo_d_x  = logo_x + off_x;
+    uint16_t logo_d_y  = logo_y + off_y;
+    uint16_t logo_d_x1 = logo_x1 + off_x;
+    uint16_t logo_d_y1 = logo_y1 + off_y;
+    draw_image(spi, logo_d_x, logo_d_y, logo_d_x1, logo_d_y1, (uint8_t *)lowrisc_logo_native);
 
     // Remove trailing edge(s).
     if (logo_xd) {
@@ -227,7 +500,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
       uint16_t y0 = logo_y - ((logo_yd > 0) ? logo_yd : 0);
       uint16_t y1 = logo_y1 - ((logo_yd < 0) ? logo_yd : 0);
       // Restore the column to the background colour.
-      fill_rect(spi, x0, y0, x1, y1, back_pix);
+      fill_rect(spi, x0 + off_x, y0 + off_y, x1 + off_x, y1 + off_y, back_pix);
     }
     if (logo_yd) {
       // Remove the row above or below the image.
@@ -237,7 +510,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
       uint16_t x0 = logo_x - ((logo_xd > 0) ? logo_xd : 0);
       uint16_t x1 = logo_x1 - ((logo_xd < 0) ? logo_xd : 0);
       // Restore the row to the background colour.
-      fill_rect(spi, x0, y0, x1, y1, back_pix);
+      fill_rect(spi, x0 + off_x, y0 + off_y, x1 + off_x, y1 + off_y, back_pix);
     }
 
     // Determine the new position of the logo.
