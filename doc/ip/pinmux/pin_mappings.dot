@@ -200,14 +200,14 @@ digraph {
     lcd [label=<
       <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
         <tr>
-          <td port="copi">lcd_copi</td><td>copi</td>
+          <td port="data">lcd_copi</td><td>copi, cipo</td>
           <td rowspan="6">lcd</td>
         </tr>
         <tr><td port="clk">lcd_clk</td><td>sclk</td></tr>
         <tr><td port="cs">lcd_cs</td><td>cs</td></tr>
         <tr><td port="dc">lcd_dc</td><td>gpo</td></tr>
         <tr><td port="rst">lcd_rst</td><td>gpo</td></tr>
-        <tr><td port="backlight">lcd_backlight</td><td>gpo</td></tr>
+        <tr><td port="backlight">lcd_backlight</td><td>gpo, pwm</td></tr>
       </table>
     >];
 
@@ -404,7 +404,8 @@ digraph {
   spi_0:sclk -> microsd:clk;
   spi_0:cs_1 -> microsd:dat3;
 
-  spi_lcd:copi -> lcd:copi;
+  spi_lcd:copi -> lcd:data;
+  spi_lcd:cipo -> lcd:data [dir=back];
   spi_lcd:sclk -> lcd:clk;
   spi_lcd:cs_0 -> lcd:cs;
   spi_lcd:cs_1 -> lcd:dc;

@@ -366,6 +366,15 @@ set_output_delay -clock clk_sys -max 0 [get_ports lcd_clk]
 set_output_delay -clock clk_sys -min 0 [get_ports lcd_clk]
 set_output_delay -clock clk_lcd -max [expr { 10 * 1.1}] [get_ports lcd_copi]
 set_output_delay -clock clk_lcd -min [expr {-10 * 1.1}] [get_ports lcd_copi]
+# The read path uses the same data line, despite being mis-named "copi".
+# Data is driven/launched 10-15 ns after the falling edge, and held for
+# up to 50 ns after the rising edge (which is no help, as we need a minimum).
+# Timings are relative to the clock as seen by the LCD, which is at a distance.
+# Distance to LCD pins = ~70-90 mm  x2(clk there + data back)
+set lcd_trce_dly_max [expr {180 * 2 * 0.010}]
+set lcd_trce_dly_min [expr {140 * 2 * 0.004}]
+set_input_delay -clock clk_lcd -max [expr {$sclk_ns/2 + 50 + $lcd_trce_dly_max}] [get_ports lcd_copi]
+set_input_delay -clock clk_lcd -min [expr {0               + $lcd_trce_dly_min}] [get_ports lcd_copi]
 # Other interface signals change once for every transaction at most,
 # but some have high setup requirements.
 # Set a multicycle path constraint in timing exceptions section based on
@@ -753,9 +762,9 @@ set_false_path -from [get_ports {selSw[*]}]
 set_false_path -from [get_ports usrusb_vbusdetect]
 
 ## LCD display
-# Reset must be held for 9+ us.
+# Reset must be held for 10+ us, then released for 120+ ms before use.
 # Backlight signal drives gate of discrete transistor that powers backlights.
-set_false_path -to [get_ports {lcd_rst lcd_backlight}] ;# vbus detection - async
+set_false_path -to [get_ports {lcd_rst lcd_backlight}]
 
 ## Ethernet MAC - asynchronous reset
 set_false_path -to [get_ports ethmac_rst]
@@ -858,9 +867,13 @@ set_multicycle_path [expr {$lcd_fast_mulcycs - 1}] -hold  -start -to [get_ports 
 # Chip select and data/command select are output by a GPIO block
 # once every transaction, so give them a couple of (destination clk) cycles
 # to account for the delay between writing to GPIO and starting SPI output.
-set lcd_slow_mulcycs 2
+set lcd_slow_mulcycs 4
 set_multicycle_path        $lcd_slow_mulcycs       -setup -end -to [get_ports {lcd_cs lcd_dc}]
 set_multicycle_path [expr {$lcd_slow_mulcycs - 1}] -hold  -end -to [get_ports {lcd_cs lcd_dc}]
+# The data read path is not used during normal operation, so give it
+# more cycles also to avoid having to slow down the write path.
+set_multicycle_path        $lcd_slow_mulcycs       -setup -end -from [get_ports lcd_copi]
+set_multicycle_path [expr {$lcd_slow_mulcycs - 1}] -hold  -end -from [get_ports lcd_copi]
 ## App Flash
 # Data in and out driven/captured by SPI host block.
 set appspi_mulcycs 2

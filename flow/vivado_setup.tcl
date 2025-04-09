@@ -35,7 +35,7 @@ if {$opt >= 1} {
   set_property STEPS.OPT_DESIGN.TCL.PRE       "${workroot}/vivado_hook_opt_design_pre.tcl"       [get_runs impl_1]
 }
 # set_property STEPS.OPT_DESIGN.TCL.POST      "${workroot}/vivado_hook_opt_design_post.tcl"      [get_runs impl_1]
-set_property STEPS.PLACE_DESIGN.TCL.PRE     "${workroot}/vivado_hook_place_design_pre.tcl"     [get_runs impl_1]
+# set_property STEPS.PLACE_DESIGN.TCL.PRE     "${workroot}/vivado_hook_place_design_pre.tcl"     [get_runs impl_1]
 # set_property STEPS.PLACE_DESIGN.TCL.POST    "${workroot}/vivado_hook_place_design_post.tcl"    [get_runs impl_1]
 # set_property STEPS.PHYS_OPT_DESIGN.TCL.PRE  "${workroot}/vivado_hook_phys_opt_design_pre.tcl"  [get_runs impl_1]
 # set_property STEPS.PHYS_OPT_DESIGN.TCL.POST "${workroot}/vivado_hook_phys_opt_design_post.tcl" [get_runs impl_1]
