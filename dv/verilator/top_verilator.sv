@@ -130,8 +130,12 @@ module top_verilator (input logic clk_i, rst_ni);
   // LCD interface.
   wire lcd_rst;
   wire lcd_dc;
-  // SPI interface to LCD.
+  // SPI-ish interface to LCD.
   wire lcd_copi;
+  wire lcd_copi_en;
+  wire lcd_copi_out = lcd_copi_en ? lcd_copi : lcd_cipo_in;
+  wire lcd_cipo_in;
+  wire lcd_cipo = lcd_copi_en ? lcd_copi : lcd_cipo_in;
   wire lcd_clk;
   wire lcd_cs;
   // LCD backlight on/off.
@@ -346,6 +350,8 @@ module top_verilator (input logic clk_i, rst_ni);
 
     // Non-pinmuxed spi devices
     .lcd_copi_o              (lcd_copi),
+    .lcd_copi_en_o           (lcd_copi_en),
+    .lcd_cipo_i              (lcd_cipo),
     .lcd_sclk_o              (lcd_clk),
     .lcd_cs_o                (lcd_cs),
     .lcd_dc_o                (lcd_dc),
@@ -543,8 +549,8 @@ module top_verilator (input logic clk_i, rst_ni);
 
     .sck      (lcd_clk),
     .cs       (lcd_cs),
-    .copi     (lcd_copi),
-    .cipo     ( ),  // not used.
+    .copi     (lcd_copi_out),
+    .cipo     (lcd_cipo_in),
 
     .oob_in   ({lcd_dc, lcd_rst, lcd_backlight}),
     .oob_out  ( )  // not used.

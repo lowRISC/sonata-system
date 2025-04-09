@@ -41,6 +41,8 @@ module sonata_system
 
   // Non-pinmuxed spi devices
   output logic                     lcd_copi_o,
+  output logic                     lcd_copi_en_o,
+  input  logic                     lcd_cipo_i,
   output logic                     lcd_sclk_o,
   output logic                     lcd_cs_o,
   output logic                     lcd_dc_o,
@@ -1051,7 +1053,7 @@ module sonata_system
   // - LCD screen
   // - Ethernet MAC
   spi #(
-    .CSWidth(3)
+    .CSWidth(4)
   ) u_spi_lcd (
     .clk_i               (clk_sys_i),
     .rst_ni              (rst_sys_ni),
@@ -1069,8 +1071,8 @@ module sonata_system
 
     // SPI signals.
     .spi_copi_o          (lcd_copi_o),
-    .spi_cipo_i          (1'b1),
-    .spi_cs_o            ({lcd_rst_o, lcd_dc_o, lcd_cs_o}),
+    .spi_cipo_i          (lcd_cipo_i),
+    .spi_cs_o            ({lcd_copi_en_o, lcd_rst_o, lcd_dc_o, lcd_cs_o}),
     .spi_clk_o           (lcd_sclk_o)
   );
 
