@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 target/
 
-# FuseSoC and Sofware builds are placed in build
+# FuseSoC and Software builds are placed in build
 build/
 sw/cheri/sim_boot_stub/sim_boot_stub
 sw/cheri/sim_boot_stub/sim_sram_boot_stub
@@ -27,3 +27,8 @@ lcd.ppm
 # Files and directories used by clangd
 .cache/
 compile_commands.json
+
+# Vivado outputs and bitstreams
+*.jou
+*.bit
+*.uf2
