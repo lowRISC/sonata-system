@@ -32,3 +32,15 @@ Optionally, the bitstream can be built using a nix command:
 nix run .#bitstream-build
 ```
 Note: Vivado must be in one's path for this command to work.
+
+## Sonata XL bitstream
+
+To build a bitstream for the Sonata XL board instead of the Sonata One board, change the fusesoc target from `synth` to `synth_xl`.
+i.e. run this command:
+
+```sh
+fusesoc --cores-root=. run --target=synth_xl --setup --build lowrisc:sonata:system
+```
+
+This bitstream should be compatible with software compiled for the Sonata One board.
+A faux-HyperRAM is instantiated using the additional block RAM of the larger FPGA to account for the lack of HyperRAM onboard.
