@@ -63,9 +63,14 @@ filesets:
   files_constraints_sonata:
     files:
       # Per AMD advice (UG949):
-      - data/pins_sonata.xdc  # 1 file for physical +
-      - data/synth_timing.xdc # 1 file for timing (synthesis) +
-      - data/impl_timing.xdc  # 1 file for timing (implementation)
+      #   1 file for physical + 1 file for timing (synthesis) + 1 file for timing (implementation)
+      # Complicated by the differences between Sonata One and Sonata XL
+      - target_synth    ? (data/pins_sonata.xdc)
+      - target_synth_xl ? (data/pins_sonata_xl.xdc)
+      -                    data/synth_timing_common.xdc
+      - target_synth    ? (data/synth_timing.xdc)
+      - target_synth_xl ? (data/synth_timing_xl.xdc)
+      -                    data/impl_timing.xdc
     file_type: xdc
 
   files_tcl:
@@ -98,6 +103,11 @@ parameters:
     paramtype: vlogdefine
     description: Use an SRAM simulation model rather than the real hyperram controller
 
+  TARGET_XL_BOARD:
+    datatype: bool
+    paramtype: vlogdefine
+    description: Targeting the Sonata XL board rather than the Sonata One board.
+
 targets:
   default: &default_target
     filesets:
@@ -117,6 +127,22 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+
+  synth_xl:
+    <<: *default_target
+    default_tool: vivado
+    filesets_append:
+      - files_sonata
+      - files_constraints_sonata
+      - files_tcl
+    toplevel: top_sonata
+    tools:
+      vivado:
+        part: "xc7a200tfbg676-2" # Artix-7 200T
+    parameters:
+      - SRAMInitFile
+      - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+      - TARGET_XL_BOARD=true
 
   sim:
     <<: *default_target

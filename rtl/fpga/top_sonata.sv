@@ -35,6 +35,10 @@ module top_sonata
   output logic       ethmac_cs,
 
   output logic       rgbled0,
+`ifdef TARGET_XL_BOARD
+  // Sonata XL can turn off the RGB LEDs entirely
+  output logic       rgbled_en,
+`endif
 
   // UART 0
   output logic       ser0_tx,
@@ -192,12 +196,23 @@ module top_sonata
   output logic       microsd_cmd,  // SPI mode: COPI
   input  logic       microsd_det,  // Card insertion detection
 
+  // HyperRAM interface
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL
+`else
   inout  wire [7:0]  hyperram_dq,
   inout  wire        hyperram_rwds,
   output wire        hyperram_ckp,
   output wire        hyperram_ckn,
   output wire        hyperram_nrst,
   output wire        hyperram_cs
+`endif
+
+`ifdef TARGET_XL_BOARD
+  // Sonata XL-only expansion headers
+  inout  logic [63:0] ex0,
+  inout  logic [63:0] ex1
+`endif
 );
   import sonata_pkg::*;
 
@@ -282,10 +297,14 @@ module top_sonata
     .rst_usb_ni     (rst_usb_n),
 
     // HyperRAM clocks and reset
+`ifdef TARGET_XL_BOARD
+    // No HyperRAM on Sonata XL
+`else
     .clk_hr_i       (clk_hr),
     .clk_hr90p_i    (clk_hr90p),
     .clk_hr3x_i     (clk_hr3x),
     .rst_hr_ni      (rst_hr_n),
+`endif
 
     // GPIO
     .gp_i           ({
@@ -354,12 +373,17 @@ module top_sonata
 
     .rgbled_dout_o(rgbled_dout),
 
+    // HyperRAM
+`ifdef TARGET_XL_BOARD
+    // No HyperRAM on Sonata XL
+`else
     .hyperram_dq,
     .hyperram_rwds,
     .hyperram_ckp,
     .hyperram_ckn,
     .hyperram_nrst,
     .hyperram_cs,
+`endif
 
     .rs485_tx_enable_o(rs485_tx_enable),
     .rs485_rx_enable_o(rs485_rx_enable),
@@ -372,6 +396,10 @@ module top_sonata
   );
 
   assign rgbled0 = ~rgbled_dout;
+`ifdef TARGET_XL_BOARD
+  // Leave RGBs always on, like Sonata One, until we can do something better
+  assign rgbled_en = 1'b1;
+`endif
 
   // Tie flash wp_n and hold_n to 1 as they're active low and we don't need either signal
   assign appspi_d2 = 1'b1;

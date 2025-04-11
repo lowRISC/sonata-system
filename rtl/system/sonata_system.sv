@@ -23,10 +23,14 @@ module sonata_system
   input logic                      rst_usb_ni,
 
   // HyperRAM clocks and reset
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL
+`else
   input logic                      clk_hr_i,
   input logic                      clk_hr90p_i,
   input logic                      clk_hr3x_i,
   input logic                      rst_hr_ni,
+`endif
 
   // General purpose input and output
   input  logic [GPIO_IOS_WIDTH-1:0] gp_i,
@@ -87,12 +91,16 @@ module sonata_system
 
   output logic                     rgbled_dout_o,
 
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL
+`else
   inout  wire [7:0]                hyperram_dq,
   inout  wire                      hyperram_rwds,
   output wire                      hyperram_ckp,
   output wire                      hyperram_ckn,
   output wire                      hyperram_nrst,
   output wire                      hyperram_cs,
+`endif
 
   output wire                      rs485_rx_enable_o,
   output wire                      rs485_tx_enable_o,
@@ -494,6 +502,24 @@ module sonata_system
     .tl_b_o (tl_sram_b_d2h)
   );
 
+  // HyperRAM
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL, but we can replace it with internal block RAM
+  sram #(
+    .AddrWidth       ( $clog2(HyperRAMSize) ),
+    .DataWidth       ( BusDataWidth    ),
+    .DataBitsPerMask ( DataBitsPerMask ),
+    .InitFile        ()
+  ) u_hyperram (
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
+
+    .tl_a_i (tl_hyperram_ds_h2d),
+    .tl_a_o (tl_hyperram_ds_d2h),
+    .tl_b_i (),
+    .tl_b_o ()
+  );
+`else
   hyperram #(
     .HyperRAMClkFreq ( HyperRAMClkFreq ),
     .HyperRAMSize    ( HyperRAMSize    )
@@ -516,6 +542,7 @@ module sonata_system
     .hyperram_nrst,
     .hyperram_cs
   );
+`endif
 
   // Manual M:1 socket instantiation as xbar generator cannot deal with multiple ports for one
   // device and we want to utilize the dual port SRAM. So totally separate crossbars are generated
