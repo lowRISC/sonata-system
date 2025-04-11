@@ -404,7 +404,8 @@ digraph {
   spi_0:sclk -> microsd:clk;
   spi_0:cs_1 -> microsd:dat3;
 
-  spi_lcd:copi -> lcd:copi;
+  spi_lcd:copi -> lcd:cipo;
+  spi_lcd:cipo -> lcd:cipo;
   spi_lcd:sclk -> lcd:clk;
   spi_lcd:cs_0 -> lcd:cs;
   spi_lcd:cs_1 -> lcd:dc;
