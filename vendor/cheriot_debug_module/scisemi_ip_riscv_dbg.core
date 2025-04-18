@@ -11,7 +11,8 @@ filesets:
       - lowrisc:prim:fifo
       - lowrisc:prim:clock_inv
     files:
-      - debug_rom/debug_rom.sv
+      - debug_rom/debug_rom_rv.sv
+      - debug_rom/debug_rom_ch.sv
 #     - debug_rom/debug_rom_one_scratch.sv
       - src/dm_pkg.sv
       - src/dm_sba.sv

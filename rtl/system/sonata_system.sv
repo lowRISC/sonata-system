@@ -1233,6 +1233,8 @@ module sonata_system
     .debug_req_o    (debug_req),
     .unavailable_i  (1'b0),
 
+    .cheri_en_i     (cheri_en),  // CHERIoT enabled?
+
     // Bus device with debug memory (for execution-based debug).
     .device_req_i   (device_req[DbgDev]),
     .device_we_i    (device_we[DbgDev]),

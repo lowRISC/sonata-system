@@ -1,5 +1,5 @@
 
-debug_rom.elf:	file format elf32-littleriscv
+debug_rom_ch.elf:	file format elf32-littleriscv
 
 Disassembly of section .text:
 

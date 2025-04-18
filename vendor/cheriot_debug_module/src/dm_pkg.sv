@@ -320,8 +320,8 @@ package dm;
     // Debug CSR
     CSR_DCSR           = 12'h7b0,
     CSR_DPC            = 12'h7b1,
-//    CSR_DSCRATCH0      = 12'h7b2, // optional
-//    CSR_DSCRATCH1      = 12'h7b3, // optional
+    CSR_DSCRATCH0      = 12'h7b2, // optional
+    CSR_DSCRATCH1      = 12'h7b3, // optional
 
     // Counters and Timers
     CSR_CYCLE          = 12'hC00,
@@ -331,8 +331,8 @@ package dm;
 
   // Special CSRs
   typedef enum logic [4:0] {
-    CSR_DSCRATCH0    = 5'h19,
-    CSR_DSCRATCH1    = 5'h1a
+    SPEC_CSR_DSCRATCH0 = 5'h19,
+    SPEC_CSR_DSCRATCH1 = 5'h1a
   } spec_csr_e;
 
   // SBA state
@@ -440,6 +440,34 @@ package dm;
                                         logic [4:0] dest);
     // rs1, CSRRS, rd, OpCode System
     return {csr, 5'h0, 3'h2, dest, 7'h73};
+  endfunction
+
+  // Read from DSCRATCH0
+  function automatic logic [31:0] dscratch0_r(logic [4:0] dest,
+                                              bit         cheri_en_i);
+    return cheri_en_i ? cspecialr(SPEC_CSR_DSCRATCH0, dest)
+                      : csrr(CSR_DSCRATCH0, dest);
+  endfunction
+
+  // Read from DSCRATCH1
+  function automatic logic [31:0] dscratch1_r(logic [4:0] dest,
+                                              bit         cheri_en_i);
+    return cheri_en_i ? cspecialr(SPEC_CSR_DSCRATCH1, dest)
+                      : csrr(CSR_DSCRATCH1, dest);
+  endfunction
+
+  // Write to DSCRATCH0
+  function automatic logic [31:0] dscratch0_w(logic [4:0] rs1,
+                                              bit         cheri_en_i);
+    return cheri_en_i ? cspecialw(SPEC_CSR_DSCRATCH0, rs1)
+                      : csrw(CSR_DSCRATCH0, rs1);
+  endfunction
+
+  // Write to DSCRATCH1
+  function automatic logic [31:0] dscratch1_w(logic [4:0] rs1,
+                                              bit         cheri_en_i);
+    return cheri_en_i ? cspecialw(SPEC_CSR_DSCRATCH1, rs1)
+                      : csrw(CSR_DSCRATCH1, rs1);
   endfunction
 
   function automatic logic [31:0] branch(logic [4:0]  src2,

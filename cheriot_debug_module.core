@@ -10,7 +10,8 @@ filesets:
     depend:
       - lowrisc:prim:all
     files:
-      - vendor/cheriot_debug_module/debug_rom/debug_rom.sv
+      - vendor/cheriot_debug_module/debug_rom/debug_rom_ch.sv
+      - vendor/cheriot_debug_module/debug_rom/debug_rom_rv.sv
       - vendor/cheriot_debug_module/src/dm_pkg.sv
       - vendor/cheriot_debug_module/src/dm_sba.sv
       - vendor/cheriot_debug_module/src/dm_csrs.sv
