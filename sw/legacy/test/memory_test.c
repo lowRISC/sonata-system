@@ -16,9 +16,11 @@
 #include "timer.h"
 
 #define TEST_DATA (0xDEADBEEF)
-#define TEST_SIZE ((224 * 1024) / 4)
+// Total ram size minus space for .text and .rodata
+#define TEST_SIZE_BYTES (0x1F000 - 0x7000)
+#define TEST_SIZE_WORDS TEST_SIZE_BYTES / 4
 
-static uint32_t test_array[TEST_SIZE];
+static uint32_t test_array[TEST_SIZE_WORDS];
 
 int pass() {
   puts("Passed");
@@ -38,16 +40,16 @@ int main(void) {
   uart_init(DEFAULT_UART);
 
   putstr("memory_test running...");
-  puthex(TEST_SIZE * 4);
+  puthex(TEST_SIZE_BYTES);
   puts(" bytes");
 
   // Simple word write/read test of most of the RAM; some RAM is used by the
   // code itself, global static and stack...
-  for (int i = 0; i < TEST_SIZE; i++) {
+  for (int i = 0; i < TEST_SIZE_WORDS; i++) {
     test_array[i] = TEST_DATA + i;
   }
   // Read back data and check it is correct
-  for (int i = 0; i < TEST_SIZE; i++) {
+  for (int i = 0; i < TEST_SIZE_WORDS; i++) {
     if (test_array[i] != TEST_DATA + i) {
       return fail();
     }
@@ -55,11 +57,11 @@ int main(void) {
 
   // Byte read/write test
   uint8_t *btest = (uint8_t *)test_array;
-  for (int i = 0; i < TEST_SIZE; i++) {
+  for (int i = 0; i < TEST_SIZE_WORDS; i++) {
     btest[i * 4 + (i & 3)] ^= i;
   }
   // Read back data and check it is correct
-  for (int i = 0; i < TEST_SIZE; i++) {
+  for (int i = 0; i < TEST_SIZE_WORDS; i++) {
     uint32_t orig = TEST_DATA + i;
     uint32_t mod  = orig ^ (uint8_t)i << (8 * (i & 3));
     if (test_array[i] != mod) {
