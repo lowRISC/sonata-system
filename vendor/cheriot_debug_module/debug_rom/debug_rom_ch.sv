@@ -1,8 +1,4 @@
-/* 
- * Conversion to CHERIoT Ibex ISA from RISC-V
- *   Copyright SCI Semiconductor 2025
- *
- * Copyright 2018 ETH Zurich and University of Bologna.
+/* Copyright 2018 ETH Zurich and University of Bologna.
  * Copyright and related rights are licensed under the Solderpad Hardware
  * License, Version 0.51 (the "License"); you may not use this file except in
  * compliance with the License.  You may obtain a copy of the License at
@@ -18,7 +14,7 @@
  */
 
 // Auto-generated code
-module debug_rom (
+module debug_rom_ch (
   input  logic         clk_i,
   input  logic         req_i,
   input  logic [63:0]  addr_i,

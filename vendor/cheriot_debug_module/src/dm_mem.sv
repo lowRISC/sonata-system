@@ -30,6 +30,8 @@ module dm_mem #(
   input  logic                             rst_ni,      // debug module reset
   input  logic                             ndmreset_i,
 
+  input  logic                             cheri_en_i,  // CHERIoT enabled?
+
   output logic [NrHarts-1:0]               debug_req_o,
   input  logic [19:0]                      hartsel_i,
   // from Ctrl and Status register
@@ -348,7 +350,7 @@ module dm_mem #(
     abstract_cmd[2][63:32] = dm::nop();
     abstract_cmd[3][31:0]  = dm::nop();
     abstract_cmd[3][63:32] = dm::nop();
-    abstract_cmd[4][31:0]  = HasSndScratch ? dm::cspecialr(dm::CSR_DSCRATCH1, 5'd10) : dm::nop();
+    abstract_cmd[4][31:0]  = HasSndScratch ? dm::dscratch1_r(5'd10, cheri_en_i) : dm::nop();
     abstract_cmd[4][63:32] = dm::ebreak();
     abstract_cmd[7:5]      = '0;
 
@@ -360,7 +362,7 @@ module dm_mem #(
       dm::AccessRegister: begin
         if (32'(ac_ar.aarsize) < MaxAar && ac_ar.transfer && ac_ar.write) begin
           // store a0 in dscratch1
-          abstract_cmd[0][31:0] = HasSndScratch ? dm::cspecialw(dm::CSR_DSCRATCH1, 5'd10) : dm::nop();
+          abstract_cmd[0][31:0] = HasSndScratch ? dm::dscratch1_w(5'd10, cheri_en_i) : dm::nop();
           // this range is reserved
           if (ac_ar.regno[15:14] != '0) begin
             abstract_cmd[0][31:0] = dm::ebreak(); // we leave asap
@@ -370,13 +372,13 @@ module dm_mem #(
           end else if (HasSndScratch && ac_ar.regno[12] && (!ac_ar.regno[5]) &&
                       (ac_ar.regno[4:0] == 5'd10)) begin
             // store s0 in dscratch
-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
             // load from data register
             abstract_cmd[2][63:32] = dm::load(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
             // and store it in the corresponding CSR
-            abstract_cmd[3][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH1, 5'd8);
+            abstract_cmd[3][31:0]  = dm::dscratch1_w(5'd8, cheri_en_i);
             // restore s0 again from dscratch
-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
           // GPR/FPR access
           end else if (ac_ar.regno[12]) begin
             // determine whether we want to access the floating point register or not
@@ -391,19 +393,18 @@ module dm_mem #(
           end else begin
             // data register to CSR
             // store s0 in dscratch
-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
             // load from data register
             abstract_cmd[2][63:32] = dm::load(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
             // and store it in the corresponding CSR
             abstract_cmd[3][31:0]  = dm::csrw(dm::csr_reg_t'(ac_ar.regno[11:0]), 5'd8);
             // restore s0 again from dscratch
-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
           end
         end else if (32'(ac_ar.aarsize) < MaxAar && ac_ar.transfer && !ac_ar.write) begin
           // store a0 in dscratch1
           abstract_cmd[0][31:0]  = HasSndScratch ?
-                                   dm::cspecialw(dm::CSR_DSCRATCH1, LoadBaseAddr) :
-                                   dm::nop();
+                                   dm::dscratch1_w(LoadBaseAddr, cheri_en_i) : dm::nop();
           // this range is reserved
           if (ac_ar.regno[15:14] != '0) begin
               abstract_cmd[0][31:0] = dm::ebreak(); // we leave asap
@@ -413,13 +414,13 @@ module dm_mem #(
           end else if (HasSndScratch && ac_ar.regno[12] && (!ac_ar.regno[5]) &&
                       (ac_ar.regno[4:0] == 5'd10)) begin
             // store s0 in dscratch
-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
             // read value from CSR into s0
-            abstract_cmd[2][63:32] = dm::cspecialr(dm::CSR_DSCRATCH1, 5'd8);
+            abstract_cmd[2][63:32] = dm::dscratch1_r(5'd8, cheri_en_i);
             // and store s0 into data section
             abstract_cmd[3][31:0]  = dm::store(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
             // restore s0 again from dscratch
-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
           // GPR/FPR access
           end else if (ac_ar.regno[12]) begin
             // determine whether we want to access the floating point register or not
@@ -434,13 +435,13 @@ module dm_mem #(
           end else begin
             // CSR register to data
             // store s0 in dscratch
-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
             // read value from CSR into s0
             abstract_cmd[2][63:32] = dm::csrr(dm::csr_reg_t'(ac_ar.regno[11:0]), 5'd8);
             // and store s0 into data section
             abstract_cmd[3][31:0]  = dm::store(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
             // restore s0 again from dscratch
-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
+            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
           end
         end else if (32'(ac_ar.aarsize) >= MaxAar || ac_ar.aarpostincrement == 1'b1) begin
           // this should happend when e.g. ac_ar.aarsize >= MaxAar
@@ -479,12 +480,24 @@ module dm_mem #(
   // two registers per hart, hence we also need
   // two scratch registers.
   if (HasSndScratch) begin : gen_rom_snd_scratch
-    debug_rom i_debug_rom (
+    logic [63:0] rom_rdata_rv;
+    logic [63:0] rom_rdata_ch;
+
+    debug_rom_rv i_debug_rom (
       .clk_i,
-      .req_i,
-      .addr_i  ( rom_addr  ),
-      .rdata_o ( rom_rdata )
+      .req_i   ( req_i & !cheri_en_i ),
+      .addr_i  ( rom_addr            ),
+      .rdata_o ( rom_rdata_rv        )
     );
+
+    debug_rom_ch i_debug_rom_ch (
+      .clk_i,
+      .req_i   ( req_i &  cheri_en_i ),
+      .addr_i  ( rom_addr            ),
+      .rdata_o ( rom_rdata_ch        )
+    );
+
+    assign rom_rdata = cheri_en_i ? rom_rdata_ch : rom_rdata_rv;
   end else begin : gen_rom_one_scratch
     // It uses the zero register (`x0`) as the base
     // for its loads. The zero register does not need to

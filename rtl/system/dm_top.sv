@@ -27,6 +27,8 @@ module dm_top #(
   input  logic [NrHarts-1:0] unavailable_i, // communicate whether the hart is unavailable
                                             // (e.g.: power down)
 
+  input  logic               cheri_en_i, // CHERIoT enabled?
+
   // bus device with debug memory, for an execution based technique
   input  logic                  device_req_i,
   input  logic                  device_we_i,
@@ -210,6 +212,7 @@ module dm_top #(
     .clk_i                   ( clk_i                 ),
     .rst_ni                  ( rst_ni                ),
     .ndmreset_i              ( ndmreset              ),
+    .cheri_en_i              ( cheri_en_i            ),
     .debug_req_o             ( debug_req_o           ),
     .hartsel_i               ( hartsel               ),
     .haltreq_i               ( haltreq               ),

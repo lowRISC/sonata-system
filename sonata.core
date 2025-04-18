@@ -90,6 +90,8 @@ parameters:
     datatype: str
     description: SRAM initialization file in vmem hex format
     default: "../../../../../sw/cheri/build/boot/boot_loader.vmem"
+    # Alternative boot stub for legacy mode.
+    #default: "../../../../../sw/legacy/build/boot/boot.vmem"
     paramtype: vlogparam
 
   # For value definition, please see ip/prim/rtl/prim_pkg.sv
