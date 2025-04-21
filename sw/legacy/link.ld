@@ -7,8 +7,9 @@ OUTPUT_ARCH(riscv)
 MEMORY
 {
     /* 128 KiB */
-    ram         : ORIGIN = 0x00100000, LENGTH = 0x1F000 /* 124 KiB */
-    stack       : ORIGIN = ORIGIN(ram) + LENGTH(ram), LENGTH = 0x01000   /* 4 KiB */
+    ram         : ORIGIN = 0x00100000, LENGTH = 0x1E000 /* 120 KiB */
+    heap        : ORIGIN = ORIGIN(ram) + LENGTH(ram), LENGTH = 0x01000   /* 4 KiB */
+    stack       : ORIGIN = ORIGIN(heap) + LENGTH(heap), LENGTH = 0x01000   /* 4 KiB */
 }
 
 /* Stack information variables */
@@ -24,7 +25,7 @@ PROVIDE(_stext = ORIGIN(ram));
 PROVIDE(_stack_start = ORIGIN(stack) + LENGTH(stack));
 PROVIDE(_max_hart_id = 0);
 PROVIDE(_hart_stack_size = LENGTH(stack));
-PROVIDE(_heap_size = 0);
+PROVIDE(_heap_size = LENGTH(heap));
 PROVIDE(UserSoft = DefaultHandler);
 PROVIDE(SupervisorSoft = DefaultHandler);
 PROVIDE(MachineSoft = DefaultHandler);
@@ -99,6 +100,15 @@ SECTIONS
     /* Rust dependency */
     _sbss = _bss_start;
     _ebss = _bss_end;
+
+    .heap (NOLOAD):
+    {
+        . = ALIGN(4);
+        __heap_start = .;
+        . = . + _heap_size ;
+        __heap_end = .;
+        . = ALIGN(4);
+    } > heap
 
     /* ensure there is enough room for stack */
     .stack (NOLOAD): {
