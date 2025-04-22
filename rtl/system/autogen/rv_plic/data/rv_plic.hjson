@@ -97,12 +97,6 @@
     },
   ]
 
-  countermeasures: [
-    { name: "BUS.INTEGRITY",
-      desc: "End-to-end bus integrity scheme."
-    }
-  ]
-
   features: [
     { name: "RV_PLIC.PRIORITY",
       desc: '''Each interrupt source can be given a configurable priority.'''
