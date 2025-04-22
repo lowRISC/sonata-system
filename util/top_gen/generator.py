@@ -368,5 +368,7 @@ def generate_top(config: TopConfig) -> None:
             ["clang-format", "sw/cheri/common/platform-pinmux.hh", "-i"],
             check=True,
         )
+        subprocess.run(["sh", "util/generate_plic.sh"], check=True)
+        subprocess.run(["bash", "util/reg_gen.sh"], check=True)
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
