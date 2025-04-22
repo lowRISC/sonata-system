@@ -1,0 +1,17 @@
+diff --git a/data/rv_plic.hjson.tpl b/data/rv_plic.hjson.tpl
+index 23c12048..e4f6948c 100644
+--- a/data/rv_plic.hjson.tpl
++++ b/data/rv_plic.hjson.tpl
+@@ -98,12 +98,6 @@
+     },
+   ]
+ 
+-  countermeasures: [
+-    { name: "BUS.INTEGRITY",
+-      desc: "End-to-end bus integrity scheme."
+-    }
+-  ]
+-
+   features: [
+     { name: "RV_PLIC.PRIORITY",
+       desc: '''Each interrupt source can be given a configurable priority.'''
