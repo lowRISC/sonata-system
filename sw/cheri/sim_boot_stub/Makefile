@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 CFLAGS=-target riscv32-unknown-unknown -mcpu=cheriot -mabi=cheriot \
-	-mxcheri-rvc -mrelax -fshort-wchar -nodefaultlibs
+	-mxcheri-rvc -mrelax -fshort-wchar -nodefaultlibs -nostartfiles
 
 all: sim_boot_stub sim_sram_boot_stub
 
