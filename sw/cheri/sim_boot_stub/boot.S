@@ -18,3 +18,10 @@ start:
   li               t0, HYPERRAM_BASE
   csetaddr         ct1, ct1, t0
   cjr              ct1
+
+// Make sure the file ends with a 4-byte aligned region.
+  .globl end
+  .p2align 2
+end:
+  nop
+  nop
