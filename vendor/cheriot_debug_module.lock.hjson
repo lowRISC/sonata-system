@@ -9,6 +9,6 @@
   upstream:
   {
     url: git@github.com:CHERIoT-Platform/cheriot-dbg-module.git
-    rev: 145bc9e2186368ec804aadfe61d21e7cbcbba33c
+    rev: 845f74ce6deb8e811f695c8dab1e6b4ba9cf2fbd
   }
 }
