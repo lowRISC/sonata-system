@@ -57,9 +57,19 @@ _start:
 zero_loop:
   sw x0, 0(x26)
   addi x26, x26, 4
-  ble x26, x27, zero_loop
+  blt x26, x27, zero_loop
 zero_loop_end:
 
+  /* Run run C++ static constructors */
+  la s0, __init_array_start
+  la s1, __init_array_end
+  bge s0, s1, contructors_end
+contructors:
+  lw t0, 0(s0)
+  jalr ra, t0, 0 
+  addi s0, s0, 4
+  blt s0, s1, contructors
+contructors_end:
 
 main_entry:
   /* jump to main program entry point (argc = argv = 0) */

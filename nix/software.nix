@@ -70,6 +70,7 @@ in {
     nativeBuildInputs = (with pkgs; [cmake srecord]) ++ (with lrPkgs; [lowrisc-toolchain-gcc-rv32imcb]);
     cmakeFlags = [
       "-DFETCHCONTENT_SOURCE_DIR_LWIP=/tmp/lwip"
+      "-DFETCHCONTENT_SOURCE_DIR_REISFMT=${reisfmtSource}"
     ];
     dontFixup = true;
   };

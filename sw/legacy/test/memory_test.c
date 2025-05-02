@@ -17,7 +17,7 @@
 
 #define TEST_DATA (0xDEADBEEF)
 // Total ram size minus space for .text and .rodata
-#define TEST_SIZE_BYTES (0x1F000 - 0x7000)
+#define TEST_SIZE_BYTES (0x1F000 - 0x8000)
 #define TEST_SIZE_WORDS TEST_SIZE_BYTES / 4
 
 static uint32_t test_array[TEST_SIZE_WORDS];
