@@ -5,16 +5,16 @@
  */
 SECTIONS
 {
-	. = 0x00100000;
-	_start = .;
+    . = 0x00100000;
+    _start = .;
 
-	.rom_loader :
-	{
-		*(.text.start);
-		*(.vectors);
-		*(.text .text.* .rodata .rodata.* .data.rel.ro);
-		. = ALIGN(4);
-	}
+    .rom_loader :
+    {
+        *(.text.start);
+        *(.vectors);
+        *(.text .text.* .rodata .rodata.* .data.rel.ro);
+        . = ALIGN(4);
+    }
 
     .data :
     {

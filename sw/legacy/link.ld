@@ -47,10 +47,9 @@ SECTIONS
     .text : {
         . = ALIGN(4);
 
-		_vectors_start = .;
+    _vectors_start = .;
         KEEP(*(.vectors))
-		_vectors_end = .;
-        
+    _vectors_end = .;
         /* Rust dependency */
         KEEP(*(.init));
         KEEP(*(.init.rust));
