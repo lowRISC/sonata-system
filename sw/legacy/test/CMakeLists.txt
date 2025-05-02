@@ -24,12 +24,12 @@ add_custom_command(
   COMMAND srec_cat "$<TARGET_FILE:spi_test>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:spi_test>.vmem" -vmem
   VERBATIM)
 
-add_executable(heap_test heap_test.c)
-target_link_libraries(heap_test common syscall)
-target_link_options(heap_test PRIVATE "-specs=nosys.specs")
+set(NAME heap_test)
+add_executable(${NAME} heap_test.cc)
+target_link_libraries(${NAME} common reisfmt)
 
 add_custom_command(
-  TARGET heap_test POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:heap_test>" "$<TARGET_FILE:heap_test>.bin"
-  COMMAND srec_cat "$<TARGET_FILE:heap_test>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:heap_test>.vmem" -vmem
+  TARGET ${NAME} POST_BUILD
+  COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:${NAME}>" "$<TARGET_FILE:${NAME}>.bin"
+  COMMAND srec_cat "$<TARGET_FILE:${NAME}>.bin" -binary -offset 0x0000 -byte-swap 4 -o "$<TARGET_FILE:${NAME}>.vmem" -vmem
   VERBATIM)

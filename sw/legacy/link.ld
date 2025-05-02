@@ -57,6 +57,8 @@ SECTIONS
 
         *(.text)
         *(.text.*)
+        /* C++ dependency: keep the static contructors*/
+        KEEP(*(.ctors));
         . = ALIGN(4);
     }  > ram
 
@@ -68,6 +70,14 @@ SECTIONS
         *(.rodata);
         *(.rodata.*)
         . = ALIGN(4);
+    } > ram
+
+    /* C++ dependency: a array with pointers to the static contructors*/
+    .init_array : {
+        __init_array_start = .;
+        KEEP(*(.init_array))
+        KEEP(*(.init_array.*))
+        __init_array_end = .;
     } > ram
 
     .data : {
@@ -97,6 +107,8 @@ SECTIONS
         _bss_end = .;
         . = ALIGN(4);
     } > ram
+
+
     /* Rust dependency */
     _sbss = _bss_start;
     _ebss = _bss_end;
