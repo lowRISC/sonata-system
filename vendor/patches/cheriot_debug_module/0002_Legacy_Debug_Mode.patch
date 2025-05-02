@@ -1,0 +1,594 @@
+diff --git a/debug_rom/Makefile b/debug_rom/Makefile
+index 228bab1c..eb1c19f3 100644
+--- a/debug_rom/Makefile
++++ b/debug_rom/Makefile
+@@ -3,7 +3,7 @@
+ ## Conversion to CHERIoT Ibex ISA from RISC-V
+ ##   Copyright SCI Semiconductor 2025
+ 
+-debug_rom = debug_rom.sv debug_rom.dump
++debug_rom = debug_rom_rv.sv debug_rom_rv.dump debug_rom_ch.sv debug_rom_ch.dump
+ 
+ CXX=${CHERIOT_LLVM_ROOT}/clang++
+ OBJCOPY=${CHERIOT_LLVM_ROOT}/llvm-objcopy
+@@ -23,14 +23,22 @@ all: $(debug_rom)
+ %.bin: %.elf
+ 	$(OBJCOPY) -O binary $< $@
+ 
+-%.S.o: $(findstring debug_rom, $(debug_rom)).S
++# CHERIoT debug ROM image
++debug_rom_ch.o : debug_rom_ch.S
+ 	$(CXX) -c -target riscv32-unknown-unknown -mcpu=cheriot -mabi=cheriot -mxcheri-rvc -mrelax -fshort-wchar -nostdinc $(if  $(findstring one_scratch,$@),,-DSND_SCRATCH=1) -I$(RISCV)/include $< -nostdlib -fPIC -static  -o $@
++
++debug_rom_ch.elf: debug_rom_ch.o link.ld
++	$(LD) --script=link.ld --relax -o $@ $<
+ 
+-%.elf: $(findstring debug_rom, $(debug_rom)).S.o link.ld
++# RISC-V debug ROM image
++debug_rom_rv.o : debug_rom_rv.S
++	$(CXX) -c -target riscv32-unknown-unknown -mrelax -fshort-wchar -nostdinc $(if  $(findstring one_scratch,$@),,-DSND_SCRATCH=1) -I$(RISCV)/include $< -nostdlib -fPIC -static  -o $@
++
++debug_rom_rv.elf: debug_rom_rv.o link.ld
+ 	$(LD) --script=link.ld --relax -o $@ $<
+ 
+ %.dump: %.elf
+ 	$(OBJDUMP) -d $< --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data  > $@
+ 
+ clean:
+-	rm -f *.img *.dump *.bin *.sv
++	rm -f *.img *.dump *.bin *.sv *.o
+diff --git a/debug_rom/debug_rom.h b/debug_rom/debug_rom.h
+index bba459b8..17d82db6 100644
+--- a/debug_rom/debug_rom.h
++++ b/debug_rom/debug_rom.h
+@@ -7,8 +7,8 @@ uint32_t reset_vec[reset_vec_size] = {
+     0x07c0006f,
+     0x04c0006f,
+     0x0ff0000f,
+-    0x0394005b,
+-    0x03a5005b,
++    0x7b241073,
++    0x7b351073,
+     0x00000517,
+     0x00c55513,
+     0x00c51513,
+@@ -28,17 +28,17 @@ uint32_t reset_vec[reset_vec_size] = {
+     0x00c55513,
+     0x00c51513,
+     0x10052623,
+-    0x03a0055b,
+-    0x0390045b,
++    0x7b302573,
++    0x7b202473,
+     0x00100073,
+     0x10052223,
+-    0x03a0055b,
+-    0x0390045b,
+-    0xa85ff06f,
++    0x7b302573,
++    0x7b202473,
++    0xf84ff06f,
+     0xf1402473,
+     0x10852423,
+-    0x03a0055b,
+-    0x0390045b,
++    0x7b302573,
++    0x7b202473,
+     0x7b200073,
+     0x00000000
+ };
+diff --git a/debug_rom/debug_rom.S b/debug_rom/debug_rom_ch.S
+similarity index 100%
+rename from debug_rom/debug_rom.S
+rename to debug_rom/debug_rom_ch.S
+diff --git a/debug_rom/debug_rom.dump b/debug_rom/debug_rom_ch.dump
+similarity index 97%
+rename from debug_rom/debug_rom.dump
+rename to debug_rom/debug_rom_ch.dump
+index fe66e5be..a9f56fed 100644
+--- a/debug_rom/debug_rom.dump
++++ b/debug_rom/debug_rom_ch.dump
+@@ -1,5 +1,5 @@
+ 
+-debug_rom.elf:	file format elf32-littleriscv
++debug_rom_ch.elf:	file format elf32-littleriscv
+ 
+ Disassembly of section .text:
+ 
+diff --git a/debug_rom/debug_rom.sv b/debug_rom/debug_rom_ch.sv
+similarity index 91%
+rename from debug_rom/debug_rom.sv
+rename to debug_rom/debug_rom_ch.sv
+index b8c25dd0..10618fa0 100644
+--- a/debug_rom/debug_rom.sv
++++ b/debug_rom/debug_rom_ch.sv
+@@ -1,8 +1,4 @@
+-/*
+- * Conversion to CHERIoT Ibex ISA from RISC-V
+- *   Copyright SCI Semiconductor 2025
+- *
+- * Copyright 2018 ETH Zurich and University of Bologna.
++/* Copyright 2018 ETH Zurich and University of Bologna.
+  * Copyright and related rights are licensed under the Solderpad Hardware
+  * License, Version 0.51 (the "License"); you may not use this file except in
+  * compliance with the License.  You may obtain a copy of the License at
+@@ -18,7 +14,7 @@
+  */
+ 
+ // Auto-generated code
+-module debug_rom (
++module debug_rom_ch (
+   input  logic         clk_i,
+   input  logic         req_i,
+   input  logic [63:0]  addr_i,
+diff --git a/debug_rom/debug_rom_rv.S b/debug_rom/debug_rom_rv.S
+new file mode 100644
+index 00000000..08cc7032
+--- /dev/null
++++ b/debug_rom/debug_rom_rv.S
+@@ -0,0 +1,122 @@
++// See LICENSE.SiFive for license details.
++
++#include "encoding.h"
++
++// The debugger can assume as second scratch register.
++// # define SND_SCRATCH 1
++// These are implementation-specific addresses in the Debug Module
++#define HALTED    0x100
++#define GOING     0x104
++#define RESUMING  0x108
++#define EXCEPTION 0x10C
++
++// Region of memory where each hart has 1
++// byte to read.
++#define FLAGS 0x400
++#define FLAG_GO     0
++#define FLAG_RESUME 1
++
++        .option norvc
++        .global entry
++        .global exception
++        .global whereto
++
++        // Entry location on ebreak, Halt, or Breakpoint
++        // It is the same for all harts. They branch when
++        // their GO or RESUME bit is set.
++
++entry:
++       jal zero, _entry
++resume:
++       jal zero, _resume
++exception:
++       jal zero, _exception
++
++
++
++_entry:
++        // This fence is required because the execution may have written something
++        // into the Abstract Data or Program Buffer registers.
++        fence
++        csrw CSR_DSCRATCH0, s0       // Save s0 to allow signaling MHARTID
++#ifdef SND_SCRATCH
++        csrw CSR_DSCRATCH1, a0       // Save a0 to allow loading arbitrary DM base
++        auipc a0, 0                  // Get PC
++        srli a0, a0, 12              // And throw away lower 12 bits to get the DM base
++        slli a0, a0, 12
++#endif
++        // We continue to let the hart know that we are halted in order that
++        // a DM which was reset is still made aware that a hart is halted.
++        // We keep checking both whether there is something the debugger wants
++        // us to do, or whether we should resume.
++entry_loop:
++        csrr s0, CSR_MHARTID
++#ifdef SND_SCRATCH
++        sw   s0, HALTED(a0)
++        add  s0, s0, a0
++#else
++        sw   s0, HALTED(zero)
++#endif
++        lbu  s0, FLAGS(s0) // 1 byte flag per hart. Only one hart advances here.
++        andi s0, s0, (1 << FLAG_GO)
++        bnez s0, going
++        csrr s0, CSR_MHARTID
++#ifdef SND_SCRATCH
++        add  s0, s0, a0
++#endif
++        lbu  s0, FLAGS(s0) // multiple harts can resume  here
++        andi s0, s0, (1 << FLAG_RESUME)
++        bnez s0, resume
++        jal  zero, entry_loop
++
++_exception:
++        // We can only get here due to an exception while in debug mode. Hence,
++        // we do not need to save a0 to a scratch register as it has already
++        // been saved on debug entry.
++#ifdef SND_SCRATCH
++        auipc a0, 0                  // Get POC
++        srli a0, a0, 12              // And throw away lower 12 bits to get the DM base
++        slli a0, a0, 12
++        sw   zero, EXCEPTION(a0)     // Let debug module know you got an exception.
++        // It is safe to always restore the scratch registers here as they must
++        // have been saved on debug entry. Restoring them here avoids issues
++        // with registers being overwritten by exceptions occuring during
++        // program buffer execution.
++        csrr a0, CSR_DSCRATCH1       // Restore a0 here
++#else
++        sw   zero, EXCEPTION(zero)     // Let debug module know you got an exception.
++#endif
++        csrr s0, CSR_DSCRATCH0       // Restore s0 here
++        ebreak
++
++going:
++#ifdef SND_SCRATCH
++        sw zero, GOING(a0)          // When debug module sees this write, the GO flag is reset.
++        csrr a0, CSR_DSCRATCH1      // Restore a0 here
++#else
++        sw zero, GOING(zero)          // When debug module sees this write, the GO flag is reset.
++#endif
++        csrr s0, CSR_DSCRATCH0      // Restore s0 here
++        jal zero, whereto
++_resume:
++        csrr s0, CSR_MHARTID
++#ifdef SND_SCRATCH
++        sw   s0, RESUMING(a0)   // When Debug Module sees this write, the RESUME flag is reset.
++        csrr a0, CSR_DSCRATCH1  // Restore a0 here
++#else
++        sw   s0, RESUMING(zero)   // When Debug Module sees this write, the RESUME flag is reset.
++#endif
++        csrr s0, CSR_DSCRATCH0  // Restore s0 here
++        dret
++
++        // END OF ACTUAL "ROM" CONTENTS. BELOW IS JUST FOR LINKER SCRIPT.
++
++.section .whereto
++whereto:
++        nop
++        // Variable "ROM" This is : jal x0 abstract, jal x0 program_buffer,
++        //                or jal x0 resume, as desired.
++        //                Debug Module state machine tracks what is 'desired'.
++        //                We don't need/want to use jalr here because all of the
++        //                Variable ROM contents are set by
++        //                Debug Module before setting the OK_GO byte.
+diff --git a/debug_rom/debug_rom_rv.dump b/debug_rom/debug_rom_rv.dump
+new file mode 100644
+index 00000000..e5daccb5
+--- /dev/null
++++ b/debug_rom/debug_rom_rv.dump
+@@ -0,0 +1,57 @@
++
++debug_rom_rv.elf:	file format elf32-littleriscv
++
++Disassembly of section .text:
++
++00000800 <entry>:
++     800: 6f 00 c0 00  	j	0x80c <_entry>
++
++00000804 <resume>:
++     804: 6f 00 c0 07  	j	0x880 <_resume>
++
++00000808 <exception>:
++     808: 6f 00 c0 04  	j	0x854 <_exception>
++
++0000080c <_entry>:
++     80c: 0f 00 f0 0f  	fence
++     810: 73 10 24 7b  	csrw	dscratch0, s0
++     814: 73 10 35 7b  	csrw	dscratch1, a0
++     818: 17 05 00 00  	auipc	a0, 0
++     81c: 13 55 c5 00  	srli	a0, a0, 12
++     820: 13 15 c5 00  	slli	a0, a0, 12
++
++00000824 <entry_loop>:
++     824: 73 24 40 f1  	csrr	s0, mhartid
++     828: 23 20 85 10  	sw	s0, 256(a0)
++     82c: 33 04 a4 00  	add	s0, s0, a0
++     830: 03 44 04 40  	lbu	s0, 1024(s0)
++     834: 13 74 14 00  	andi	s0, s0, 1
++     838: 63 1c 04 02  	bnez	s0, 0x870 <going>
++     83c: 73 24 40 f1  	csrr	s0, mhartid
++     840: 33 04 a4 00  	add	s0, s0, a0
++     844: 03 44 04 40  	lbu	s0, 1024(s0)
++     848: 13 74 24 00  	andi	s0, s0, 2
++     84c: e3 1c 04 fa  	bnez	s0, 0x804 <resume>
++     850: 6f f0 5f fd  	j	0x824 <entry_loop>
++
++00000854 <_exception>:
++     854: 17 05 00 00  	auipc	a0, 0
++     858: 13 55 c5 00  	srli	a0, a0, 12
++     85c: 13 15 c5 00  	slli	a0, a0, 12
++     860: 23 26 05 10  	sw	zero, 268(a0)
++     864: 73 25 30 7b  	csrr	a0, dscratch1
++     868: 73 24 20 7b  	csrr	s0, dscratch0
++     86c: 73 00 10 00  	ebreak
++
++00000870 <going>:
++     870: 23 22 05 10  	sw	zero, 260(a0)
++     874: 73 25 30 7b  	csrr	a0, dscratch1
++     878: 73 24 20 7b  	csrr	s0, dscratch0
++     87c: 6f f0 5f a8  	j	0x300 <whereto>
++
++00000880 <_resume>:
++     880: 73 24 40 f1  	csrr	s0, mhartid
++     884: 23 24 85 10  	sw	s0, 264(a0)
++     888: 73 25 30 7b  	csrr	a0, dscratch1
++     88c: 73 24 20 7b  	csrr	s0, dscratch0
++     890: 73 00 20 7b  	dret
+diff --git a/debug_rom/debug_rom_rv.sv b/debug_rom/debug_rom_rv.sv
+new file mode 100644
+index 00000000..1807cd29
+--- /dev/null
++++ b/debug_rom/debug_rom_rv.sv
+@@ -0,0 +1,66 @@
++/* Copyright 2018 ETH Zurich and University of Bologna.
++ * Copyright and related rights are licensed under the Solderpad Hardware
++ * License, Version 0.51 (the "License"); you may not use this file except in
++ * compliance with the License.  You may obtain a copy of the License at
++ * http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
++ * or agreed to in writing, software, hardware and materials distributed under
++ * this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
++ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations under the License.
++ *
++ * File: $filename.v
++ *
++ * Description: Auto-generated bootrom
++ */
++
++// Auto-generated code
++module debug_rom_rv (
++  input  logic         clk_i,
++  input  logic         req_i,
++  input  logic [63:0]  addr_i,
++  output logic [63:0]  rdata_o
++);
++
++  localparam int unsigned RomSize = 19;
++
++  logic [RomSize-1:0][63:0] mem;
++  assign mem = {
++    64'h00000000_7b200073,
++    64'h7b202473_7b302573,
++    64'h10852423_f1402473,
++    64'ha85ff06f_7b202473,
++    64'h7b302573_10052223,
++    64'h00100073_7b202473,
++    64'h7b302573_10052623,
++    64'h00c51513_00c55513,
++    64'h00000517_fd5ff06f,
++    64'hfa041ce3_00247413,
++    64'h40044403_00a40433,
++    64'hf1402473_02041c63,
++    64'h00147413_40044403,
++    64'h00a40433_10852023,
++    64'hf1402473_00c51513,
++    64'h00c55513_00000517,
++    64'h7b351073_7b241073,
++    64'h0ff0000f_04c0006f,
++    64'h07c0006f_00c0006f
++  };
++
++  logic [$clog2(RomSize)-1:0] addr_q;
++
++  always_ff @(posedge clk_i) begin
++    if (req_i) begin
++      addr_q <= addr_i[$clog2(RomSize)-1+3:3];
++    end
++  end
++
++  // this prevents spurious Xes from propagating into
++  // the speculative fetch stage of the core
++  always_comb begin : p_outmux
++    rdata_o = '0;
++    if (addr_q < $clog2(RomSize)'(RomSize)) begin
++        rdata_o = mem[addr_q];
++    end
++  end
++
++endmodule
+diff --git a/scisemi_ip_riscv_dbg.core b/scisemi_ip_riscv_dbg.core
+index 138e911e..6f5f8a40 100644
+--- a/scisemi_ip_riscv_dbg.core
++++ b/scisemi_ip_riscv_dbg.core
+@@ -11,7 +11,8 @@ filesets:
+       - lowrisc:prim:fifo
+       - lowrisc:prim:clock_inv
+     files:
+-      - debug_rom/debug_rom.sv
++      - debug_rom/debug_rom_rv.sv
++      - debug_rom/debug_rom_ch.sv
+ #     - debug_rom/debug_rom_one_scratch.sv
+       - src/dm_pkg.sv
+       - src/dm_sba.sv
+diff --git a/src/dm_mem.sv b/src/dm_mem.sv
+index 8462c86c..d31b7449 100644
+--- a/src/dm_mem.sv
++++ b/src/dm_mem.sv
+@@ -30,6 +30,8 @@ module dm_mem #(
+   input  logic                             rst_ni,      // debug module reset
+   input  logic                             ndmreset_i,
+ 
++  input  logic                             cheri_en_i,  // CHERIoT enabled?
++
+   output logic [NrHarts-1:0]               debug_req_o,
+   input  logic [19:0]                      hartsel_i,
+   // from Ctrl and Status register
+@@ -348,7 +350,7 @@ module dm_mem #(
+     abstract_cmd[2][63:32] = dm::nop();
+     abstract_cmd[3][31:0]  = dm::nop();
+     abstract_cmd[3][63:32] = dm::nop();
+-    abstract_cmd[4][31:0]  = HasSndScratch ? dm::cspecialr(dm::CSR_DSCRATCH1, 5'd10) : dm::nop();
++    abstract_cmd[4][31:0]  = HasSndScratch ? dm::dscratch1_r(5'd10, cheri_en_i) : dm::nop();
+     abstract_cmd[4][63:32] = dm::ebreak();
+     abstract_cmd[7:5]      = '0;
+ 
+@@ -360,7 +362,7 @@ module dm_mem #(
+       dm::AccessRegister: begin
+         if (32'(ac_ar.aarsize) < MaxAar && ac_ar.transfer && ac_ar.write) begin
+           // store a0 in dscratch1
+-          abstract_cmd[0][31:0] = HasSndScratch ? dm::cspecialw(dm::CSR_DSCRATCH1, 5'd10) : dm::nop();
++          abstract_cmd[0][31:0] = HasSndScratch ? dm::dscratch1_w(5'd10, cheri_en_i) : dm::nop();
+           // this range is reserved
+           if (ac_ar.regno[15:14] != '0) begin
+             abstract_cmd[0][31:0] = dm::ebreak(); // we leave asap
+@@ -370,13 +372,13 @@ module dm_mem #(
+           end else if (HasSndScratch && ac_ar.regno[12] && (!ac_ar.regno[5]) &&
+                       (ac_ar.regno[4:0] == 5'd10)) begin
+             // store s0 in dscratch
+-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
+             // load from data register
+             abstract_cmd[2][63:32] = dm::load(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
+             // and store it in the corresponding CSR
+-            abstract_cmd[3][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH1, 5'd8);
++            abstract_cmd[3][31:0]  = dm::dscratch1_w(5'd8, cheri_en_i);
+             // restore s0 again from dscratch
+-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
+           // GPR/FPR access
+           end else if (ac_ar.regno[12]) begin
+             // determine whether we want to access the floating point register or not
+@@ -391,19 +393,18 @@ module dm_mem #(
+           end else begin
+             // data register to CSR
+             // store s0 in dscratch
+-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
+             // load from data register
+             abstract_cmd[2][63:32] = dm::load(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
+             // and store it in the corresponding CSR
+             abstract_cmd[3][31:0]  = dm::csrw(dm::csr_reg_t'(ac_ar.regno[11:0]), 5'd8);
+             // restore s0 again from dscratch
+-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
+           end
+         end else if (32'(ac_ar.aarsize) < MaxAar && ac_ar.transfer && !ac_ar.write) begin
+           // store a0 in dscratch1
+           abstract_cmd[0][31:0]  = HasSndScratch ?
+-                                   dm::cspecialw(dm::CSR_DSCRATCH1, LoadBaseAddr) :
+-                                   dm::nop();
++                                   dm::dscratch1_w(LoadBaseAddr, cheri_en_i) : dm::nop();
+           // this range is reserved
+           if (ac_ar.regno[15:14] != '0) begin
+               abstract_cmd[0][31:0] = dm::ebreak(); // we leave asap
+@@ -413,13 +414,13 @@ module dm_mem #(
+           end else if (HasSndScratch && ac_ar.regno[12] && (!ac_ar.regno[5]) &&
+                       (ac_ar.regno[4:0] == 5'd10)) begin
+             // store s0 in dscratch
+-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
+             // read value from CSR into s0
+-            abstract_cmd[2][63:32] = dm::cspecialr(dm::CSR_DSCRATCH1, 5'd8);
++            abstract_cmd[2][63:32] = dm::dscratch1_r(5'd8, cheri_en_i);
+             // and store s0 into data section
+             abstract_cmd[3][31:0]  = dm::store(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
+             // restore s0 again from dscratch
+-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
+           // GPR/FPR access
+           end else if (ac_ar.regno[12]) begin
+             // determine whether we want to access the floating point register or not
+@@ -434,13 +435,13 @@ module dm_mem #(
+           end else begin
+             // CSR register to data
+             // store s0 in dscratch
+-            abstract_cmd[2][31:0]  = dm::cspecialw(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[2][31:0]  = dm::dscratch0_w(5'd8, cheri_en_i);
+             // read value from CSR into s0
+             abstract_cmd[2][63:32] = dm::csrr(dm::csr_reg_t'(ac_ar.regno[11:0]), 5'd8);
+             // and store s0 into data section
+             abstract_cmd[3][31:0]  = dm::store(ac_ar.aarsize, 5'd8, LoadBaseAddr, dm::DataAddr);
+             // restore s0 again from dscratch
+-            abstract_cmd[3][63:32] = dm::cspecialr(dm::CSR_DSCRATCH0, 5'd8);
++            abstract_cmd[3][63:32] = dm::dscratch0_r(5'd8, cheri_en_i);
+           end
+         end else if (32'(ac_ar.aarsize) >= MaxAar || ac_ar.aarpostincrement == 1'b1) begin
+           // this should happend when e.g. ac_ar.aarsize >= MaxAar
+@@ -479,12 +480,24 @@ module dm_mem #(
+   // two registers per hart, hence we also need
+   // two scratch registers.
+   if (HasSndScratch) begin : gen_rom_snd_scratch
+-    debug_rom i_debug_rom (
++    logic [63:0] rom_rdata_rv;
++    logic [63:0] rom_rdata_ch;
++
++    debug_rom_rv i_debug_rom (
+       .clk_i,
+-      .req_i,
+-      .addr_i  ( rom_addr  ),
+-      .rdata_o ( rom_rdata )
++      .req_i   ( req_i & !cheri_en_i ),
++      .addr_i  ( rom_addr            ),
++      .rdata_o ( rom_rdata_rv        )
+     );
++
++    debug_rom_ch i_debug_rom_ch (
++      .clk_i,
++      .req_i   ( req_i &  cheri_en_i ),
++      .addr_i  ( rom_addr            ),
++      .rdata_o ( rom_rdata_ch        )
++    );
++
++    assign rom_rdata = cheri_en_i ? rom_rdata_ch : rom_rdata_rv;
+   end else begin : gen_rom_one_scratch
+     // It uses the zero register (`x0`) as the base
+     // for its loads. The zero register does not need to
+diff --git a/src/dm_pkg.sv b/src/dm_pkg.sv
+index 094cf0a1..4070cb06 100644
+--- a/src/dm_pkg.sv
++++ b/src/dm_pkg.sv
+@@ -320,8 +320,8 @@ package dm;
+     // Debug CSR
+     CSR_DCSR           = 12'h7b0,
+     CSR_DPC            = 12'h7b1,
+-//    CSR_DSCRATCH0      = 12'h7b2, // optional
+-//    CSR_DSCRATCH1      = 12'h7b3, // optional
++    CSR_DSCRATCH0      = 12'h7b2, // optional
++    CSR_DSCRATCH1      = 12'h7b3, // optional
+ 
+     // Counters and Timers
+     CSR_CYCLE          = 12'hC00,
+@@ -331,8 +331,8 @@ package dm;
+ 
+   // Special CSRs
+   typedef enum logic [4:0] {
+-    CSR_DSCRATCH0    = 5'h19,
+-    CSR_DSCRATCH1    = 5'h1a
++    SPEC_CSR_DSCRATCH0 = 5'h19,
++    SPEC_CSR_DSCRATCH1 = 5'h1a
+   } spec_csr_e;
+ 
+   // SBA state
+@@ -442,6 +442,34 @@ package dm;
+     return {csr, 5'h0, 3'h2, dest, 7'h73};
+   endfunction
+ 
++  // Read from DSCRATCH0
++  function automatic logic [31:0] dscratch0_r(logic [4:0] dest,
++                                              bit         cheri_en_i);
++    return cheri_en_i ? cspecialr(SPEC_CSR_DSCRATCH0, dest)
++                      : csrr(CSR_DSCRATCH0, dest);
++  endfunction
++
++  // Read from DSCRATCH1
++  function automatic logic [31:0] dscratch1_r(logic [4:0] dest,
++                                              bit         cheri_en_i);
++    return cheri_en_i ? cspecialr(SPEC_CSR_DSCRATCH1, dest)
++                      : csrr(CSR_DSCRATCH1, dest);
++  endfunction
++
++  // Write to DSCRATCH0
++  function automatic logic [31:0] dscratch0_w(logic [4:0] rs1,
++                                              bit         cheri_en_i);
++    return cheri_en_i ? cspecialw(SPEC_CSR_DSCRATCH0, rs1)
++                      : csrw(CSR_DSCRATCH0, rs1);
++  endfunction
++
++  // Write to DSCRATCH1
++  function automatic logic [31:0] dscratch1_w(logic [4:0] rs1,
++                                              bit         cheri_en_i);
++    return cheri_en_i ? cspecialw(SPEC_CSR_DSCRATCH1, rs1)
++                      : csrw(CSR_DSCRATCH1, rs1);
++  endfunction
++
+   function automatic logic [31:0] branch(logic [4:0]  src2,
+                                          logic [4:0]  src1,
+                                          logic [2:0]  funct3,
