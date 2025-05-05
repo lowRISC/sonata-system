@@ -5,6 +5,8 @@
 add_executable(timer_test timer_test.cc)
 target_link_libraries(timer_test common)
 
+install(TARGETS timer_test)
+
 add_custom_command(
   TARGET timer_test POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:timer_test>" "$<TARGET_FILE:timer_test>.bin"

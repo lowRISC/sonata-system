@@ -45,6 +45,8 @@ target_link_libraries(lcd_st7735 common lcd_st7735_lib coremark)
 
 target_include_directories(lcd_st7735 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../../vendor/display_drivers)
 
+install(TARGETS lcd_st7735)
+
 add_custom_command(
   TARGET lcd_st7735 POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:lcd_st7735>" "$<TARGET_FILE:lcd_st7735>.bin"

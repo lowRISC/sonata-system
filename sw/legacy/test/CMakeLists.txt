@@ -5,6 +5,8 @@
 add_executable(memory_test memory_test.c)
 target_link_libraries(memory_test common)
 
+install(TARGETS memory_test)
+
 add_custom_command(
   TARGET memory_test POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:memory_test>" "$<TARGET_FILE:memory_test>.bin"
@@ -13,6 +15,8 @@ add_custom_command(
 
 add_executable(spi_test spi_test.c)
 target_link_libraries(spi_test common)
+
+install(TARGETS spi_test)
 
 add_custom_command(
   TARGET spi_test POST_BUILD

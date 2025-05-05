@@ -28,6 +28,8 @@ target_link_libraries(ethernet lwipcore common)
 
 target_include_directories(ethernet PRIVATE ${LWIP_INCLUDE_DIRS})
 
+install(TARGETS ethernet)
+
 add_custom_command(
   TARGET ethernet POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:ethernet>" "$<TARGET_FILE:ethernet>.bin"

@@ -7,6 +7,8 @@ add_executable(hello_usb main.c)
 # pull in core dependencies and additional usbdev hardware support
 target_link_libraries(hello_usb common)
 
+install(TARGETS hello_usb)
+
 add_custom_command(
   TARGET hello_usb POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary "$<TARGET_FILE:hello_usb>" "$<TARGET_FILE:hello_usb>.bin"
