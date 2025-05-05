@@ -38,7 +38,7 @@ fusesoc --cores-root=. run --target=synth --setup --build lowrisc:sonata:system
 Open Vivado GUI:
 
 ```shell
-make -C ./build/lowrisc_sonata_system_0/synth-vivado build-gui
+make -C build/lowrisc_sonata_system_0/synth-vivado build-gui
 ```
 
 Check the following:
@@ -49,13 +49,13 @@ Check the following:
 Create UF2 (alter output filename to have correct version number in place of X.Y):
 
 ```shell
-uf2conv -b 0x00000000 -f 0x6ce29e6b ./build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot1.uf2
-uf2conv -b 0x10000000 -f 0x6ce29e6b ./build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot2.uf2
-uf2conv -b 0x20000000 -f 0x6ce29e6b ./build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot3.uf2
+uf2conv -b 0x00000000 -f 0x6ce29e6b build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot1.uf2
+uf2conv -b 0x10000000 -f 0x6ce29e6b build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot2.uf2
+uf2conv -b 0x20000000 -f 0x6ce29e6b build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit -co sonata-vX.Y.bit.slot3.uf2
 # Copy bitstream UF2 to parent release dir
-cp sonata-vX.Y.bit.slot1.uf2 ../
-cp sonata-vX.Y.bit.slot2.uf2 ../
-cp sonata-vX.Y.bit.slot3.uf2 ../
+cp sonata-vX.Y.bit.slot1.uf2 ..
+cp sonata-vX.Y.bit.slot2.uf2 ..
+cp sonata-vX.Y.bit.slot3.uf2 ..
 ```
 
 ### Automated testing
@@ -95,28 +95,28 @@ Run tests on FPGA (note python3.11 or above required), adjust the /dev part to t
 You will need to connect a Raspberry Pi sense HAT and a temperature sensor to QWIIC 1.
 
 ```shell
-./util/test_runner.py fpga -e ./sw/cheri/build/tests/test_runner -t ./util/sonata-openocd-cfg.tcl /dev/ttyUSB2
+util/test_runner.py fpga -e sw/cheri/build/tests/test_runner -t util/sonata-openocd-cfg.tcl /dev/ttyUSB2
 ```
 
 ### Bare-metal testing
 
 CHERI Sanity:
 ```shell
-./util/mem_helper.sh load_program -e sw/cheri/build/checks/cheri_sanity
+util/mem_helper.sh load_program -e sw/cheri/build/checks/cheri_sanity
 ```
 
 You should see the user LEDs flashing, then press the joystick to see them flicker.
 
 RGB LED test:
 ```shell
-./util/mem_helper.sh load_program -e sw/cheri/build/checks/rgbled_test
+util/mem_helper.sh load_program -e sw/cheri/build/checks/rgbled_test
 ```
 
 Check the RGB LEDs turn on and change color in this sequence: green+red, blue+green, red+blue, off+off.
 
 Run SPI flash test:
 ```shell
-./util/mem_helper.sh load_program -e sw/cheri/build/checks/spi_test
+util/mem_helper.sh load_program -e sw/cheri/build/checks/spi_test
 ```
 
 Open UART output:
@@ -137,7 +137,7 @@ Got second flash read:
 
 Run LCD test:
 ```shell
-./util/mem_helper.sh load_program -e sw/cheri/build/checks/lcd_check
+util/mem_helper.sh load_program -e sw/cheri/build/checks/lcd_check
 ```
 
 Check the LCD displays a bouncing lowRISC logo and that the red background extends all the way to the edges.
@@ -221,7 +221,7 @@ None at the moment.
 Check out fresh software repository:
 
 ```shell
-cd ../
+cd ..
 git clone https://github.com/lowRISC/sonata-software
 cd sonata-software
 git checkout $SONATA_SOFTWARE_RELEASE_SHA
@@ -234,7 +234,7 @@ In particular we need these commands to work:
 
 ```shell
 nix develop .
-xmake -P ./examples
+xmake -P examples
 ```
 
 ### Simple demo
@@ -242,7 +242,7 @@ Load simple demo on to board and make a copy for release:
 
 ```shell
 # Copy for the release
-cp ./build/cheriot/cheriot/release/sonata_simple_demo.slot1.uf2  ../sonata_simple_demo_vX.Y.slot1.uf2
+cp build/cheriot/cheriot/release/sonata_simple_demo.slot1.uf2  ../sonata_simple_demo_vX.Y.slot1.uf2
 # Program onto the FPGA
 cp ../sonata_simple_demo_vX.Y.slot1.uf2 /path/to/SONATA
 ```
@@ -272,7 +272,7 @@ Led Walk Raw: Look pretty LEDs!
 Load proximity sensor demo on to board
 
 ```shell
-cp ./build/cheriot/cheriot/release/sonata_proximity_demo.slot1.uf2 /path/to/SONATA
+cp build/cheriot/cheriot/release/sonata_proximity_demo.slot1.uf2 /path/to/SONATA
 ```
 
 Ensure you have an APDS-9960 prox/gesture/color sensor plugged into qwiic1.
@@ -311,7 +311,7 @@ Load snake demo, set your software switch to 2 and play snake:
 
 ```shell
 # Copy to parent release dir
-cp ./build/cheriot/cheriot/release/snake_demo.slot2.uf2  ../snake_demo_vX.Y.slot2.uf2
+cp build/cheriot/cheriot/release/snake_demo.slot2.uf2  ../snake_demo_vX.Y.slot2.uf2
 # Program onto the FPGA
 cp ../snake_demo_vX.Y.slot2.uf2 /path/to/SONATA/
 ```
@@ -324,9 +324,9 @@ Run and build the CHERIoT RTOS test suite:
 
 ```shell
 rm -r build .xmake
-xmake config -P ./cheriot-rtos/tests/ --board=sonata-prerelease
-xmake -P ./cheriot-rtos/tests/
-llvm-strip ./build/cheriot/cheriot/release/test-suite -o test-suite.strip
+xmake config -P cheriot-rtos/tests/ --board=sonata-prerelease
+xmake -P cheriot-rtos/tests/
+llvm-strip build/cheriot/cheriot/release/test-suite -o test-suite.strip
 uf2conv -b 0x00000000 -f 0x6ce29e60 test-suite.strip -co test-suite.slot1.uf2
 cp test-suite.slot1.uf2 /path/to/SONATA
 ```
