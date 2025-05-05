@@ -5,7 +5,6 @@ It is mostly meant for lowRISC developers who are making a release, but it is us
 You'll need to use the rest of the documentation to set up your environment correctly, such as the CHERIoT toolchain and Python virtual environment using the [toolchain setup](toolchain-setup.md).
 You'll also need a copy of Vivado.
 Vivado version v2024.1 must be used for release creation and sign-off.
-This matches the version used in CI and we have observed better QoR with this version vs more recent ones.
 It can be obtained from the from the [Vivado Archive](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/archive.html).
 
 ## Hardware
