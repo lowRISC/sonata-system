@@ -24,13 +24,14 @@ static uint32_t test_array[TEST_SIZE_WORDS];
 
 int pass() {
   puts("Passed");
+  puts("All tests finished");
 
   while (true);
   return 0;
 }
 
 int fail() {
-  puts("Failed");
+  puts("Tests(s) Failed");
 
   while (true);
   return -1;
