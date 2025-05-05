@@ -9,7 +9,7 @@ It can be obtained from the from the [Vivado Archive](https://www.xilinx.com/sup
 
 ## Hardware
 
-Get the appropriate released version of the [rp2040 firmware](https://github.com/newaetech/sonata-rp2040/releases), and load it on to the board.
+Get the appropriate released version of the [rp2040 firmware UF2](https://github.com/newaetech/sonata-rp2040/releases), and load it on to the board.
 To load it on the board: unplug Sonata, hold SW9 while replugging, then drag the UF2 file you downloaded onto the `RPI-RP2` drive.
 
 Setup release working area and check out fresh repository:
