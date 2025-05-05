@@ -138,6 +138,12 @@ class Config(argparse.Namespace):
             default=Path("uart0.log"),
             help="The uart log location",
         )
+        sim_parser.add_argument(
+            "--options",
+            type=str,
+            default="",
+            help="Extra options for verilator",
+        )
 
         # Set the attributes of this object from the program arguments
         parser.parse_args(namespace=self)
@@ -181,6 +187,7 @@ def run_simulator(config: Config) -> None:
     command = [str(config.simulator_binary)]
     command += ["-E", config.sim_boot_stub] if config.sim_boot_stub else []
     command += ["-E", config.elf_file]
+    command += [config.options]
     with Popen(command, stdout=PIPE, stderr=PIPE) as proc:
         while True:
             if (code := proc.poll()) is not None:

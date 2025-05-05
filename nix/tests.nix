@@ -5,6 +5,7 @@
   pkgs,
   pythonEnv,
   sonata-system-software,
+  sonata-system-legacy-software,
   sonata-sim-boot-stub,
   cheriot-rtos-test-suite,
   sonata-simulator,
@@ -38,12 +39,22 @@ in {
     doCheck = true;
     buildInputs = [sonata-simulator pythonEnv];
     checkPhase = ''
+
+      printf "Nix: Running legacy tests..."
+      python ${../util/test_runner.py} -t 240 sim \
+          --elf-file ${sonata-system-legacy-software}/bin/memory_test --options "+disable_cheri"
+      echo "Nix: completed!"
+
+      printf "Nix: Running CHERIoT tests..."
       python ${../util/test_runner.py} -t 240 sim \
           --elf-file ${sonata-system-software}/bin/test_runner
-      echo "Test runner complete!"
+      echo "Nix: completed!"
+
+      printf "Nix: Running CHERIoT RTOS tests..."
       python ${../util/test_runner.py} -t 600 sim \
           --sim-boot-stub ${sonata-sim-boot-stub.out}/share/sim_boot_stub \
           --elf-file ${cheriot-rtos-test-suite}/share/test-suite
+      echo "Nix: completed!"
     '';
     installPhase = "mkdir $out";
   };

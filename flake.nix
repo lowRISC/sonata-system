@@ -149,7 +149,7 @@
           sonata-sim-boot-stub
           sonata-simulator
           ;
-        inherit (software) sonata-system-software cheriot-rtos-test-suite;
+        inherit (software) sonata-system-software sonata-system-legacy-software cheriot-rtos-test-suite;
       };
 
       lint = import nix/lint.nix {
