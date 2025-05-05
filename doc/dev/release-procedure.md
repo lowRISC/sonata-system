@@ -2,8 +2,7 @@
 
 This document describes the process of creating a Sonata release.
 It is mostly meant for lowRISC developers who are making a release, but it is useful to make this public for transparency reasons and possibly if others are having trouble with a release.
-You'll need to use the rest of the documentation to set up your environment correctly, such as the CHERIoT toolchain and Python virtual environment using the [toolchain setup](toolchain-setup.md).
-You'll also need a copy of Vivado.
+You'll need a copy of Vivado.
 Vivado version v2024.1 must be used for release creation and sign-off.
 It can be obtained from the from the [Vivado Archive](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/archive.html).
 
@@ -25,7 +24,7 @@ git checkout $SONATA_SYSTEM_RELEASE_SHA
 Build the bare-metal software including the bootloader:
 
 ```shell
-export CHERIOT_LLVM_BIN=/location/of/llvm-cheriot/bin
+nix develop .
 cmake -B sw/cheri/build -S sw/cheri
 cmake --build sw/cheri/build
 ```
