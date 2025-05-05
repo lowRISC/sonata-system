@@ -318,6 +318,15 @@ cp ../snake_demo_vX.Y.slot2.uf2 /path/to/SONATA/
 
 Check that you see capability the exception LEDs light up and fade out when you hit the game boundaries ('tag' exception for top and left boundaries, 'bounds' exception for bottom and right boundaries).
 
+Also, check the UART output and check that the screen resolution matches that of the board you are testing on:
+```
+bootloader: Selected software slot: 2
+bootloader: Loading software from flash...
+bootloader: Booting into program, hopefully.
+Snake: Detected display resolution: 160 128
+Snake: Calculated game size based on settings: 12x10
+```
+
 ### RTOS test suite
 
 Run and build the CHERIoT RTOS test suite:
