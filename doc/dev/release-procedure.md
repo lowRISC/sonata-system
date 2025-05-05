@@ -336,8 +336,8 @@ rm -r build .xmake
 xmake config -P cheriot-rtos/tests/ --board=sonata-prerelease
 xmake -P cheriot-rtos/tests/
 llvm-strip build/cheriot/cheriot/release/test-suite -o test-suite.strip
-uf2conv -b 0x00000000 -f 0x6ce29e60 test-suite.strip -co test-suite.slot1.uf2
-cp test-suite.slot1.uf2 /path/to/SONATA
+uf2conv -b 0x20000000 -f 0x6ce29e60 test-suite.strip -co test-suite.slot3.uf2
+cp test-suite.slot3.uf2 /path/to/SONATA
 ```
 
 Results are output on the terminal (see instructions above), you will want to open that before you run the test suite otherwise you may miss it!
@@ -356,6 +356,8 @@ Allocator test: fuzz i=0x38
 Test runner: Allocator finished in 30477954 cycles
 Test runner: All tests finished in 42895559 cycles
 ```
+
+Also, as you run the test suite, you should see all the error LEDs light up except for execute permission, stoe local capability permission and access system register permission.
 
 ## Make Release
 
