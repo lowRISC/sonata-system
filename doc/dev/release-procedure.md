@@ -43,8 +43,8 @@ make -C ./build/lowrisc_sonata_system_0/synth-vivado build-gui
 
 Check the following:
  - No timing failures (positive or 0 wns)
- - Synthesis and implementation errors (see known errors below)
- - Critical warnings (see known critical warnings below)
+ - Synthesis and implementation errors (see [known errors](#vivado---known-errors) below)
+ - Critical warnings (see [known critical warnings](#vivado---known-critical-warnings) below)
 
 Create UF2 (alter output filename to have correct version number in place of X.Y):
 
