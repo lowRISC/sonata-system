@@ -23,6 +23,14 @@
     fetchSubmodules = true;
     hash = "sha256-sj4nyevLiCSEQk5KW8wea0rgAnI2quOi1h71dU+QYpU=";
   };
+
+  lwipSource = pkgs.fetchFromGitHub {
+    owner = "lwip-tcpip";
+    repo = "lwip";
+    rev = "0a0452b2c39bdd91e252aef045c115f88f6ca773";
+    fetchSubmodules = true;
+    hash = "sha256-92KHmCMrE3LiQ1Q03Tc51B2i3oCYhfvnYu4CiCJxVWU=";
+  };
 in {
   sonata-system-software = pkgs.stdenv.mkDerivation rec {
     name = "sonata-system-software";
@@ -39,6 +47,29 @@ in {
     cmakeFlags = [
       "-DFETCHCONTENT_SOURCE_DIR_CHERIOT_RTOS=${cheriotRtosSource}"
       "-DFETCHCONTENT_SOURCE_DIR_REISFMT=${reisfmtSource}"
+    ];
+    dontFixup = true;
+  };
+  sonata-system-legacy-software = pkgs.stdenv.mkDerivation rec {
+    name = "sonata-system-legacy-software";
+    src = fileset.toSource {
+      root = ../.;
+      fileset = fileset.unions [
+        ../sw/legacy
+        ../sw/legacy/common
+        ../vendor/display_drivers
+        ../vendor/lowrisc_ibex/vendor/eembc_coremark
+        ../vendor/lowrisc_ibex/examples/sw/benchmarks/coremark/ibex
+        ../vendor/cheriot_debug_module/tb/prog
+      ];
+    };
+    postPatch = ''
+      cp -r --no-preserve=mode ${lwipSource} /tmp/lwip
+    '';
+    sourceRoot = "${src.name}/sw/legacy";
+    nativeBuildInputs = (with pkgs; [cmake srecord]) ++ (with lrPkgs; [lowrisc-toolchain-gcc-rv32imcb]);
+    cmakeFlags = [
+      "-DFETCHCONTENT_SOURCE_DIR_LWIP=/tmp/lwip"
     ];
     dontFixup = true;
   };
