@@ -11,38 +11,41 @@
 
 #include <stdbool.h>
 
+#include "../common/log.hh"
+extern "C" {
 #include "dev_access.h"
 #include "sonata_system.h"
 #include "timer.h"
+}
 
 #define TEST_DATA (0xDEADBEEF)
 // Total ram size minus space for .text and .rodata
 #define TEST_SIZE_BYTES (0x1F000 - 0x8000)
 #define TEST_SIZE_WORDS TEST_SIZE_BYTES / 4
 
-static uint32_t test_array[TEST_SIZE_WORDS];
+static std::array<uint32_t, TEST_SIZE_WORDS> test_array;
 
 int pass() {
-  puts("Passed");
-  puts("All tests finished");
+  log.println("Passed");
+  log.println("All tests finished");
 
-  while (true);
+  while (true) {
+    asm volatile("wfi");
+  };
   return 0;
 }
 
 int fail() {
-  puts("Tests(s) Failed");
+  log.println("Tests(s) Failed");
 
-  while (true);
+  while (true) {
+    asm volatile("wfi");
+  };
   return -1;
 }
 
 int main(void) {
-  uart_init(DEFAULT_UART);
-
-  putstr("memory_test running...");
-  puthex(TEST_SIZE_BYTES);
-  puts(" bytes");
+  log.println("memory_test running...{:x} bytes", TEST_SIZE_BYTES);
 
   // Simple word write/read test of most of the RAM; some RAM is used by the
   // code itself, global static and stack...
@@ -57,7 +60,7 @@ int main(void) {
   }
 
   // Byte read/write test
-  uint8_t *btest = (uint8_t *)test_array;
+  uint8_t *btest = (uint8_t *)test_array.data();
   for (int i = 0; i < TEST_SIZE_WORDS; i++) {
     btest[i * 4 + (i & 3)] ^= i;
   }
