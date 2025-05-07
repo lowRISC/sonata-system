@@ -328,11 +328,11 @@ Snake: Calculated game size based on settings: 12x10
 
 ### RTOS test suite
 
-Run and build the CHERIoT RTOS test suite:
+Run and build the CHERIoT RTOS test suite, make sure to switch the software app to position 3:
 
 ```shell
 rm -r build .xmake
-xmake config -P cheriot-rtos/tests/ --board=sonata-prerelease
+xmake config -P cheriot-rtos/tests/ --board=sonata-1.1
 xmake -P cheriot-rtos/tests/
 llvm-strip build/cheriot/cheriot/release/test-suite -o test-suite.strip
 uf2conv -b 0x20000000 -f 0x6ce29e60 test-suite.strip -co test-suite.slot3.uf2
