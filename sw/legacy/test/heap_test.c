@@ -37,11 +37,11 @@ int memory_test(uint32_t *pointer, size_t size) {
   putstr("...");
   // Simple word write/read test of most of the RAM; some RAM is used by the
   // code itself, global static and stack...
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     pointer[i] = TEST_DATA + i;
   }
   // Read back data and check it is correct
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     if (pointer[i] != TEST_DATA + i) {
       puts("Failed");
       return -1;
@@ -50,11 +50,11 @@ int memory_test(uint32_t *pointer, size_t size) {
 
   // Byte read/write test
   uint8_t *btest = (uint8_t *)pointer;
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     btest[i * 4 + (i & 3)] ^= i;
   }
   // Read back data and check it is correct
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     uint32_t orig = TEST_DATA + i;
     uint32_t mod  = orig ^ (uint8_t)i << (8 * (i & 3));
     if (pointer[i] != mod) {
