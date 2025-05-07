@@ -272,10 +272,10 @@ Led Walk Raw: Look pretty LEDs!
 Load proximity sensor demo on to board
 
 ```shell
-cp build/cheriot/cheriot/release/sonata_proximity_demo.slot1.uf2 /path/to/SONATA
+cp build/cheriot/cheriot/release/sonata_proximity_demo.slot3.uf2 /path/to/SONATA
 ```
 
-Ensure you have an APDS-9960 prox/gesture/color sensor plugged into qwiic1.
+Ensure you have an APDS-9960 prox/gesture/color sensor plugged into qwiic0 and that the SW App is set to position 3.
 
 Check this has the same visual (LEDs and LCD) behaviour as the simple demo.
 Wave your hand over the proximity sensor, you should see the RGB LEDs fade up and down (one on the left is red, one on the right is green) as you move your hand.
@@ -283,8 +283,7 @@ Red should fade up as your hand gets closer, green should fade down.
 Check that the RGB LED colours are as expected.
 This helps catch any issues that mix up the R,G,B values.
 
-Open picocom:
-
+Look at the UART output:
 ```shell
 screen /dev/ttyUSB2 921600
 ```
