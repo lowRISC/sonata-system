@@ -212,7 +212,6 @@ Hello from CHERI USB!
 Also type into the USB screen instance and see that it is echoed on the UART side.
 
 Here are some checks that you should also do for which there are no detailed instructions:
-- Check the Ethernet is working.
 - Check the manual pinmux test over PMOD.
 - Check the RS-485 is working.
 
@@ -357,6 +356,71 @@ Test runner: All tests finished in 42895559 cycles
 ```
 
 Also, as you run the test suite, you should see all the error LEDs light up except for execute permission, stoe local capability permission and access system register permission.
+
+### Ethernet
+
+While staying inside the Sonata Software Nix environment take a copy of the CHERIoT platform demo repository which contains a copy of the RTOS and the network stack:
+```shell
+cd ..
+git clone --recursive https://github.com/CHERIoT-Platform/cheriot-demos.git
+cd cheriot-demos
+xmake config -P network-stack/examples/01.SNTP --board=sonata-1.1 --IPv6=false
+xmake -P network-stack/examples/01.SNTP
+cp build/cheriot/cheriot/release/01.sntp_example sntp_example.elf
+llvm-strip sntp_example.elf -o sntp_example_stripped.elf
+uf2conv -b 0x00000000 -f 0x6ce29e60 sntp_example_stripped.elf -co sntp_example_stripped_elf.slot1.uf2
+cp sntp_example_stripped_elf.slot1.uf2 /media/$USER/SONATA
+```
+
+You should then connect using Picocom and check the UART output looks something like:
+```
+bootloader: Sonata system git SHA: b833c7ab8aa4807f
+bootloader: Selected software slot: 1
+bootloader: Loading software from flash...
+bootloader: Booting into program, hopefully.
+Network test: Updating NTP took 0x7 ticks
+Network test: Current UNIX epoch time: 1746630223
+...
+```
+
+You can also check the more complicated MQTT example:
+```shell
+xmake config -P network-stack/examples/01.SNTP --board=sonata-1.1 --IPv6=false
+xmake -P network-stack/examples/04.MQTT
+cp build/cheriot/cheriot/release/04.mqtt_example mqtt_example.elf
+llvm-strip mqtt_example.elf -o mqtt_example_stripped.elf
+uf2conv -b 0x00000000 -f 0x6ce29e60 mqtt_example_stripped.elf -co mqtt_example_stripped_elf.slot1.uf2
+cp mqtt_example_stripped_elf.slot1.uf2 /media/$USER/SONATA
+```
+
+You should see the following UART:
+```
+bootloader: Sonata system git SHA: b833c7ab8aa4807f
+bootloader: Selected software slot: 1
+bootloader: Loading software from flash...
+bootloader: Booting into program, hopefully.
+MQTT example: Updating NTP took 0x5 ticks
+MQTT example: Current UNIX epoch time: 1746630869
+MQTT example: Generating client ID...
+MQTT example: Connecting to MQTT broker...
+MQTT example: Connected to MQTT broker!
+MQTT example: Subscribing to test topic 'cherries'.
+MQTT example: Now fetching the SUBACK.
+MQTT example: Got an ACK for packet 0x1
+MQTT example: Publishing a value to test topic 'cherries'.
+MQTT example: Now fetching the PUBACK and waiting for the publish notification.
+MQTT example: Got a PUBLISH for topic cherries
+MQTT example: Got an ACK for packet 0x2
+MQTT example: Unsubscribing from topic 'cherries'.
+MQTT example: Got an ACK for packet 0x3
+MQTT example: Disconnecting from the broker.
+MQTT example: Now checking for leaks.
+MQTT example: No leaks detected.
+MQTT example: Done testing MQTT.
+```
+
+While testing the ethernet, I had to connect the Sonata board directly to a router that had internet connectivity.
+Occasionally I had to disconnect the ethernet cable and reset the board a few times.
 
 ## Make Release
 
