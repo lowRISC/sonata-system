@@ -377,13 +377,13 @@ Create a tag in sonata-system:
 # Create git tag
 git tag vX.Y
 # Push this tag to upstream
-git push --set-upstream upstream vX.Y
+git push --set-upstream origin vX.Y
 ```
 
 For the sonata-software repository we should create a branch:
 ```shell
 git checkout -b vX.Y
-git push --setupstream upstream vX.Y
+git push --set-upstream origin vX.Y
 ```
 
 ### Release notes
