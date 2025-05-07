@@ -244,7 +244,7 @@ Load simple demo on to board and make a copy for release:
 # Copy for the release
 cp build/cheriot/cheriot/release/sonata_simple_demo.slot1.uf2  ../sonata_simple_demo_vX.Y.slot1.uf2
 # Program onto the FPGA
-cp ../sonata_simple_demo_vX.Y.slot1.uf2 /path/to/SONATA
+cp ../sonata_simple_demo_vX.Y.slot1.uf2 /media/$USER/SONATA
 ```
 
 The LCD should display a lowRISC logo, 'Running on Sonata!' at the top and 'protected by CHERI' at the bottom.
@@ -272,7 +272,7 @@ Led Walk Raw: Look pretty LEDs!
 Load proximity sensor demo on to board
 
 ```shell
-cp build/cheriot/cheriot/release/sonata_proximity_demo.slot3.uf2 /path/to/SONATA
+cp build/cheriot/cheriot/release/sonata_proximity_demo.slot3.uf2 /media/$USER/SONATA
 ```
 
 Ensure you have an APDS-9960 prox/gesture/color sensor plugged into qwiic0 and that the SW App is set to position 3.
@@ -312,7 +312,7 @@ Load snake demo, set your software switch to 2 and play snake:
 # Copy to parent release dir
 cp build/cheriot/cheriot/release/snake_demo.slot2.uf2  ../snake_demo_vX.Y.slot2.uf2
 # Program onto the FPGA
-cp ../snake_demo_vX.Y.slot2.uf2 /path/to/SONATA/
+cp ../snake_demo_vX.Y.slot2.uf2 /media/$USER/SONATA/
 ```
 
 Check that you see capability the exception LEDs light up and fade out when you hit the game boundaries ('tag' exception for top and left boundaries, 'bounds' exception for bottom and right boundaries).
@@ -336,7 +336,7 @@ xmake config -P cheriot-rtos/tests/ --board=sonata-1.1
 xmake -P cheriot-rtos/tests/
 llvm-strip build/cheriot/cheriot/release/test-suite -o test-suite.strip
 uf2conv -b 0x20000000 -f 0x6ce29e60 test-suite.strip -co test-suite.slot3.uf2
-cp test-suite.slot3.uf2 /path/to/SONATA
+cp test-suite.slot3.uf2 /media/$USER/SONATA
 ```
 
 Results are output on the terminal (see instructions above), you will want to open that before you run the test suite otherwise you may miss it!
