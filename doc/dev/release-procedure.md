@@ -58,6 +58,14 @@ cp sonata-vX.Y.bit.slot2.uf2 ..
 cp sonata-vX.Y.bit.slot3.uf2 ..
 ```
 
+### Vivado - Known errors
+
+None at the moment.
+
+### Vivado - Known critical warnings
+
+None at the moment.
+
 ### Automated testing
 
 Run tests on simulation (note python3.11 or above required).
@@ -207,14 +215,6 @@ Here are some checks that you should also do for which there are no detailed ins
 - Check the Ethernet is working.
 - Check the manual pinmux test over PMOD.
 - Check the RS-485 is working.
-
-#### Vivado - Known errors
-
-None at the moment.
-
-#### Vivado - Known critical warnings
-
-None at the moment.
 
 ## Software repository
 
