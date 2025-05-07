@@ -457,32 +457,47 @@ Note down any major updates like the additions of an IP block and make a bullete
 In Vivado look for the utilization report of the placed design, the timing summary of the routed design and the power report of the routed design to fill in the bitstream characteristics.
 An example release notes looks something like this:
 
-> This release contains on top of PREVIOUS_RELEASE:
->
-> - MAJOR_FEATURE_ADDED_1
-> - MAJOR_FEATURE_ADDED_2
-> - ...
->
-> Here are a few characteristics of this bitstream:
-> - Utilization
->   * Slice LUTs XX.XX%
->   * Slice Registers: XX.XX%
->   * Block RAM Tile: XX.XX%
->   * DSPs: XX.XX%
-> - Timing
->   * Overall WNS: X.XXX ns
->   * System clock WNS: X.XXX ns
->   * HyperRAM clock WNS: X.XXX ns
->   * USB clock WNS: X.XXX ns
-> - Total on-chip power: X.XXX W
->
-> Here's the developer flow for using these files:
->
-> 1. Make sure the bitstream select switch (immediately below the main USB-C port) is set to position 1.
-> 2. Before plugging in your Sonata board, hold down the "SW9" button labelled "RP2040 Boot", and while holding this button plug your board into your laptop using the Main USB.
-> 3. A drive called "RPI-RP2" should pop up on your computer and copy `rpi_rp2_vX.Y.uf2` into it.
-> 4. This drive should automatically dismount once the file is transferred and remount as "SONATA". Once the remount has happened, you can drag in the wrapped bitstream `sonata_bitstream_vX.Y.bit.slot1.uf2`.
-> 5. Once programming is successful, you should see the "CHERI" LED light up and the "LEGACY" LED turn off. If this is not the case, the bitstream loading may have failed and you should retry by unplugging and replugging the main USB on the Sonata board. Then re-drag the bitstream into the "SONATA" drive.
-> 6. After programming the bitstream, drag the `sonata_simple_demo_vX.Y.slot1.uf2` into the "SONATA" drive.
-> 7. You should now see the user LEDs turn on and off, as well as the lowRISC logo appear on the LCD.
-> 8. You can also drag `snake_demo_vX.Y.slot2.uf2` into the SONATA drive to play snake using the joystick. Make sure to switch to the second software slot (SW7) and reset the board with SW5. Watch the CHERI error LEDs as you hit the boundary.
+```
+Please use the [vX.Y branch of the sonata software repository](https://github.com/lowRISC/sonata-software/tree/vX.Y) for compatible software.
+
+## Release Notes
+
+This release contains on top of PREVIOUS_RELEASE:
+- MAJOR_FEATURE_ADDED_1
+- MAJOR_FEATURE_ADDED_2
+...
+
+## Bitstream information
+
+The utilization of the bitstream:
+
+| Type | Used | Available | Percentage |
+|------|------|-----------|------------|
+| Slice LUTs | YY,YYY | 32,600 | XX.XX% |
+| Slice Registers | YY,YYY | 65,200 | XX.XX% |
+| Block RAM Tiles | YY | 75 | XX.XX% |
+| DSPs | YY | 120 | XX.XX% |
+
+Other bitstream statistics:
+
+| Name | Value |
+|------|-------|
+| Overall WNS | Y.YYY ns |
+| System clock WNS | Y.YYY ns |
+| HyperRAM clock WNS | Y.YYY ns |
+| USB clock WNS | Y.YYY ns |
+| Total on-chip power | Y.YYY W |
+
+## Quick start guide
+
+Here's the developer flow for using these files:
+
+1. Make sure the bitstream select switch (immediately below the main USB-C port) is set to position 1.
+2. Before plugging in your Sonata board, hold down the "SW9" button labelled "RP2040 Boot", and while holding this button plug your board into your laptop using the Main USB.
+3. A drive called "RPI-RP2" should pop up on your computer and copy rpi_rp2_vX.Y.uf2 into it.
+4. This drive should automatically dismount once the file is transferred and remount as "SONATA". Once the remount has happened, you can drag in the wrapped bitstream sonata_bitstream_vX.Y.bit.slot1.uf2.
+5. Once programming is successful, you should see the "CHERI" LED light up and the "LEGACY" LED turn off. If this is not the case, the bitstream loading may have failed and you should retry by unplugging and replugging the main USB on the Sonata board. Then re-drag the bitstream into the "SONATA" drive.
+6. After programming the bitstream, drag the sonata_simple_demo_vX.Y.slot1.uf2 into the "SONATA" drive.
+7. You should now see the user LEDs turn on and off, as well as the lowRISC logo appear on the LCD.
+8. You can also drag snake_demo_vX.Y.slot2.uf2 into the SONATA drive to play snake using the joystick. Make sure to switch to the second software slot (SW7) and reset the board with SW5. Watch the CHERI error LEDs as you hit the boundary.
+```
