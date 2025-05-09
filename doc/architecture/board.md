@@ -30,6 +30,12 @@ After consultation with the community, we settled on the following list:
 - MicroSD
 - ADC
 
+### Ethernet
+
+The Ethernet chip that is available on the PCB is [KSZ8851SNLI-TR](https://ww1.microchip.com/downloads/aemDocuments/documents/UNG/ProductDocuments/DataSheets/KSZ8851SNL-Single-Port-Ethernet-Controller-with-SPI-DS00002381C.pdf).
+Section 3.4 describes how to read and write registers over the SPI and Chapter 4 lists all the registers and their functionality.
+This datasheet is mainly useful for those needing to change the driver, so users should be able to use the driver directly, like the one provided by [CHERIoT RTOS](https://github.com/CHERIoT-Platform/cheriot-rtos/blob/main/sdk/include/platform/sunburst/platform-ethernet.hh).
+
 ## Headers
 
 ![The Sonata Board](img/board-headers.jpg)
@@ -42,7 +48,7 @@ For both the 'connectable' and 'extendable' requirements, we provide a number of
 - PMOD
 - 30-pin R/A header
 
-Although, the FPGA pins can be used independently, due to the physical layout of the headers on the FPGA board, it is not possible to plug in Raspberry Pi, Arduino shield and MicroBus click headers simultaneously.
+Although, the FPGA pins can be used independently, due to the physical layout of the headers on the FPGA board, it is not possible to plug in Raspberry Pi, Arduino shield and microBUS click headers simultaneously.
 You can still use them simultaneously with modified wiring.
 
 The 2 PMODs and the R/A header cannot be used at the same time since they use the same pins.
