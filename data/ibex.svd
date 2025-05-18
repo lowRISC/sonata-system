@@ -21,7 +21,7 @@
     <endian>little</endian>
     <mpuPresent>false</mpuPresent>
     <fpuPresent>false</fpuPresent>
-    <vtorPresent>1</vtorPresent>
+		<vtorPresent>true</vtorPresent>
     <nvicPrioBits>2</nvicPrioBits>
     <vendorSystickConfig>false</vendorSystickConfig>
     <deviceNumInterrupts>1</deviceNumInterrupts>
@@ -31,135 +31,576 @@
   <peripherals>
     <peripheral>
       <name>UART0</name>
-      <version>1</version>
-      <baseAddress>0x80001000</baseAddress>
-      <size>32</size>
-      <addressBlock>
-        <offset>0</offset>
-        <size>0x1000</size>
-        <usage>registers</usage>
-      </addressBlock>
+			<version>1.1.0</version>
+			<description>Full duplex serial communication interface, supports bit rates of up to 1 Mbit/s</description>
+      <baseAddress>0x80100000</baseAddress>
+			<size>0x20</size>
       <interrupt>
-        <name>UART0_IRQ</name>
+        <name>Transmit watermark</name>
         <value>1</value>
       </interrupt>
-      <registers>
-        <register>
-          <name>RX</name>
-          <description>Rx register, UART_RX</description>
-          <addressOffset>0x0000</addressOffset>
-          <resetValue>0x00000000</resetValue>
-          <fields>
-            <field>
-              <name>DATA</name>
-              <description>Receive (read) data character. Transmit (write) data character.</description>
-              <bitRange>[7:0]</bitRange>
-              <access>read-only</access>
-            </field>
-          </fields>
-        </register>
-        <register>
-          <name>TX</name>
-          <description>Tx register, UART_TX</description>
-          <addressOffset>0x0004</addressOffset>
-          <resetValue>0x00000000</resetValue>
-          <fields>
-            <field>
-              <name>DATA</name>
-              <description>Transmit (write) data character.</description>
-              <bitRange>[7:0]</bitRange>
-              <access>write-only</access>
-            </field>
-          </fields>
-        </register>
-        <register>
-          <name>STATUS</name>
-          <description>Uart Status Register, UART_STATUS</description>
-          <addressOffset>0x0008</addressOffset>
-          <resetValue>0x00000000</resetValue>
-          <fields>
-            <field>
-              <name>TX_FULL</name>
-              <description>1 indicates that the TX FIFO is full.</description>
-              <bitRange>[1:1]</bitRange>
-              <access>read-only</access>
-            </field>
-            <field>
-              <name>RX_EMPTY</name>
-              <description>1 indicates that the RX FIFO is empty.</description>
-              <bitRange>[0:0]</bitRange>
-              <access>read-only</access>
-            </field>
-          </fields>
-        </register>
-      </registers>
+      <interrupt>
+        <name>Receive watermark</name>
+        <value>2</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit empty</name>
+        <value>3</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive overflow</name>
+        <value>4</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive frame error</name>
+        <value>5</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive break error</name>
+        <value>6</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive timeout</name>
+        <value>7</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive parity error</name>
+        <value>8</value>
+      </interrupt>
+			<addressBlock>
+				<offset>0x0</offset>
+				<size>0x1000</size>
+				<usage>registers</usage>
+			</addressBlock>
+			<registers>
+				<register>
+					<name>CTRL</name>
+					<description>UART control register</description>
+					<addressOffset>0x10</addressOffset>
+					<fields>
+						<field>
+							<name>TX</name>
+							<description>TX enable</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RX</name>
+							<description>RX enable</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>NF</name>
+							<description>RX noise filter enable.If the noise filter is enabled, RX line goes through the 3-taprepetition code. It ignores single IP clock period noise.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>SLPBK</name>
+							<description>System loopback enable.If this bit is turned on, any outgoing bits to TX are received through RX.See Block Diagram. Note that the TX line goes 1 if System loopback is enabled.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>LLPBK</name>
+							<description>Line loopback enable.If this bit is turned on, incoming bits are forwarded to TX for testing purpose.See Block Diagram. Note that the internal design sees RX value as 1 always if lineloopback is enabled.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>PARITY_EN</name>
+							<description>If true, parity is enabled in both RX and TX directions.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>PARITY_ODD</name>
+							<description>If PARITY_EN is true, this determines the type, 1 for odd parity, 0 for even.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RXBLVL</name>
+							<description>Trigger level for RX break detection. Sets the number of charactertimes the line must be low to detect a break.</description>
+							<bitRange>[9:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>NCO</name>
+							<description>BAUD clock rate control.</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>STATUS</name>
+					<description>UART live status register</description>
+					<addressOffset>0x14</addressOffset>
+					<fields>
+						<field>
+							<name>TXFULL</name>
+							<description>TX buffer is full</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXFULL</name>
+							<description>RX buffer is full</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TXEMPTY</name>
+							<description>TX FIFO is empty</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TXIDLE</name>
+							<description>TX FIFO is empty and all bits have been transmitted</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXIDLE</name>
+							<description>RX is idle</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXEMPTY</name>
+							<description>RX FIFO is empty</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>RDATA</name>
+					<description>UART read data</description>
+					<addressOffset>0x18</addressOffset>
+					<fields>
+						<field>
+							<name>Value</name>
+							<description>Value</description>
+							<bitRange>[7:0]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>WDATA</name>
+					<description>UART write data</description>
+					<addressOffset>0x1c</addressOffset>
+					<fields>
+						<field>
+							<name>Value</name>
+							<description>Value</description>
+							<bitRange>[7:0]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>FIFO_CTRL</name>
+					<description>UART FIFO control register</description>
+					<addressOffset>0x20</addressOffset>
+					<fields>
+						<field>
+							<name>RXRST</name>
+							<description>RX fifo reset. Write 1 to the register resets RX_FIFO. Read returns 0</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TXRST</name>
+							<description>TX fifo reset. Write 1 to the register resets TX_FIFO. Read returns 0</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RXILVL</name>
+							<description>Trigger level for RX interrupts. If the FIFO depth is greater than or equal tothe setting, it raises rx_watermark interrupt.</description>
+							<bitRange>[4:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TXILVL</name>
+							<description>Trigger level for TX interrupts. If the FIFO depth is less than the setting, itraises tx_watermark interrupt.</description>
+							<bitRange>[7:5]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>FIFO_STATUS</name>
+					<description>UART FIFO status register</description>
+					<addressOffset>0x24</addressOffset>
+					<fields>
+						<field>
+							<name>TXLVL</name>
+							<description>Current fill level of TX fifo</description>
+							<bitRange>[7:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXLVL</name>
+							<description>Current fill level of RX fifo</description>
+							<bitRange>[23:16]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>OVRD</name>
+					<description>TX pin override control. Gives direct SW control over TX pin state</description>
+					<addressOffset>0x28</addressOffset>
+					<fields>
+						<field>
+							<name>TXEN</name>
+							<description>Enable TX pin override control</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TXVAL</name>
+							<description>Write to set the value of the TX pin</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>VAL</name>
+					<description>UART oversampled values</description>
+					<addressOffset>0x2c</addressOffset>
+					<fields>
+						<field>
+							<name>RX</name>
+							<description>Last 16 oversampled values of RX. Most recent bit is bit 0, oldest 15.</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMEOUT_CTRL</name>
+					<description>UART RX timeout control</description>
+					<addressOffset>0x30</addressOffset>
+					<fields>
+						<field>
+							<name>VAL</name>
+							<description>RX timeout value in UART bit times</description>
+							<bitRange>[23:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>EN</name>
+							<description>Enable RX timeout feature</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+			</registers>
     </peripheral>
+		<peripheral derivedFrom="UART0">
+			<name>UART1</name>
+			<version>1.1.0</version>
+			<description>Full duplex serial communication interface, supports bit rates of up to 1 Mbit/s</description>
+			<baseAddress>0x80100020</baseAddress>
+      <interrupt>
+        <name>Transmit watermark</name>
+        <value>9</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive watermark</name>
+        <value>10</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit empty</name>
+        <value>11</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive overflow</name>
+        <value>12</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive frame error</name>
+        <value>13</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive break error</name>
+        <value>14</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive timeout</name>
+        <value>15</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive parity error</name>
+        <value>16</value>
+      </interrupt>
+      <size>0x20</size>
+		</peripheral>
     <peripheral>
       <name>SPI0</name>
       <version>1</version>
-      <baseAddress>0x80004000</baseAddress>
-      <size>32</size>
+      <baseAddress>0x80302000</baseAddress>
+      <size>0x20</size>
       <addressBlock>
         <offset>0</offset>
         <size>0x1000</size>
         <usage>registers</usage>
       </addressBlock>
-      <interrupt>
-        <name>SPI0_IRQ</name>
-        <value>18</value>
-      </interrupt>
       <registers>
+				<register>
+					<name>CFG</name>
+					<description>Configuration register</description>
+					<addressOffset>0x0c</addressOffset>
+					<fields>
+						<field>
+							<name>CPOL</name>
+							<description>The polarity of the spi_clk signal. When CPOL is 0 clock is low when idle and the leading edge is positive. When CPOL is 1 clock is high when idle and the leading edge is negative</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>CPHA</name>
+							<description>The phase of the spi_clk signal. When CPHA is 0 data is sampled on the leading edge and changes on the trailing edge. The first data bit is immediately available before the first leading edge of the clock when transmission begins. When CPHA is 1 data is sampled on the trailing edge and change on the leading edge.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>MSB_FIRST</name>
+							<description>When set the most significant bit (MSB) is the first bit sent and received with each byte</description>
+							<bitRange>[29:29]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>HALF_CLK_PERIOD</name>
+							<description>The length of a half period (i.e. positive edge to negative edge) of the SPI clock, measured in system clock cycles reduced by 1. At the standard Sonata 50 MHz system clock a value of 0 gives a 25 MHz SPI clock, a value of 1 gives a 12.5 MHz SPI clock, a value of 2 gives a 8.33 MHz SPI clock and so on.</description>
+							<bitRange>[28:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>CTRL</name>
+					<description>SPI control register</description>
+					<addressOffset>0x10</addressOffset>
+					<fields>
+						<field>
+							<name>SW_RESET</name>
+							<description>Software reset perfomed when written 1.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RX_WATERMARK</name>
+							<description>The watermark level for the receive FIFO, depending on the value the interrupt will trigger at different points:\n
+                            0: 1 or more items in the FIFO\n
+                            1: 2 or more items in the FIFO\n
+                            2: 4 or more items in the FIFO\n
+                            3: 8 or more items in the FIFO\n
+                            4: 16 or more items in the FIFO\n
+                            5: 32 or more items in the FIFO\n
+                            6: 56 or more items in the FIFO\n
+              </description>
+							<bitRange>[11:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TX_WATERMARK</name>
+							<description>The watermark level for the transmit FIFO, depending on the value the interrupt will trigger at different points:\n
+                            0: 1 or more items in the FIFO\n
+                            1: 2 or more items in the FIFO\n
+                            2: 4 or more items in the FIFO\n
+                            3: 8 or more items in the FIFO\n
+                            4: 16 or more items in the FIFO\n
+              </description>
+							<bitRange>[7:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RX_ENABLE</name>
+							<description>When set incoming bits are written to the receive FIFO. When clear incoming bits are ignored.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TX_ENABLE</name>
+							<description>When set bytes from the transmit FIFO are sent. When clear the state of the outgoing spi_cipo is undefined whilst the SPI clock is running.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RX_CLEAR</name>
+							<description>Write 1 to clear the receive FIFO.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TX_CLEAR</name>
+							<description>Write 1 to clear the transmit FIFO.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
         <register>
-          <name>TX</name>
-          <description>Tx register, SPI_TX</description>
-          <addressOffset>0x0000</addressOffset>
+          <name>STATUS</name>
+          <description>SPI Status Register</description>
+          <addressOffset>0x0014</addressOffset>
+          <resetValue>0x00000000</resetValue>
+          <fields>
+            <field>
+              <name>IDLE</name>
+              <description>When set the SPI block is idle and can accept a new start command.</description>
+              <bitRange>[18:18]</bitRange>
+              <access>read-only</access>
+            </field>
+            <field>
+              <name>RX_FIFO_EMPTY</name>
+              <description>When set the receive FIFO is empty and any data read from it will be undefined.</description>
+              <bitRange>[17:17]</bitRange>
+              <access>read-only</access>
+            </field>
+            <field>
+              <name>TX_FIFO_FULL</name>
+              <description>When set the transmit FIFO is full and any data written to it will be ignored.</description>
+              <bitRange>[16:16]</bitRange>
+              <access>read-only</access>
+            </field>
+            <field>
+              <name>RX_FIFO_LEVEL</name>
+              <description>Number of items in the receive FIFO</description>
+              <bitRange>[15:8]</bitRange>
+              <access>read-only</access>
+            </field>
+            <field>
+              <name>TX_FIFO_LEVEL</name>
+              <description>Number of items in the transmit FIFO</description>
+              <bitRange>[7:0]</bitRange>
+              <access>read-only</access>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>START</name>
+          <description>When written begins an SPI operation. Writes are ignored when the SPI block is active.</description>
+          <addressOffset>0x0018</addressOffset>
+          <resetValue>0x00000000</resetValue>
+          <fields>
+            <field>
+              <name>BYTE_COUNT</name>
+              <description>Number of bytes to receive/transmit in the SPI operation</description>
+              <bitRange>[10:0]</bitRange>
+              <access>write-only</access>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>RX_FIFO</name>
+          <description>Data from the receive FIFO</description>
+          <addressOffset>0x001c</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
               <name>DATA</name>
-              <description>Transmit (write) data character.</description>
+              <description> Byte popped from the FIFO.</description>
+              <bitRange>[7:0]</bitRange>
+              <access>read-only</access>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>TX_FIFO</name>
+          <description>Bytes written here are pushed to the transmit FIFO</description>
+          <addressOffset>0x0020</addressOffset>
+          <resetValue>0x00000000</resetValue>
+          <fields>
+            <field>
+              <name>DATA</name>
+              <description> Byte to be push to the FIFO.</description>
               <bitRange>[7:0]</bitRange>
               <access>write-only</access>
             </field>
           </fields>
         </register>
         <register>
-          <name>STATUS</name>
-          <description>SPI Status Register, SPI_STATUS</description>
-          <addressOffset>0x0004</addressOffset>
+          <name>INFO</name>
+          <description>Bytes written here are pushed to the transmit FIFO</description>
+          <addressOffset>0x0024</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
-              <name>TX_EMPTY</name>
-              <description>1 indicates that the TX FIFO is empty.</description>
-              <bitRange>[1:1]</bitRange>
+              <name>RX_FIFO_DEPTH</name>
+              <description>Maximum number of items in the receive FIFO.</description>
+              <bitRange>[15:8]</bitRange>
               <access>read-only</access>
             </field>
             <field>
-              <name>TX_FULL</name>
-              <description>1 indicates that the TX FIFO is full.</description>
-              <bitRange>[0:0]</bitRange>
+              <name>TX_FIFO_DEPTH</name>
+              <description>Maximum number of items in the transmit FIFO.</description>
+              <bitRange>[7:0]</bitRange>
               <access>read-only</access>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>CS</name>
+          <description>Specifies which peripherals are selected for transmit/receive operations. An operation may select multiple peripherals simultaneously but this functionality shall be used only for transmit operations. This register shall be changed only when the SPI controller is idle, not whilst a transmit/receive operation may be in progress.</description>
+          <addressOffset>0x0028</addressOffset>
+          <resetValue>0x00000000</resetValue>
+          <fields>
+            <field>
+              <name>CS</name>
+              <description>These bits are zero when the corresponding peripheral is selected for transmit/receive operations.</description>
+              <bitRange>[4:0]</bitRange>
+              <access>read-write</access>
             </field>
           </fields>
         </register>
       </registers>
     </peripheral>
+		<peripheral derivedFrom="SPI0">
+			<name>SPI_ETHERNET</name>
+			<version>1.1.0</version>
+      <baseAddress>0x80301000</baseAddress>
+			<size>0x20</size>
+		</peripheral>
+		<peripheral derivedFrom="SPI0">
+			<name>SPI_LCD</name>
+			<version>1.1.0</version>
+      <baseAddress>0x80300000</baseAddress>
+			<size>0x20</size>
+		</peripheral>
+		<peripheral derivedFrom="SPI0">
+			<name>SPI1</name>
+			<version>1.1.0</version>
+      <baseAddress>0x80303000</baseAddress>
+			<size>0x20</size>
+		</peripheral>
+		<peripheral derivedFrom="SPI0">
+			<name>SPI2</name>
+			<version>1.1.0</version>
+      <baseAddress>0x80304000</baseAddress>
+			<size>0x20</size>
+		</peripheral>
     <peripheral>
       <name>PWM0</name>
       <version>1</version>
       <description>Simple PWM0</description>
-      <baseAddress>0x80003000</baseAddress>
-      <size>32</size>
+      <baseAddress>0x80001000</baseAddress>
+      <size>8</size>
       <addressBlock>
         <offset>0</offset>
         <size>0x08</size>
         <usage>registers</usage>
       </addressBlock>
-      <interrupt>
-        <name>PWM_IRQ_WRAP</name>
-        <value>4</value>
-      </interrupt>
       <registers>
         <register>
           <name>WIDTH</name>
@@ -170,7 +611,7 @@
             <field>
               <name>VALUE</name>
               <description>Pwm width.</description>
-              <bitRange>[31:0]</bitRange>
+              <bitRange>[7:0]</bitRange>
               <access>read-write</access>
             </field>
           </fields>
@@ -184,7 +625,7 @@
             <field>
               <name>VALUE</name>
               <description>Pwm counter.</description>
-              <bitRange>[31:0]</bitRange>
+              <bitRange>[7:0]</bitRange>
               <access>read-write</access>
             </field>
           </fields>
@@ -193,112 +634,44 @@
     </peripheral>
     <peripheral derivedFrom="PWM0">
       <name>PWM1</name>
-      <baseAddress>0x8000A008</baseAddress>
-      <interrupt>
-        <name>PWM1_IRQ_WRAP</name>
-        <value>22</value>
-      </interrupt>
+      <baseAddress>0x80001008</baseAddress>
     </peripheral>
     <peripheral derivedFrom="PWM0">
       <name>PWM2</name>
-      <baseAddress>0x80003010</baseAddress>
-      <interrupt>
-        <name>PWM2_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
+      <baseAddress>0x80001010</baseAddress>
     </peripheral>
     <peripheral derivedFrom="PWM0">
       <name>PWM3</name>
-      <baseAddress>0x80003018</baseAddress>
-      <interrupt>
-        <name>PWM3_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
+      <baseAddress>0x80001018</baseAddress>
     </peripheral>
     <peripheral derivedFrom="PWM0">
       <name>PWM4</name>
-      <baseAddress>0x80003020</baseAddress>
-      <interrupt>
-        <name>PWM4_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
+      <baseAddress>0x80001020</baseAddress>
     </peripheral>
     <peripheral derivedFrom="PWM0">
       <name>PWM5</name>
-      <baseAddress>0x80003028</baseAddress>
-      <interrupt>
-        <name>PWM5_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
+      <baseAddress>0x80001028</baseAddress>
     </peripheral>
     <peripheral derivedFrom="PWM0">
-      <name>PWM6</name>
-      <baseAddress>0x80003030</baseAddress>
-      <interrupt>
-        <name>PWM6_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
-    </peripheral>
-    <peripheral derivedFrom="PWM0">
-      <name>PWM7</name>
-      <baseAddress>0x80003038</baseAddress>
-      <interrupt>
-        <name>PWM7_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
-    </peripheral>
-    <peripheral derivedFrom="PWM0">
-      <name>PWM8</name>
-      <baseAddress>0x80003040</baseAddress>
-      <interrupt>
-        <name>PWM8_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
-    </peripheral>
-    <peripheral derivedFrom="PWM0">
-      <name>PWM9</name>
-      <baseAddress>0x80003048</baseAddress>
-      <interrupt>
-        <name>PWM9_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
-    </peripheral>
-    <peripheral derivedFrom="PWM0">
-      <name>PWM10</name>
-      <baseAddress>0x80003050</baseAddress>
-      <interrupt>
-        <name>PWM10_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
-    </peripheral>
-    <peripheral derivedFrom="PWM0">
-      <name>PWM11</name>
-      <baseAddress>0x80003058</baseAddress>
-      <interrupt>
-        <name>PWM11_IRQ_WRAP</name>
-        <value>21</value>
-      </interrupt>
+      <name>PWM_LCD</name>
+      <baseAddress>0x80001030</baseAddress>
     </peripheral>
     <peripheral>
       <name>TIMER0</name>
       <version>1</version>
       <description>Controls timer</description>
-      <baseAddress>0x80002000</baseAddress>
+      <baseAddress>0x80040000</baseAddress>
       <size>32</size>
       <addressBlock>
         <offset>0</offset>
         <size>0x1000</size>
         <usage>registers</usage>
       </addressBlock>
-      <interrupt>
-        <name>TIMER_IRQ_0</name>
-        <value>7</value>
-      </interrupt>
       <registers>
         <register>
           <name>MTIMEL</name>
           <description>mtime low</description>
-          <addressOffset>0x0000</addressOffset>
+          <addressOffset>0xbff8</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
@@ -312,7 +685,7 @@
         <register>
           <name>MTIMEH</name>
           <description>mtime high</description>
-          <addressOffset>0x0004</addressOffset>
+          <addressOffset>0xbffc</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
@@ -326,7 +699,7 @@
         <register>
           <name>MTIMECMPL</name>
           <description>mtime cmp low</description>
-          <addressOffset>0x0008</addressOffset>
+          <addressOffset>0x4000</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
@@ -340,7 +713,7 @@
         <register>
           <name>MTIMECMPH</name>
           <description>mtime cmp high</description>
-          <addressOffset>0x000C</addressOffset>
+          <addressOffset>0x4004</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
@@ -354,7 +727,7 @@
       </registers>
     </peripheral>
     <peripheral>
-      <name>GPIOA</name>
+      <name>GPIO0</name>
       <version>1</version>
       <description>Gpio port a</description>
       <baseAddress>0x80000000</baseAddress>
@@ -364,10 +737,6 @@
         <size>0x1000</size>
         <usage>registers</usage>
       </addressBlock>
-      <interrupt>
-        <name>GPIOA_IRQ</name>
-        <value>0</value>
-      </interrupt>
       <registers>
         <register>
           <name>OUT</name>
@@ -379,7 +748,7 @@
               <name>PINS</name>
               <description>Pins.</description>
               <bitRange>[31:0]</bitRange>
-              <access>read-write</access>
+              <access>write-only</access>
             </field>
           </fields>
         </register>
@@ -407,19 +776,19 @@
               <name>VALUE</name>
               <description>DBNC.</description>
               <bitRange>[31:0]</bitRange>
-              <access>read-write</access>
+              <access>read-only</access>
             </field>
           </fields>
         </register>
         <register>
-          <name>OUT_SHIFT</name>
-          <description>Shift register</description>
-          <addressOffset>0x000C</addressOffset>
+          <name>OUTPUT_ENABLE</name>
+          <description>Not used</description>
+          <addressOffset>0x000c</addressOffset>
           <resetValue>0x00000000</resetValue>
           <fields>
             <field>
               <name>VALUE</name>
-              <description>Shift.</description>
+              <description>val</description>
               <bitRange>[31:0]</bitRange>
               <access>read-write</access>
             </field>
@@ -427,5 +796,2209 @@
         </register>
       </registers>
     </peripheral>
+    <peripheral derivedFrom="GPIO0">
+      <name>GPIO_RPI</name>
+      <baseAddress>0x80000040</baseAddress>
+    </peripheral>
+    <peripheral derivedFrom="GPIO0">
+      <name>GPIO_ARDUINO</name>
+      <baseAddress>0x80000080</baseAddress>
+    </peripheral>
+    <peripheral derivedFrom="GPIO0">
+      <name>GPIO_PMOD0</name>
+      <baseAddress>0x800000C0</baseAddress>
+    </peripheral>
+    <peripheral derivedFrom="GPIO0">
+      <name>GPIO_PMOD1</name>
+      <baseAddress>0x80000100</baseAddress>
+    </peripheral>
+    <peripheral derivedFrom="GPIO0">
+      <name>GPIO_PMODC</name>
+      <baseAddress>0x80000140</baseAddress>
+    </peripheral>
+		<peripheral>
+			<name>I2C0</name>
+			<version>1.0.0</version>
+			<description>I2C interface for host and device mode, supporting up to 1 Mbaud data rates</description>
+			<baseAddress>0x80200000</baseAddress>
+			<size>0x20</size>
+      <interrupt>
+        <name>Format FIFO threshold</name>
+        <value>17</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive FIFO threshold</name>
+        <value>18</value>
+      </interrupt>
+      <interrupt>
+        <name>Acquire FIFO threshold</name>
+        <value>19</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive FIFO overflow</name>
+        <value>20</value>
+      </interrupt>
+      <interrupt>
+        <name>Received NACK</name>
+        <value>21</value>
+      </interrupt>
+      <interrupt>
+        <name>SCL interference</name>
+        <value>22</value>
+      </interrupt>
+      <interrupt>
+        <name>SDA interference</name>
+        <value>23</value>
+      </interrupt>
+      <interrupt>
+        <name>Stretch timeout</name>
+        <value>24</value>
+      </interrupt>
+      <interrupt>
+        <name>SDA unstable</name>
+        <value>25</value>
+      </interrupt>
+      <interrupt>
+        <name>Command complete</name>
+        <value>26</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit stretch</name>
+        <value>27</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit threshold</name>
+        <value>28</value>
+      </interrupt>
+      <interrupt>
+        <name>Acquire FIFO full</name>
+        <value>29</value>
+      </interrupt>
+      <interrupt>
+        <name>Unexpected stop</name>
+        <value>30</value>
+      </interrupt>
+      <interrupt>
+        <name>Host timeout</name>
+        <value>31</value>
+      </interrupt>
+			<addressBlock>
+				<offset>0x0</offset>
+				<size>0x1000</size>
+				<usage>registers</usage>
+			</addressBlock>
+			<registers>
+				<register>
+					<name>CTRL</name>
+					<description>I2C Control Register</description>
+					<addressOffset>0x10</addressOffset>
+					<fields>
+						<field>
+							<name>ENABLEHOST</name>
+							<description>Enable Host I2C functionality</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>ENABLETARGET</name>
+							<description>Enable Target I2C functionality</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>LLPBK</name>
+							<description>Enable I2C line loopback testIf line loopback is enabled, the internal design sees ACQ and RX data as &quot;1&quot;</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>STATUS</name>
+					<description>I2C Live Status Register</description>
+					<addressOffset>0x14</addressOffset>
+					<fields>
+						<field>
+							<name>FMTFULL</name>
+							<description>FMT FIFO is full</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXFULL</name>
+							<description>RX FIFO is full</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>FMTEMPTY</name>
+							<description>FMT FIFO is empty</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXEMPTY</name>
+							<description>RX FIFO is empty</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>HOSTIDLE</name>
+							<description>Host functionality is idle. No Host transaction is in progress</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TARGETIDLE</name>
+							<description>Target functionality is idle. No Target transaction is in progress</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TXFULL</name>
+							<description>TX FIFO is full</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>ACQFULL</name>
+							<description>ACQ FIFO is full</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TXEMPTY</name>
+							<description>TX FIFO is empty</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>ACQEMPTY</name>
+							<description>ACQ FIFO is empty</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>RDATA</name>
+					<description>I2C Read Data</description>
+					<addressOffset>0x18</addressOffset>
+					<fields>
+						<field>
+							<name>Value</name>
+							<description>Value</description>
+							<bitRange>[7:0]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>FDATA</name>
+					<description>I2C Format Data</description>
+					<addressOffset>0x1c</addressOffset>
+					<fields>
+						<field>
+							<name>FBYTE</name>
+							<description>Format Byte. Directly transmitted if no flags are set.</description>
+							<bitRange>[7:0]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>START</name>
+							<description>Issue a START condition before transmitting BYTE.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>STOP</name>
+							<description>Issue a STOP condition after this operation</description>
+							<bitRange>[9:9]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>READ</name>
+							<description>Read BYTE bytes from I2C. (256 if BYTE==0)</description>
+							<bitRange>[10:10]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>RCONT</name>
+							<description>Do not NACK the last byte read, let the read operation continue</description>
+							<bitRange>[11:11]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>NAKOK</name>
+							<description>Do not signal an exception if the current byte is not ACK'd</description>
+							<bitRange>[12:12]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>FIFO_CTRL</name>
+					<description>I2C FIFO control register</description>
+					<addressOffset>0x20</addressOffset>
+					<fields>
+						<field>
+							<name>RXRST</name>
+							<description>RX fifo reset. Write 1 to the register resets RX_FIFO. Read returns 0</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>FMTRST</name>
+							<description>FMT fifo reset. Write 1 to the register resets FMT_FIFO. Read returns 0</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>RXILVL</name>
+							<description>Trigger level for RX interrupts. If the FIFO depth exceedsthis setting, it raises rx_threshold interrupt.</description>
+							<bitRange>[4:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>FMTILVL</name>
+							<description>Trigger level for FMT interrupts. If the FIFO depth falls belowthis setting, it raises fmt_threshold interrupt.</description>
+							<bitRange>[6:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>ACQRST</name>
+							<description>ACQ FIFO reset. Write 1 to the register resets it. Read returns 0</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TXRST</name>
+							<description>TX FIFO reset. Write 1 to the register resets it. Read returns 0</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>FIFO_STATUS</name>
+					<description>I2C FIFO status register</description>
+					<addressOffset>0x24</addressOffset>
+					<fields>
+						<field>
+							<name>FMTLVL</name>
+							<description>Current fill level of FMT fifo</description>
+							<bitRange>[6:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>RXLVL</name>
+							<description>Current fill level of RX fifo</description>
+							<bitRange>[22:16]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>TXLVL</name>
+							<description>Current fill level of TX fifo</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>ACQLVL</name>
+							<description>Current fill level of ACQ fifo</description>
+							<bitRange>[30:24]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>OVRD</name>
+					<description>I2C Override Control Register</description>
+					<addressOffset>0x58</addressOffset>
+					<fields>
+						<field>
+							<name>TXOVRDEN</name>
+							<description>Override the SDA and SCL TX signals.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>SCLVAL</name>
+							<description>Value for SCL Override. Set to 0 to drive TX Low, and set to 1 for high-Z</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>SDAVAL</name>
+							<description>Value for SDA Override. Set to 0 to drive TX Low, and set to 1 for high-Z</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>VAL</name>
+					<description>Oversampled RX values</description>
+					<addressOffset>0x5c</addressOffset>
+					<fields>
+						<field>
+							<name>SCL_RX</name>
+							<description>Last 16 oversampled values of SCL. Most recent bit is bit 0, oldest 15.</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>SDA_RX</name>
+							<description>Last 16 oversampled values of SDA. Most recent bit is bit 16, oldest 31.</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMING0</name>
+					<description>Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.These must be greater than 2 in order for the change in SCL to propagate to the input of the FSM so that acknowledgements are detected correctly.</description>
+					<addressOffset>0x60</addressOffset>
+					<fields>
+						<field>
+							<name>THIGH</name>
+							<description>The actual time to hold SCL high in a given pulse: in host mode, when there is no stretching this value is 3 cycles longer as tracked in issue #18962</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>TLOW</name>
+							<description>The actual time to hold SCL low between any two SCL pulses</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMING1</name>
+					<description>Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.</description>
+					<addressOffset>0x64</addressOffset>
+					<fields>
+						<field>
+							<name>T_R</name>
+							<description>The nominal rise time to anticipate for the bus (depends on capacitance)</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>T_F</name>
+							<description>The nominal fall time to anticipate for the bus (influences SDA hold times): this is currently counted twice in host mode as tracked in issue #18958</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMING2</name>
+					<description>Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.</description>
+					<addressOffset>0x68</addressOffset>
+					<fields>
+						<field>
+							<name>TSU_STA</name>
+							<description>Actual setup time for repeated start signals</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>THD_STA</name>
+							<description>Actual hold time for start signals</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMING3</name>
+					<description>Detailed I2C Timings (directly corresponding to table 10, in the I2C Specification).All values are expressed in units of the input clock period.</description>
+					<addressOffset>0x6c</addressOffset>
+					<fields>
+						<field>
+							<name>TSU_DAT</name>
+							<description>Actual setup time for data (or ack) bits</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>THD_DAT</name>
+							<description>Actual hold time for data (or ack) bits(Note, where required, the parameters TVD_DAT is taken to be THD_DAT+T_F)</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMING4</name>
+					<description>Detailed I2C Timings (directly corresponding to table 10, in the I2C Specification).All values are expressed in units of the input clock period.</description>
+					<addressOffset>0x70</addressOffset>
+					<fields>
+						<field>
+							<name>TSU_STO</name>
+							<description>Actual setup time for stop signals</description>
+							<bitRange>[15:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>T_BUF</name>
+							<description>Actual time between each STOP signal and the following START signal</description>
+							<bitRange>[31:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TIMEOUT_CTRL</name>
+					<description>I2C clock stretching timeout control</description>
+					<addressOffset>0x74</addressOffset>
+					<fields>
+						<field>
+							<name>VAL</name>
+							<description>Clock stretching timeout value (in units of input clock frequency)</description>
+							<bitRange>[30:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>EN</name>
+							<description>Enable timeout feature</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TARGET_ID</name>
+					<description>I2C target address and mask pairs</description>
+					<addressOffset>0x78</addressOffset>
+					<fields>
+						<field>
+							<name>ADDRESS0</name>
+							<description>I2C target address number 0</description>
+							<bitRange>[6:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>MASK0</name>
+							<description>I2C target mask number 0</description>
+							<bitRange>[13:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>ADDRESS1</name>
+							<description>I2C target address number 1</description>
+							<bitRange>[20:14]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>MASK1</name>
+							<description>I2C target mask number 1</description>
+							<bitRange>[27:21]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>ACQDATA</name>
+					<description>I2C target acquired data</description>
+					<addressOffset>0x7c</addressOffset>
+					<fields>
+						<field>
+							<name>ABYTE</name>
+							<description>Address for accepted transaction or acquired byte</description>
+							<bitRange>[7:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>SIGNAL</name>
+							<description>Host issued a START before transmitting ABYTE, a STOP or a RESTART after the preceeding ABYTE</description>
+							<bitRange>[9:8]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>TXDATA</name>
+					<description>I2C target transmit data</description>
+					<addressOffset>0x80</addressOffset>
+					<fields>
+						<field>
+							<name>Value</name>
+							<description>Value</description>
+							<bitRange>[7:0]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>HOST_TIMEOUT_CTRL</name>
+					<description>I2C host clock generation timeout value (in units of input clock frequency)</description>
+					<addressOffset>0x84</addressOffset>
+					<fields>
+						<field>
+							<name>Value</name>
+							<description>Value</description>
+							<bitRange>[31:0]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+			</registers>
+		</peripheral>
+		<peripheral derivedFrom="I2C0">
+			<name>I2C1</name>
+			<version>1.1.0</version>
+      <baseAddress>0x80201000</baseAddress>
+			<size>0x20</size>
+      <interrupt>
+        <name>Format FIFO threshold</name>
+        <value>32</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive FIFO threshold</name>
+        <value>33</value>
+      </interrupt>
+      <interrupt>
+        <name>Acquire FIFO threshold</name>
+        <value>34</value>
+      </interrupt>
+      <interrupt>
+        <name>Receive FIFO overflow</name>
+        <value>35</value>
+      </interrupt>
+      <interrupt>
+        <name>Received NACK</name>
+        <value>36</value>
+      </interrupt>
+      <interrupt>
+        <name>SCL interference</name>
+        <value>37</value>
+      </interrupt>
+      <interrupt>
+        <name>SDA interference</name>
+        <value>38</value>
+      </interrupt>
+      <interrupt>
+        <name>Stretch timeout</name>
+        <value>39</value>
+      </interrupt>
+      <interrupt>
+        <name>SDA unstable</name>
+        <value>40</value>
+      </interrupt>
+      <interrupt>
+        <name>Command complete</name>
+        <value>41</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit stretch</name>
+        <value>42</value>
+      </interrupt>
+      <interrupt>
+        <name>Transmit threshold</name>
+        <value>43</value>
+      </interrupt>
+      <interrupt>
+        <name>Acquire FIFO full</name>
+        <value>44</value>
+      </interrupt>
+      <interrupt>
+        <name>Unexpected stop</name>
+        <value>45</value>
+      </interrupt>
+      <interrupt>
+        <name>Host timeout</name>
+        <value>46</value>
+      </interrupt>
+		</peripheral>
+		<peripheral>
+			<name>USBDEV</name>
+			<version>1.0.0</version>
+			<description>USB 2.0 Full Speed device interface (12 Mbit/s)</description>
+			<baseAddress>0x80400000</baseAddress>
+			<size>0x20</size>
+			<addressBlock>
+				<offset>0x0</offset>
+				<size>0x1000</size>
+				<usage>registers</usage>
+			</addressBlock>
+			<registers>
+				<register>
+					<name>usbctrl</name>
+					<description>USB Control</description>
+					<addressOffset>0x40</addressOffset>
+					<fields>
+						<field>
+							<name>enable</name>
+							<description>Set to connect the USB interface (i.e. assert the pullup).</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>resume_link_active</name>
+							<description>Write a 1 to this bit to instruct usbdev to jump to the LinkResuming state.The write will only have an effect when the device is in the LinkPowered state.Its intention is to handle a resume-from-suspend event after the IP has been powered down.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>device_address</name>
+							<description>Device address set by host (this should be copied fromthe Set Device ID SETUP packet).This will be zeroed by the hardware when the link resets.</description>
+							<bitRange>[22:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>ep_out_enable</name>
+					<description>Enable an endpoint to respond to transactions in the downstream direction.Note that as the default endpoint, endpoint 0 must be enabled in both the IN and OUT directions before enabling the USB interface to connect.</description>
+					<addressOffset>0x44</addressOffset>
+					<fields>
+						<field>
+							<name>enable_0</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_1</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_2</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_3</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_4</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_5</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_6</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_7</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_8</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_9</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_10</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_11</name>
+							<description>This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>ep_in_enable</name>
+					<description>Enable an endpoint to respond to transactions in the upstream direction.Note that as the default endpoint, endpoint 0 must be enabled in both the IN and OUT directions before enabling the USB interface to connect.</description>
+					<addressOffset>0x74</addressOffset>
+					<fields>
+						<field>
+							<name>enable_0</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_1</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_2</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_3</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_4</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_5</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_6</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_7</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_8</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_9</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_10</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_11</name>
+							<description>This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>usbstat</name>
+					<description>USB Status</description>
+					<addressOffset>0xa4</addressOffset>
+					<fields>
+						<field>
+							<name>frame</name>
+							<description>Frame index received from host. On an active link, this will increment every milisecond.</description>
+							<bitRange>[10:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>host_lost</name>
+							<description>Start of frame not received from host for 4.096 ms and the line is active.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>link_state</name>
+							<description>State of USB link, decoded from line.</description>
+							<bitRange>[14:12]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>sense</name>
+							<description>Reflects the state of the sense pin.1 indicates that the host is providing VBUS.Note that this bit always shows the state of the actual pin and does not take account of the override control.</description>
+							<bitRange>[15:15]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>av_depth</name>
+							<description>Number of buffers in the Available Buffer FIFO.These buffers are available for receiving packets.</description>
+							<bitRange>[19:16]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>av_full</name>
+							<description>Available Buffer FIFO is full.</description>
+							<bitRange>[23:23]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>rx_depth</name>
+							<description>Number of buffers in the Received Buffer FIFO.These buffers have packets that have been received andshould be popped from the FIFO and processed.</description>
+							<bitRange>[27:24]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>rx_empty</name>
+							<description>Received Buffer FIFO is empty.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>avbuffer</name>
+					<description>Available Buffer FIFO</description>
+					<addressOffset>0xa8</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>This field contains the buffer ID being passed to the USB receive engine.If the Available Buffer FIFO is full, any write operations are discarded.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>rxfifo</name>
+					<description>Received Buffer FIFO</description>
+					<addressOffset>0xac</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>This field contains the buffer ID that data was received into.On read the buffer ID is popped from the Received Buffer FIFO and returned to software.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>This field contains the data length in bytes of the packet written to the buffer.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>setup</name>
+							<description>This bit indicates if the received transaction is of type SETUP (1) or OUT (0).</description>
+							<bitRange>[19:19]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>ep</name>
+							<description>This field contains the endpoint ID to which the packet was directed.</description>
+							<bitRange>[23:20]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>rxenable_setup</name>
+					<description>Receive SETUP transaction enable</description>
+					<addressOffset>0xb0</addressOffset>
+					<fields>
+						<field>
+							<name>setup_0</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_1</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_2</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_3</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_4</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_5</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_6</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_7</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_8</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_9</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_10</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>setup_11</name>
+							<description>This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>rxenable_out</name>
+					<description>Receive OUT transaction enable</description>
+					<addressOffset>0xe0</addressOffset>
+					<fields>
+						<field>
+							<name>out_0</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_1</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_2</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_3</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_4</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_5</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_6</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_7</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_8</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_9</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_10</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>out_11</name>
+							<description>This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>set_nak_out</name>
+					<description>Set NAK after OUT transactions</description>
+					<addressOffset>0x110</addressOffset>
+					<fields>
+						<field>
+							<name>enable_0</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_1</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_2</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_3</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_4</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_5</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_6</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_7</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_8</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_9</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_10</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>enable_11</name>
+							<description>When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>in_sent</name>
+					<description>IN Transaction Sent</description>
+					<addressOffset>0x140</addressOffset>
+					<fields>
+						<field>
+							<name>sent_0</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_1</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_2</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_3</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_4</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_5</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_6</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_7</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_8</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_9</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_10</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>sent_11</name>
+							<description>This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>out_stall</name>
+					<description>OUT Endpoint STALL control</description>
+					<addressOffset>0x170</addressOffset>
+					<fields>
+						<field>
+							<name>endpoint_0</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_1</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_2</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_3</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_4</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_5</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_6</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_7</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_8</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_9</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_10</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_11</name>
+							<description>If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>in_stall</name>
+					<description>IN Endpoint STALL control</description>
+					<addressOffset>0x1a0</addressOffset>
+					<fields>
+						<field>
+							<name>endpoint_0</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_1</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_2</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_3</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_4</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_5</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_6</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_7</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_8</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_9</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_10</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>endpoint_11</name>
+							<description>If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_0</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1d0</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_1</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1d4</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_2</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1d8</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_3</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1dc</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_4</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1e0</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_5</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1e4</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_6</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1e8</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_7</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1ec</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_8</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1f0</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_9</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1f4</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_10</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1f8</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>configin_11</name>
+					<description>Configure IN Transaction</description>
+					<addressOffset>0x1fc</addressOffset>
+					<fields>
+						<field>
+							<name>buffer</name>
+							<description>The buffer ID containing the data to send when an IN transaction is received on the endpoint.</description>
+							<bitRange>[4:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>size</name>
+							<description>The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.</description>
+							<bitRange>[14:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pend</name>
+							<description>This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.</description>
+							<bitRange>[30:30]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rdy</name>
+							<description>This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.</description>
+							<bitRange>[31:31]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>out_iso</name>
+					<description>OUT Endpoint isochronous setting</description>
+					<addressOffset>0x200</addressOffset>
+					<fields>
+						<field>
+							<name>iso_0</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_1</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_2</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_3</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_4</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_5</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_6</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_7</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_8</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_9</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_10</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_11</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>in_iso</name>
+					<description>IN Endpoint isochronous setting</description>
+					<addressOffset>0x230</addressOffset>
+					<fields>
+						<field>
+							<name>iso_0</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_1</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_2</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_3</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_4</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_5</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_6</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_7</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_8</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_9</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_10</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>iso_11</name>
+							<description>If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>data_toggle_clear</name>
+					<description>Clear the data toggle flag</description>
+					<addressOffset>0x260</addressOffset>
+					<fields>
+						<field>
+							<name>clear_0</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_1</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_2</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_3</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_4</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_5</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_6</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_7</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_8</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_9</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_10</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[10:10]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>clear_11</name>
+							<description>Writing 1 to this bit will clear the data toggle bit for this endpoint to Data0 in both IN and OUT directions.The register must no be written again within 200 ns.</description>
+							<bitRange>[11:11]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>phy_pins_sense</name>
+					<description>USB PHY pins sense.This register can be used to read out the state of the USB device inputs and outputs from software.This is designed to be used for debugging purposes or during chip testing.</description>
+					<addressOffset>0x290</addressOffset>
+					<fields>
+						<field>
+							<name>rx_dp_i</name>
+							<description>USB D+ input.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>rx_dn_i</name>
+							<description>USB D- input.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>rx_d_i</name>
+							<description>USB data input from an external differential receiver, if available.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>tx_dp_o</name>
+							<description>USB transmit D+ output (readback).</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>tx_dn_o</name>
+							<description>USB transmit D- output (readback).</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>tx_d_o</name>
+							<description>USB transmit data value (readback).</description>
+							<bitRange>[10:10]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>tx_se0_o</name>
+							<description>USB single-ended zero output (readback).</description>
+							<bitRange>[11:11]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>tx_oe_o</name>
+							<description>USB OE output (readback).</description>
+							<bitRange>[12:12]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>pwr_sense</name>
+							<description>USB power sense signal.</description>
+							<bitRange>[16:16]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>phy_pins_drive</name>
+					<description>USB PHY pins drive.This register can be used to control the USB device inputs and outputs from software.This is designed to be used for debugging purposes or during chip testing.</description>
+					<addressOffset>0x294</addressOffset>
+					<fields>
+						<field>
+							<name>dp_o</name>
+							<description>USB transmit D+ output, used with dn_o.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>dn_o</name>
+							<description>USB transmit D- output, used with dp_o.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>d_o</name>
+							<description>USB transmit data output, encoding K and J when se0_o is 0.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>se0_o</name>
+							<description>USB single-ended zero output.</description>
+							<bitRange>[3:3]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>oe_o</name>
+							<description>USB OE output.</description>
+							<bitRange>[4:4]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>rx_enable_o</name>
+							<description>Enable differential receiver.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>dp_pullup_en_o</name>
+							<description>USB D+ pullup enable output.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>dn_pullup_en_o</name>
+							<description>USB D- pullup enable output.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>en</name>
+							<description>0: Outputs are controlled by the hardware block.1: Outputs are controlled with this register.</description>
+							<bitRange>[16:16]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>phy_config</name>
+					<description>USB PHY Configuration</description>
+					<addressOffset>0x298</addressOffset>
+					<fields>
+						<field>
+							<name>use_diff_rcvr</name>
+							<description>Detect received K and J symbols from the usb_rx_d signal, which must be driven from an external differential receiver.If 1, make use of the usb_rx_d input.If 0, the usb_rx_d input is ignored and the usb_rx_dp and usb_rx_dn pair are used to detect K and J (useful for some environments, but will be unlikely to pass full USB compliance).Regardless of the state of this field usb_rx_dp and usb_rx_dn are always used to detect SE0.This bit also feeds the rx_enable pin, activating the receiver when the device is not suspended.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>tx_use_d_se0</name>
+							<description>If 1, select the d and se0 TX interface.If 0, select the dp and dn TX interface.This directly controls the output pin of the same name.It is intended to be used to enable the use of a variety of external transceivers, to select an encoding that matches the transceiver.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>eop_single_bit</name>
+							<description>Recognize a single SE0 bit as an end of packet, otherwise two successive bits are required.</description>
+							<bitRange>[2:2]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>pinflip</name>
+							<description>Flip the D+/D- pins.Particularly useful if D+/D- are mapped to SBU1/SBU2 pins of USB-C.</description>
+							<bitRange>[5:5]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>usb_ref_disable</name>
+							<description>0: Enable reference signal generation for clock synchronization, 1: disable it by forcing the associated signals to zero.</description>
+							<bitRange>[6:6]</bitRange>
+							<access>read-write</access>
+						</field>
+						<field>
+							<name>tx_osc_test_mode</name>
+							<description>Disable (0) or enable (1) oscillator test mode.If enabled, the device constantly transmits a J/K pattern, which is useful for testing the USB clock.Note that while in oscillator test mode, the device no longer receives SOFs and consequently does not generate the reference signal for clock synchronization.The clock might drift off.</description>
+							<bitRange>[7:7]</bitRange>
+							<access>read-write</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>wake_control</name>
+					<description>USB wake module control for suspend / resume</description>
+					<addressOffset>0x29c</addressOffset>
+					<fields>
+						<field>
+							<name>suspend_req</name>
+							<description>Suspend request to the wake detection module.Trigger the wake detection module to begin monitoring for wake-from-suspend events.When written with a 1, the wake detection module will activate.Activation may not happen immediately, and its status can be verified by checking wake_events.module_active.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>write-only</access>
+						</field>
+						<field>
+							<name>wake_ack</name>
+							<description>Wake acknowledgement.Signal to the wake detection module that it may release control of the pull-ups back to the main block and return to an inactive state.The release back to normal state may not happen immediately.The status can be confirmed via wake_events.module_active.Note that this bit can also be used without powering down, such as when usbdev detects resume signaling before transitions to low power states have begun.</description>
+							<bitRange>[1:1]</bitRange>
+							<access>write-only</access>
+						</field>
+					</fields>
+				</register>
+				<register>
+					<name>wake_events</name>
+					<description>USB wake module events and debug</description>
+					<addressOffset>0x2a0</addressOffset>
+					<fields>
+						<field>
+							<name>module_active</name>
+							<description>USB aon wake module is active, monitoring events and controlling the pull-ups.</description>
+							<bitRange>[0:0]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>disconnected</name>
+							<description>USB aon wake module detected VBUS was interrupted while monitoring events.</description>
+							<bitRange>[8:8]</bitRange>
+							<access>read-only</access>
+						</field>
+						<field>
+							<name>bus_reset</name>
+							<description>USB aon wake module detected a bus reset while monitoring events.</description>
+							<bitRange>[9:9]</bitRange>
+							<access>read-only</access>
+						</field>
+					</fields>
+				</register>
+			</registers>
+		</peripheral>
   </peripherals>
 </device>
