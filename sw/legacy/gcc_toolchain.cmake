@@ -18,3 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_ASM_FLAGS_INIT "-march=rv32imc")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-nostartfiles -specs=nosys.specs -T \"${LINKER_SCRIPT}\"")
 
+# Set optimization flags for Release builds
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+    set(CMAKE_C_FLAGS_RELEASE "-O2")
+endif()
