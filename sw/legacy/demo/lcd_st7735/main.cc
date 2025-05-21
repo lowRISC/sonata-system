@@ -7,7 +7,6 @@ extern "C" {
 #include "core/m3x6_16pt.h"
 #include "fbcon.h"
 #include "fractal.h"
-#include "gpio.h"
 #include "lcd.h"
 #include "lowrisc_logo.h"
 #include "sonata_system.h"
@@ -19,6 +18,7 @@ int coremark_main();
 
 #include "spi.hh"
 #include "pwm.hh"
+#include "gpio.hh"
 #include "platform.hh"
 
 #define SIMULATION 0
@@ -62,9 +62,10 @@ static void timer_delay(uint32_t ms) {
 }
 
 static Buttons_t scan_buttons(uint32_t timeout) {
+  Gpio gpio(platform::Gpio::Gpio0);
   while (true) {
     // Sample navigation buttons (debounced).
-    uint32_t in_val = read_gpio(GPIO_IN_DBNC) & (0x1f << 8);
+    uint32_t in_val = gpio.read_debounce() & (0x1f << 8);
     if (in_val == 0) {
       // No button pressed, so delay for 20ms and then try again, unless the timeout is reached.
       const uint32_t poll_delay = 20;
@@ -81,7 +82,7 @@ static Buttons_t scan_buttons(uint32_t timeout) {
 
     // Some button pressed.
     // Wait until the button is released to avoid an event being triggered multiple times.
-    while (read_gpio(GPIO_IN_DBNC) & in_val);
+    while (gpio.read_debounce() & in_val);
 
     return static_cast<Buttons_t>(in_val);
   }
