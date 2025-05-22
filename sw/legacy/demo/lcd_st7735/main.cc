@@ -11,7 +11,6 @@ extern "C" {
 #include "lowrisc_logo.h"
 #include "sonata_system.h"
 #include "st7735/lcd_st7735.h"
-#include "timer.h"
 
 int coremark_main();
 }
@@ -19,6 +18,7 @@ int coremark_main();
 #include "spi.hh"
 #include "pwm.hh"
 #include "gpio.hh"
+#include "timer.hh"
 #include "platform.hh"
 
 #define SIMULATION 0
@@ -49,15 +49,10 @@ static uint32_t gpio_write(void *handle, bool cs, bool dc) {
   return 0;
 }
 
+Timer timer(platform::Timer::Timer0, SYSCLK_FREQ);
 static void timer_delay(uint32_t ms) {
 #if !SIMULATION
-  // Configure timer to trigger every 1 ms
-  timer_enable(SYSCLK_FREQ / 1000);
-  uint32_t timeout = get_elapsed_time() + ms;
-  while (get_elapsed_time() < timeout) {
-    asm volatile("wfi");
-  }
-  timer_disable();
+  timer.delay(ms);
 #endif
 }
 
@@ -89,14 +84,12 @@ static Buttons_t scan_buttons(uint32_t timeout) {
 }
 
 int main(void) {
-  timer_init();
-
   // Init spi driver.
   Lcd spi(platform::Spi::SpiLcd);
 
   // Turn on LCD backlight via PWM
-  Pwm pwm(platform::Pwm::Pwm6);
-  pwm.set(1, 155);
+  Pwm pwm(platform::Pwm::PwmLcd);
+  pwm.set(1, 255);
 
   // Set the initial state of the LCD control pins.
   spi.chip_select(false);
