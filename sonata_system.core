@@ -33,7 +33,6 @@ filesets:
       - rtl/system/sonata_system.sv
       - rtl/system/dm_top.sv
       - rtl/system/debounce.sv
-      - rtl/system/debounce_step.sv
       - rtl/system/pinmux.sv
       - rtl/system/pwm.sv
       - rtl/system/pwm_wrapper.sv
