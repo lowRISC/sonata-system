@@ -18,7 +18,9 @@ module gpio #(
 
   input  logic [GpiWidth-1:0] gp_i[NumInstances],
   output logic [GpoWidth-1:0] gp_o[NumInstances],
-  output logic [GpoWidth-1:0] gp_o_en[NumInstances]
+  output logic [GpoWidth-1:0] gp_o_en[NumInstances],
+
+  output logic                pcint_o[NumInstances]
 );
 
   logic                 device_req;
@@ -55,7 +57,9 @@ module gpio #(
 
     .gp_i,
     .gp_o,
-    .gp_o_en
+    .gp_o_en,
+
+    .pcint_o
   );
 
   tlul_adapter_reg #(
