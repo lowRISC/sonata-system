@@ -10,6 +10,7 @@ filesets:
       - lowrisc:prim:mubi
       - lowrisc:tlul:adapter_reg
     files:
+      - rtl/debounce_step.sv
       - rtl/gpio_core.sv
       - rtl/gpio_array.sv
       - rtl/gpio.sv
