@@ -33,7 +33,7 @@ module gpio_core #(
 
   logic [RegAddr-1:0] reg_addr;
 
-  logic [2:0][GpiWidth-1:0] gp_i_q;
+  logic [GpiWidth-1:0] gp_i_sync;
   logic [GpiWidth-1:0] gp_i_dbnc;
   logic [GpoWidth-1:0] gp_o_d;
   logic [GpoWidth-1:0] gp_o_en_d;
@@ -59,20 +59,30 @@ module gpio_core #(
 
   assign dbnc_step = dbnc_cnt[DbncWidth-1];
 
+  // Instantiate an input synchroniser wide enough for all GP inputs.
+  prim_flop_2sync #(
+    .Width(GpiWidth),
+    .ResetValue('0)
+  ) u_sync (
+    .clk_i,
+    .rst_ni,
+    .d_i(gp_i),
+    .q_o(gp_i_sync)
+  );
+
   // Instantiate step-based debouncers for all GP inputs.
   for (genvar i = 0; i < GpiWidth; i++) begin
     debounce_step dbnc (
       .clk_i,
       .rst_ni,
       .step_i(dbnc_step),
-      .btn_i(gp_i_q[2][i]),
+      .btn_i(gp_i_sync[i]),
       .btn_o(gp_i_dbnc[i])
     );
   end
 
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      gp_i_q          <= '0;
       gp_o            <= '0;
       gp_o_en         <= '0;
       device_rvalid_o <= '0;
@@ -81,7 +91,6 @@ module gpio_core #(
       gp_i_dbnc_rd_en <= '0;
       gp_o_en_rd_en   <= '0;
     end else begin
-      gp_i_q <= {gp_i_q[1:0], gp_i};
       if (gp_o_sel & device_we_i) begin
         gp_o <= gp_o_d;
       end
@@ -126,7 +135,7 @@ module gpio_core #(
     if (gp_o_rd_en)
       device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o};
     else if (gp_i_rd_en)
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_q[2]};
+      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_sync};
     else if (gp_i_dbnc_rd_en)
       device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
     else if (gp_o_en_rd_en)
