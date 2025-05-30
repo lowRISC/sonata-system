@@ -23,7 +23,9 @@ module gpio_array #(
 
   input  logic [GpiWidth-1:0] gp_i[NumInstances],
   output logic [GpoWidth-1:0] gp_o[NumInstances],
-  output logic [GpoWidth-1:0] gp_o_en[NumInstances]
+  output logic [GpoWidth-1:0] gp_o_en[NumInstances],
+
+  output logic                pcint_o[NumInstances]
 );
   localparam int unsigned NumBytesPerInstance = 16 * DataWidth/8;
   localparam int unsigned AddrBitsPerInstance = $clog2(NumBytesPerInstance);
@@ -54,7 +56,8 @@ module gpio_array #(
       .device_rdata_o(device_read_datas[i]),
       .gp_i(gp_i[i]),
       .gp_o(gp_o[i]),
-      .gp_o_en(gp_o_en[i])
+      .gp_o_en(gp_o_en[i]),
+      .pcint_o(pcint_o[i])
     );
   end
 
