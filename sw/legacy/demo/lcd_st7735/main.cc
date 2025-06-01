@@ -12,27 +12,16 @@ extern "C" {
 #include "lcd.h"
 #include "lowrisc_logo.h"
 #include "sonata_system.h"
-#include "spi.h"
 #include "st7735/lcd_st7735.h"
 #include "timer.h"
 
 int coremark_main();
 }
 
-#define SIMULATION 0
+#include "spi.hh"
+#include "platform.hh"
 
-// Constants.
-enum {
-  // Pin out mapping using Spi CS lines
-  LcdCsLine = 0,
-  LcdDcLine,
-  LcdRstLine,
-  // Other SPI pins
-  LcdMosiPin,
-  LcdSclkPin,
-  // Spi clock rate.
-  SpiSpeedHz = 5 * 100 * 1000,
-};
+#define SIMULATION 0
 
 // Buttons
 // The direction is relative to the screen in landscape orientation.
@@ -45,18 +34,18 @@ typedef enum {
   BTN_UP    = 0b10000 << 8,
 } Buttons_t;
 
+// Local functions declaration.
 static void fractal_test(St7735Context *lcd);
 
 // Local functions declaration.
 static uint32_t spi_write(void *handle, uint8_t *data, size_t len) {
-  spi_tx((spi_t *)handle, data, len);
-  spi_wait_idle((spi_t *)handle);
+  ((Lcd *)handle)->blocking_write(data, len);
   return len;
 }
 
 static uint32_t gpio_write(void *handle, bool cs, bool dc) {
-  spi_set_cs((spi_t *)handle, LcdDcLine, dc);
-  spi_set_cs((spi_t *)handle, LcdCsLine, cs);
+  ((Lcd *)handle)->chip_select(!cs);
+  ((Lcd *)handle)->command_assert(dc);
   return 0;
 }
 
@@ -102,21 +91,20 @@ int main(void) {
   timer_init();
 
   // Init spi driver.
-  spi_t spi;
-  spi_init(&spi, LCD_SPI, SpiSpeedHz);
+  Lcd spi(platform::Spi::SpiLcd);
 
   // Turn on LCD backlight via PWM
   pwm_t lcd_bl = PWM_FROM_ADDR_AND_INDEX(PWM_BASE, PWM_LCD);
   set_pwm(lcd_bl, 1, 255);
 
   // Set the initial state of the LCD control pins.
-  spi_set_cs(&spi, LcdDcLine, 0x0);
-  spi_set_cs(&spi, LcdCsLine, 0x0);
+  spi.chip_select(false);
+  spi.command_assert(false);
 
   // Reset LCD.
-  spi_set_cs(&spi, LcdRstLine, 0x0);
+  spi.reset(true);
   timer_delay(150);
-  spi_set_cs(&spi, LcdRstLine, 0x1);
+  spi.reset(false);
 
   // Init LCD driver and set the SPI driver.
   St7735Context lcd;
