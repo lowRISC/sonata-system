@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable(memory_test memory_test.cc)
-target_link_libraries(memory_test common reisfmt)
+target_link_libraries(memory_test common reisfmt hal)
 
 install(TARGETS memory_test)
 
@@ -26,7 +26,7 @@ add_custom_command(
 
 set(NAME heap_test)
 add_executable(${NAME} heap_test.cc)
-target_link_libraries(${NAME} common reisfmt)
+target_link_libraries(${NAME} common reisfmt hal)
 
 add_custom_command(
   TARGET ${NAME} POST_BUILD
