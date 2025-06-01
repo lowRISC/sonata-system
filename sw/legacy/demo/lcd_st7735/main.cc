@@ -8,7 +8,6 @@ extern "C" {
 #include "fbcon.h"
 #include "fractal.h"
 #include "gpio.h"
-#include "pwm.h"
 #include "lcd.h"
 #include "lowrisc_logo.h"
 #include "sonata_system.h"
@@ -19,6 +18,7 @@ int coremark_main();
 }
 
 #include "spi.hh"
+#include "pwm.hh"
 #include "platform.hh"
 
 #define SIMULATION 0
@@ -94,8 +94,8 @@ int main(void) {
   Lcd spi(platform::Spi::SpiLcd);
 
   // Turn on LCD backlight via PWM
-  pwm_t lcd_bl = PWM_FROM_ADDR_AND_INDEX(PWM_BASE, PWM_LCD);
-  set_pwm(lcd_bl, 1, 255);
+  Pwm pwm(platform::Pwm::Pwm6);
+  pwm.set(1, 155);
 
   // Set the initial state of the LCD control pins.
   spi.chip_select(false);
