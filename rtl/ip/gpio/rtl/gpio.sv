@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module gpio #(
-  parameter int unsigned GpiWidth     =  8,
-  parameter int unsigned GpoWidth     = 16,
+  parameter int unsigned GpiMaxWidth  =  8,
+  parameter int unsigned GpoMaxWidth  = 16,
   parameter int unsigned AddrWidth    = 32,
   parameter int unsigned DataWidth    = 32,
   parameter int unsigned RegAddrWidth = 12,
-  parameter int unsigned NumInstances =  1
+  parameter int unsigned NumInstances =  1,
+  parameter int unsigned GpiInstWidths[NumInstances] =  {8},
+  parameter int unsigned GpoInstWidths[NumInstances] = {16}
 ) (
   input  logic clk_i,
   input  logic rst_ni,
@@ -16,11 +18,11 @@ module gpio #(
   input  tlul_pkg::tl_h2d_t tl_i,
   output tlul_pkg::tl_d2h_t tl_o,
 
-  input  logic [GpiWidth-1:0] gp_i[NumInstances],
-  output logic [GpoWidth-1:0] gp_o[NumInstances],
-  output logic [GpoWidth-1:0] gp_o_en[NumInstances],
+  input  logic [GpiMaxWidth-1:0] gp_i[NumInstances],
+  output logic [GpoMaxWidth-1:0] gp_o[NumInstances],
+  output logic [GpoMaxWidth-1:0] gp_o_en[NumInstances],
 
-  output logic                pcint_o[NumInstances]
+  output logic                   pcint_o[NumInstances]
 );
 
   logic                 device_req;
@@ -37,12 +39,14 @@ module gpio #(
   assign device_addr[AddrWidth-1:RegAddrWidth] = '0;
 
   gpio_array #(
-    .GpiWidth     ( GpiWidth     ),
-    .GpoWidth     ( GpoWidth     ),
-    .AddrWidth    ( AddrWidth    ),
-    .DataWidth    ( DataWidth    ),
-    .RegAddrWidth ( RegAddrWidth ),
-    .NumInstances ( NumInstances )
+    .GpiMaxWidth   ( GpiMaxWidth   ),
+    .GpoMaxWidth   ( GpoMaxWidth   ),
+    .AddrWidth     ( AddrWidth     ),
+    .DataWidth     ( DataWidth     ),
+    .RegAddrWidth  ( RegAddrWidth  ),
+    .NumInstances  ( NumInstances  ),
+    .GpiInstWidths ( GpiInstWidths ),
+    .GpoInstWidths ( GpoInstWidths )
   ) u_gpio (
     .clk_i,
     .rst_ni,
