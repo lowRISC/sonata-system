@@ -115,6 +115,12 @@ module top_sonata
   inout  logic       ah_tmpio8,
   inout  logic       ah_tmpio9,
 
+  // Sonata Trace port.
+  inout  logic       ah_tmpio14,
+  inout  logic       ah_tmpio15,
+  inout  logic       ah_tmpio16,
+  inout  logic       ah_tmpio17,
+
   // Arduino shield SPI bus
   inout  logic       ah_tmpio10, // Chip select
   inout  logic       ah_tmpio11, // COPI
@@ -282,6 +288,12 @@ module top_sonata
   logic rs485_rx, rs485_tx;
   logic rs485_rx_enable, rs485_tx_enable;
 
+  // Sonata Trace port
+  //  - the signal ordering here ensures that when tracing an SPI bus the signals match the pin
+  //    names and PCB legend since we're hijacking the ICSP connector which carries an SPI bus.
+  logic [3:0] strace;
+  assign {ah_tmpio14, ah_tmpio17, ah_tmpio15, ah_tmpio16} = strace;
+
   sonata_system #(
     .CheriErrWidth   ( 9               ),
     .SRAMInitFile    ( SRAMInitFile    ),
@@ -392,7 +404,9 @@ module top_sonata
     .out_to_pins_o      (out_to_pins     ),
     .inout_from_pins_i  (inout_from_pins ),
     .inout_to_pins_o    (inout_to_pins   ),
-    .inout_to_pins_en_o (inout_to_pins_en)
+    .inout_to_pins_en_o (inout_to_pins_en),
+
+    .strace_o           (strace)
   );
 
   assign rgbled0 = ~rgbled_dout;
