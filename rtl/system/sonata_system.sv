@@ -9,8 +9,8 @@ module sonata_system
   import sonata_pkg::*;
 #(
   parameter int unsigned ArdAniWidth     = 6,
-  parameter int unsigned CheriErrWidth   =  9,
-  parameter SRAMInitFile                 = "",
+  parameter int unsigned CheriErrWidth   = 9,
+  parameter string SRAMInitFile          = "",
   parameter int unsigned SysClkFreq      = 30_000_000,
   parameter int unsigned HyperRAMClkFreq = 100_000_000
 ) (
