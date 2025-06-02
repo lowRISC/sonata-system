@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module gpio_array #(
-  parameter int unsigned GpiWidth     =  8,
-  parameter int unsigned GpoWidth     = 16,
+  parameter int unsigned GpiMaxWidth  =  8,
+  parameter int unsigned GpoMaxWidth  = 16,
   parameter int unsigned AddrWidth    = 32,
   parameter int unsigned DataWidth    = 32,
   parameter int unsigned RegAddrWidth = 12,
-  parameter int unsigned NumInstances =  1
+  parameter int unsigned NumInstances =  1,
+  parameter int unsigned GpiInstWidths[NumInstances] =  {8},
+  parameter int unsigned GpoInstWidths[NumInstances] = {16}
 ) (
   input  logic clk_i,
   input  logic rst_ni,
@@ -21,11 +23,11 @@ module gpio_array #(
   output logic                 device_rvalid_o,
   output logic [DataWidth-1:0] device_rdata_o,
 
-  input  logic [GpiWidth-1:0] gp_i[NumInstances],
-  output logic [GpoWidth-1:0] gp_o[NumInstances],
-  output logic [GpoWidth-1:0] gp_o_en[NumInstances],
+  input  logic [GpiMaxWidth-1:0] gp_i[NumInstances],
+  output logic [GpoMaxWidth-1:0] gp_o[NumInstances],
+  output logic [GpoMaxWidth-1:0] gp_o_en[NumInstances],
 
-  output logic                pcint_o[NumInstances]
+  output logic                   pcint_o[NumInstances]
 );
   localparam int unsigned NumBytesPerInstance = 16 * DataWidth/8;
   localparam int unsigned AddrBitsPerInstance = $clog2(NumBytesPerInstance);
@@ -39,8 +41,8 @@ module gpio_array #(
                              device_req_i : 1'b0;
 
     gpio_core #(
-      .GpiWidth  ( GpiWidth            ),
-      .GpoWidth  ( GpoWidth            ),
+      .GpiWidth  ( GpiInstWidths[i]    ),
+      .GpoWidth  ( GpoInstWidths[i]    ),
       .AddrWidth ( AddrWidth           ),
       .DataWidth ( DataWidth           ),
       .RegAddr   ( AddrBitsPerInstance )
@@ -54,9 +56,9 @@ module gpio_array #(
       .device_wdata_i,
       .device_rvalid_o(device_read_valids[i]),
       .device_rdata_o(device_read_datas[i]),
-      .gp_i(gp_i[i]),
-      .gp_o(gp_o[i]),
-      .gp_o_en(gp_o_en[i]),
+      .gp_i(gp_i[i][GpiInstWidths[i]-1:0]),
+      .gp_o(gp_o[i][GpoInstWidths[i]-1:0]),
+      .gp_o_en(gp_o_en[i][GpoInstWidths[i]-1:0]),
       .pcint_o(pcint_o[i])
     );
   end

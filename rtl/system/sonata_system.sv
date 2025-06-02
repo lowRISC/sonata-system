@@ -883,9 +883,11 @@ module sonata_system
   assign gp_o_en           = gpio_to_pins_enable[0];
 
   gpio #(
-    .GpiWidth     ( GPIO_IOS_WIDTH ),
-    .GpoWidth     ( GPIO_IOS_WIDTH ),
-    .NumInstances ( TotalGpioNum   )
+    .GpiMaxWidth  ( GPIO_IOS_WIDTH      ),
+    .GpoMaxWidth  ( GPIO_IOS_WIDTH      ),
+    .NumInstances ( TotalGpioNum        ),
+    .GpiInstWidths( GPIO_INST_IN_WIDTH  ),
+    .GpoInstWidths( GPIO_INST_OUT_WIDTH )
   ) u_gpio (
     .clk_i           (clk_sys_i),
     .rst_ni          (rst_sys_ni),
