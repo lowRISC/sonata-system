@@ -17,6 +17,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
+    zermio = {
+      url = "github:engdoreis/zermio?ref=v0.2.0";
+    };
   };
 
   nixConfig = {
@@ -47,6 +50,7 @@
       lrPkgs = lowrisc-nix.outputs.packages.${system};
       mdutilsPkgs = mdutils.outputs.packages.${system};
       inherit (pkgs.lib) fileset getExe;
+      zermio-cli = inputs.zermio.packages.${system}.default;
 
       pythonEnv = let
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
@@ -132,6 +136,10 @@
         inherit pkgs lrPkgs cheriotPkgs;
       };
 
+      codegen = import nix/codegen.nix {
+        inherit pkgs zermio-cli;
+      };
+
       bitstream = import nix/bitstream.nix {
         inherit
           pkgs
@@ -203,7 +211,7 @@
           type = "app";
           program = getExe program;
         };
-      }) [lint.all lint.python tests.fpga lint.cpp]);
+      }) [lint.all lint.python tests.fpga lint.cpp codegen.legacy-mmio]);
     };
   in
     flake-utils.lib.eachDefaultSystem system_outputs;
