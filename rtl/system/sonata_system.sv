@@ -173,6 +173,7 @@ module sonata_system
   logic [SpiIrqs-1:0]    spi_interrupts [TotalSpiNum];
   logic [UartIrqs-1:0]   uart_interrupts[UART_NUM];
   logic [UsbdevIrqs-1:0] usbdev_interrupts;
+  logic                  gpio_interrupts[TotalGpioNum];
 
   logic ethmac_irq;
 
@@ -182,6 +183,7 @@ module sonata_system
   logic [TotalSpiNum-1:0]  spi_irq;
   logic [UART_NUM-1:0] uart_irq;
   logic                usbdev_irq;
+  logic                gpio_irq;
 
   always_comb begin
     // Single interrupt line per UART.
@@ -199,6 +201,11 @@ module sonata_system
     end
     // Single interrupt line for USBDEV.
     usbdev_irq = |usbdev_interrupts;
+    // Single interrupt line for all GPIO Pin-Change Interrupts
+    gpio_irq = 1'b0;
+    for (int i = 0; i < TotalGpioNum; i++) begin
+      gpio_irq |= gpio_interrupts[i];
+    end
   end
 
   logic [31:0] intr_vector;
@@ -209,7 +216,8 @@ module sonata_system
   assign intr_vector[15 + I2C_NUM     : 16              ] = i2c_irq;
   assign intr_vector[15               :  8 + UART_NUM   ] = 'b0;
   assign intr_vector[ 7 + UART_NUM    :  8              ] = uart_irq; // Support up to 8 UARTs.
-  assign intr_vector[ 7               :  4              ] = 4'h0;     // Reserved for future use.
+  assign intr_vector[ 7               :  5              ] = 3'h0;     // Reserved for future use.
+  assign intr_vector[ 4                                 ] = gpio_irq;
   assign intr_vector[ 3                                 ] = usbdev_irq;
   assign intr_vector[ 2                                 ] = ethmac_irq;
   assign intr_vector[ 1                                 ] = hardware_revoker_irq;
@@ -863,7 +871,9 @@ module sonata_system
   // 0: General Purpose
   // 1: Raspberry Pi HAT
   // 2: Arduino Shield
-  // 3: Pmod
+  // 3: Pmod0
+  // 4: Pmod1
+  // 5: PmodC
   logic [GPIO_IOS_WIDTH-1:0] gpio_from_pins     [TotalGpioNum];
   logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins       [TotalGpioNum];
   logic [GPIO_IOS_WIDTH-1:0] gpio_to_pins_enable[TotalGpioNum];
@@ -885,7 +895,9 @@ module sonata_system
 
     .gp_i(gpio_from_pins),
     .gp_o(gpio_to_pins),
-    .gp_o_en(gpio_to_pins_enable)
+    .gp_o_en(gpio_to_pins_enable),
+
+    .pcint_o(gpio_interrupts)
   );
 
   // Digital inputs from Arduino shield analog(ue) pins currently unused

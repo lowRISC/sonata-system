@@ -14,6 +14,7 @@ typedef enum : uint32_t {
   HardwareRevoker = 1,
   Ethernet        = 2,
   Usbdev          = 3,
+  Pcint           = 4,
   // Uart Interrupts (up to 8 instances).
   Uart0 = 8,
   // I2c Interrupts (up to 8 instances).
