@@ -7,7 +7,7 @@ module gpio_core #(
   parameter int unsigned GpoWidth  = 16,
   parameter int unsigned AddrWidth = 32,
   parameter int unsigned DataWidth = 32,
-  parameter int unsigned RegAddr   = 12,
+  parameter int unsigned RegAddr   = 6,
   parameter int unsigned DbncWidth = 10
 ) (
   input  logic clk_i,
