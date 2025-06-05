@@ -128,7 +128,7 @@ Configuration register. Controls how the SPI block transmits
 ### Fields
 
 ```wavejson_reg
-[{"name": "HALF_CLK_PERIOD", "bits": 16, "attr": ["rw"], "rotate": 0}, {"bits": 13}, {"name": "MSB_FIRST", "bits": 1, "attr": ["rw"], "rotate": -90}, {"name": "CPHA", "bits": 1, "attr": ["rw"], "rotate": -90}, {"name": "CPOL", "bits": 1, "attr": ["rw"], "rotate": -90}]
+[{"name": "HALF_CLK_PERIOD", "bits": 16, "attr": ["rw"], "rotate": 0}, {"bits": 12}, {"name": "COPI_IDLE", "bits": 1, "attr": ["rw"], "rotate": -90}, {"name": "MSB_FIRST", "bits": 1, "attr": ["rw"], "rotate": -90}, {"name": "CPHA", "bits": 1, "attr": ["rw"], "rotate": -90}, {"name": "CPOL", "bits": 1, "attr": ["rw"], "rotate": -90}]
 ```
 
 |  Bits  |  Type  |  Reset  | Name                                     |
@@ -136,7 +136,8 @@ Configuration register. Controls how the SPI block transmits
 |   31   |   rw   |   0x0   | [CPOL](#cfg--cpol)                       |
 |   30   |   rw   |   0x0   | [CPHA](#cfg--cpha)                       |
 |   29   |   rw   |   0x1   | [MSB_FIRST](#cfg--msb_first)             |
-| 28:16  |        |         | Reserved                                 |
+|   28   |   rw   |   0x0   | [COPI_IDLE](#cfg--copi_idle)             |
+| 27:16  |        |         | Reserved                                 |
 |  15:0  |   rw   |   0x0   | [HALF_CLK_PERIOD](#cfg--half_clk_period) |
 
 ### CFG . CPOL
@@ -155,7 +156,15 @@ The phase of the spi_clk signal. When CPHA is 0 data is
 
 ### CFG . MSB_FIRST
 When set the most significant bit (MSB) is the first bit
-   sent and received with each byte
+   sent and received with each byte.
+
+### CFG . COPI_IDLE
+State of the controller output line (COPI) when not transmitting.
+   This default state is low, but it may need to be held high for
+   some SPI peripherals such as a (micro)SD card.
+   The presence of 'COPI_IDLE' support may be tested by setting
+   and then reading back this configuration bit; earlier versions of
+   the controller returned 0 for this bit.
 
 ### CFG . HALF_CLK_PERIOD
 The length of a half period (i.e. positive edge to negative
