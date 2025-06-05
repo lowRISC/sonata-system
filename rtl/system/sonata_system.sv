@@ -123,9 +123,10 @@ module sonata_system
   localparam int unsigned BusAddrWidth  = 32;
   localparam int unsigned BusByteEnable = 4;
   localparam int unsigned BusDataWidth  = 32;
-  localparam int unsigned RegAddrWidth  = 8;
+  localparam int unsigned PRegAddrWidth = 8;  // PWM uses only 8 bits of addressing.
   localparam int unsigned DRegAddrWidth = 12; // Debug module uses 12 bits of addressing.
   localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
+  localparam int unsigned GRegAddrWidth = 9; // GPIO array uses 9 bits of addressing.
   localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
   localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
   localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
@@ -639,7 +640,7 @@ module sonata_system
     // Register interface.
     .re_o         (device_re[Pwm]),
     .we_o         (device_we[Pwm]),
-    .addr_o       (device_addr[Pwm][RegAddrWidth-1:0]),
+    .addr_o       (device_addr[Pwm][PRegAddrWidth-1:0]),
     .wdata_o      (device_wdata[Pwm]),
     .be_o         (device_be[Pwm]),
     .busy_i       ('0),
@@ -648,7 +649,7 @@ module sonata_system
   );
 
   // Tie off upper bits of address.
-  assign device_addr[Pwm][BusAddrWidth-1:RegAddrWidth] = '0;
+  assign device_addr[Pwm][BusAddrWidth-1:PRegAddrWidth] = '0;
 
   tlul_adapter_reg #(
     .RegAw            ( TRegAddrWidth ),
@@ -885,6 +886,9 @@ module sonata_system
   gpio #(
     .GpiMaxWidth  ( GPIO_IOS_WIDTH      ),
     .GpoMaxWidth  ( GPIO_IOS_WIDTH      ),
+    .AddrWidth    ( BusAddrWidth        ),
+    .DataWidth    ( BusDataWidth        ),
+    .RegAddrWidth ( GRegAddrWidth       ),
     .NumInstances ( TotalGpioNum        ),
     .GpiInstWidths( GPIO_INST_IN_WIDTH  ),
     .GpoInstWidths( GPIO_INST_OUT_WIDTH )
