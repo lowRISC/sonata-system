@@ -317,6 +317,57 @@ struct PlicTest {
     usbdev->interrupt_disable(static_cast<OpenTitanUsbdev::UsbdevInterrupt>(ip_irq_id));
   }
 
+  void gpio_test() {
+    // Use PMODC to self-trigger a GPIO PCINT interrupt using a pin
+    // with no external load configured as an output.
+
+    auto gpio          = gpio_ptr(root, 5);
+    gpio->output       = 0x00;  // all low
+    gpio->outputEnable = 0x01;  // pin 0 only
+    // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+    auto raw_gpio_ptr = static_cast<volatile uint32_t *>((&gpio->output));
+    raw_gpio_ptr[4]   = 0x00;       // ctrl: any-edge, non-debounced, intr disabled
+    raw_gpio_ptr[5]   = (1 << 31);  // status: clear status
+    raw_gpio_ptr[6]   = 0x01;       // PCINT mask: pin 0 only
+
+    log_->println("  Testing PCINT:");
+    ip_irq_id        = (1 << 31);
+    is_irq_clearable = true;
+    plic_irq_id      = static_cast<PLIC::Interrupts>(PLIC::Interrupts::Pcint);
+    exp_intr_state   = (1 << 31);
+    irq_handler      = [](PlicTest *plic_test, PLIC::Interrupts irq) {
+      auto gpio            = gpio_ptr(plic_test->root, 5);
+      const bool wrong_irq = (irq != plic_test->plic_irq_id);
+      // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+      auto raw_gpio_ptr      = static_cast<volatile uint32_t *>((&gpio->output));
+      const bool wrong_local = !(raw_gpio_ptr[5] & plic_test->ip_irq_id);
+      plic_test->error_count += wrong_irq;
+      plic_test->error_count += wrong_local;
+      // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+      plic_test->log(irq, raw_gpio_ptr[4] & raw_gpio_ptr[5], wrong_irq || wrong_local);
+      plic_test->gpio_irq_clear(gpio);
+    };
+    // Enable PCINT interrupt and raise output to trigger interrupt
+    // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+    raw_gpio_ptr[4] |= (1 << 31);
+    gpio->output = 0x01;
+    if (!irq_caught()) {
+      gpio_irq_clear(gpio);
+    }
+    // Lower output to trigger another interrupt
+    // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+    gpio->output = 0x00;
+    if (!irq_caught()) {
+      gpio_irq_clear(gpio);
+    }
+  }
+
+  void gpio_irq_clear(GpioPtr gpio) {
+    // TODO: use names rather than cast+offset once gpio_ptr includes PCINT regs
+    auto raw_gpio_ptr = static_cast<volatile uint32_t *>((&gpio->output));
+    raw_gpio_ptr[5]   = raw_gpio_ptr[5];
+  }
+
   // Wait with timeout until an interrupt occurs, logging any mismatch.
   // Returns true iff the expected interrupt occurred within the timeout interval.
   inline bool irq_caught() {
@@ -371,6 +422,7 @@ struct PlicTest {
       spi_test(spi);
     }
     usbdev_test();
+    gpio_test();
     return error_count == 0;
   }
 };
