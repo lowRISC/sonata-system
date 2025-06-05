@@ -65,6 +65,7 @@ module spi_core #(
   input  logic cpha_i,
   input  logic msb_first_i,
   input  logic [CLK_COUNT_W-1:0] half_clk_period_i,
+  input  logic copi_idle_i,
 
   output logic spi_copi_o,
   input  logic spi_cipo_i,
@@ -201,8 +202,11 @@ module spi_core #(
         copi_shift_d = msb_first_i ? data_in_i : bit_reverse(data_in_i);
         data_in_ready_o = 1'b1;
       end else begin
-        copi_shift_d = {copi_shift_q[6:0], 1'b0};
+        copi_shift_d = {copi_shift_q[6:0], copi_idle_i};
       end
+    end else if (finish_edge) begin
+      // Return the COPI line to its idle state.
+      copi_shift_d = {copi_shift_q[6:0], copi_idle_i};
     end
   end
 

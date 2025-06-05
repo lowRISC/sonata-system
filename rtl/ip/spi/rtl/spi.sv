@@ -51,7 +51,7 @@ module spi import spi_reg_pkg::*; #(
   logic        spi_start, spi_idle;
 
   logic [15:0] spi_half_clk_period;
-  logic        spi_cpol, spi_cpha, spi_msb_first;
+  logic        spi_cpol, spi_cpha, spi_msb_first, spi_copi_idle;
 
   localparam int unsigned RxFifoDepthW = prim_util_pkg::vbits(RxFifoDepth+1);
 
@@ -66,13 +66,19 @@ module spi import spi_reg_pkg::*; #(
   logic [TxFifoDepthW-1:0] tx_fifo_depth;
   logic [7:0]              tx_fifo_wdata;
   logic                    tx_fifo_wvalid;
+  logic [7:0]              tx_fifo_rdata;
   logic                    tx_fifo_rvalid, tx_fifo_rready;
   logic                    tx_fifo_clr, tx_fifo_full;
+
+  // The SPI core transmits dummy data when only reception is enabled, so ensure that
+  // the configured COPI Idle state is honoured.
+  assign spi_data_in = reg2hw.control.tx_enable.q ? tx_fifo_rdata : {8{spi_copi_idle}};
 
   assign spi_cpol            = reg2hw.cfg.cpol.q;
   assign spi_cpha            = reg2hw.cfg.cpha.q;
   assign spi_half_clk_period = reg2hw.cfg.half_clk_period.q;
   assign spi_msb_first       = reg2hw.cfg.msb_first.q;
+  assign spi_copi_idle       = reg2hw.cfg.copi_idle.q;
 
   assign spi_start      = (reg2hw.start.qe & spi_idle);
   assign spi_byte_count = reg2hw.start.q;
@@ -129,7 +135,7 @@ module spi import spi_reg_pkg::*; #(
 
     .rvalid_o(tx_fifo_rvalid),
     .rready_i(tx_fifo_rready),
-    .rdata_o (spi_data_in),
+    .rdata_o (tx_fifo_rdata),
 
     .full_o (tx_fifo_full),
     .depth_o(tx_fifo_depth),
@@ -211,6 +217,7 @@ module spi import spi_reg_pkg::*; #(
     .cpha_i           (spi_cpha),
     .msb_first_i      (spi_msb_first),
     .half_clk_period_i(spi_half_clk_period),
+    .copi_idle_i      (spi_copi_idle),
 
     .spi_copi_o,
     .spi_cipo_i       (spi_cipo),
