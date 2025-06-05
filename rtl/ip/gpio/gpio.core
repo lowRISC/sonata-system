@@ -14,6 +14,7 @@ filesets:
       - rtl/gpio_core.sv
       - rtl/gpio_array.sv
       - rtl/gpio.sv
+      - rtl/pcint.sv
     file_type: systemVerilogSource
 
 targets:
