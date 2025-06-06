@@ -37,11 +37,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/../../../../vendor/lowrisc_ibex/examples/sw/benchmar
 
 target_link_libraries(coremark common)
 
-# add_executable(lcd_st7735 main.c)
-add_executable(lcd_st7735 main.c lcd.c fractal_fixed.c fractal_float.c fractal_palette.c fbcon.c)
+add_executable(lcd_st7735 main.cc lcd.c fractal_fixed.c fractal_float.c fractal_palette.c fbcon.c)
 
 # pull in core dependencies and additional i2c hardware support
-target_link_libraries(lcd_st7735 common lcd_st7735_lib coremark)
+target_link_libraries(lcd_st7735 common lcd_st7735_lib coremark hal)
 
 target_include_directories(lcd_st7735 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../../vendor/display_drivers)
 
