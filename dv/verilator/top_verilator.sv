@@ -478,7 +478,8 @@ module top_verilator (input logic clk_i, rst_ni);
   // Virtual UART
   uartdpi #(
     .BAUD ( BaudRate    ),
-    .FREQ ( SysClkFreq  )
+    .FREQ ( SysClkFreq  ),
+    .EXIT_STRING ( "Safe to exit simulator.\xd8\xaf\xfb\xa0\xc7\xe1\xa9\xd7" )
   ) u_uartdpi (
     .clk_i,
     .rst_ni,
