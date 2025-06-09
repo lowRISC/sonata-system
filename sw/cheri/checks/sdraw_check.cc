@@ -59,7 +59,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   WriteUart uart{uart0};
   Log log(uart);
 
-  // The SPI controller talkes to the microSD card in SPI mode.
+  // The SPI controller talks to the microSD card in SPI mode.
   auto spi = spi_ptr(root, 2);
 
   // We need to use the pinmux to select the microSD card for SPI controller 2 reads (CIPO),
