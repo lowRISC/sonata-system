@@ -33,7 +33,7 @@ module uartdpi #(
     int uartdpi_can_read(input chandle ctx);
 
   import "DPI-C" function
-    int uartdpi_write(input chandle ctx, int data);
+    void uartdpi_write(input chandle ctx, int data);
 
   chandle ctx;
   string log_file_path = DEFAULT_LOG_FILE;
@@ -133,10 +133,7 @@ module uartdpi #(
           if (rxcyccount == CYCLES_PER_SYMBOL - 1) begin
             rxactive <= 0;
             if (rx_i) begin
-              if(uartdpi_write(ctx, rxsymbol)) begin
-                $display("Exiting the Sonata simulator because the magic UART string was seen.");
-                $exit;
-              end
+              uartdpi_write(ctx, rxsymbol);
             end
           end
         end
