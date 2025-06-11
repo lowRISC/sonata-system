@@ -54,6 +54,11 @@ filesets:
       - dv/dpi/spidpi/spi_lcd.hh: { file_type: cppSource, is_include_file: true }
       - dv/dpi/spidpi/spi_microsd.cc: { file_type: cppSource }
       - dv/dpi/spidpi/spi_microsd.hh: { file_type: cppSource, is_include_file: true }
+      - dv/models/hyperram/rtl/hyperram_W956.sv: { file_type: systemVerilogSource }
+      - dv/models/fpga/rtl/IOBUF.v: { file_type: systemVerilogSource }
+      - dv/models/fpga/rtl/ISERDESE2.v: { file_type: systemVerilogSource }
+      - dv/models/fpga/rtl/OBUF.v: { file_type: systemVerilogSource }
+      - dv/models/fpga/rtl/ODDR.v: { file_type: systemVerilogSource }
       - dv/verilator/top_verilator.sv: { file_type: systemVerilogSource }
       - dv/verilator/sonata_system.cc: { file_type: cppSource }
       - dv/verilator/sonata_system.hh:  { file_type: cppSource, is_include_file: true }
@@ -168,7 +173,7 @@ targets:
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
-          - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator"'
+          - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator -DUSE_HYPERRAM_SIM_MODEL"'
           # Add "-DUSE_SEPARATED_CLOCKS" to CFLAGS for a more accurate simulation.
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"

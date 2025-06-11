@@ -94,6 +94,27 @@ lint_off -rule UNOPTFLAT -file "*/rtl/ibex_id_stage.sv" -match "*Signal unoptimi
 // Build warns of circular logic, but this is functioning correctly so it is safe to ignore.
 lint_off -rule UNOPTFLAT -file "*/rtl/ibexc_top_tracing.sv" -match "*rvfi_rd_addr*"
 
+// Disable warnings within the HyperRAM controller.
+lint_off -rule CASEINCOMPLETE -file "*hbmc_ctrl.v"
+lint_off -rule REALCVT -file "*hbmc_ctrl.v"
+lint_off -rule UNOPTFLAT -file "*hbmc_ctrl.v"
+lint_off -rule UNUSED -file "*hbmc_ctrl.v"
+lint_off -rule WIDTHEXPAND -file "*hbmc_ctrl.v"
+lint_off -rule WIDTHTRUNC -file "*hbmc_ctrl.v"
+lint_off -rule WIDTHEXPAND -file "*hbmc_iobuf.v"
+lint_off -rule WIDTHTRUNC -file "*hbmc_iobuf.v"
+lint_off -rule UNUSED -file "*hbmc_clk_obuf.v"
+lint_off -rule UNUSED -file "*hbmc_iobuf.v"
+
+lint_off -rule UNOPTFLAT -file "*hbmc_tl_top.sv"
+lint_off -rule UNUSED -file "*hbmc_tl_top.sv"
+
+// Disable warnings in models of FPGA primitives.
+lint_off -rule UNUSED -file "*IOBUF.v"
+lint_off -rule UNUSED -file "*ISERDESE2.v"
+lint_off -rule UNUSED -file "*OBUF.v"
+lint_off -rule UNUSED -file "*ODDR.v"
+
 // Bug seem in Verilator v5.020 where trace chandles produces a C++ compilation
 // error (generated C++ doesn't currently specify a type an internal verilator
 // function)

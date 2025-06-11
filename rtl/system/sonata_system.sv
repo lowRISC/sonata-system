@@ -1239,6 +1239,9 @@ module sonata_system
     .td_o
   );
 
+  // Debug module is not capability-aware.
+  assign host_wcap[DbgHost] = 1'b0;
+
   system_info #(
     .SysClkFreq (   SysClkFreq ),
     .GpioNum    ( TotalGpioNum ),
