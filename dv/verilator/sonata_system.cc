@@ -16,7 +16,11 @@
 SonataSystem::SonataSystem(const char *ram_hier_path, int ram_size_words,
   const char *hyperram_hier_path, int hyperram_size_words)
     : _ram(ram_hier_path, ram_size_words, 4),
+#ifdef USE_HYPERRAM_SIM_MODEL
       _hyperram(hyperram_hier_path, hyperram_size_words, 4) {}
+#else
+      _hyperram(hyperram_hier_path, hyperram_size_words / 2, 2) {}
+#endif
 
 int SonataSystem::Main(int argc, char **argv) {
   bool exit_app;

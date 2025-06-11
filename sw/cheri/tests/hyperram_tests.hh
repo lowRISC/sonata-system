@@ -115,7 +115,7 @@ int rand_data_addr_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshi
 /*
  * Writes a random value to a random address and then writes a capability for
  * that random address to another random location. Reads back the capability and
- * then reads back the value via the capability to check it matches what we was
+ * then reads back the value via the capability to check it matches what was
  * originally written.
  */
 int rand_cap_test(Capability<volatile uint32_t> hyperram_area,

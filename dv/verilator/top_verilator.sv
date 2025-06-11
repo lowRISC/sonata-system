@@ -178,6 +178,14 @@ module top_verilator #(
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
                       usrLed};
 
+  // HyperRAM interface.
+  wire [7:0]  hyperram_dq;
+  wire        hyperram_rwds;
+  wire        hyperram_ckp;
+  wire        hyperram_ckn;
+  wire        hyperram_nrst;
+  wire        hyperram_cs;
+
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
   logic [CheriErrWidth-1:0] cheri_errored;
@@ -422,13 +430,12 @@ module top_verilator #(
 
     .rgbled_dout_o (),
 
-    // SRAM model used for hyperram so don't connect hyperram IO
-    .hyperram_dq  (),
-    .hyperram_rwds(),
-    .hyperram_ckp (),
-    .hyperram_ckn (),
-    .hyperram_nrst(),
-    .hyperram_cs  (),
+    .hyperram_dq      (hyperram_dq),
+    .hyperram_rwds    (hyperram_rwds),
+    .hyperram_ckp     (hyperram_ckp),
+    .hyperram_ckn     (hyperram_ckn),
+    .hyperram_nrst    (hyperram_nrst),
+    .hyperram_cs      (hyperram_cs),
 
     .rs485_tx_enable_o(rs485_tx_enable),
     .rs485_rx_enable_o(rs485_rx_enable),
@@ -654,6 +661,21 @@ module top_verilator #(
     .active(1'b1       ),
     .tx_o  (rs485_uartdpi_tx),
     .rx_i  (rs485_uartdpi_rx)
+  );
+
+  // HyperRAM model (based on W956D8MBYA5I).
+  hyperram_W956 u_hyperram_W956 (
+    // Asynchronous reset signal.
+    .rstn   (hyperram_nrst),
+    // Differential clocking for DDR.
+    .ckp    (hyperram_ckp),
+    .ckn    (hyperram_ckn),
+    // Chip Select.
+    .csn    (hyperram_cs),
+    // Bidirectional read/write data strobe.
+    .rwds   (hyperram_rwds),
+    // Bidirectional data bus.
+    .dq     (hyperram_dq)
   );
 
   export "DPI-C" function mhpmcounter_get;
