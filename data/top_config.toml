@@ -11,6 +11,7 @@ ios = [
 ]
 memory_start = 0x80000040
 memory_size  = 0x00000040
+which_xbar = "peri"
 
 [[blocks]]
 name = "pwm"
@@ -18,7 +19,7 @@ instances = 1
 ios = [{ name = "out", type = "output", length = 7 }]
 memory_start = 0x80001000
 memory_size  = 0x00001000
-xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
+which_xbar = "peri"
 
 [[blocks]]
 name = "uart"
@@ -29,7 +30,7 @@ ios = [
 ]
 memory_start = 0x80100000
 memory_size  = 0x00001000
-xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
+which_xbar = "peri"
 
 [[blocks]]
 name = "i2c"
@@ -41,6 +42,7 @@ ios = [
 memory_start = 0x80200000
 memory_size  = 0x00001000
 xbar = { pipeline = "true", req_fifo_pass = "false", rsp_fifo_pass = "false" }
+which_xbar = "main"
 
 [[blocks]]
 name = "spi"
@@ -53,6 +55,7 @@ ios = [
 ]
 memory_start = 0x80302000
 memory_size  = 0x00001000
+which_xbar = "main"
 
 # UARTS
 [[pins]]
