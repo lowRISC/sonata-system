@@ -30,6 +30,7 @@ typedef volatile OpenTitanI2c *I2cPtr;
 typedef volatile SonataSpi::Generic<> *SpiPtr;
 typedef volatile OpenTitanUsbdev *UsbdevPtr;
 typedef volatile uint32_t *HyperramPtr;
+typedef volatile uint32_t *TimerPtr;
 typedef PLIC::SonataPlic *PlicPtr;
 typedef volatile SonataPinmux::PinSinks *PinSinksPtr;
 typedef volatile SonataPinmux::BlockSinks *BlockSinksPtr;
@@ -80,6 +81,13 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
   hyperram.address()                            = HYPERRAM_ADDRESS;
   hyperram.bounds()                             = HYPERRAM_BOUNDS;
   return hyperram;
+}
+
+[[maybe_unnused]] static TimerPtr timer_ptr(CapRoot root) {
+  CHERI::Capability<volatile uint32_t> timer = root.cast<volatile uint32_t>();
+  timer.address()                            = CLINT_ADDRESS;
+  timer.bounds()                             = CLINT_BOUNDS;
+  return timer;
 }
 
 [[maybe_unused]] static UsbdevPtr usbdev_ptr(CapRoot root) {
