@@ -37,6 +37,7 @@ endif()
 
 add_subdirectory(boot)
 add_subdirectory(common)
+add_subdirectory(hal)
 add_subdirectory(demo)
 add_subdirectory(blank)
 add_subdirectory(test)
