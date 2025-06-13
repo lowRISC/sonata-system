@@ -86,6 +86,9 @@ package spi_reg_pkg;
       logic        q;
     } msb_first;
     struct packed {
+      logic        q;
+    } copi_idle;
+    struct packed {
       logic [15:0] q;
     } half_clk_period;
   } spi_reg2hw_cfg_reg_t;
@@ -200,10 +203,10 @@ package spi_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    spi_reg2hw_intr_state_reg_t intr_state; // [94:90]
-    spi_reg2hw_intr_enable_reg_t intr_enable; // [89:85]
-    spi_reg2hw_intr_test_reg_t intr_test; // [84:75]
-    spi_reg2hw_cfg_reg_t cfg; // [74:56]
+    spi_reg2hw_intr_state_reg_t intr_state; // [95:91]
+    spi_reg2hw_intr_enable_reg_t intr_enable; // [90:86]
+    spi_reg2hw_intr_test_reg_t intr_test; // [85:76]
+    spi_reg2hw_cfg_reg_t cfg; // [75:56]
     spi_reg2hw_control_reg_t control; // [55:34]
     spi_reg2hw_start_reg_t start; // [33:22]
     spi_reg2hw_rx_fifo_reg_t rx_fifo; // [21:13]

@@ -113,6 +113,8 @@ module spi_reg_top (
   logic cfg_we;
   logic [15:0] cfg_half_clk_period_qs;
   logic [15:0] cfg_half_clk_period_wd;
+  logic cfg_copi_idle_qs;
+  logic cfg_copi_idle_wd;
   logic cfg_msb_first_qs;
   logic cfg_msb_first_wd;
   logic cfg_cpha_qs;
@@ -544,6 +546,33 @@ module spi_reg_top (
 
     // to register interface (read)
     .qs     (cfg_half_clk_period_qs)
+  );
+
+  //   F[copi_idle]: 28:28
+  prim_subreg #(
+    .DW      (1),
+    .SwAccess(prim_subreg_pkg::SwAccessRW),
+    .RESVAL  (1'h0),
+    .Mubi    (1'b0)
+  ) u_cfg_copi_idle (
+    .clk_i   (clk_i),
+    .rst_ni  (rst_ni),
+
+    // from register interface
+    .we     (cfg_we),
+    .wd     (cfg_copi_idle_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.cfg.copi_idle.q),
+    .ds     (),
+
+    // to register interface (read)
+    .qs     (cfg_copi_idle_qs)
   );
 
   //   F[msb_first]: 29:29
@@ -1246,6 +1275,8 @@ module spi_reg_top (
 
   assign cfg_half_clk_period_wd = reg_wdata[15:0];
 
+  assign cfg_copi_idle_wd = reg_wdata[28];
+
   assign cfg_msb_first_wd = reg_wdata[29];
 
   assign cfg_cpha_wd = reg_wdata[30];
@@ -1317,6 +1348,7 @@ module spi_reg_top (
 
       addr_hit[3]: begin
         reg_rdata_next[15:0] = cfg_half_clk_period_qs;
+        reg_rdata_next[28] = cfg_copi_idle_qs;
         reg_rdata_next[29] = cfg_msb_first_qs;
         reg_rdata_next[30] = cfg_cpha_qs;
         reg_rdata_next[31] = cfg_cpol_qs;

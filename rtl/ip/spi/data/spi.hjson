@@ -97,6 +97,11 @@
                      sent and received with each byte''',
           resval: "0x1"
         },
+        { bits:   "28",
+          name:   "COPI_IDLE",
+          desc:    '''State of the controller output line (COPI) when not transmitting.''',
+          resval: "0x0"
+        },
         { bits: "15:0",
           name: "HALF_CLK_PERIOD",
           desc: '''The length of a half period (i.e. positive edge to negative

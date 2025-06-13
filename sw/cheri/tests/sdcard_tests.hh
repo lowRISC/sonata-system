@@ -126,7 +126,7 @@ void sdcard_tests(CapRoot &root, Log &log) {
     log.println("The file should be 4,210 bytes in length.");
   }
 
-  // The SPI controller talkes to the microSD card in SPI mode.
+  // The SPI controller talks to the microSD card in SPI mode.
   auto spi = spi_ptr(root, 2);
 
   // We need to use the pinmux to select the microSD card for SPI controller 2 reads (CIPO),

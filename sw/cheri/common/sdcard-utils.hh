@@ -33,6 +33,8 @@ class SdCard {
   bool crcOn;
   // Access to diagnostic logging.
   Log *log;
+  // Does this SPI controller have the ability to control the idle state of the COPI line?
+  bool idleControl;
 
   // We need to clock the device repeatedly at startup; this test pattern is used to ensure that
   // we keep the COPI line high and it cannot be misinterpreted as a command.
@@ -94,6 +96,11 @@ class SdCard {
     // Every card tried seems to be more than capable of keeping up with 20Mbps.
     constexpr unsigned kSpiSpeed = 0u;
     spi->init(false, false, true, kSpiSpeed);
+    // Can we control the idle state of the COPI line?
+    // - keeping it high when not transmitting saves us the additional work of transmitting '0xff'
+    //   bytes
+    spi->configuration |= (1U << 28);
+    idleControl = ((spi->configuration & (1U << 28)) != 0u);
 
     // Apparently we're required to send at least 74 SD CLK cycles with
     // the device _not_ selected before talking to it.
@@ -337,9 +344,13 @@ class SdCard {
     volatile uint8_t rd2;
     (void)get_response_R1();
     for (int r = 0; r < 4; ++r) {
-      spi->transmitFifo = 0xffu;
-      spi->control      = SonataSpi::ControlTransmitEnable | SonataSpi::ControlReceiveEnable;
-      spi->start        = 1u;
+      if (idleControl) {
+        spi->control = SonataSpi::ControlReceiveEnable;
+      } else {
+        spi->transmitFifo = 0xffu;
+        spi->control      = SonataSpi::ControlTransmitEnable | SonataSpi::ControlReceiveEnable;
+      }
+      spi->start = 1u;
       spi->wait_idle();
       while ((spi->status & SonataSpi::StatusRxFifoLevel) == 0) {
       }
@@ -441,28 +452,45 @@ class SdCard {
     spi->wait_idle();
     // Do not attempt a zero-byte transfer; not supported by the controller.
     if (len) {
-      spi->control = SonataSpi::ControlReceiveEnable | SonataSpi::ControlTransmitEnable;
-      spi->start   = len;
-
-      // In addition to keeping the COPI line high to avoid inducing failures we want
-      // to keep the Tx FIFO populated so that the SPI controller remains active despite
-      // having double the traffic between CPU and SPI (Tx and Rx).
-      //
-      // This expression of the code very nearly keeps the SPI controller running at
-      // SysClkFreq/2 Mbps whilst reading data, so that the data block is retrieved as
-      // quickly as possible.
-      //
-      // Prompt the retrieval of the first byte.
-      spi->transmitFifo  = 0xffu;  // Keep COPI high, staying one byte ahead of reception.
-      const uint8_t *end = data + len - 1;
-      while (data < end) {
-        // Prompt the retrieval of the next byte.
-        spi->transmitFifo = 0xffu;  // COPI high for the next byte.
-        // Wait until it's available, and quickly capture it.
-        while (spi->status & SonataSpi::StatusRxFifoEmpty) {
+      if (idleControl) {
+        // We need only be concerned with data reception since this controller can keep the
+        // COPI line high when only reception is enabled.
+        spi->control = SonataSpi::ControlReceiveEnable;
+        spi->start   = len;
+        // Prompt the retrieval of the first byte.
+        const uint8_t *end = data + len - 1;
+        while (data < end) {
+          // Wait until it's available, and quickly capture it.
+          while (spi->status & SonataSpi::StatusRxFifoEmpty) {
+          }
+          *data++ = static_cast<uint8_t>(spi->receiveFifo);
         }
-        *data++ = static_cast<uint8_t>(spi->receiveFifo);
+      } else {
+        // Older SPI controllers cannot keep the COPI line high when not actively transmitting.
+        spi->control = SonataSpi::ControlReceiveEnable | SonataSpi::ControlTransmitEnable;
+        spi->start   = len;
+
+        // In addition to keeping the COPI line high to avoid inducing failures we want
+        // to keep the Tx FIFO populated so that the SPI controller remains active despite
+        // having double the traffic between CPU and SPI (Tx and Rx).
+        //
+        // This expression of the code very nearly keeps the SPI controller running at
+        // SysClkFreq/2 Mbps whilst reading data, so that the data block is retrieved as
+        // quickly as possible.
+        //
+        // Prompt the retrieval of the first byte.
+        spi->transmitFifo  = 0xffu;  // Keep COPI high, staying one byte ahead of reception.
+        const uint8_t *end = data + len - 1;
+        while (data < end) {
+          // Prompt the retrieval of the next byte.
+          spi->transmitFifo = 0xffu;  // COPI high for the next byte.
+          // Wait until it's available, and quickly capture it.
+          while (spi->status & SonataSpi::StatusRxFifoEmpty) {
+          }
+          *data++ = static_cast<uint8_t>(spi->receiveFifo);
+        }
       }
+
       // Collect the final byte.
       while (spi->status & SonataSpi::StatusRxFifoEmpty) {
       }
