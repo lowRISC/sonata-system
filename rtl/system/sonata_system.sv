@@ -123,7 +123,6 @@ module sonata_system
   localparam int unsigned BusAddrWidth  = 32;
   localparam int unsigned BusByteEnable = 4;
   localparam int unsigned BusDataWidth  = 32;
-  localparam int unsigned PRegAddrWidth = 8;  // PWM uses only 8 bits of addressing.
   localparam int unsigned DRegAddrWidth = 12; // Debug module uses 12 bits of addressing.
   localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
   localparam int unsigned GRegAddrWidth = 9; // GPIO array uses 9 bits of addressing.
@@ -147,13 +146,12 @@ module sonata_system
   } bus_host_e;
 
   typedef enum int {
-    Pwm,
     Timer,
     RevTags,
     DbgDev
   } bus_device_e;
 
-  localparam int NrDevices = 4;
+  localparam int NrDevices = 3;
   localparam int NrHosts = 2;
 
   // Signals for hardware revoker
@@ -257,7 +255,6 @@ module sonata_system
   logic                     device_err   [NrDevices];
 
   // Generate requests from read and write enables.
-  assign device_req[Pwm]      = device_re[Pwm]      | device_we[Pwm];
   assign device_req[Timer]    = device_re[Timer]    | device_we[Timer];
   assign device_req[DbgDev]   = device_re[DbgDev]   | device_we[DbgDev];
 
@@ -283,9 +280,6 @@ module sonata_system
   /* verilator lint_on IMPERFECTSCH */
 
   logic debug_req;
-
-  // Tie-off unused error signals.
-  assign device_err[Pwm]      = 1'b0;
 
   //////////////////////////////////////////////
   // Instantiate TL-UL crossbar and adapters. //
@@ -624,34 +618,6 @@ module sonata_system
   assign device_addr[DbgDev][BusAddrWidth-1:DRegAddrWidth] = tl_ifetch_pkg::ADDR_SPACE_DBG_DEV[BusAddrWidth-1:DRegAddrWidth];
 
   tlul_adapter_reg #(
-    .AccessLatency    ( 1 )
-  ) pwm_device_adapter (
-    .clk_i        (clk_sys_i),
-    .rst_ni       (rst_sys_ni),
-
-    // TL-UL interface.
-    .tl_i         (tl_pwm_h2d),
-    .tl_o         (tl_pwm_d2h),
-
-    // Control interface.
-    .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
-    .intg_error_o (),
-
-    // Register interface.
-    .re_o         (device_re[Pwm]),
-    .we_o         (device_we[Pwm]),
-    .addr_o       (device_addr[Pwm][PRegAddrWidth-1:0]),
-    .wdata_o      (device_wdata[Pwm]),
-    .be_o         (device_be[Pwm]),
-    .busy_i       ('0),
-    .rdata_i      (device_rdata[Pwm]),
-    .error_i      (device_err[Pwm])
-  );
-
-  // Tie off upper bits of address.
-  assign device_addr[Pwm][BusAddrWidth-1:PRegAddrWidth] = '0;
-
-  tlul_adapter_reg #(
     .RegAw            ( TRegAddrWidth ),
     .AccessLatency    ( 1             )
   ) timer_device_adapter (
@@ -976,18 +942,13 @@ module sonata_system
     .PwmWidth   ( PWM_OUT_WIDTH ),
     .PwmCtrSize ( PwmCtrSize )
   ) u_pwm (
-    .clk_i           (clk_sys_i),
-    .rst_ni          (rst_sys_ni),
+    .clk_i  (clk_sys_i),
+    .rst_ni (rst_sys_ni),
 
-    .device_req_i    (device_req[Pwm]),
-    .device_addr_i   (device_addr[Pwm]),
-    .device_we_i     (device_we[Pwm]),
-    .device_be_i     (device_be[Pwm]),
-    .device_wdata_i  (device_wdata[Pwm]),
-    .device_rvalid_o (device_rvalid[Pwm]),
-    .device_rdata_o  (device_rdata[Pwm]),
+    .tl_i   (tl_pwm_h2d),
+    .tl_o   (tl_pwm_d2h),
 
-    .pwm_o (pwm_modulated)
+    .pwm_o  (pwm_modulated)
   );
 
   // UARTs
