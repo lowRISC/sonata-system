@@ -10,7 +10,9 @@ module rv_timer #(
   // Bus data width (must be 32)
   parameter int unsigned DataWidth    = 32,
   // Bus address width
-  parameter int unsigned AddressWidth = 32
+  parameter int unsigned AddressWidth = 32,
+  // Number of cycles by which the read data lags the request (must be 0 or 1)
+  parameter int unsigned AccessLatency = 1
 ) (
   input  logic                    clk_i,
   input  logic                    rst_ni,
@@ -45,9 +47,8 @@ module rv_timer #(
   logic [TW-1:0]        mtime_q, mtime_d, mtime_inc;
   logic [TW-1:0]        mtimecmp_q, mtimecmp_d;
   logic                 interrupt_q, interrupt_d;
-  logic                 error_q, error_d;
-  logic [DataWidth-1:0] rdata_q, rdata_d;
-  logic                 rvalid_q;
+  logic                 error_d;
+  logic [DataWidth-1:0] rdata_d;
 
   // Global write enable for all registers
   assign timer_we = timer_req_i & timer_we_i;
@@ -121,31 +122,43 @@ module rv_timer #(
     endcase
   end
 
-  // error_q and rdata_q are only valid when rvalid_q is high
-  always_ff @(posedge clk_i) begin
-    if (timer_req_i) begin
-      rdata_q <= rdata_d;
-      error_q <= error_d;
+  if (AccessLatency == 1) begin : gen_access_latency1
+    logic [DataWidth-1:0] rdata_q;
+    logic error_q;
+    logic rvalid_q;
+
+    // error_q and rdata_q are only valid when rvalid_q is high
+    always_ff @(posedge clk_i) begin
+      if (timer_req_i) begin
+        rdata_q <= rdata_d;
+        error_q <= error_d;
+      end
     end
-  end
 
-  assign timer_rdata_o = rdata_q;
+    assign timer_rdata_o = rdata_q;
 
-  // Read data is always valid one cycle after a request
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      rvalid_q <= 1'b0;
-    end else begin
-      rvalid_q <= timer_req_i;
+    // Read data is always valid one cycle after a request
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        rvalid_q <= 1'b0;
+      end else begin
+        rvalid_q <= timer_req_i;
+      end
     end
-  end
 
-  assign timer_rvalid_o = rvalid_q;
-  assign timer_err_o    = error_q;
+    assign timer_rvalid_o = rvalid_q;
+    assign timer_err_o    = error_q;
+  end else begin : gen_access_latency0
+    // Zero cycle latency; other cases caught by assertion below.
+    assign timer_rdata_o  = rdata_d;
+    assign timer_rvalid_o = timer_req_i;
+    assign timer_err_o    = error_d;
+  end
 
   bit [DataWidth-ADDR_OFFSET:0] unused_timer_addr;
   assign  unused_timer_addr = timer_addr_i[DataWidth-1:ADDR_OFFSET-1];
 
   // Assertions
   `ASSERT_INIT(param_legal, DataWidth == 32)
+  `ASSERT_INIT(AllowedLatency_A, AccessLatency inside {0, 1})
 endmodule : rv_timer

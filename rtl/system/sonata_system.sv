@@ -130,6 +130,7 @@ module sonata_system
   localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
   localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
   localparam int unsigned TotalGpioNum  = GPIO_NUM + FixedGpioNum; // The total number of GPIO instances
+  localparam int unsigned TAccessLatency = 0; // Cycles of read data latency.
 
   // The number of data bits controlled by each mask bit; since the CPU requires
   // only byte level access, explicitly grouping the data bits makes the inferred
@@ -618,8 +619,8 @@ module sonata_system
   assign device_addr[DbgDev][BusAddrWidth-1:DRegAddrWidth] = tl_ifetch_pkg::ADDR_SPACE_DBG_DEV[BusAddrWidth-1:DRegAddrWidth];
 
   tlul_adapter_reg #(
-    .RegAw            ( TRegAddrWidth ),
-    .AccessLatency    ( 1             )
+    .RegAw            ( TRegAddrWidth  ),
+    .AccessLatency    ( TAccessLatency )
   ) timer_device_adapter (
     .clk_i        (clk_sys_i),
     .rst_ni       (rst_sys_ni),
@@ -1151,8 +1152,9 @@ module sonata_system
 
   // RISC-V timer.
   rv_timer #(
-    .DataWidth    ( BusDataWidth ),
-    .AddressWidth ( BusAddrWidth )
+    .DataWidth    ( BusDataWidth   ),
+    .AddressWidth ( BusAddrWidth   ),
+    .AccessLatency( TAccessLatency )
   ) u_rv_timer (
     .clk_i          (clk_sys_i),
     .rst_ni         (rst_sys_ni),
