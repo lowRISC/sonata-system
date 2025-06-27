@@ -2,31 +2,31 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Reimplementation of hbmc_ufifo using OpenTitan primitives, only works for DATA_WIDTH == 32
+// Reimplementation of hbmc_ufifo using OpenTitan primitives, only works for DataWidth == 32
 
-module hbmc_ufifo #
-(
-    parameter integer DATA_WIDTH = 32
-)
-(
-
+module hbmc_ufifo #(
+    parameter int unsigned DataWidth = 32,  // Width of data word, bits.
+    parameter int unsigned FIFODepth = 8,  // Depth of FIFO, entries.
+    parameter int unsigned SeqWidth  = 4  // Width of sequence number, bits.
+) (
     input   wire                        fifo_wr_clk,
     input   wire                        fifo_wr_nrst,
     input   wire    [15:0]              fifo_wr_din,
+    input   wire    [SeqWidth-1:0]      fifo_wr_seq,
     input   wire                        fifo_wr_last,
     input   wire                        fifo_wr_ena,
     output  wire                        fifo_wr_full,
 
     input   wire                        fifo_rd_clk,
     input   wire                        fifo_rd_nrst,
-    output  wire    [DATA_WIDTH - 1:0]  fifo_rd_dout,
-    output  wire    [9:0]               fifo_rd_free,
+    output  wire    [DataWidth-1:0]     fifo_rd_dout,
+    output  wire    [SeqWidth-1:0]      fifo_rd_seq,
     output  wire                        fifo_rd_last,
     input   wire                        fifo_rd_ena,
     output  wire                        fifo_rd_empty
 );
-  // FIFO contains 32-bit data word and 1 'last' bit
-  localparam int unsigned FIFOWidth = DATA_WIDTH + 1;
+  // FIFO contains 32-bit data word, 4 'sequence' bits and 1 'last' bit
+  localparam int unsigned FIFOWidth = DataWidth + SeqWidth + 1;
 
   logic [FIFOWidth-1:0] fifo_wdata, fifo_rdata;
   logic [15:0]          fifo_wdata_first_half;
@@ -37,7 +37,7 @@ module hbmc_ufifo #
   assign fifo_wr_full  = ~fifo_wready;
   assign fifo_rd_empty = ~fifo_rvalid;
 
-  assign fifo_wdata = {fifo_wr_last, fifo_wr_din, fifo_wdata_first_half};
+  assign fifo_wdata = {fifo_wr_last, fifo_wr_seq, fifo_wr_din, fifo_wdata_first_half};
   assign fifo_wvalid = fifo_wdata_half_sel & fifo_wr_ena;
 
   always @(posedge fifo_wr_clk or negedge fifo_wr_nrst) begin
@@ -56,7 +56,7 @@ module hbmc_ufifo #
 
   prim_fifo_async #(
     .Width(FIFOWidth),
-    .Depth(4)
+    .Depth(FIFODepth)
   ) u_fifo (
     .clk_wr_i(fifo_wr_clk),
     .rst_wr_ni(fifo_wr_nrst),
@@ -73,20 +73,13 @@ module hbmc_ufifo #
     .rdepth_o()
   );
 
-  // fifo_rd_free output is unused in hyperram top-level
-  assign fifo_rd_free = '0;
-
-  assign fifo_rd_dout = fifo_rdata[31:0];
-  assign fifo_rd_last = fifo_rdata[32];
+  assign {fifo_rd_last, fifo_rd_seq, fifo_rd_dout} = fifo_rdata;
 
   initial begin
-    if (DATA_WIDTH != 32) begin
-      $fatal("hbmc_ufifo only supports DATA_WIDTH of 32");
+    if (DataWidth != 32) begin
+      $fatal("hbmc_ufifo only supports DataWidth of 32");
     end
   end
 
 endmodule
 
-/*----------------------------------------------------------------------------------------------------------------------------*/
-
-`default_nettype wire

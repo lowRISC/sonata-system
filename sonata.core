@@ -110,10 +110,10 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
 
-  USE_HYPERRAM_SIM_MODEL:
+  USE_HYPERRAM_SRAM_MODEL:
     datatype: bool
     paramtype: vlogdefine
-    description: Use an SRAM simulation model rather than the real hyperram controller
+    description: Use an SRAM implementation rather than the real HyperRAM controller
 
   TARGET_XL_BOARD:
     datatype: bool
@@ -154,6 +154,7 @@ targets:
     parameters:
       - SRAMInitFile
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+      - USE_HYPERRAM_SRAM_MODEL=true
       - TARGET_XL_BOARD=true
 
   sim:
@@ -173,7 +174,7 @@ targets:
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
-          - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator -DUSE_HYPERRAM_SIM_MODEL"'
+          - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator -DUSE_HYPERRAM_SRAM_MODEL"'
           # Add "-DUSE_SEPARATED_CLOCKS" to CFLAGS for a more accurate simulation.
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
@@ -184,7 +185,7 @@ targets:
     parameters:
       - USE_SEPARATED_CLOCKS=false
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
-      - USE_HYPERRAM_SIM_MODEL=true
+      - USE_HYPERRAM_SRAM_MODEL=true
 
   lint:
     <<: *default_target
@@ -199,4 +200,4 @@ targets:
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
       # TODO: Introduce some blackboxes for the Xilinx IP used in the hyperram
       # controller so we can lint it, for now just exclude it from the lint run.
-      - USE_HYPERRAM_SIM_MODEL=true
+      - USE_HYPERRAM_SRAM_MODEL=true

@@ -106,8 +106,10 @@ lint_off -rule WIDTHTRUNC -file "*hbmc_iobuf.v"
 lint_off -rule UNUSED -file "*hbmc_clk_obuf.v"
 lint_off -rule UNUSED -file "*hbmc_iobuf.v"
 
-lint_off -rule UNOPTFLAT -file "*hbmc_tl_top.sv"
+lint_off -rule UNOPTFLAT -file "*hbmc_tl_port.sv"
 lint_off -rule UNUSED -file "*hbmc_tl_top.sv"
+
+lint_off -rule MULTIDRIVEN -file "*prim_arbiter_fixed.sv"
 
 // Disable warnings in models of FPGA primitives.
 lint_off -rule UNUSED -file "*IOBUF.v"

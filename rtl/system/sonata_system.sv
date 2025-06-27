@@ -298,10 +298,8 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_sram_a_d2h;
   tlul_pkg::tl_h2d_t tl_sram_b_h2d;
   tlul_pkg::tl_d2h_t tl_sram_b_d2h;
-  tlul_pkg::tl_h2d_t tl_hyperram_us_h2d[2];
-  tlul_pkg::tl_d2h_t tl_hyperram_us_d2h[2];
-  tlul_pkg::tl_h2d_t tl_hyperram_ds_h2d;
-  tlul_pkg::tl_d2h_t tl_hyperram_ds_d2h;
+  tlul_pkg::tl_h2d_t tl_hyperram_h2d[2];
+  tlul_pkg::tl_d2h_t tl_hyperram_d2h[2];
   tlul_pkg::tl_h2d_t tl_gpio_h2d;
   tlul_pkg::tl_d2h_t tl_gpio_d2h;
   tlul_pkg::tl_h2d_t tl_xadc_h2d;
@@ -355,8 +353,8 @@ module sonata_system
     // Device interfaces.
     .tl_sram_o        (tl_sram_a_h2d),
     .tl_sram_i        (tl_sram_a_d2h),
-    .tl_hyperram_o    (tl_hyperram_us_h2d[0]),
-    .tl_hyperram_i    (tl_hyperram_us_d2h[0]),
+    .tl_hyperram_o    (tl_hyperram_h2d[0]),
+    .tl_hyperram_i    (tl_hyperram_d2h[0]),
     .tl_rev_tag_o     (tl_rev_tag_h2d),
     .tl_rev_tag_i     (tl_rev_tag_d2h),
     .tl_gpio_o        (tl_gpio_h2d),
@@ -405,8 +403,8 @@ module sonata_system
     // Devices.
     .tl_sram_o     (tl_sram_b_h2d),
     .tl_sram_i     (tl_sram_b_d2h),
-    .tl_hyperram_o (tl_hyperram_us_h2d[1]),
-    .tl_hyperram_i (tl_hyperram_us_d2h[1]),
+    .tl_hyperram_o (tl_hyperram_h2d[1]),
+    .tl_hyperram_i (tl_hyperram_d2h[1]),
     .tl_dbg_dev_o  (tl_dbg_dev_us_h2d[0]),
     .tl_dbg_dev_i  (tl_dbg_dev_us_d2h[0]),
 
@@ -505,27 +503,25 @@ module sonata_system
     .tl_b_o (tl_sram_b_d2h)
   );
 
-  // HyperRAM
 `ifdef TARGET_XL_BOARD
-  // No HyperRAM on Sonata XL, but we can replace it with internal block RAM
-  sram #(
-    .AddrWidth       ( $clog2(HyperRAMSize) ),
-    .DataWidth       ( BusDataWidth    ),
-    .DataBitsPerMask ( DataBitsPerMask ),
-    .InitFile        ()
-  ) u_hyperram (
-    .clk_i  (clk_sys_i),
-    .rst_ni (rst_sys_ni),
+  // No HyperRAM on Sonata XL, so the build requires USE_HYPERRAM_SRAM_MODEL
+  wire [7:0] hyperram_dq;
+  wire       hyperram_rwds;
+  wire       hyperram_ckp;
+  wire       hyperram_ckn;
+  wire       hyperram_nrst;
+  wire       hyperram_cs;
+  wire       clk_hr_i    = 1'b0;
+  wire       clk_hr90p_i = 1'b0;
+  wire       clk_hr3x_i  = 1'b0;
+  wire       rst_hr_ni   = 1'b0;
+`endif
 
-    .tl_a_i (tl_hyperram_ds_h2d),
-    .tl_a_o (tl_hyperram_ds_d2h),
-    .tl_b_i (),
-    .tl_b_o ()
-  );
-`else
+  // HyperRAM
   hyperram #(
     .HyperRAMClkFreq ( HyperRAMClkFreq ),
-    .HyperRAMSize    ( HyperRAMSize    )
+    .HyperRAMSize    ( HyperRAMSize    ),
+    .NumPorts        ( 2               )
   ) u_hyperram (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
@@ -535,8 +531,8 @@ module sonata_system
     .clk_hr3x_i,
     .rst_hr_ni,
 
-    .tl_i (tl_hyperram_ds_h2d),
-    .tl_o (tl_hyperram_ds_d2h),
+    .tl_i (tl_hyperram_h2d),
+    .tl_o (tl_hyperram_d2h),
 
     .hyperram_dq,
     .hyperram_rwds,
@@ -544,31 +540,6 @@ module sonata_system
     .hyperram_ckn,
     .hyperram_nrst,
     .hyperram_cs
-  );
-`endif
-
-  // Manual M:1 socket instantiation as xbar generator cannot deal with multiple ports for one
-  // device and we want to utilize the dual port SRAM. So totally separate crossbars are generated
-  // for the dside and iside then tlul_socket_m1 is used here to connect the two crossbars to the
-  // one downstream hyperram tilelink port.
-  //
-  // US == Upstream
-  // DS == Downstream
-  //
-  // US is the Ibex/Host end, DS is the Hyperram end.
-  tlul_socket_m1 #(
-    .HReqDepth (8'h0),
-    .HRspDepth (8'h0),
-    .DReqDepth (4'h0),
-    .DRspDepth (4'h0),
-    .M         (2)
-  ) u_hyperram_tl_socket (
-    .clk_i (clk_sys_i),
-    .rst_ni(rst_sys_ni),
-    .tl_h_i(tl_hyperram_us_h2d),
-    .tl_h_o(tl_hyperram_us_d2h),
-    .tl_d_o(tl_hyperram_ds_h2d),
-    .tl_d_i(tl_hyperram_ds_d2h)
   );
 
   tlul_socket_m1 #(
@@ -1330,4 +1301,9 @@ module sonata_system
 
   logic _unused_tsaddr;
   assign _unused_tsaddr = |tsmap_addr[TsMapAddrWidth-1:RevTagAddrWidth];
+
+`ifdef TARGET_XL_BOARD
+  logic unused_hr;
+  assign unused_hr = ^{hyperram_ckp, hyperram_ckn, hyperram_cs, hyperram_nrst};
+`endif
 endmodule
