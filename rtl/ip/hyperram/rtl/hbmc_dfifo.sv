@@ -2,16 +2,16 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Reimplementation of hbmc_dfifo using OpenTitan primitives, only works for DATA_WIDTH == 32
-module hbmc_dfifo #
-(
-    parameter integer DATA_WIDTH = 32
-)
-(
+// Reimplementation of hbmc_dfifo using OpenTitan primitives, only works for DataWidth == 32
+
+module hbmc_dfifo #(
+    parameter int unsigned DataWidth = 32,  // Width of data words, bits.
+    parameter int unsigned FIFODepth = 8  // Depth of FIFO, entries.
+) (
     input   wire                            fifo_wr_clk,
     input   wire                            fifo_wr_nrst,
-    input   wire    [DATA_WIDTH - 1:0]      fifo_wr_din,
-    input   wire    [DATA_WIDTH/8 - 1:0]    fifo_wr_strb,
+    input   wire    [DataWidth - 1:0]       fifo_wr_din,
+    input   wire    [DataWidth/8 - 1:0]     fifo_wr_strb,
     input   wire                            fifo_wr_ena,
     output  wire                            fifo_wr_full,
 
@@ -22,8 +22,8 @@ module hbmc_dfifo #
     input   wire                            fifo_rd_ena,
     output  wire                            fifo_rd_empty
 );
-  // FIFO contains 32-bit data word and 4-bit strobes
-  localparam int unsigned FIFOWidth = DATA_WIDTH + 4;
+  // FIFO contains 32-bit data word and 4 bit strobes
+  localparam int unsigned FIFOWidth = DataWidth + (DataWidth / 8);
 
   logic [FIFOWidth-1:0] fifo_wdata, fifo_rdata;
   logic fifo_wready, fifo_rvalid, fifo_rready;
@@ -35,7 +35,7 @@ module hbmc_dfifo #
 
   prim_fifo_async #(
     .Width(FIFOWidth),
-    .Depth(4)
+    .Depth(FIFODepth)
   ) u_fifo (
     .clk_wr_i(fifo_wr_clk),
     .rst_wr_ni(fifo_wr_nrst),
@@ -65,8 +65,8 @@ module hbmc_dfifo #
   end
 
   initial begin
-    if (DATA_WIDTH != 32) begin
-      $fatal("hbmc_dfifo only supports DATA_WIDTH of 32");
+    if (DataWidth != 32) begin
+      $fatal("hbmc_dfifo only supports DataWidth of 32");
     end
   end
 endmodule

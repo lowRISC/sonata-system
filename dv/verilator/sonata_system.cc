@@ -16,9 +16,13 @@
 SonataSystem::SonataSystem(const char *ram_hier_path, int ram_size_words,
   const char *hyperram_hier_path, int hyperram_size_words)
     : _ram(ram_hier_path, ram_size_words, 4),
-#ifdef USE_HYPERRAM_SIM_MODEL
+#ifdef USE_HYPERRAM_SRAM_MODEL
+      // The SRAM model within the `hyperram` IP block is 32 bits wide to
+      // match the TL-UL bus.
       _hyperram(hyperram_hier_path, hyperram_size_words, 4) {}
 #else
+      // The simulation model of the W956 HyperRAM chip employs a memory
+      // that is 16 bits wide, as per the HyperBus protocol.
       _hyperram(hyperram_hier_path, hyperram_size_words / 2, 2) {}
 #endif
 
