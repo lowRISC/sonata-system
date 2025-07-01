@@ -9,6 +9,7 @@ Files: README.md
        vendor/lowrisc_ip/*
        vendor/lowrisc_ibex/*
        vendor/patches/*
+       util/templates/*.md.tpl
 Copyright: lowRISC contributors
 License: Apache-2.0
 
