@@ -45,11 +45,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1743518716,
-        "narHash": "sha256-xOOj7ssUZ2+QCzYZ+UBn7ZOd1UDUIQgc9bFMg3YqlRw=",
+        "lastModified": 1750879093,
+        "narHash": "sha256-GRAtLp1IwQJL8zW94X66bCrvr3B1ddhTYSDBJghWtXM=",
         "owner": "lowRISC",
         "repo": "lowrisc-nix",
-        "rev": "cd1c0399cac54b431491473f319a0586801ddfce",
+        "rev": "b88dfa926c30ecdb23558e4a8db676c343027b1b",
         "type": "github"
       },
       "original": {
@@ -66,11 +66,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1732469397,
-        "narHash": "sha256-e9erh2Pdr+vFAIoh4vbnabPhljEXp0I+OydESsGcba0=",
+        "lastModified": 1750927723,
+        "narHash": "sha256-lG0csHe7/08xczfOddnOFOUeg4xJtLUZCg844/kUvN8=",
         "ref": "refs/heads/main",
-        "rev": "05ecbc64cc69719a04fa2b6422d107c2ad38654e",
-        "revCount": 35,
+        "rev": "f28db270e20b343aea3c183e9d7fc0c4a8accff8",
+        "revCount": 36,
         "type": "git",
         "url": "https://codeberg.org/HU90m/mdutils.git"
       },
@@ -102,16 +102,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1742751704,
-        "narHash": "sha256-rBfc+H1dDBUQ2mgVITMGBPI1PGuCznf9rcWX/XIULyE=",
+        "lastModified": 1750400657,
+        "narHash": "sha256-3vkjFnxCOP6vm5Pm13wC/Zy6/VYgei/I/2DWgW4RFeA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f0946fa5f1fb876a9dc2e1850d9d3a4e3f914092",
+        "rev": "b2485d56967598da068b5a6946dadda8bfcbcd37",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-24.11",
+        "ref": "nixos-25.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -129,11 +129,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1742397518,
-        "narHash": "sha256-nzgO/ZCSBzWjbMkYDxG+yl9Z2eGbCgQu06Oku3ir5D4=",
+        "lastModified": 1743690424,
+        "narHash": "sha256-cX98bUuKuihOaRp8dNV1Mq7u6/CQZWTPth2IJPATBXc=",
         "owner": "nix-community",
         "repo": "poetry2nix",
-        "rev": "b9a98080beff0903a5e5fe431f42cde1e3e50d6b",
+        "rev": "ce2369db77f45688172384bbeb962bc6c2ea6f94",
         "type": "github"
       },
       "original": {
@@ -158,11 +158,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1742689179,
-        "narHash": "sha256-kDXV6r6pQp6sxBKKxXqcTGPdiH63m8WA+IvzHhdZlEg=",
+        "lastModified": 1749519371,
+        "narHash": "sha256-UJONN7mA2stweZCoRcry2aa1XTTBL0AfUOY84Lmqhos=",
         "owner": "pyproject-nix",
         "repo": "build-system-pkgs",
-        "rev": "5c2a1faadc4015d50eb9919a8e20c112f3765fc2",
+        "rev": "7c06967eca687f3482624250428cc12f43c92523",
         "type": "github"
       },
       "original": {
@@ -179,11 +179,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1742689405,
-        "narHash": "sha256-vaiMNk+EnxaXdMKeaB8vDAxQwOEuY978uUJtbaDETns=",
+        "lastModified": 1750499893,
+        "narHash": "sha256-ThKBd8XSvITAh2JqU7enOp8AfKeQgf9u7zYC41cnBE4=",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "a395ae65a42656b1a2a424f8353e55f93d9692ca",
+        "rev": "e824458bd917b44bf4c38795dea2650336b2f55d",
         "type": "github"
       },
       "original": {
@@ -285,11 +285,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1742788087,
-        "narHash": "sha256-GdxIZi77FZCz9nnkgjT6d50TtwlAjS1zn9kVffknQ0U=",
+        "lastModified": 1749778965,
+        "narHash": "sha256-MDq5YPXq3VO7aGrIIz9IMexJcdRiLCcDK4Bk3Kev7Sw=",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "f465e0c74d247545e57dc17cef72c973ff18ff13",
+        "rev": "22ddf88e3a06551b769f0a585601d89180c69a38",
         "type": "github"
       },
       "original": {
