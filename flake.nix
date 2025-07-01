@@ -54,7 +54,7 @@
       in
         poetry2nix.mkPoetryEnv {
           projectDir = ./.;
-          python = pkgs.python310;
+          python = pkgs.python311;
           overrides = [
             poetryOverrides
             poetry2nix.defaultPoetryOverrides
