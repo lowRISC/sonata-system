@@ -27,7 +27,7 @@ module top_verilator #(
   // System clock frequency.
   localparam int unsigned SysClkFreq = 40_000_000;
   // HyperRAM clock frequency.
-  localparam int unsigned HyperRAMClkFreq  = 100_000_000;
+  localparam int unsigned HyperRAMClkFreq  = 200_000_000;
   localparam int unsigned BaudRate   = 921_600;
   // Number of CHERI error LEDs.
   localparam int unsigned CheriErrWidth = 9;
