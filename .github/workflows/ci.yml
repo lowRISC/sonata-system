@@ -95,7 +95,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # We only write to the cache when merging into main, so we don't need th autenticate on pull-request.
+    # We only write to the cache when merging into main, so we don't need th authenticate on pull-request.
     - uses: google-github-actions/auth@v2
       if: github.event_name != 'pull_request'
       with:
@@ -110,7 +110,7 @@ jobs:
           substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
           trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
-    # Check if there's a bitstream in the cache that maches the RTL hash computed by Nix.
+    # Check if there's a bitstream in the cache that matches the RTL hash computed by Nix.
     - name: Check bitstream cache
       run: |
         BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.bitstreamDependancies.outPath --raw \
@@ -128,7 +128,7 @@ jobs:
     # Only runs if the bitstream does not exist (not found in cache).
     - name: Build bitstream
       id: build_bitstream
-      if: env.file_exists == 'false' 
+      if: env.file_exists == 'false'
       run: |
         module load xilinx/vivado
         nix run .#bitstream-build
@@ -148,9 +148,9 @@ jobs:
           ${{ env.TIMING_RPT }}
           ${{ env.UTILIZATION_RPT }}
 
-    # Only upload the bistream if this is not a pull-request and the build bistream step ran. 
+    # Only upload the bitstream if this is not a pull-request and the build bitstream step ran.
     - name: Upload bitstream to the cache
-      if: github.event_name != 'pull_request' && env.file_exists == 'false' 
+      if: github.event_name != 'pull_request' && env.file_exists == 'false'
       run: |
         BITSTREAM_HASH=$(nix eval .#filesets.x86_64-linux.bitstreamDependancies.outPath --raw \
           | cut -d '/' -f4 | cut -d '-' -f1)
