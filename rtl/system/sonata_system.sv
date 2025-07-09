@@ -12,7 +12,7 @@ module sonata_system
   parameter int unsigned CheriErrWidth   = 9,
   parameter string SRAMInitFile          = "",
   parameter int unsigned SysClkFreq      = 30_000_000,
-  parameter int unsigned HyperRAMClkFreq = 100_000_000
+  parameter int unsigned HyperRAMClkFreq = 200_000_000
 ) (
   // Main system clock and reset
   input logic                      clk_sys_i,

@@ -5,7 +5,7 @@
 module clkgen_sonata  #(
   // System Clock Frequency is parameterised, allowing it to be adjusted.
   parameter int unsigned SysClkFreq      =  50_000_000,
-  parameter int unsigned HyperRAMClkFreq = 100_000_000,
+  parameter int unsigned HyperRAMClkFreq = 200_000_000,
 
   // Frequency of IO_CLK input on the FPGA board.
   parameter int unsigned IOClkFreq       =  25_000_000
