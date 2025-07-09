@@ -86,6 +86,8 @@ jobs:
     runs-on: [ubuntu-22.04-fpga, sonata]
     env:
       BITSTREAM_PATH: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.bit
+      SYNTH_LOG: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/synth_1/runme.log
+      IMPL_LOG: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/runme.log
       TIMING_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_timing_summary_postroute_physopted.rpt
       UTILIZATION_RPT: build/lowrisc_sonata_system_0/synth-vivado/lowrisc_sonata_system_0.runs/impl_1/top_sonata_utilization_placed.rpt
       GS_PATH: gs://lowrisc-ci-cache/lowRISC/sonata-system/bitstream
@@ -130,6 +132,13 @@ jobs:
       run: |
         module load xilinx/vivado
         nix run .#bitstream-build
+
+    # Only runs if there's been a failure in a previous step.
+    - name: Print failed bitstream logs
+      if: ${{ failure() }}
+      run: |
+        cat $SYNTH_LOG
+        cat $IMPL_LOG
 
     - name: Upload implementation reports
       uses: actions/upload-artifact@v4
