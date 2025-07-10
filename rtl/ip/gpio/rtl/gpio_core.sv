@@ -18,7 +18,6 @@ module gpio_core #(
   input  logic                 device_we_i,
   input  logic [3:0]           device_be_i,
   input  logic [DataWidth-1:0] device_wdata_i,
-  output logic                 device_rvalid_o,
   output logic [DataWidth-1:0] device_rdata_o,
 
   input  logic [GpiWidth-1:0] gp_i,
@@ -48,8 +47,6 @@ module gpio_core #(
   logic ctrl_sel;
   logic status_sel;
   logic pcint_mask_sel;
-
-  logic [RegAddr-3:0] rd_reg_idx;
 
   logic [DbncWidth-1:0] dbnc_cnt;
   logic dbnc_step;
@@ -115,13 +112,11 @@ module gpio_core #(
     if (!rst_ni) begin
       gp_o              <= '0;
       gp_o_en           <= '0;
-      device_rvalid_o   <= '0;
       pcint_mask        <= '0;
       pcint_enable      <= '0;
       pcint_mode        <= '0;
       pcint_i_sel       <= '0;
       pcint_status      <= '0;
-      rd_reg_idx        <= '0;
     end else begin
       gp_o         <= (gp_o_sel && device_we_i)       ? gp_o_d         : gp_o;
       gp_o_en      <= (gp_o_en_sel && device_we_i)    ? gp_o_en_d      : gp_o_en;
@@ -138,9 +133,6 @@ module gpio_core #(
       end else begin
         pcint_status <= pcint_status;
       end
-
-      device_rvalid_o <= device_req_i && !device_we_i;
-      rd_reg_idx <= reg_addr[RegAddr-1:2];
     end
   end
 
@@ -191,21 +183,19 @@ module gpio_core #(
 
   // Assign device_rdata_o according to request type.
   always_comb begin
-    if (!device_rvalid_o)
-      device_rdata_o = {(DataWidth){1'b0}};
-    else if (rd_reg_idx == GPIO_OUT_REG[RegAddr-1:2])
+    if (reg_addr[RegAddr-1:2] == GPIO_OUT_REG[RegAddr-1:2])
       device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o};
-    else if (rd_reg_idx == GPIO_IN_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_IN_REG[RegAddr-1:2])
       device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_sync};
-    else if (rd_reg_idx == GPIO_IN_DBNC_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_IN_DBNC_REG[RegAddr-1:2])
       device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
-    else if (rd_reg_idx == GPIO_OUT_EN_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_OUT_EN_REG[RegAddr-1:2])
       device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o_en};
-    else if (rd_reg_idx == GPIO_CTRL_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_CTRL_REG[RegAddr-1:2])
       device_rdata_o = {pcint_enable, 27'b0, pcint_i_sel, 1'b0, pcint_mode};
-    else if (rd_reg_idx == GPIO_STATUS_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_STATUS_REG[RegAddr-1:2])
       device_rdata_o = {pcint_status, 31'b0};
-    else if (rd_reg_idx == GPIO_PIN_MASK_REG[RegAddr-1:2])
+    else if (reg_addr[RegAddr-1:2] == GPIO_PIN_MASK_REG[RegAddr-1:2])
       device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, pcint_mask};
     else
       device_rdata_o = {(DataWidth){1'b0}};
