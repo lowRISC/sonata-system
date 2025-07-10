@@ -125,7 +125,6 @@ module sonata_system
   localparam int unsigned BusDataWidth  = 32;
   localparam int unsigned DRegAddrWidth = 12; // Debug module uses 12 bits of addressing.
   localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
-  localparam int unsigned GRegAddrWidth = 9; // GPIO array uses 9 bits of addressing.
   localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
   localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
   localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
@@ -854,24 +853,22 @@ module sonata_system
   gpio #(
     .GpiMaxWidth  ( GPIO_IOS_WIDTH      ),
     .GpoMaxWidth  ( GPIO_IOS_WIDTH      ),
-    .AddrWidth    ( BusAddrWidth        ),
     .DataWidth    ( BusDataWidth        ),
-    .RegAddrWidth ( GRegAddrWidth       ),
     .NumInstances ( TotalGpioNum        ),
     .GpiInstWidths( GPIO_INST_IN_WIDTH  ),
     .GpoInstWidths( GPIO_INST_OUT_WIDTH )
   ) u_gpio (
-    .clk_i           (clk_sys_i),
-    .rst_ni          (rst_sys_ni),
+    .clk_i    (clk_sys_i),
+    .rst_ni   (rst_sys_ni),
 
-    .tl_i         (tl_gpio_h2d),
-    .tl_o         (tl_gpio_d2h),
+    .tl_i     (tl_gpio_h2d),
+    .tl_o     (tl_gpio_d2h),
 
-    .gp_i(gpio_from_pins),
-    .gp_o(gpio_to_pins),
-    .gp_o_en(gpio_to_pins_enable),
+    .gp_i     (gpio_from_pins),
+    .gp_o     (gpio_to_pins),
+    .gp_o_en  (gpio_to_pins_enable),
 
-    .pcint_o(gpio_interrupts)
+    .pcint_o  (gpio_interrupts)
   );
 
   // Digital inputs from Arduino shield analog(ue) pins currently unused
