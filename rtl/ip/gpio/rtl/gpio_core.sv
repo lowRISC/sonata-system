@@ -5,9 +5,8 @@
 module gpio_core #(
   parameter int unsigned GpiWidth  = 8,
   parameter int unsigned GpoWidth  = 16,
-  parameter int unsigned AddrWidth = 32,
   parameter int unsigned DataWidth = 32,
-  parameter int unsigned RegAddr   = 6,
+  parameter int unsigned AddrWidth = 6,
   parameter int unsigned DbncWidth = 10
 ) (
   input  logic clk_i,
@@ -35,7 +34,7 @@ module gpio_core #(
   localparam int unsigned GPIO_STATUS_REG   = 32'h14;
   localparam int unsigned GPIO_PIN_MASK_REG = 32'h18;
 
-  logic [RegAddr-1:0] reg_addr;
+  logic [DataWidth-1:0] rdata;
 
   logic [GpiWidth-1:0] gp_i_sync;
   logic [GpiWidth-1:0] gp_i_dbnc;
@@ -84,7 +83,7 @@ module gpio_core #(
   );
 
   // Instantiate step-based debouncers for all GP inputs.
-  for (genvar i = 0; i < GpiWidth; i++) begin
+  for (genvar i = 0; i < GpiWidth; i++) begin : gen_dbnc
     debounce_step dbnc (
       .clk_i,
       .rst_ni,
@@ -140,7 +139,7 @@ module gpio_core #(
   logic [3:0] unused_i_device_be;
 
   // Assign gp_o_d regarding to device_be_i and GpoWidth.
-  for (genvar i_byte = 0; i_byte < 4; ++i_byte) begin : g_gp_o_d;
+  for (genvar i_byte = 0; i_byte < 4; ++i_byte) begin : gen_gp_o_d;
     if (i_byte * 8 < GpoWidth) begin : gen_gp_o_d_inner
       localparam int gpo_byte_end = (i_byte + 1) * 8 <= GpoWidth ? (i_byte + 1) * 8 : GpoWidth;
       assign gp_o_d[gpo_byte_end - 1 : i_byte * 8] =
@@ -156,7 +155,7 @@ module gpio_core #(
   end
 
   // Assign pcint_mask_d regarding to device_be_i and GpiWidth.
-  for (genvar i_byte = 0; i_byte < 4; ++i_byte) begin : g_pcint_mask_d;
+  for (genvar i_byte = 0; i_byte < 4; ++i_byte) begin : gen_pcint_mask_d;
     if (i_byte * 8 < GpiWidth) begin : gen_pcint_mask_d_inner
       localparam int gpi_byte_end = (i_byte + 1) * 8 <= GpiWidth ? (i_byte + 1) * 8 : GpiWidth;
       assign pcint_mask_d[gpi_byte_end - 1 : i_byte * 8] =
@@ -174,42 +173,32 @@ module gpio_core #(
   assign pcint_mode_d   = device_be_i[0] ? device_wdata_i[1:0] : pcint_mode;
 
   // Decode write requests.
-  assign reg_addr       = device_addr_i[RegAddr-1:0];
-  assign gp_o_sel       = device_req_i & (reg_addr == GPIO_OUT_REG[RegAddr-1:0]);
-  assign gp_o_en_sel    = device_req_i & (reg_addr == GPIO_OUT_EN_REG[RegAddr-1:0]);
-  assign ctrl_sel       = device_req_i & (reg_addr == GPIO_CTRL_REG[RegAddr-1:0]);
-  assign status_sel     = device_req_i & (reg_addr == GPIO_STATUS_REG[RegAddr-1:0]);
-  assign pcint_mask_sel = device_req_i & (reg_addr == GPIO_PIN_MASK_REG[RegAddr-1:0]);
+  assign gp_o_sel       = device_req_i & (device_addr_i == GPIO_OUT_REG[AddrWidth-1:0]);
+  assign gp_o_en_sel    = device_req_i & (device_addr_i == GPIO_OUT_EN_REG[AddrWidth-1:0]);
+  assign ctrl_sel       = device_req_i & (device_addr_i == GPIO_CTRL_REG[AddrWidth-1:0]);
+  assign status_sel     = device_req_i & (device_addr_i == GPIO_STATUS_REG[AddrWidth-1:0]);
+  assign pcint_mask_sel = device_req_i & (device_addr_i == GPIO_PIN_MASK_REG[AddrWidth-1:0]);
 
-  // Assign device_rdata_o according to request type.
+  // Assign rdata according to request type.
   always_comb begin
-    if (reg_addr[RegAddr-1:2] == GPIO_OUT_REG[RegAddr-1:2])
-      device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o};
-    else if (reg_addr[RegAddr-1:2] == GPIO_IN_REG[RegAddr-1:2])
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_sync};
-    else if (reg_addr[RegAddr-1:2] == GPIO_IN_DBNC_REG[RegAddr-1:2])
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
-    else if (reg_addr[RegAddr-1:2] == GPIO_OUT_EN_REG[RegAddr-1:2])
-      device_rdata_o = {{(DataWidth - GpoWidth){1'b0}}, gp_o_en};
-    else if (reg_addr[RegAddr-1:2] == GPIO_CTRL_REG[RegAddr-1:2])
-      device_rdata_o = {pcint_enable, 27'b0, pcint_i_sel, 1'b0, pcint_mode};
-    else if (reg_addr[RegAddr-1:2] == GPIO_STATUS_REG[RegAddr-1:2])
-      device_rdata_o = {pcint_status, 31'b0};
-    else if (reg_addr[RegAddr-1:2] == GPIO_PIN_MASK_REG[RegAddr-1:2])
-      device_rdata_o = {{(DataWidth - GpiWidth){1'b0}}, pcint_mask};
-    else
-      device_rdata_o = {(DataWidth){1'b0}};
+    unique case (device_addr_i[AddrWidth-1:2])
+      GPIO_OUT_REG[AddrWidth-1:2]:      rdata = {{(DataWidth - GpoWidth){1'b0}}, gp_o};
+      GPIO_IN_REG[AddrWidth-1:2]:       rdata = {{(DataWidth - GpiWidth){1'b0}}, gp_i_sync};
+      GPIO_IN_DBNC_REG[AddrWidth-1:2]:  rdata = {{(DataWidth - GpiWidth){1'b0}}, gp_i_dbnc};
+      GPIO_OUT_EN_REG[AddrWidth-1:2]:   rdata = {{(DataWidth - GpoWidth){1'b0}}, gp_o_en};
+      GPIO_CTRL_REG[AddrWidth-1:2]:     rdata = {pcint_enable, 27'b0, pcint_i_sel, 1'b0, pcint_mode};
+      GPIO_STATUS_REG[AddrWidth-1:2]:   rdata = {pcint_status, 31'b0};
+      GPIO_PIN_MASK_REG[AddrWidth-1:2]: rdata = {{(DataWidth - GpiWidth){1'b0}}, pcint_mask};
+      default:                          rdata = {(DataWidth){1'b0}};
+    endcase
   end
+
+  assign device_rdata_o = device_req_i ? rdata : '0;
 
   assign pcint_o = pcint_enable & pcint_status;
 
   // Unused signals.
-  if (AddrWidth > RegAddr) begin : g_unused_addr_bits
-    logic [AddrWidth-1-RegAddr:0]  unused_device_addr;
-    assign unused_device_addr  = device_addr_i[AddrWidth-1:RegAddr];
-  end
-
-  if (DataWidth > GpoWidth) begin : g_unused_gpo_bits
+  if (DataWidth > GpoWidth) begin : gen_unused_gpo_bits
     logic [DataWidth-1-GpoWidth:0] unused_device_wdata;
     assign unused_device_wdata = device_wdata_i[DataWidth-1:GpoWidth];
   end
