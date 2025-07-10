@@ -20,7 +20,6 @@ module gpio_array #(
   input  logic                 device_we_i,
   input  logic [3:0]           device_be_i,
   input  logic [DataWidth-1:0] device_wdata_i,
-  output logic                 device_rvalid_o,
   output logic [DataWidth-1:0] device_rdata_o,
 
   input  logic [GpiMaxWidth-1:0] gp_i[NumInstances],
@@ -31,15 +30,14 @@ module gpio_array #(
 );
   localparam int unsigned NumBytesPerInstance = 16 * DataWidth/8;
   localparam int unsigned AddrBitsPerInstance = $clog2(NumBytesPerInstance);
+  localparam int unsigned AddrBitsInstanceIdx = $clog2(NumInstances);
 
-  logic device_read_valids[NumInstances];
-  logic [DataWidth-1:0] device_read_datas[NumInstances];
+  logic [DataWidth-1:0] device_rdata[NumInstances];
+  logic [AddrBitsInstanceIdx-1:0] selected_inst_idx;
+
+  assign selected_inst_idx = device_addr_i[RegAddrWidth-1:AddrBitsPerInstance];
 
   for (genvar i = 0; i < NumInstances; i++) begin
-    logic device_selector;
-    assign device_selector = (device_addr_i[RegAddrWidth-1:AddrBitsPerInstance]== i) ?
-                             device_req_i : 1'b0;
-
     gpio_core #(
       .GpiWidth  ( GpiInstWidths[i]    ),
       .GpoWidth  ( GpoInstWidths[i]    ),
@@ -49,13 +47,12 @@ module gpio_array #(
     ) u_gpio (
       .clk_i,
       .rst_ni,
-      .device_req_i(device_selector),
+      .device_req_i(selected_inst_idx == i ? device_req_i : 1'b0),
       .device_addr_i,
       .device_we_i,
       .device_be_i,
       .device_wdata_i,
-      .device_rvalid_o(device_read_valids[i]),
-      .device_rdata_o(device_read_datas[i]),
+      .device_rdata_o(device_rdata[i]),
       .gp_i(gp_i[i][GpiInstWidths[i]-1:0]),
       .gp_o(gp_o[i][GpoInstWidths[i]-1:0]),
       .gp_o_en(gp_o_en[i][GpoInstWidths[i]-1:0]),
@@ -63,15 +60,8 @@ module gpio_array #(
     );
   end
 
-  always_comb begin
-    device_rvalid_o = 1'b0;
-    device_rdata_o = {DataWidth{1'b0}};
-    for (integer i = 0; i < NumInstances; i++) begin
-      if (device_read_valids[i] == 1'b1) begin
-        device_rvalid_o = device_read_valids[i];
-        device_rdata_o = device_read_datas[i];
-      end
-    end
-  end
+  // Read data is provided by gpio_core in the same cycle as the request,
+  // so we can select rdata based on the request address.
+  assign device_rdata_o = device_rdata[selected_inst_idx];
 
 endmodule

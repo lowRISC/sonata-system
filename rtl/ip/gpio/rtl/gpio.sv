@@ -56,7 +56,6 @@ module gpio #(
     .device_we_i     (device_we),
     .device_be_i     (device_be),
     .device_wdata_i  (device_wdata),
-    .device_rvalid_o (),
     .device_rdata_o  (device_rdata),
 
     .gp_i,
@@ -67,7 +66,7 @@ module gpio #(
   );
 
   tlul_adapter_reg #(
-    .AccessLatency ( 1            ),
+    .AccessLatency ( 0            ),
     .RegAw         ( RegAddrWidth )
   ) gpio_device_adapter (
     .clk_i,
