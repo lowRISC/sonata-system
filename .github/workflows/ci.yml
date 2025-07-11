@@ -66,6 +66,18 @@ jobs:
           substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
           trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
+    - name: Setup Cache
+      if: github.event_name != 'pull_request'
+      run: |
+        # Obtain OIDC token from GitHub
+        GITHUB_ID_TOKEN=$(curl -sSf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://ca.lowrisc.org" | jq -r .value)
+        echo "::add-mask::$GITHUB_ID_TOKEN"
+        # Exchange for a token for nix cache
+        NIX_CACHE_TOKEN=$(curl -sSf -H "Authorization: Bearer $GITHUB_ID_TOKEN" "https://ca.lowrisc.org/api/nix-caches/public/token")
+        echo "::add-mask::$NIX_CACHE_TOKEN"
+        nix profile install nixpkgs#attic-client
+        attic login --set-default lowrisc https://nix-cache.lowrisc.org/ "$NIX_CACHE_TOKEN"
+
     - name: Nix Checks
       run: |
         nix fmt -- . --check
@@ -79,8 +91,20 @@ jobs:
     - name: Build Documentation
       run: nix build .#sonata-documentation -L
 
+    - name: Build simulator
+      run: |
+        nix build .#sonata-simulator -L
+        if ${{ github.event_name != 'pull_request' }}; then
+          attic push public result*
+        fi
+
     - name: Run tests on the simulator
-      run: nix build .#tests-simulator -L
+      run: |
+        nix build .#tests-simulator -L
+        if ${{ github.event_name != 'pull_request' }}; then
+          # Cache the test result to avoid rerunning the test unless necessary.
+          attic push public result*
+        fi
 
   fpga:
     runs-on: [ubuntu-22.04-fpga, sonata]
@@ -95,7 +119,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # We only write to the cache when merging into main, so we don't need th authenticate on pull-request.
+    # We only write to the cache when merging into main, so we don't need to authenticate on pull-request.
     - uses: google-github-actions/auth@v2
       if: github.event_name != 'pull_request'
       with:
