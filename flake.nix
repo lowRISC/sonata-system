@@ -100,8 +100,9 @@
         src = sonataSimulatorSource;
         buildInputs = with pkgs; [libelf zlib];
         nativeBuildInputs = [pkgs.verilator pythonEnv];
-        inherit FLAKE_GIT_COMMIT;
-        inherit FLAKE_GIT_DIRTY;
+        # For simulator build, force the git commit to a dummy value, so we can cache the build properly.
+        FLAKE_GIT_COMMIT = "0000000000000000000000000000000000000000";
+        FLAKE_GIT_DIRTY = false;
         buildPhase = ''
           HOME=$TMPDIR fusesoc --cores-root=. run \
             --target=sim --setup --build lowrisc:sonata:system \
