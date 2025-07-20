@@ -1,0 +1,378 @@
+diff --git a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_clock.h b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_clock.h
+new file mode 100644
+index 00000000..d4b546fb
+--- /dev/null
++++ b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_clock.h
+@@ -0,0 +1,111 @@
++// Copyright lowRISC contributors.
++// Licensed under the Apache License, Version 2.0, see LICENSE for details.
++// SPDX-License-Identifier: Apache-2.0
++
++#ifndef OPENTITAN_HW_DV_VERILATOR_SIMUTIL_VERILATOR_CPP_VERILATOR_SIM_CLOCK_H_
++#define OPENTITAN_HW_DV_VERILATOR_SIMUTIL_VERILATOR_CPP_VERILATOR_SIM_CLOCK_H_
++#include <cassert>
++#include <cstdint>
++
++#include "verilated_toplevel.h"
++
++/**
++ * Clock signal in Verilated top level.
++ */
++class VerilatorSimClock {
++ public:
++  /**
++   * Initialize a clock signal with its properties.
++   * All time parameters are specified in picoseconds for accuracy.
++   *
++   * @param sig_clk Signal in the Verilated top level object.
++   * @param hi_interval Time interval for the 'hi' phase of the clock, in ps.
++   * @param lo_interval Time interval for the 'lo' phase of the clock, in ps.
++   * @param init_offset Time interval until the first transition of the clock, in ps.
++   * @param hi_jitter Amount by which 'hi_interval' may vary, in picoseconds.
++   * @param lo_jitter Amount by which 'lo_interval' may vary, in picoseconds.
++   */
++  VerilatorSimClock(CData *sig_clk, uint32_t hi_interval, uint32_t lo_interval,
++                    uint32_t init_offset = 0u, uint32_t hi_jitter = 0u, uint32_t lo_jitter = 0u)
++      : sig_clk_(sig_clk),
++        hi_interval_(hi_interval),
++        lo_interval_(lo_interval),
++        hi_jitter_(hi_jitter),
++        lo_jitter_(lo_jitter),
++        lfsr_(1u),
++        del_(init_offset) {
++    // Each clock interval (hi/lo) is permitted to vary in the range
++    // (-jitter/2, +jitter/2)
++    assert(hi_jitter < hi_interval && lo_jitter < lo_interval);
++  }
++
++  /**
++   * Ascertain the remaining time until the next transition of this clock
++   * signal.
++   *
++   * @return Time in picoseconds.
++   */
++  uint32_t EdgeTimeDelta() const { return del_; }
++
++  /**
++   * Advance the state of this clock by the specified number of elapsed
++   * picoseconds, modifying the clock signal when a transition occurs.
++   *
++   * @return true iff a positive (rising) edge of this clock signal occurred.
++   */
++  bool PosEdgeAfterTime(uint32_t elapsed) {
++    // Transition occurred?
++    if (elapsed < del_) {
++      del_ -= elapsed;
++      return false;
++    }
++
++    // We should not be advancing beyond a single clock transition or the
++    // scheduling failed.
++    assert(elapsed == del_);
++
++    // Remember and invert the state of the controlled signal.
++    bool was_lo = !*sig_clk_;
++    *sig_clk_ = was_lo;
++    if (was_lo) {
++      // Starting hi interval.
++      del_ = (uint32_t)((int32_t)hi_interval_ + Randomize(hi_jitter_));
++    } else {
++      del_ = (uint32_t)((int32_t)lo_interval_ + Randomize(lo_jitter_));
++    }
++    return was_lo;
++  }
++
++ private:
++  int32_t Randomize(int32_t jitter) {
++    if (jitter) {
++      // lfsr_ cannot be zero (isolated state in sequence).
++      // Use (-50,+50%) of the specified jitter, uniform distribution.
++      jitter = (jitter * ((int32_t)lfsr_ - 128)) / 254;
++
++      // Simple LFSR for 8-bit sequences
++      lfsr_ = (uint8_t)((uint8_t)((lfsr_) << 1) ^
++                        ((((lfsr_) >> 1) ^ ((lfsr_) >> 2) ^ ((lfsr_) >> 3) ^
++                          ((lfsr_) >> 7)) &
++                         1U));
++    }
++    return jitter;
++  }
++
++  // Controlled signal in Verilated top level.
++  CData *sig_clk_;
++
++  // All times are in picoseconds.
++  uint32_t hi_interval_;  // Mean time for which the clock is high
++  uint32_t lo_interval_;  // Mean time low
++  uint32_t hi_jitter_;    // Amount by which the hi interval may jitter
++  uint32_t lo_jitter_;
++
++  // Randomization using LFSR.
++  uint8_t lfsr_;
++
++  // Time remaining until transition.
++  uint32_t del_;
++};
++
++#endif  // OPENTITAN_HW_DV_VERILATOR_SIMUTIL_VERILATOR_CPP_VERILATOR_SIM_CLOCK_H_
+diff --git a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.cc b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.cc
+index d92b1b36..3128cbaa 100644
+--- a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.cc
++++ b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.cc
+@@ -7,6 +7,7 @@
+ #include <getopt.h>
+ #include <iostream>
+ #include <signal.h>
++#include <stdlib.h>
+ #include <sys/stat.h>
+ #include <verilated.h>
+ 
+@@ -20,7 +21,7 @@
+  *
+  * Called by $time in Verilog, converts to double, to match what SystemC does
+  */
+-double sc_time_stamp() { return VerilatorSimCtrl::GetInstance().GetTime(); }
++double sc_time_stamp() { return VerilatorSimCtrl::GetInstance().GetSimTime(); }
+ 
+ #ifdef VL_USER_STOP
+ /**
+@@ -39,10 +40,9 @@ VerilatorSimCtrl &VerilatorSimCtrl::GetInstance() {
+   return instance;
+ }
+ 
+-void VerilatorSimCtrl::SetTop(VerilatedToplevel *top, CData *sig_clk,
+-                              CData *sig_rst, VerilatorSimCtrlFlags flags) {
++void VerilatorSimCtrl::SetTop(VerilatedToplevel *top, CData *sig_rst,
++                              VerilatorSimCtrlFlags flags) {
+   top_ = top;
+-  sig_clk_ = sig_clk;
+   sig_rst_ = sig_rst;
+   flags_ = flags;
+ }
+@@ -228,7 +228,8 @@ void VerilatorSimCtrl::RegisterExtension(SimCtrlExtension *ext) {
+ 
+ VerilatorSimCtrl::VerilatorSimCtrl()
+     : top_(nullptr),
+-      time_(0),
++      cycle_(0),
++      sim_time_(0),
+ #ifdef VM_TRACE_FMT_FST
+       trace_file_path_("sim.fst"),
+ #else
+@@ -247,20 +248,39 @@ VerilatorSimCtrl::VerilatorSimCtrl()
+ }
+ 
+ void VerilatorSimCtrl::RegisterSignalHandler() {
++  const int sigTypes[] = {
++    SIGINT, SIGABRT, SIGFPE, SIGUSR1, SIGILL
++  };
+   struct sigaction sigIntHandler;
+ 
+   sigIntHandler.sa_handler = SignalHandler;
+   sigemptyset(&sigIntHandler.sa_mask);
+   sigIntHandler.sa_flags = 0;
+ 
+-  sigaction(SIGINT, &sigIntHandler, NULL);
+-  sigaction(SIGUSR1, &sigIntHandler, NULL);
++  for (int i = 0; i < sizeof(sigTypes)/sizeof(sigTypes[0]); ++i) {
++    sigaction(sigTypes[i], &sigIntHandler, NULL);
++  }
+ }
+ 
+ void VerilatorSimCtrl::SignalHandler(int sig) {
+   VerilatorSimCtrl &simctrl = VerilatorSimCtrl::GetInstance();
+ 
+   switch (sig) {
++    // Abort (eg. assertion failure in DPI model)
++    case SIGABRT:
++    // Exceptions
++    case SIGFPE:
++    case SIGILL:
++    case SIGSEGV:
++      // Try to ensure that traces are up to date
++      if (simctrl.TracingEverEnabled()) {
++        simctrl.tracer_.close();
++      }
++
++      simctrl.RequestStop(true);
++      exit(1);
++      break;
++
+     case SIGINT:
+       simctrl.RequestStop(true);
+       break;
+@@ -310,13 +330,15 @@ bool VerilatorSimCtrl::TraceOff() {
+ }
+ 
+ void VerilatorSimCtrl::PrintStatistics() const {
+-  double speed_hz = time_ / 2 / (GetExecutionTimeMs() / 1000.0);
++  // Count of cycles of the main system clock.
++  uint64_t cycles = GetCycles();
++  double speed_hz = cycles / (GetExecutionTimeMs() / 1000.0);
+   double speed_khz = speed_hz / 1000.0;
+ 
+   std::cout << std::endl
+             << "Simulation statistics" << std::endl
+             << "=====================" << std::endl
+-            << "Executed cycles:  " << std::dec << time_ / 2 << std::endl
++            << "Executed cycles:  " << std::dec << cycles << std::endl
+             << "Wallclock time:   " << GetExecutionTimeMs() / 1000.0 << " s"
+             << std::endl
+             << "Simulation speed: " << speed_hz << " cycles/s "
+@@ -354,27 +376,56 @@ void VerilatorSimCtrl::Run() {
+   unsigned long start_reset_cycle_ = initial_reset_delay_cycles_;
+   unsigned long end_reset_cycle_ = start_reset_cycle_ + reset_duration_cycles_;
+ 
+-  while (1) {
+-    unsigned long cycle_ = time_ / 2;
++  // Initialize the count of system clock cycles.
++  cycle_ = 0u;
+ 
++  while (1) {
+     if (cycle_ == start_reset_cycle_) {
+       SetReset();
+     } else if (cycle_ == end_reset_cycle_) {
+       UnsetReset();
+     }
+ 
+-    *sig_clk_ = !*sig_clk_;
++    // Determine the maximal amount of simulation time that may elapse
++    // before another clock edge (positive or negative) occurs.
++    uint32_t time_del = std::numeric_limits<uint32_t>::max();
++    for (auto it = clks_.begin(); it != clks_.end(); ++it) {
++      uint32_t next = (*it).EdgeTimeDelta();
++      if (time_del > next) {
++        // This clock has an earlier transition; we must not advance the
++        // simulation beyond any clock edge, because we cannot know to which
++        // edge(s) the design is sensitive.
++        time_del = next;
++      }
++    }
++
++    // Note: the system clock (used to report the overall simulation performance)
++    // must be the first clock in the list.
++    bool sys_clk = true;
++    bool sys_clk_rise = false;
++    // Handle all clock transitions at this time.
++    for (auto it = clks_.begin(); it != clks_.end(); ++it) {
++      bool pos_edge = (*it).PosEdgeAfterTime(time_del);
++      if (sys_clk) {
++        sys_clk_rise = pos_edge;
++      }
++      sys_clk = false;
++    }
++
++    sim_time_ += time_del;
+ 
+     // Call all extension on-clock methods
+-    if (*sig_clk_) {
++    if (sys_clk_rise) {
++      cycle_++;
++
+       for (auto it = extension_array_.begin(); it != extension_array_.end();
+            ++it) {
+-        (*it)->OnClock(time_);
++        // The value passed is the number of half-clock periods.
++        (*it)->OnClock(cycle_ * 2u);
+       }
+     }
+ 
+     top_->eval();
+-    time_++;
+ 
+     Trace();
+ 
+@@ -388,7 +439,7 @@ void VerilatorSimCtrl::Run() {
+                 << std::endl;
+       break;
+     }
+-    if (term_after_cycles_ && (time_ / 2 >= term_after_cycles_)) {
++    if (term_after_cycles_ && cycle_ >= term_after_cycles_) {
+       std::cout << "Simulation timeout of " << term_after_cycles_
+                 << " cycles reached, shutting down simulation." << std::endl;
+       break;
+@@ -466,5 +517,5 @@ void VerilatorSimCtrl::Trace() {
+               << std::endl;
+   }
+ 
+-  tracer_.dump(GetTime());
++  tracer_.dump(GetSimTime());
+ }
+diff --git a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.h b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.h
+index 9e60d1ab..dc3e1db3 100644
+--- a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.h
++++ b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/cpp/verilator_sim_ctrl.h
+@@ -10,7 +10,7 @@
+ #include <vector>
+ 
+ #include "sim_ctrl_extension.h"
+-#include "verilated_toplevel.h"
++#include "verilator_sim_clock.h"
+ 
+ enum VerilatorSimCtrlFlags {
+   Defaults = 0,
+@@ -35,8 +35,20 @@ class VerilatorSimCtrl {
+   /**
+    * Set the top-level design
+    */
+-  void SetTop(VerilatedToplevel *top, CData *sig_clk, CData *sig_rst,
++  void SetTop(VerilatedToplevel *top, CData *sig_rst,
+               VerilatorSimCtrlFlags flags = Defaults);
++  /**
++   * Add a clock into the design.
++   *
++   * @param sig_clk Signal in the Verilated top level object.
++   * @param hi_interval Time interval for the 'hi' phase of the clock, in
++   * picoseconds.
++   * @param lo_interval Time interval for the 'lo' phase of the clock, in
++   * picoseconds.
++   * @param hi_jitter Amount by which 'hi_interval' may vary, in picoseconds.
++   * @param lo_jitter Amount by which 'lo_interval' may vary, in picoseconds.
++   */
++  void AddClock(const VerilatorSimClock &clk) { clks_.push_back(clk); }
+ 
+   /**
+    * Setup and run the simulation (all in one)
+@@ -117,16 +129,26 @@ class VerilatorSimCtrl {
+   void RegisterExtension(SimCtrlExtension *ext);
+ 
+   /**
+-   * Get the current time in ticks
++   * Get the current cycle count of the main system clock.
+    */
+-  unsigned long GetTime() const { return time_; }
++  uint64_t GetCycles() const { return cycle_; }
++
++  /**
++   * Get the current time in picoseconds.
++   */
++  uint64_t GetSimTime() const { return sim_time_; }
+ 
+  private:
+   VerilatedToplevel *top_;
+-  CData *sig_clk_;
++  // List of clocks driving the simulation test bench.
++  std::vector<VerilatorSimClock> clks_;
+   CData *sig_rst_;
+   VerilatorSimCtrlFlags flags_;
+-  unsigned long time_;
++  // Number of cycles of the main system clock.
++  uint64_t cycle_;
++  // Elapsed simulation time, in picoseconds.
++  uint64_t sim_time_;
++
+   std::string trace_file_path_;
+   bool tracing_enabled_;
+   bool tracing_enabled_changed_;
+diff --git a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/simutil_verilator.core b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/simutil_verilator.core
+index d14327ae..b69fc207 100644
+--- a/vendor/lowrisc_ip/dv/verilator/simutil_verilator/simutil_verilator.core
++++ b/vendor/lowrisc_ip/dv/verilator/simutil_verilator/simutil_verilator.core
+@@ -12,6 +12,7 @@ filesets:
+       - cpp/verilated_toplevel.cc
+       - cpp/verilator_sim_ctrl.h: { is_include_file: true }
+       - cpp/verilated_toplevel.h: { is_include_file: true }
++      - cpp/verilator_sim_clock.h: { is_include_file: true }
+       - cpp/sim_ctrl_extension.h: { is_include_file: true }
+     file_type: cppSource
+ 
