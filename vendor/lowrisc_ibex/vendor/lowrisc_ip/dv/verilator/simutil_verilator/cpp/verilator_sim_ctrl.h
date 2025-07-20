@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "sim_ctrl_extension.h"
-#include "verilated_toplevel.h"
+#include "verilator_sim_clock.h"
 
 enum VerilatorSimCtrlFlags {
   Defaults = 0,
@@ -35,8 +35,20 @@ class VerilatorSimCtrl {
   /**
    * Set the top-level design
    */
-  void SetTop(VerilatedToplevel *top, CData *sig_clk, CData *sig_rst,
+  void SetTop(VerilatedToplevel *top, CData *sig_rst,
               VerilatorSimCtrlFlags flags = Defaults);
+  /**
+   * Add a clock into the design.
+   *
+   * @param sig_clk Signal in the Verilated top level object.
+   * @param hi_interval Time interval for the 'hi' phase of the clock, in
+   * picoseconds.
+   * @param lo_interval Time interval for the 'lo' phase of the clock, in
+   * picoseconds.
+   * @param hi_jitter Amount by which 'hi_interval' may vary, in picoseconds.
+   * @param lo_jitter Amount by which 'lo_interval' may vary, in picoseconds.
+   */
+  void AddClock(const VerilatorSimClock &clk) { clks_.push_back(clk); }
 
   /**
    * Setup and run the simulation (all in one)
@@ -117,16 +129,26 @@ class VerilatorSimCtrl {
   void RegisterExtension(SimCtrlExtension *ext);
 
   /**
-   * Get the current time in ticks
+   * Get the current cycle count of the main system clock.
    */
-  unsigned long GetTime() const { return time_; }
+  uint64_t GetCycles() const { return cycle_; }
+
+  /**
+   * Get the current time in picoseconds.
+   */
+  uint64_t GetSimTime() const { return sim_time_; }
 
  private:
   VerilatedToplevel *top_;
-  CData *sig_clk_;
+  // List of clocks driving the simulation test bench.
+  std::vector<VerilatorSimClock> clks_;
   CData *sig_rst_;
   VerilatorSimCtrlFlags flags_;
-  unsigned long time_;
+  // Number of cycles of the main system clock.
+  uint64_t cycle_;
+  // Elapsed simulation time, in picoseconds.
+  uint64_t sim_time_;
+
   std::string trace_file_path_;
   bool tracing_enabled_;
   bool tracing_enabled_changed_;
