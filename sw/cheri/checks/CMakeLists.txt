@@ -51,9 +51,9 @@ add_custom_command(
 install(TARGETS ${NAME})
 
 set(NAME hyperram_test)
-add_executable(${NAME}  hyperram_test.cc)
+add_executable(${NAME} hyperram_test.cc hyperram_memset.S)
 target_include_directories(${NAME} PRIVATE ${CHERIOT_SDK_INCLUDES} "${reisfmt_SOURCE_DIR}/include")
-target_link_libraries(${NAME} common)
+target_link_libraries(${NAME} common block_tests)
 
 add_custom_command(
   TARGET ${NAME} POST_BUILD

@@ -1,5 +1,5 @@
-
 // Copyright lowRISC Contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -12,6 +12,7 @@
 #include <platform-uart.hh>
 
 #include "../common/console.hh"
+#include "../common/hyperram_perf_test.h"
 #include "../common/sonata-devices.hh"
 #include "../common/uart-utils.hh"
 #include "test_runner.hh"
@@ -32,7 +33,7 @@ using namespace CHERI;
  * It can be overwride with a compilation flag
  */
 #ifndef TEST_COVERAGE_AREA
-// Test only 1% of the total memory to be fast enough for varilator.
+// Test only 1% of the total memory to be fast enough for Verilator.
 #define TEST_COVERAGE_AREA 1
 #endif
 _Static_assert(TEST_COVERAGE_AREA <= 100, "TEST_COVERAGE_AREA Should be less than 100");
@@ -191,7 +192,7 @@ int stripe_test(Capability<volatile uint32_t> hyperram_area, uint32_t initial_va
 
 typedef void *(*test_fn_t)(uint32_t *);
 /*
- * Gets a function pointer to an address in hyperram, expectes to be called with
+ * Gets a function pointer to an address in hyperram, expects to be called with
  * a PC capability that provides execution in hyperram. 'addr' is relative to
  * the base of hyperram.
  */
@@ -217,6 +218,11 @@ void write_prog(Capability<volatile uint32_t> hyperram_area, uint32_t addr) {
   hyperram_area[addr + 4] = 0x8082;
 
   asm volatile("fence.i" : : : "memory");
+
+  // By writing the first word of the code again we can ensure that the code is
+  // flushed out to the HyperRAM and will thus be coherent with instruction
+  // fetching when the code is executed.
+  hyperram_area[addr] = hyperram_area[addr];
 }
 
 /*
@@ -252,6 +258,43 @@ int execute_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64
     if (test_ptr_addr != expected_ptr_addr) {
       failures++;
     }
+  }
+
+  return failures;
+}
+
+// Performance test to exercise burst transfers from/to the HyperRAM.
+int perf_burst_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::P64R32 &prng, size_t nbytes) {
+  typedef volatile void *(*hr_copy_fn_t)(volatile uint32_t *, const volatile uint32_t *, size_t);
+  int failures = 0;
+
+  // Randomised word offsets.
+  uint32_t dst_addr = prng() & 0x3ffu;
+  uint32_t src_addr = 0x1000u - dst_addr;
+
+  volatile uint32_t *d = &hyperram_area[dst_addr];
+  volatile uint32_t *s = &hyperram_area[src_addr];
+
+  // Complete the source buffer with complete words; it doesn't matter that we may write a few extra bytes.
+  const uint32_t whole_words = nbytes / 4u;
+  for (unsigned idx = 0u; idx <= whole_words; idx++) {
+    hyperram_area[src_addr + idx] = prng();
+  }
+
+  // Copy the code into the HyperRAM, using itself.
+  const uint32_t prog_addr = 0x903u;
+  hyperram_copy_block(&hyperram_area[prog_addr], (volatile uint32_t *)hyperram_copy_block, hyperram_copy_size);
+  hr_copy_fn_t hr_copy_ptr = (hr_copy_fn_t)get_hyperram_fn_ptr(HYPERRAM_ADDRESS + (prog_addr * 4));
+
+  for (unsigned code_in_hr = 0; code_in_hr < 2; ++code_in_hr) {
+    if (code_in_hr) {
+      hr_copy_ptr(d, s, nbytes);
+    } else {
+      hyperram_copy_block(d, s, nbytes);
+    }
+
+    // Read back and check the destination buffer.
+    failures += (0 != hyperram_cmp_block(d, s, nbytes));
   }
 
   return failures;
@@ -307,6 +350,11 @@ void hyperram_tests(CapRoot root, Log &log) {
 
     log.print("  Running Execution test...");
     failures = execute_test(hyperram_area, prng, HYPERRAM_TEST_SIZE);
+    test_failed |= (failures > 0);
+    write_test_result(log, failures);
+
+    log.print("  Running Performance test...");
+    failures = perf_burst_test(hyperram_area, prng, 0x1000u);
     test_failed |= (failures > 0);
     write_test_result(log, failures);
 

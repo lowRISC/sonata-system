@@ -83,7 +83,7 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
   return hyperram;
 }
 
-[[maybe_unnused]] static TimerPtr timer_ptr(CapRoot root) {
+[[maybe_unused]] static TimerPtr timer_ptr(CapRoot root) {
   CHERI::Capability<volatile uint32_t> timer = root.cast<volatile uint32_t>();
   timer.address()                            = CLINT_ADDRESS;
   timer.bounds()                             = CLINT_BOUNDS;
