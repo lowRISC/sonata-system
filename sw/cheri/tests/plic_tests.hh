@@ -371,15 +371,19 @@ struct PlicTest {
   // Wait with timeout until an interrupt occurs, logging any mismatch.
   // Returns true iff the expected interrupt occurred within the timeout interval.
   inline bool irq_caught() {
+    // Enable the interrupt in the CPU whilst we wait...
     ASM::Ibex::global_interrupt_set(true);
-    ASM::Ibex::global_interrupt_set(false);
     if (!irq_fired) {
       reset_mcycle();
-      const uint32_t end_mcycle = get_mcycle() + wfiTimeout;
-      while (get_mcycle() < end_mcycle && !irq_fired) {
+      const uint32_t start_mcycle = get_mcycle();
+      // This expression of the comparison avoids issues with counter wraparound.
+      while ((get_mcycle() - start_mcycle) < wfiTimeout && !irq_fired) {
         asm volatile("");
       }
     }
+    // We have our verdict; disable interrupts again before proceeding.
+    ASM::Ibex::global_interrupt_set(false);
+
     if (!irq_fired) {
       error_count++;
       log(static_cast<PLIC::Interrupts>(0), 0, true);
