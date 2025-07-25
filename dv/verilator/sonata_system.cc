@@ -16,9 +16,13 @@
 SonataSystem::SonataSystem(const char *ram_hier_path, int ram_size_words,
   const char *hyperram_hier_path, int hyperram_size_words)
     : _ram(ram_hier_path, ram_size_words, 4),
-#ifdef USE_HYPERRAM_SIM_MODEL
+#ifdef USE_HYPERRAM_SRAM_MODEL
+      // The SRAM model within the `hyperram` IP block is 32 bits wide to
+      // match the TL-UL bus.
       _hyperram(hyperram_hier_path, hyperram_size_words, 4) {}
 #else
+      // The simulation model of the W956 HyperRAM chip employs a memory
+      // that is 16 bits wide, as per the HyperBus protocol.
       _hyperram(hyperram_hier_path, hyperram_size_words / 2, 2) {}
 #endif
 
@@ -73,8 +77,8 @@ int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
   // Note: calculate the period of the higher frequency clock first because
   // the period of the 'hr' reference clock must be exactly 3 times longer
   // to maintain the phase relationship.
-  uint32_t hr3x_hperiod = (micro + 599u) / 600u;  // 300MHz cycle
-  uint32_t hr_hperiod = 3 * hr3x_hperiod;  // 100MHz cycle
+  uint32_t hr3x_hperiod = (micro + 1199u) / 1200u;  // 600MHz cycle
+  uint32_t hr_hperiod = 3 * hr3x_hperiod;  // 200MHz cycle
 
   // The HyperRAM requires a clock that is phase-shifted by 90 degress.
   uint32_t hr90p_offset = hr_hperiod / 2;

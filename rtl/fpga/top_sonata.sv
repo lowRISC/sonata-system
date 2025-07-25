@@ -218,7 +218,7 @@ module top_sonata
 
   // System clock frequency.
   parameter int unsigned SysClkFreq      =  40_000_000;
-  parameter int unsigned HyperRAMClkFreq = 100_000_000;
+  parameter int unsigned HyperRAMClkFreq = 200_000_000;
 
   parameter SRAMInitFile    = "";
 
