@@ -177,7 +177,7 @@ module top_verilator #(
   wire unused_io_ = ^{mb1, ah_tmpio10, rph_g18, rph_g17,
                       rph_g16_ce2, rph_g8_ce0, rph_g7_ce1,
                       usrLed};
-
+`ifndef TARGET_XL_BOARD
   // HyperRAM interface.
   wire [7:0]  hyperram_dq;
   wire        hyperram_rwds;
@@ -185,7 +185,7 @@ module top_verilator #(
   wire        hyperram_ckn;
   wire        hyperram_nrst;
   wire        hyperram_cs;
-
+`endif
   // Reporting of CHERI enable/disable and any exceptions that occur.
   wire  [CheriErrWidth-1:0] cheri_err;
   logic [CheriErrWidth-1:0] cheri_errored;
@@ -356,11 +356,16 @@ module top_verilator #(
     .clk_usb_i      (clk_usb),
     .rst_usb_ni     (rst_usb_n),
 
+  // HyperRAM clocks and reset
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL
+`else
     // Hyperram clocks
     .clk_hr_i       (clk_hr),
     .clk_hr90p_i    (clk_hr90p),
     .clk_hr3x_i     (clk_hr3x),
     .rst_hr_ni      (rst_hr_n),
+`endif
 
     .gp_i           ({
                       15'b0,
@@ -430,12 +435,16 @@ module top_verilator #(
 
     .rgbled_dout_o (),
 
+`ifdef TARGET_XL_BOARD
+    // No HyperRAM on Sonata XL
+`else
     .hyperram_dq      (hyperram_dq),
     .hyperram_rwds    (hyperram_rwds),
     .hyperram_ckp     (hyperram_ckp),
     .hyperram_ckn     (hyperram_ckn),
     .hyperram_nrst    (hyperram_nrst),
     .hyperram_cs      (hyperram_cs),
+`endif
 
     .rs485_tx_enable_o(rs485_tx_enable),
     .rs485_rx_enable_o(rs485_rx_enable),
@@ -663,6 +672,11 @@ module top_verilator #(
     .rx_i  (rs485_uartdpi_rx)
   );
 
+`ifdef TARGET_XL_BOARD
+  // No HyperRAM on Sonata XL
+  logic unused_hr;
+  assign unused_hr = ^{clk_hr, clk_hr90p, clk_hr3x, rst_hr_n};
+`else
   // HyperRAM model (based on W956D8MBYA5I).
   hyperram_W956 u_hyperram_W956 (
     // Asynchronous reset signal.
@@ -677,6 +691,7 @@ module top_verilator #(
     // Bidirectional data bus.
     .dq     (hyperram_dq)
   );
+`endif
 
   export "DPI-C" function mhpmcounter_get;
 
