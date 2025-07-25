@@ -25,22 +25,19 @@ struct Ibex {
 
   static void global_interrupt_set(bool enable) {
     uint32_t mstatus = READ_CSR("mstatus");
-    mstatus &= ~(enable << 3);
-    mstatus |= enable << 3;
+    mstatus          = (mstatus & ~8u) | (enable ? 8u : 0u);
     WRITE_CSR("mstatus", mstatus);
   }
 
   static void external_interrupt_set(bool enable) {
     uint32_t mie = READ_CSR("mie");
-    mie &= ~(enable << 11);
-    mie |= enable << 11;
+    mie          = (mie & ~0x800u) | (enable ? 0x800u : 0u);
     WRITE_CSR("mie", mie);
   }
 
   static void timer_interrupt_set(bool enable) {
     uint32_t mie = READ_CSR("mie");
-    mie &= ~(enable << 7);
-    mie |= enable << 7;
+    mie          = (mie & ~0x80u) | (enable ? 0x80u : 0u);
     WRITE_CSR("mie", mie);
   }
 };
