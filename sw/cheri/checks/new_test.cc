@@ -80,20 +80,19 @@ Capability<void> CIncAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
     asm volatile(
       "cmove ca0, %[cap]\n"      // ca0 = cap
       "mv a2, %[rand]\n"         // a2 = rand
-      "cgetlen a3, ca0\n"        // a3 = ca0.bounds()
+      "cgettop a3, ca0\n"        // a3 = ca0.top()
       "cgetaddr a4, ca0\n"       // a4 = ca0.addr()
-      "cgetbase a5, ca0\n"       // a5 = ca0.base()
-      "sub a4, a4, a5\n"         // a4 = ca0.addr() - ca0.base()
-      "sub a3, a3, a4\n"           // a3 = ca0.bounds() - a4
+      "sub a3, a3, a4\n"         // a4 = ca0.top() - ca0.addr()
+      "beqz a3, 1f\n"            // if a3 == 0 goto 1
       "remu a2, a2, a3\n"
       "cincoffset ca0, ca0, a2\n"
+      "1:\n"
       "cmove %[out_cap], ca0\n"
       : [out_cap] "=C"(right_type_cap)
       : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
       : "ca0", "a2", "a3"
     );
     out = right_type_cap;
-    print_capability(out, uart);
     bool failed = !out.is_valid();
     return out;
 }
@@ -116,30 +115,26 @@ Capability<void> CSetBounds_test(Capability<void> cap, ds::xoroshiro::P64R32& pr
       "cmove ca0, %[cap]\n"        // ca0 = cap
       "mv a2, %[base]\n"           // a2 = rand_base
       "mv a3, %[length]\n"         // a3 = rand_length
-      "cgetlen a4, ca0\n"          // a4 = ca0.bounds()
+      "cgettop a4, ca0\n"          // a4 = ca0.top()
       "cgetaddr a5, ca0\n"         // a5 = ca0.addr()
-      "cgetbase t0, ca0\n"         // t0 = ca0.base()
-      "sub t0, a5, t0\n"           // t0 = ca0.addr() - ca0.base()
-      "sub a4, a4, t0\n"           // a4 = ca0.base() + ca0.bounds() - ca0.addr()
+      "sub a4, a4, a5\n"           // a4 = ca0.top() - ca0.addr()
+      "beqz a4, 1f\n"
       "remu a2, a2, a4\n"          // a2 = a2 % a4
       "cincoffset ca0, ca0, a2\n"  // ca0.addr += rand % (ca0.base() + ca0.bounds() - ca0.addr())
-      "cgetlen a4, ca0\n"          // a4 = ca0.bounds()
+      "cgettop a4, ca0\n"          // a4 = ca0.top()
       "cgetaddr a5, ca0\n"         // a5 = ca0.addr()
-      "cgetbase t0, ca0\n"         // t0 = ca0.base()
-      "sub t0, a5, t0\n"           // t0 = ca0.addr() - ca0.base()
-      "sub a4, a4, t0\n"           // a4 = ca0.base() + ca0.bounds() - ca0.addr()
+      "sub a4, a4, a5\n"           // a4 = ca0.base() + ca0.bounds() - ca0.addr()
+      "beqz a4, 1f\n"
       "remu a3, a3, a4\n"          //
       "csetbounds ca0, ca0, a3\n"  // ca0.bounds = rand % (ca0.base() + ca0.bounds() - ca0.addr())
+      "1:\n"
       "cmove %[out_cap], ca0\n"
       "mv %[bigsum], a4\n"
       : [out_cap] "=C"(right_type_cap), [bigsum] "=r"(sum)
       : [cap] "C"(right_type_cap), [base] "r"(rand_base), [length] "r"(rand_length)
-      : "ca0", "a2", "a3", "a4", "a5", "t0"
+      : "ca0", "a2", "a3", "a4", "a5"
     );
-    write_hex32b(uart, sum);
-    write_str(uart, "\n");
     out = right_type_cap;
-    print_capability(out, uart);
     bool failed = !out.is_valid();
     return out;
 
@@ -156,53 +151,26 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   uart->init(BAUD_RATE);
 
   ds::xoroshiro::P64R32 prng;
-  prng.set_state(0xDEADBEEF, 0xBAADCAFE);
+  prng.set_state(0xDEADBEE7, 0xBAADCAFE);
   volatile uint32_t rand_val;
   write_str(uart, "\n\n\n\n\nRunning test...\n");
   Capability<void> cap = root.cast<void>();
-
-  for (int i = 0; i <100; i++){
-     cap = CSetBounds_test(cap, prng, root, uart);
-     cap = CIncAddr_test(cap, prng, root, uart);
-     if (!cap.is_valid()){
-        write_str(uart, "Test failed\n");
-        break;
-     }
-
-//      rand_val = prng();
-//      uint32_t adjusted_rand_val;
-////      write_hex32b(uart, rand_val);
-////      write_str(uart, "\n");
-//      Capability<void> cap = root.cast<void>();
-//      Capability<void> out = root.cast<void>();
-//      volatile uint32_t tagbit;
-//      volatile uint32_t out_tagbit;
-//      //asm("mv x0, %0" : : "r"(cap) : "x0");
-//      //asm("ccleartag c%0, c%1" :"=r"(out) : "r"(cap));
-//      void* right_type_cap = cap.get();
-//      //volatile register uint32_t off asm("a0") = small_bounds;
-//      asm volatile(
-//        "cmove ca0, %[cap]\n"
-//        "mv a3, %[off]\n"
-//        "cgetlen a2, ca0\n"
-//        "remu a2, a3, a2\n"
-//        "cincoffset ca0, ca0, a2\n"
-//        "cmove %[out_cap], ca0\n"
-//        : [out_cap] "=C"(right_type_cap)
-//        : [cap] "C"(right_type_cap), [off] "r"(rand_val), [adjusted_off_in] "r"(adjusted_rand_val)
-//        : "ca0", "a2", "a3"
-//      );
-    //  asm("cmove ca0, %0" : : "C"(right_type_cap) : "ca0");
-    //  asm("cgetbounds %0, ca0" : "=r"(top) : :);
-    //  asm("ccleartag ca0, ca0" : : : "ca0");
-    //  asm("cincoffsetimm ca0, ca0, 8" : : : "ca0");
-    //  asm("cincoffset ca0, ca0, %0" : : "r"(rand_val) : "ca0");
-    //  asm("cgetbase %0, ca0" : "=r"(base) : : "ca0");
-    //  asm("cgettop %0, ca0" : "=r"(top) : : "ca0");
-    //  asm("cmove %0, ca0" : "=C"(right_type_cap): : "ca0");
-//      out = right_type_cap;
-//      print_capability(out, uart);
+  Capability<void> cap = root.cast<void>();
+  int num_fails = 0;
+  for (int iterations = 0; iterations <10; iterations++){
+    for (int i = 0; i <100; i++){
+       cap = CSetBounds_test(cap, prng, root, uart);
+       cap = CIncAddr_test(cap, prng, root, uart);
+       if (!cap.is_valid()){
+          write_str(uart, "Test failed\n");
+          num_fails++;
+          break;
+       }
+    }
   }
+  write_str(uart, "Number of failed tests: ");
+  write_hex32b(uart, num_fails);
+  write_str(uart, "\n");
   write_str(uart, "Test complete.\n");
 
 }

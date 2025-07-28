@@ -54,18 +54,20 @@ Requires
 - Arbitrary capability in ca0
 ### Pseudocode
 ```
-increment = rand_val % (cap.bounds + cap.base - cap.addr)
-cap.addr += increment 
+max_increment = cap.top - cap.addr
+if max_increment > 0:
+    increment = rand_val % max_increment
+    cap.addr += increment 
 ```
 ### Assembly
 ```asm
-cgetlen a1, ca0 # a1 = ca0.bounds()
+cgettop a1, ca0 # a1 = ca0.top()
 cgetaddr a2, ca0 # a2 = ca0.addr()
-cgetbase a3, ca0 # a3 = ca0.base()
-sub a2, a2, a3 # a2 = a2 - a3
-sub a1, a1, a2 # a1 = a1 - a2 
+sub a1, a1, a2 # a1 = a1 - a2
+beqz a1, end
 remu a0 a0, a1 # a0 = a0 % a1
 cincoffset ca0, ca0, a0 # ca0.addr += a0
+end:
 ```
 This test guarantees that the address of the new capability is within the bounds of the old capability.
 ## CIncAddrImm
@@ -98,23 +100,30 @@ Requires
 - Arbitrary capability in ca0
 ### Pseudocode
 ```python
-increment = rand_base % (cap.base + cap.bounds - cap.addr)
-cap.addr += increment
-length = rand_length % (cap.base + cap.bounds - cap.addr)
-new_cap = set_bounds(cap, top)
+max_increment = cap.top - cap.addr
+if max_increment > 0:
+    increment = rand_base % max_increment
+    cap.addr += increment
+max_increment = cap.top - cap.addr
+if max_increment > 0:
+    length = rand_length % max_increment
+    new_cap = set_bounds(cap, top)
 ```
 ### Assembly
 ```asm
-cgetlen a2, ca0 # a2 = ca0.bounds
+cgettop a2, ca0 # a2 = ca0.top
 cgetaddr a3, ca0 # a3 = ca0.addr
-cgetbase a4, ca0 # a4 = ca0.base
-sub a4, a3, a4 # a2 = ca0.addr - ca0.base
-sub a2, a2, a4 # a2 = a2 - a4 
+sub a2, a2, a3 # a2 = ca0.top - ca0.addr
+beqz a2 end
 remu a0 a0, a2 # a0 = a0 % a2
 cincoffset ca0, ca0, a0 # ca0.addr += a0
-
+cgettop a2, ca0 # a2 = ca0.top
+cgetaddr a3, ca0 # a3 = ca0.addr
+sub a2, a2, a3 # a2 = ca0.top - ca0.addr
+beqz a2 end
 remu a0 a1, a2 # a0 = a1 % a2
 csetbounds ca0, ca0, a0
+end:
 ```
 ## CSetBoundsExact
 ## CSetBoundsRoundDown
