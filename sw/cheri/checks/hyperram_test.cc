@@ -28,6 +28,21 @@ using namespace CHERI;
 const int RandTestBlockSize = 256;
 const int HyperramSize      = (1024 * 1024) / 4;
 
+// Ensure that all writing of code to memory has completed before commencing execution
+// of that code. Code has been written to [start, end] with both addresses being
+// inclusive.
+static inline void instr_fence(volatile uint32_t *start, volatile uint32_t *end) {
+  // CPU fence instruction, but this does not guarantee the ordering of transactions
+  // with the two TL-UL crossbars and a memory (SRAM or HyperRAM) presenting two
+  // separated ports onto those two crossbars.
+  asm volatile("fence.i" : : : "memory");
+
+  // By writing the first word of the code again we can ensure that the code is
+  // flushed out to the HyperRAM and will thus be coherent with instruction
+  // fetching when the code is executed.
+  *start = *start;
+}
+
 // Write random values to a block of memory (size given by 'RandTestBlockSize'
 // global constant). Reads them all back and checks read values matched written
 // values.
@@ -199,12 +214,7 @@ void write_prog(Capability<volatile uint32_t> &hyperram_area, uint32_t addr) {
   hyperram_area[addr + 3] = 0x00000517;
   hyperram_area[addr + 4] = 0x8082;
 
-  asm volatile("fence.i" : : : "memory");
-
-  // By writing the first word of the code again we can ensure that the code is
-  // flushed out to the HyperRAM and will thus be coherent with instruction
-  // fetching when the code is executed.
-  hyperram_area[addr] = hyperram_area[addr];
+  instr_fence(&hyperram_area[addr], &hyperram_area[addr + 4]);
 }
 
 // Writes a short function to a random area of hyperram and executes it checking
@@ -615,6 +625,51 @@ int write_tests(Capability<volatile uint8_t> hyperram_b_area, Capability<volatil
   return failures;
 }
 
+// Simple performance test of linear code execution from the HyperRAM.
+// - build a sequence of repeated instructions at the given address
+int linear_execution_test(Capability<volatile uint32_t> hyperram_w_area, ds::xoroshiro::P64R32 &prng, Log &log,
+                          bool report_times = true, uint32_t prog_addr = UINT32_MAX, uint32_t prog_len = 0x2000u,
+                          int iterations = 1) {
+  int failures = 0;
+
+  // Choose a target address if not specified.
+  if (prog_addr == UINT32_MAX) {
+    prog_addr = prng() & 0x3fcu;  // This is sufficient to achieve all valid alignments.
+  }
+
+  // Emit code; 8KiB (2048 instructions) of repeated 'cincoffset ca0, ca0, 0x4' instructions.
+  // 0045155b     	cincoffset	ca0, ca0, 0x4
+  // 00008067     	cret
+  const uint32_t cret_instr = 0x00008067u;
+  const uint32_t inc_instr  = 0x0045155bu;
+  uint32_t cret_idx         = (prog_addr + prog_len) >> 2;
+  uint32_t prog_idx         = prog_addr >> 2;
+  for (uint32_t idx = prog_idx; idx < cret_idx; ++idx) {
+    hyperram_w_area[idx] = inc_instr;
+  }
+  // Complete the code.
+  hyperram_w_area[cret_idx] = cret_instr;
+  test_fn_t test_fn         = get_hyperram_fn_ptr(HYPERRAM_ADDRESS + prog_addr);
+
+  instr_fence(&hyperram_w_area[prog_idx], &hyperram_w_area[cret_idx]);
+
+  // Start timing the execution.
+  uint32_t start_time = get_mcycle();
+  for (int iter = 0; iter < iterations; ++iter) {
+    // Invoke the function with a pointer to itself; each instruction advances the pointer
+    // by one instruction.
+    void *ret_ptr = test_fn((uint32_t *)&hyperram_w_area[prog_idx]);
+    // Check the returned pointer indicates the `cret` instruction.
+    failures += (ret_ptr != &hyperram_w_area[cret_idx]);
+  }
+
+  if (report_times) {
+    log.println("  {} iteration(s) took {} cycles", iterations, get_mcycle() - start_time);
+  }
+
+  return failures;
+}
+
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
@@ -738,6 +793,25 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
     log.print("Running buffering test...");
     failures += buffering_test(hyperram_area, prng, 0x1000u);
     write_test_result(log, failures);
+
+    // Linear code sequence executing from HyperRAM.
+    //
+    // Executing with the icache disabled places more strain on the HyperRAM controller because
+    // it will receive many more instruction fetches.
+    const uint32_t lin_exec_len = 0x2000u;  // 8KiB of code is larger than the icache.
+    const int lin_exec_iters    = 25;
+    bool cache_enabled          = false;
+    do {
+      cache_enabled = !cache_enabled;
+      icache_enabled_set(cache_enabled);
+      icache_invalidate();
+      log.println("Running linear execution test with icache {:s}...", cache_enabled ? "enabled" : "disabled");
+      failures += linear_execution_test(hyperram_area, prng, log, true, 0u, lin_exec_len, lin_exec_iters);
+      log.print("  result...");
+      write_test_result(log, failures);
+    } while (cache_enabled);
+    // Reinstate the normal icache operation.
+    icache_enabled_set(true);
 
     // Write tests exercise the write coalescing logic of the HyperRAM controller interface.
     log.println("Running write tests...");
