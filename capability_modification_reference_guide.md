@@ -1,5 +1,5 @@
 # Reference Guide for Randomised Testing using Capability Modification Instructions
-## 📚 Table of Contents
+## Contents
 
 - [CAndPerm](#candperm)
 - [CClearTag](#ccleartag)
@@ -66,6 +66,41 @@ remu a0 a0, a1 # a0 = a0 % a1
 cincoffset ca0, ca0, a0 # ca0.addr += a0
 ```
 ## CSeal
+This test takes two capabilities. For the test to seal `ca0`, `ca1` must have `PERMIT_SEAL` and it must be able
+to set its address to $[0,7]$ or $[9,15]$ depending on whether the capability in `ca0` is  executable. If `ca0` is executable
+then the address of `ca1` must be set to $[0, 7]$ and otherwise the address of `ca1` must be set to $[9, 15]$. 
+
+Requires
+- Random 32-bit word in a0
+- Arbitrary capability in ca0, `cap`
+- Arbitrary capability in ca1, `sealing_cap`
+### Pseudocode
+```python
+// Check that the capability that will be used for sealing has permission to seal
+if not sealing_cap.PERMIT_SEAL: // sealing_cap has the sealing permission
+    return 
+    
+// Check that the capability that is to be used for sealing can set its address to a valid otype (0-7 or 9-16)
+if cap.PERMIT_EXECUTE:
+    // check that some address in the range [0, 7] is is the bounds of sealing_cap
+    if cap.base <= 7:
+        cap.addr = (rand % 8)
+    else: 
+        return
+else:
+    // check that some address in the range [9, 15] is in the bounds of sealing_cap
+    if cap.base <= 15 & cap.top > 9: //
+        cap.addr = 9 + (rand % 7)
+    else:
+        return
+
+CSEAL(cap, cap, sealing_cap) 
+    
+```
+### Assembly
+```asm
+
+```
 ## CSetAddr
 Requires
 - Random 32-bit word in a0

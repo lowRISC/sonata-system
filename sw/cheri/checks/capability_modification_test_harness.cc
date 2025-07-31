@@ -13,7 +13,6 @@
 #include "../../common/defs.h"
 // clang-format on
 #include <cheri.hh>
-
 #include <ds/xoroshiro.h>
 
 #include <stdint.h>
@@ -230,7 +229,114 @@ Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
     return out;
 }
 
-Capability<void> CSeal_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
+Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
+    uint32_t rand_val = prng();
+    void* right_type_cap = cap.get();
+    void* right_type_sealing_cap = seal_cap.get();
+    Capability<void> out_sealed;
+    Capability<void> out_sealer;
+    uint32_t test_val;
+    asm volatile(
+      // Loading in the external values
+      "cmove ca0, %[cap]\n"           // ca0 = cap
+      "cmove ca1, %[s_cap]\n"         // ca1 = sealing_cap
+      "mv a2, %[rand]\n"              // a2 = rand
+
+      // Main body
+      "cgetperm a3, ca0\n"           // a3 = ca0.perms
+
+      "li a4, 0x100\n"               // a4 = 2^8
+
+      "and a3, a3, a4\n"             // a3 = a3 & a4
+      // If a3 is 0 then the executable permission is not set and if a3 is not zero then the executable permission is set
+
+      "beqz a3, 1f\n"
+
+      // The execute permission is set. The address of ca1 should be set between 0 and 7
+      "li t0, 6\n"
+      "remu a2, a2, t0\n"
+      "addi a2, a2, 1\n"
+
+      // Now check that the base is below 7 and the top is above 1
+      "li t0, 8\n"
+      "cgetbase t1, ca1\n"
+      "bgeu t1, t0, 3f\n"
+
+      "li t0, 1\n"
+      "cgettop t1, ca1\n"
+      "bgeu t0, t1, 3f\n"
+
+      // This now needs to be constrained within the bounds of the capability
+      "cgettop t0, ca1\n"
+      "bgeu a2, t0, 4f\n"
+      "j 5f\n"
+      "4:\n"
+      "mv a2, t0\n"
+      "5:\n"
+
+      "cgetbase t0, ca1\n"
+      "bgeu t0, a2, 6f\n"
+      "j 7f\n"
+      "6:\n"
+      "mv a2, t0\n"
+      "7:\n"
+
+      // The address can now be set
+      "csetaddr ca1, ca1, a2\n"
+      "j 2f\n"
+
+      // The execute permission is not set
+      "1:\n"
+      "li t0, 6\n"
+      "remu a2, a2, t0\n"
+      "addi a2, a2, 9\n"
+
+      // Now check that the base is below 15 and the top is above 9
+      "li t0, 16\n"
+      "cgetbase t1, ca1\n"
+      "bgeu t1, t0, 3f\n"
+
+      "li t0, 9\n"
+      "cgettop t1, ca1\n"
+      "bgeu t0, t1, 3f\n"
+
+      // This now needs to be constrained within the bounds of the capability
+      "cgettop t0, ca1\n"
+      "bgeu a2, t0, 8f\n"
+      "j 9f\n"
+      "8:\n"
+      "mv a2, t0\n"
+      "9:\n"
+
+      "cgetbase t0, ca1\n"
+      "bgeu t0, a2, 10f\n"
+      "j 11f\n"
+      "10:\n"
+      "mv a2, t0\n"
+      "11:\n"
+      "csetaddr ca1, ca1, a2\n"
+
+      // Seal
+      "2:\n"
+      "li t0, 1\n"
+      "mv %[test_v], t0\n"
+
+      "cseal ca0, ca0, ca1\n"
+
+      "3:\n"
+      // Loading out the values
+      "cmove %[out_cap], ca0\n"
+
+      : [out_cap] "=C"(right_type_cap), [test_v] "=r"(test_val)
+      : [cap] "C"(right_type_cap), [s_cap] "C"(right_type_sealing_cap), [rand] "r"(rand_val)
+      : "ca0", "ca1", "ca3", "a2", "a3", "a4", "t0", "t1"
+    );
+//    write_str(uart, "Perms: ");
+//    write_hex32b(uart, test_val);
+//    write_str(uart, "\n");
+
+    out_sealed = right_type_cap;
+    return out_sealed;
 
 }
 
@@ -245,6 +351,21 @@ int print_capability(Capability<void> ptr, UartPtr uart)
     volatile uint32_t bounds = ptr.bounds();
     volatile uint32_t base = ptr.base();
     volatile uint32_t top = ptr.top();
+    PermissionSet perms = ptr.permissions();
+    bool perm_global = perms.contains(Permission::Global);
+    bool perm_load_global = perms.contains(Permission::LoadGlobal);
+    bool perm_store = perms.contains(Permission::Store);
+    bool perm_load_mutable = perms.contains(Permission::LoadMutable);
+    bool perm_store_local = perms.contains(Permission::StoreLocal);
+    bool perm_load = perms.contains(Permission::Load);
+    bool perm_load_store_capability = perms.contains(Permission::LoadStoreCapability);
+    bool perm_access_system_registers = perms.contains(Permission::AccessSystemRegisters);
+    bool perm_execute = perms.contains(Permission::Execute);
+    bool perm_unseal = perms.contains(Permission::Unseal);
+    bool perm_seal = perms.contains(Permission::Seal);
+    bool perm_user0 = perms.contains(Permission::User0);
+
+
     uint32_t tag = ptr.is_valid();
     uint32_t seal = ptr.type();
     write_str(uart, "Printing capability...\n");
@@ -258,9 +379,50 @@ int print_capability(Capability<void> ptr, UartPtr uart)
     write_hex32b(uart, bounds);
     write_str(uart , "\n    Tag: ");
     write_hex8b(uart, tag);
-    write_str(uart , "\n    Seal: ");
+    write_str(uart , "\n    OType: ");
     write_hex8b(uart, seal);
     write_str(uart , "\n");
+    if (perm_execute){
+        write_str(uart, "EX ");
+    }
+    if (perm_access_system_registers){
+        write_str(uart, "SR ");
+    }
+    if (perm_seal){
+        write_str(uart, "SE ");
+    }
+    if (perm_unseal){
+        write_str(uart, "US ");
+    }
+    if (perm_user0){
+        write_str(uart, "U0 ");
+    }
+    if (perm_global){
+        write_str(uart, "GL ");
+    }
+    if (perm_store_local){
+        write_str(uart, "SL ");
+    }
+    if (perm_load_mutable){
+        write_str(uart, "LM ");
+    }
+    if (perm_load_global){
+        write_str(uart, "LG ");
+    }
+    if (perm_load_store_capability){
+        write_str(uart, "MC ");
+    }
+    if (perm_store){
+        write_str(uart, "SD ");
+    }
+    if (perm_load){
+        write_str(uart, "LD ");
+    }
+    write_str(uart, "\n");
+
+
+
+
     return 1;
 }
 
@@ -268,37 +430,48 @@ int print_capability(Capability<void> ptr, UartPtr uart)
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
  */
-extern "C" [[noreturn]] void entry_point(void *rwRoot) {
+extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exRoot) {
   Capability<void> root{rwRoot};
+  Capability<void> seal_root{sealRoot};
+  Capability<void> execute_root{exRoot};
 
   // Create a bounded capability to the UART
   UartPtr uart = uart_ptr(root, 0);
   uart->init(BAUD_RATE);
-
   ds::xoroshiro::P64R32 prng;
-  prng.set_state(0xDEADBEEF, 0xBAADCAFE);
+  prng.set_state(0xDEADBEEE, 0xBAADCAFE);
   volatile uint32_t rand_val;
   write_str(uart, "\n\n\n\n\nRunning test...\n");
   Capability<void> cap = root.cast<void>();
+  Capability<void> seal_cap = seal_root.cast<void>();
+  Capability<void> ex_cap = execute_root.cast<void>();
+  Capability<void> out_cap;
   int num_fails = 0;
   int num_passes = 0;
+
   for (int iterations = 0; iterations < 0x100; iterations++){
     cap = root.cast<void>();
-    //print_capability(cap, uart);
-    for (int i = 0; i <10; i++){
-       cap = CSetBoundsRoundDown_test(cap, prng, root, uart);
+    seal_cap = seal_root.cast<void>();
+    ex_cap = execute_root.cast<void>();
+
+//    print_capability(cap, uart);
+//    print_capability(seal_cap, uart);
+//    print_capability(ex_cap, uart);
+    for (int i = 0; i <0x1; i++){
+       seal_cap = CSetBounds_test(seal_cap, prng, root, uart);
+       seal_cap = CSetBounds_test(seal_cap, prng, root, uart);
+       out_cap = CSeal_test(cap, seal_cap, prng, root, uart);
        //cap = CIncAddr_test(cap, prng, root, uart);
        //cap = CSetAddr_test(cap, prng, root, uart);
-       if (!cap.is_valid()){
-          print_capability(cap, uart);
-          //write_str(uart, "Test failed\n");
+       if (!out_cap.is_valid()){
+//          print_capability(out_cap, uart);
+          write_str(uart, "Test failed\n");
           num_fails++;
           break;
        }
-       //print_capability(cap, uart);
-       //print_capability(cap, uart);
+//       print_capability(out_cap, uart);
     }
-    if (cap.is_valid()){
+    if (out_cap.is_valid()){
         num_passes++;
     }
 
@@ -309,5 +482,5 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   write_str(uart, "Number of passed tests: ");
   write_hex32b(uart, num_passes);
   write_str(uart, "\n");
-  write_str(uart, "Tests complete.\n");
+  write_str(uart, "Tests completed.\n");
 }
