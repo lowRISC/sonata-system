@@ -15,8 +15,7 @@
 - [CUnseal](#cunseal)
 ## CAndPerm
 ## CClearTag
-This instruction clears the tag of a capability and there isn't a way of testing the instruction that doesn't clear the
-tag. 
+This instruction clears the tag of a capability.
 ## CIncAddr
 CIncOffset is an alias for this instruction.
 
@@ -73,24 +72,22 @@ then the address of `ca1` must be set to $[0, 7]$ and otherwise the address of `
 Requires
 - Random 32-bit word in a0
 - Arbitrary capability in ca0, `cap`
-- Arbitrary capability in ca1, `sealing_cap`
+- Capability with PERMIT_SEAL in ca1, `sealing_cap`
 ### Pseudocode
-```python
-// Check that the capability that will be used for sealing has permission to seal
-if not sealing_cap.PERMIT_SEAL: // sealing_cap has the sealing permission
-    return 
-    
+```python    
 // Check that the capability that is to be used for sealing can set its address to a valid otype (0-7 or 9-16)
 if cap.PERMIT_EXECUTE:
     // check that some address in the range [0, 7] is is the bounds of sealing_cap
-    if cap.base <= 7:
+    if cap.base <= 7 and cap.top > 1:
         cap.addr = (rand % 8)
+        cap.addr = min(max(cap.base, cap.addr), cap.top - 1)
     else: 
         return
 else:
     // check that some address in the range [9, 15] is in the bounds of sealing_cap
     if cap.base <= 15 & cap.top > 9: //
         cap.addr = 9 + (rand % 7)
+        cap.addr = min(max(cap.base, cap.addr), cap.top - 1)
     else:
         return
 
@@ -99,6 +96,86 @@ CSEAL(cap, cap, sealing_cap)
 ```
 ### Assembly
 ```asm
+  // Main body
+  cgetperm a3, ca0           // a3 = ca0.perms
+
+  li a4, 0x100               // a4 = 2^8
+
+  and a3, a3, a4             // a3 = a3 & a4
+  // If a3 is 0 then the executable permission is not set and if a3 is not zero then the executable permission is set
+
+  beqz a3, 1f
+
+  // The execute permission is set. The address of ca1 should be set between 1 and 7
+  li t0, 6
+  remu a2, a2, t0
+  addi a2, a2, 1
+
+  // Now check that the base is below 7 and the top is above 1
+  li t0, 8
+  cgetbase t1, ca1
+  bgeu t1, t0, 3f
+
+  li t0, 1
+  cgettop t1, ca1
+  bgeu t0, t1, 3f
+
+  // This now needs to be constrained within the bounds of the capability
+  cgettop t0, ca1
+  bgeu a2, t0, 4f
+  j 5f
+4:
+  mv a2, t0
+5:
+
+  cgetbase t0, ca1
+  bgeu t0, a2, 6f
+  j 7f
+6:
+  mv a2, t0
+7:
+
+  // The address can now be set
+  csetaddr ca1, ca1, a2
+  j 2f
+
+  // The execute permission is not set
+1:
+  li t0, 7
+  remu a2, a2, t0
+  addi a2, a2, 9
+
+  // Now check that the base is below 15 and the top is above 9
+  li t0, 16
+  cgetbase t1, ca1
+  bgeu t1, t0, 3f
+
+  li t0, 9
+  cgettop t1, ca1
+  bgeu t0, t1, 3f
+
+  // This now needs to be constrained within the bounds of the capability
+  cgettop t0, ca1
+  bgeu a2, t0, 8f
+  j 9f
+8:
+  mv a2, t0
+9:
+
+  cgetbase t0, ca1
+  bgeu t0, a2, 10f
+  j 11f
+10:
+  mv a2, t0
+11:
+  csetaddr ca1, ca1, a2
+
+  // Seal
+      
+2:
+  cseal ca0, ca0, ca1
+
+3:
 
 ```
 ## CSetAddr
@@ -245,6 +322,7 @@ csetboundsexact ca0, ca0, a1  // ca0.bounds = rand % (ca0.base() + ca0.bounds() 
 ## CSetBoundsRoundDown
 CSetBoundsRoundDown can be tested in exactly the same way as CSetBounds but will have slightly different behaviour (rounding 
 the bounds down instead of up).
+### Pseudocode
 ### Assembly
 ```asm
 cgettop a2, ca0 # a2 = ca0.top
@@ -264,4 +342,31 @@ end:
 ```
 ## CSetBoundsImm
 ## CSetHigh
+Always clears the tag bit 
 ## CUnseal
+CUnseal takes two capabilities, one that is sealed `cap` and that is used to unseal it `unseal_cap`. This test checks that
+the otype of `cap` is within the bounds of `unseal_cap` and if this is the case, `unseal_cap` is used to unseal `cap`. There
+is no element of randomness in this test, as sealing is a binary operation that is or is not possible.
+### Pseudocode
+```python
+if unseal_cap.base <= cap.type < unseal_cap.top:
+    CUnseal(cap, cap, unseal_cap) 
+```
+### Assembly
+```asm
+// Check that the otype of cap is within the bounds on unseal_cap
+cgettype a2, ca0
+cgetbase a3, ca1
+// if ca0.type < ca1.base end
+bgeu a3, a2, 1f
+
+cgettop a3, ca1
+bgeu a2, a3, 1f
+
+// The otype of cap is within the bounds on unseal_cap
+
+cunseal ca0, ca0, ca1
+
+// Moving values out of the registers
+1:
+```

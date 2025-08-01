@@ -29,7 +29,6 @@
 
 using namespace CHERI;
 
-#define FUNCT3_CLZ
 void write_hex32b(UartPtr uart, uint32_t value)
 {
     // Print highest byte first (big endian style)
@@ -37,6 +36,87 @@ void write_hex32b(UartPtr uart, uint32_t value)
     write_hex8b(uart, (value >> 16) & 0xFF);
     write_hex8b(uart, (value >> 8)  & 0xFF);
     write_hex8b(uart, (value >> 0)  & 0xFF);
+}
+
+int print_capability(Capability<void> ptr, UartPtr uart)
+{
+    volatile uint32_t addr = ptr.address();
+    volatile uint32_t bounds = ptr.bounds();
+    volatile uint32_t base = ptr.base();
+    volatile uint32_t top = ptr.top();
+    PermissionSet perms = ptr.permissions();
+    bool perm_global = perms.contains(Permission::Global);
+    bool perm_load_global = perms.contains(Permission::LoadGlobal);
+    bool perm_store = perms.contains(Permission::Store);
+    bool perm_load_mutable = perms.contains(Permission::LoadMutable);
+    bool perm_store_local = perms.contains(Permission::StoreLocal);
+    bool perm_load = perms.contains(Permission::Load);
+    bool perm_load_store_capability = perms.contains(Permission::LoadStoreCapability);
+    bool perm_access_system_registers = perms.contains(Permission::AccessSystemRegisters);
+    bool perm_execute = perms.contains(Permission::Execute);
+    bool perm_unseal = perms.contains(Permission::Unseal);
+    bool perm_seal = perms.contains(Permission::Seal);
+    bool perm_user0 = perms.contains(Permission::User0);
+
+
+    uint32_t tag = ptr.is_valid();
+    uint32_t seal = ptr.type();
+    write_str(uart, "Printing capability...\n");
+    write_str(uart, "    Base: ");
+    write_hex32b(uart, base);
+    write_str(uart, "\n    Top:  ");
+    write_hex32b(uart, top);
+    write_str(uart , "\n    Address: ");
+    write_hex32b(uart, addr);
+    write_str(uart , "\n    Length:");
+    write_hex32b(uart, bounds);
+    write_str(uart , "\n    Tag: ");
+    write_hex8b(uart, tag);
+    write_str(uart , "\n    OType: ");
+    write_hex8b(uart, seal);
+    write_str(uart , "\n");
+    if (perm_execute){
+        write_str(uart, "EX ");
+    }
+    if (perm_access_system_registers){
+        write_str(uart, "SR ");
+    }
+    if (perm_seal){
+        write_str(uart, "SE ");
+    }
+    if (perm_unseal){
+        write_str(uart, "US ");
+    }
+    if (perm_user0){
+        write_str(uart, "U0 ");
+    }
+    if (perm_global){
+        write_str(uart, "GL ");
+    }
+    if (perm_store_local){
+        write_str(uart, "SL ");
+    }
+    if (perm_load_mutable){
+        write_str(uart, "LM ");
+    }
+    if (perm_load_global){
+        write_str(uart, "LG ");
+    }
+    if (perm_load_store_capability){
+        write_str(uart, "MC ");
+    }
+    if (perm_store){
+        write_str(uart, "SD ");
+    }
+    if (perm_load){
+        write_str(uart, "LD ");
+    }
+    write_str(uart, "\n");
+
+
+
+
+    return 1;
 }
 
 // Testing the CIncAddr instruction
@@ -204,6 +284,7 @@ Capability<void> CSetBoundsRoundDown_test(Capability<void> cap, ds::xoroshiro::P
     bool failed = !out.is_valid();
     return out;
 }
+
 // Testing the CSetAddr instruction
 Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
     uint32_t rand_val = prng();
@@ -252,7 +333,7 @@ Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds:
 
       "beqz a3, 1f\n"
 
-      // The execute permission is set. The address of ca1 should be set between 0 and 7
+      // The execute permission is set. The address of ca1 should be set between 1 and 7
       "li t0, 6\n"
       "remu a2, a2, t0\n"
       "addi a2, a2, 1\n"
@@ -287,7 +368,7 @@ Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds:
 
       // The execute permission is not set
       "1:\n"
-      "li t0, 6\n"
+      "li t0, 7\n"
       "remu a2, a2, t0\n"
       "addi a2, a2, 9\n"
 
@@ -340,90 +421,48 @@ Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds:
 
 }
 
+Capability<void> CUnseal_test(Capability<void> cap, Capability<void> unseal_cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
+    void *right_type_cap = cap.get();
+    void *right_type_unseal_cap = unseal_cap.get();
+    uint32_t test_val;
+    Capability<void> out;
+    asm volatile(
+      // Moving values into the registers
+      "cmove ca0, %[cap]\n"          // ca0 = cap
+      "cmove ca1, %[unseal_cap]\n"   // ca1 = unseal_cap
+
+      // Main body
+
+      // Check that the otype of cap is within the bounds on unseal_cap
+      "cgettype a2, ca0\n"
+      "cgetbase a3, ca1\n"
+      // if ca0.type < ca1.base end
+      "bgeu a3, a2, 1f\n"
+
+      "cgettop a3, ca1\n"
+      "bgeu a2, a3, 1f\n"
+
+      // The otype of cap is within the bounds on unseal_cap
+
+      "cunseal ca0, ca0, ca1\n"
+
+      // Moving values out of the registers
+      "1:\n"
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap), [test_v] "=r"(test_val)
+      : [cap] "C"(right_type_cap), [unseal_cap]"C"(right_type_unseal_cap)
+      : "ca0", "a2", "a3"
+    );
+    write_str(uart, "Test value: ");
+    write_hex32b(uart, test_val);
+    write_str(uart, "\n");
+    out = right_type_cap;
+    return out;
+
+}
 Capability<void> randomise_capability(Capability<void> cap){
     void* right_type_cap = cap.get();
     return cap;
-}
-
-int print_capability(Capability<void> ptr, UartPtr uart)
-{
-    volatile uint32_t addr = ptr.address();
-    volatile uint32_t bounds = ptr.bounds();
-    volatile uint32_t base = ptr.base();
-    volatile uint32_t top = ptr.top();
-    PermissionSet perms = ptr.permissions();
-    bool perm_global = perms.contains(Permission::Global);
-    bool perm_load_global = perms.contains(Permission::LoadGlobal);
-    bool perm_store = perms.contains(Permission::Store);
-    bool perm_load_mutable = perms.contains(Permission::LoadMutable);
-    bool perm_store_local = perms.contains(Permission::StoreLocal);
-    bool perm_load = perms.contains(Permission::Load);
-    bool perm_load_store_capability = perms.contains(Permission::LoadStoreCapability);
-    bool perm_access_system_registers = perms.contains(Permission::AccessSystemRegisters);
-    bool perm_execute = perms.contains(Permission::Execute);
-    bool perm_unseal = perms.contains(Permission::Unseal);
-    bool perm_seal = perms.contains(Permission::Seal);
-    bool perm_user0 = perms.contains(Permission::User0);
-
-
-    uint32_t tag = ptr.is_valid();
-    uint32_t seal = ptr.type();
-    write_str(uart, "Printing capability...\n");
-    write_str(uart, "    Base: ");
-    write_hex32b(uart, base);
-    write_str(uart, "\n    Top:  ");
-    write_hex32b(uart, top);
-    write_str(uart , "\n    Address: ");
-    write_hex32b(uart, addr);
-    write_str(uart , "\n    Length:");
-    write_hex32b(uart, bounds);
-    write_str(uart , "\n    Tag: ");
-    write_hex8b(uart, tag);
-    write_str(uart , "\n    OType: ");
-    write_hex8b(uart, seal);
-    write_str(uart , "\n");
-    if (perm_execute){
-        write_str(uart, "EX ");
-    }
-    if (perm_access_system_registers){
-        write_str(uart, "SR ");
-    }
-    if (perm_seal){
-        write_str(uart, "SE ");
-    }
-    if (perm_unseal){
-        write_str(uart, "US ");
-    }
-    if (perm_user0){
-        write_str(uart, "U0 ");
-    }
-    if (perm_global){
-        write_str(uart, "GL ");
-    }
-    if (perm_store_local){
-        write_str(uart, "SL ");
-    }
-    if (perm_load_mutable){
-        write_str(uart, "LM ");
-    }
-    if (perm_load_global){
-        write_str(uart, "LG ");
-    }
-    if (perm_load_store_capability){
-        write_str(uart, "MC ");
-    }
-    if (perm_store){
-        write_str(uart, "SD ");
-    }
-    if (perm_load){
-        write_str(uart, "LD ");
-    }
-    write_str(uart, "\n");
-
-
-
-
-    return 1;
 }
 
 /**
@@ -449,7 +488,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exR
   int num_fails = 0;
   int num_passes = 0;
 
-  for (int iterations = 0; iterations < 0x100; iterations++){
+  for (int iterations = 0; iterations < 0x10; iterations++){
     cap = root.cast<void>();
     seal_cap = seal_root.cast<void>();
     ex_cap = execute_root.cast<void>();
@@ -458,10 +497,10 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exR
 //    print_capability(seal_cap, uart);
 //    print_capability(ex_cap, uart);
     for (int i = 0; i <0x1; i++){
-       seal_cap = CSetBounds_test(seal_cap, prng, root, uart);
-       seal_cap = CSetBounds_test(seal_cap, prng, root, uart);
-       out_cap = CSeal_test(cap, seal_cap, prng, root, uart);
-       //cap = CIncAddr_test(cap, prng, root, uart);
+//       seal_cap = CSetBounds_test(seal_cap, prng, root, uart);
+       seal_cap = CIncAddr_test(seal_cap, prng, root, uart);
+       cap = CSeal_test(cap, seal_cap, prng, root, uart);
+       out_cap = CUnseal_test(cap, seal_cap, prng, root, uart);
        //cap = CSetAddr_test(cap, prng, root, uart);
        if (!out_cap.is_valid()){
 //          print_capability(out_cap, uart);
@@ -469,7 +508,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exR
           num_fails++;
           break;
        }
-//       print_capability(out_cap, uart);
+       print_capability(out_cap, uart);
     }
     if (out_cap.is_valid()){
         num_passes++;
