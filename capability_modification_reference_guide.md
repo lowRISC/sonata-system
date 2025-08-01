@@ -18,7 +18,7 @@ This instruction takes a capability `cap` and a random integer in `rs2`. It then
 the integer. If the resulting permissions cannot be represented (by the permission encoding) the result will be a subset
 of the ANDed permissions. If `cap` is sealed and `rs2` codes for clearing any permission apart from PERMIT_GLOBAL then the 
 tag bit of the result is cleared. This test checks if `cap` is sealed, and if so sets every bit of `rs2` apart from the 
-bit associated with the global permsission. 
+bit associated with the global permsission.
 ### Pseudocode
 ```python
 rs2 = rand()
@@ -27,6 +27,9 @@ if cap.type: // Cap is sealed
 CAndPerm(cap, rs2)
 ```
 ### Assembly
+Requires
+- Random 32-bit word in a0 
+- Arbitrary capability in ca0
 ```asm
 cgettype a1, ca0 // a1 = ca0.type
 beqz a1, 1       // if ca0 is unsealed then go to candperm instruction
@@ -40,39 +43,30 @@ candperm ca0, ca0, a0
 ## CClearTag
 This instruction clears the tag of a capability.
 ## CIncAddr
-CIncOffset is an alias for this instruction.
-
-There are three different cases for the result of this instruction
-- Capability valid and address accessible using capability
-- Capability valid but address not accessible using capability
-- Capability invalid
-
+This instruction takes a capability `cap` and a random  integer register `rs2`. The tests maximum value by which it can 
+increment the capability and be left with a tagged capability. This is $cap.top - cap.addr$. `rs2` is then used to generate
+a random integer that is below the maximum value by which the capability's address can be incremented.
+### Pseudocode
+```
+max_increment = cap.top - cap.addr          // The maximum value by which the address can be incremented 
+if max_increment > 0:                       // if max_increment is 0 then no increment is possible and the instruction is not run
+    increment = rand_val % max_increment    // Use rand_val to generate a random number below max_increment 
+    cap.addr += increment                   // run CIncAddr
+```
+### Assembly
 Requires
 - Random 32-bit word in a0
 - Arbitrary capability in ca0
 
-### Capability valid and address accessible using capability:
-### Explanation 
-### Pseudocode
-```
-max_increment = cap.top - cap.addr
-if max_increment > 0:
-    increment = rand_val % max_increment
-    cap.addr += increment 
-```
-### Assembly
 ```asm
 cgettop a1, ca0 # a1 = ca0.top
 cgetaddr a2, ca0 # a2 = ca0.addr
-sub a1, a1, a2 # a1 = ca0.top - ca0.addr
-beqz a1, end
-remu a0 a0, a1 # a0 = a0 % a1
-cincoffset ca0, ca0, a0 # ca0.addr += a0
+sub a1, a1, a2 # a1 = ca0.top - ca0.addr  // a1 = max_increment
+beqz a1, end                              // if max_increment = 0 skip the rest
+remu a0 a0, a1 # a0 = a0 % a1             // increment = rand % max_increment
+cincoffset ca0, ca0, a0 # ca0.addr += a0  // cap.addr += increment
 end:
 ```
-This test guarantees that the address of the new capability is within the bounds of the old capability.
-### Capability valid and address not accessible using capability
-### Capability invalid 
 ## CIncAddrImm
 Requires
 - Random immediate `imm`
@@ -88,14 +82,9 @@ remu a0 a0, a1 # a0 = a0 % a1
 cincoffset ca0, ca0, a0 # ca0.addr += a0
 ```
 ## CSeal
-This test takes two capabilities. For the test to seal `ca0`, `ca1` must have `PERMIT_SEAL` and it must be able
-to set its address to $[0,7]$ or $[9,15]$ depending on whether the capability in `ca0` is  executable. If `ca0` is executable
-then the address of `ca1` must be set to $[0, 7]$ and otherwise the address of `ca1` must be set to $[9, 15]$. 
-
-Requires
-- Random 32-bit word in a0
-- Arbitrary capability in ca0, `cap`
-- Capability with PERMIT_SEAL in ca1, `sealing_cap`
+This test takes two capabilities. For the test to seal `cap`, `sealing_cap` must have `PERMIT_SEAL` and it must be able
+to set its address to $[0,7]$ or $[9,15]$ depending on whether the capability in `cap` is  executable. If `cap` is executable
+then the address of `sealing_cap` must be set to $[0, 7]$ and otherwise the address of `sealing_cap` must be set to $[9, 15]$. 
 ### Pseudocode
 ```python    
 // Check that the capability that is to be used for sealing can set its address to a valid otype (0-7 or 9-16)
@@ -114,9 +103,12 @@ else:
     else:
         return
 
-CSEAL(cap, cap, sealing_cap) 
-    
+CSEAL(cap, cap, sealing_cap)     
 ```
+Requires
+- Random 32-bit word in `a0`
+- Arbitrary capability in `ca0`
+- Capability with PERMIT_SEAL in `ca1`
 ### Assembly
 ```asm
   // Main body
@@ -202,31 +194,27 @@ CSEAL(cap, cap, sealing_cap)
 
 ```
 ## CSetAddr
-Requires
-- Random 32-bit word in a0
-- Arbitrary capability in ca0
-### Explanation
+This instruction takes a capability `cap` and a random integer `rand`. The test uses the random value to generate
+an integer between `cap.base` and `cap.top` which is used to the `CSetAddr` instruction. 
 ### Pseudocode
 ```python
-new_address = ca0.base + (rand % ca0.range)
+new_address = cap.base + (rand % cap.range)
 ca0.addr = new_address
 ```
 ### Assembly
+Requires
+- Random 32-bit word in a0
+- Arbitrary capability in ca0
 ```asm
-cgetlen a1, ca0       # a0 = ca0.len
-beqz a1, end          # if ca0.len == 0: end
-remu a0, a0, a1       # a0 = rand % ca0.len
-cgetbase a1, ca0      # a1 = ca0.base
-add a0, a0, a1        # a0 = ca0.base + (rand % ca0.len)
-csetaddr ca0, ca0, a0 # ca0.addr = ca0.base + (rand % ca0.len)
+cgetlen a1, ca0          // a0 = ca0.len
+beqz a1, end             // if ca0.len == 0: end
+remu a0, a0, a1          // a0 = rand % ca0.len
+cgetbase a1, ca0         // a1 = ca0.base
+add a0, a0, a1           // a0 = ca0.base + (rand % ca0.len)
+csetaddr ca0, ca0, a0    // ca0.addr = ca0.base + (rand % ca0.len)
 end: 
 ```
 ## CSetBounds
-Requires
-- Random 32-bit word in a0
-- Random 32-bit word in a1
-- Arbitrary capability in ca0
-### Explanation 
 CSetBounds takes a destination capability register `cd`, a source capability register `cs1` and an integer register `rs2`. The 
 destination capability is set to the source capability with its base field replaced with `cs1.address` and its length field
 replaced with the integer register `rs2`. 
@@ -257,6 +245,10 @@ if max_increment > 0:
     new_cap = set_bounds(cap, top)
 ```
 ### Assembly
+Requires
+- Random 32-bit word in a0
+- Random 32-bit word in a1
+- Arbitrary capability in ca0
 ```asm
 cgettop a2, ca0 # a2 = ca0.top
 cgetaddr a3, ca0 # a3 = ca0.addr
@@ -292,11 +284,6 @@ case is accounted for when `rand_length` is sufficiently small.
 before zeroing the bottom bits of rand_length the top bits should be zeroed and a new e calculated from the length. The min
 should then be taken with both es can this should be used when zeroing the bottom bits. This is a small change that won't add 
 many test cases.-->
-
-Requires:
-- Random 32-bit word in a0, `rand_base`
-- Random 32-bit word in a1, `rand_length`
-- Arbitrary capability in ca0
 ### Pseudocode
 ```python
 rand_base = random_int()
@@ -316,6 +303,10 @@ if max_length_bounds > 0:
     csetboundsexact(cap, aligned_increment) 
 ```
 ### Assembly
+Requires:
+- Random 32-bit word in `a0`
+- Random 32-bit word in `a1`
+- Arbitrary capability in `ca0`
 ```asm
 cgettop a2, ca0            // a2 = ca0.top()
 cgetaddr a3, ca0           // a3 = ca0.addr()
@@ -340,13 +331,17 @@ slli t0, t0, 9
 addi t0, t0, -1            // t0 = (1 << a2) - 1
 and a1, a1, t0
 csetboundsexact ca0, ca0, a1  // ca0.bounds = rand % (ca0.base() + ca0.bounds() - ca0.addr())
-1:\n"
+1:
 ```
 ## CSetBoundsRoundDown
 CSetBoundsRoundDown can be tested in exactly the same way as CSetBounds but will have slightly different behaviour (rounding 
 the bounds down instead of up).
 ### Pseudocode
 ### Assembly
+Requires:
+- Random 32-bit word in `a0`
+- Random 32-bit word in `a1`
+- Arbitrary capability in `ca0`
 ```asm
 cgettop a2, ca0 # a2 = ca0.top
 cgetaddr a3, ca0 # a3 = ca0.addr
@@ -361,11 +356,13 @@ beqz a2 end
 remu a0 a1, a2 # a0 = a1 % a2
 csetboundsrounddown ca0, ca0, a0
 end:
-
 ```
 ## CSetBoundsImm
 ## CSetHigh
-Always clears the tag bit 
+While this instruction always clears the tag bit, it can be used in conjunction with cbuildcap to build new tagged
+capabilities. 
+### Pseudocode
+### Assembly
 ## CUnseal
 CUnseal takes two capabilities, one that is sealed `cap` and that is used to unseal it `unseal_cap`. This test checks that
 the otype of `cap` is within the bounds of `unseal_cap` and if this is the case, `unseal_cap` is used to unseal `cap`. There
@@ -376,6 +373,9 @@ if unseal_cap.base <= cap.type < unseal_cap.top:
     CUnseal(cap, cap, unseal_cap) 
 ```
 ### Assembly
+Requires
+- Sealed capability in `ca0`
+- Capability with `PERMIT_UNSEAL` permission in `ca1`
 ```asm
 // Check that the otype of cap is within the bounds on unseal_cap
 cgettype a2, ca0
