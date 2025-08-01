@@ -14,6 +14,29 @@
 - [CSetHigh](#csethigh)
 - [CUnseal](#cunseal)
 ## CAndPerm
+This instruction takes a capability `cap` and a random integer in `rs2`. It then 'ands' the capability permissions with 
+the integer. If the resulting permissions cannot be represented (by the permission encoding) the result will be a subset
+of the ANDed permissions. If `cap` is sealed and `rs2` codes for clearing any permission apart from PERMIT_GLOBAL then the 
+tag bit of the result is cleared. This test checks if `cap` is sealed, and if so sets every bit of `rs2` apart from the 
+bit associated with the global permsission. 
+### Pseudocode
+```python
+rs2 = rand()
+if cap.type: // Cap is sealed
+    rs2 |= (not 1) // Setting every bit of rs2 apart from the global bit 
+CAndPerm(cap, rs2)
+```
+### Assembly
+```asm
+cgettype a1, ca0 // a1 = ca0.type
+beqz a1, 1       // if ca0 is unsealed then go to candperm instruction
+
+// Set all bits of a2 to 1 apart from the global bit
+ori a0, a0, -2 // Note -2 = 0xFFFFFFFE
+
+1:
+candperm ca0, ca0, a0
+```
 ## CClearTag
 This instruction clears the tag of a capability.
 ## CIncAddr

@@ -144,14 +144,6 @@ Capability<void> CIncAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
     return out;
 }
 
-// TODO: figure out a way of doing this test
-// Testing the CIncAddrImm instruction
-int CIncAddrImm_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
-    uint32_t imm = prng() % 0b1000000000000;
-    // Not sure how to do this because the immediate must be set at compile time which I can't do in this framework
-    // Despite this method should be pretty much the same
-}
-
 // Testing the CSetBounds instruction
 Capability<void> CSetBounds_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
     uint32_t rand_base = prng();
@@ -310,6 +302,7 @@ Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
     return out;
 }
 
+// Testing the CSeal instruction
 Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
     uint32_t rand_val = prng();
     void* right_type_cap = cap.get();
@@ -421,6 +414,7 @@ Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds:
 
 }
 
+// Testing the CUnseal instruction
 Capability<void> CUnseal_test(Capability<void> cap, Capability<void> unseal_cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
     void *right_type_cap = cap.get();
     void *right_type_unseal_cap = unseal_cap.get();
@@ -456,6 +450,36 @@ Capability<void> CUnseal_test(Capability<void> cap, Capability<void> unseal_cap,
     write_str(uart, "Test value: ");
     write_hex32b(uart, test_val);
     write_str(uart, "\n");
+    out = right_type_cap;
+    return out;
+
+}
+
+// Testing the CAndPerm instruction
+Capability<void> CAndPerm_term(Capability<void> cap, ds::xoroshiro::P64R32& prngm Capability<void> root, UartPtr uart){
+    uint32_t rand_val = prng();
+    void* right_type_cap = cap.get();
+    Capability<void> out;
+    asm volatile(
+      // Loading in the external values
+      "cmove ca0, %[cap]\n"      // ca0 = cap
+      "mv a2, %[rand]\n"         // a2 = rand
+
+      // Main body
+      "cgettype a3, ca0\n"       // a3 = ca0.type --- checking if ca0 is sealed
+      "beqz a3, 1f\n"            // if ca0 is unsealed skip to candperm
+
+      // Set all bits of a2 to 1 apart from the global bit
+      "ori a2, a2, -2\n"
+
+      "1:\n"
+      "candperm ca0, ca0, a2"
+      // Loading out the capability
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap)
+      : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
+      : "ca0", "a2", "a3"
+    );
     out = right_type_cap;
     return out;
 
