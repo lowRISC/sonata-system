@@ -14,17 +14,16 @@
 - [CSetHigh](#csethigh)
 - [CUnseal](#cunseal)
 ## CAndPerm
-This instruction takes a capability `cap` and a random integer in `rs2`. It then 'ands' the capability permissions with 
-the integer. If the resulting permissions cannot be represented (by the permission encoding) the result will be a subset
-of the ANDed permissions. If `cap` is sealed and `rs2` codes for clearing any permission apart from PERMIT_GLOBAL then the 
-tag bit of the result is cleared. This test checks if `cap` is sealed, and if so sets every bit of `rs2` apart from the 
-bit associated with the global permsission.
+The `CAndPerm` instruction performs a bitwise AND between the permission bits of a capability `cap` and a 32-bit integer
+`rand`. If the resulting permissions cannot be represented (by the permission encoding) the result will be a subset
+of the ANDed permissions. Different behaviour occurs if `cap` is sealed: if `rand` codes for clearing any permission apart 
+from PERMIT_GLOBAL then the tag bit of the result is cleared. This test checks if `cap` is sealed. If it is the test sets
+every bit of `rand` apart from the bit associated with PERMIT_GLOBAL, ensuring the tag bit of `cap` will not be cleared. 
 ### Pseudocode
 ```python
-rs2 = rand()
 if cap.type: // Cap is sealed
-    rs2 |= (not 1) // Setting every bit of rs2 apart from the global bit 
-CAndPerm(cap, rs2)
+    rand |= (not 1) // Setting every bit of rs2 apart from the global bit 
+CAndPerm(cap, rand)
 ```
 ### Assembly
 Requires
@@ -32,7 +31,7 @@ Requires
 - Arbitrary capability in ca0
 ```asm
 cgettype a1, ca0 // a1 = ca0.type
-beqz a1, 1       // if ca0 is unsealed then go to candperm instruction
+beqz a1, 1f       // if ca0 is unsealed then go to candperm instruction
 
 // Set all bits of a2 to 1 apart from the global bit
 ori a0, a0, -2 // Note -2 = 0xFFFFFFFE
@@ -43,14 +42,15 @@ candperm ca0, ca0, a0
 ## CClearTag
 This instruction clears the tag of a capability.
 ## CIncAddr
-This instruction takes a capability `cap` and a random  integer register `rs2`. The tests maximum value by which it can 
-increment the capability and be left with a tagged capability. This is $cap.top - cap.addr$. `rs2` is then used to generate
-a random integer that is below the maximum value by which the capability's address can be incremented.
+The `CIncAddr` instruction increments the address of a capability `cap` by a signed integer. To ensure that the resulting address 
+remains with the bounds of the capability, the test firstly calculates the maximum value by which the address of `cap` can be incremented and remain valid. 
+This is $cap.top - cap.addr$. A random integer `rand` is then used to generate an integer that is below the maximum value 
+by which the capability's address can be safely incremented.
 ### Pseudocode
 ```
 max_increment = cap.top - cap.addr          // The maximum value by which the address can be incremented 
 if max_increment > 0:                       // if max_increment is 0 then no increment is possible and the instruction is not run
-    increment = rand_val % max_increment    // Use rand_val to generate a random number below max_increment 
+    increment = rand % max_increment        // Use rand to generate a random number below max_increment 
     cap.addr += increment                   // run CIncAddr
 ```
 ### Assembly
@@ -68,9 +68,9 @@ cincoffset ca0, ca0, a0 # ca0.addr += a0  // cap.addr += increment
 end:
 ```
 ## CIncAddrImm
-This instruction takes a capability `cap` and an immediate `imm`. It then increments the address of `cap` by `imm` and invalidates
-the capability if the new address is not in the representable range. The test checks that the new address is within the bounds 
-of `cap` before doing the operation. This ensures that `cap` is not invalidated by the operation.
+The `CIncAddrImm` instruction increments the address of a capability `cap` by a signed immediate `IMM`. To ensure that the resulting address
+remains with the bounds of the capability, the test firstly calculates the maximum value by which the address of `cap` can be incremented and remain valid.
+This is $cap.top - cap.addr$. If `IMM` is below this `CIncAddrImm` is run, otherwise it is skipped. 
 ### Pseudocode
 ```python
 if cap.base <= cap.addr + imm < cap.top:
@@ -92,9 +92,10 @@ cincoffsetimm ca0, ca0, IMM     // cap.addr += IMM
 1:
 ```
 ## CSeal
-This test takes two capabilities. For the test to seal `cap`, `sealing_cap` must have `PERMIT_SEAL` and it must be able
-to set its address to $[0,7]$ or $[9,15]$ depending on whether the capability in `cap` is  executable. If `cap` is executable
-then the address of `sealing_cap` must be set to $[0, 7]$ and otherwise the address of `sealing_cap` must be set to $[9, 15]$. 
+The `CSeal` instruction seals a capability `cap` using another capability `sealing_cap`. For the operation to be successful,
+`sealing_cap` must have `PERMIT_SEAL` and it must be able to set its address to $[0,7]$ or $[9,15]$ depending on whether the capability in `cap` is  executable. 
+If `cap` is executable then the address of `sealing_cap` must be set to $[0, 7]$ and otherwise the address of `sealing_cap` must be set to $[9, 15]$. 
+In this test, `rand` is used to set the address of `sealing_cap`, which determines the `otype` of `cap` when sealed.
 ### Pseudocode
 ```python    
 // Check that the capability that is to be used for sealing can set its address to a valid otype (0-7 or 9-16)
@@ -117,7 +118,7 @@ CSEAL(cap, cap, sealing_cap)
 ```
 Requires
 - Random 32-bit word in `a0`
-- Arbitrary capability in `ca0`
+- Unsealed capability in `ca0`
 - Capability with PERMIT_SEAL in `ca1`
 ### Assembly
 ```asm
@@ -204,8 +205,9 @@ Requires
 
 ```
 ## CSetAddr
-This instruction takes a capability `cap` and a random integer `rand`. The test uses the random value to generate
-an integer between `cap.base` and `cap.top` which is used to the `CSetAddr` instruction. 
+The `CSetAddr` instruction sets the address of a capability `cap` to an integer value. 
+The test uses the random integer `rand` to generate an integer between `cap.base` and `cap.top` (ensuring `cap` remains valid)
+which is used in the `CSetAddr` instruction. 
 ### Pseudocode
 ```python
 new_address = cap.base + (rand % cap.range)
