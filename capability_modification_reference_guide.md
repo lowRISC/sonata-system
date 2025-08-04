@@ -68,18 +68,28 @@ cincoffset ca0, ca0, a0 # ca0.addr += a0  // cap.addr += increment
 end:
 ```
 ## CIncAddrImm
+This instruction takes a capability `cap` and an immediate `imm`. It then increments the address of `cap` by `imm` and invalidates
+the capability if the new address is not in the representable range. The test checks that the new address is within the bounds 
+of `cap` before doing the operation. This ensures that `cap` is not invalidated by the operation.
+### Pseudocode
+```python
+if cap.base <= cap.addr + imm < cap.top:
+    cap.addr += imm
+```
+### Assembly
 Requires
-- Random immediate `imm`
+- Random immediate `IMM`
 - Arbitrary capability in ca0
 ```asm
-li a0, imm # a0 = imm
-cgetlen a1, ca0 # a1 = ca0.bounds()
-cgetaddr a2, ca0 # a2 = ca0.addr()
-cgetbase a3, ca0 # a3 = ca0.base()
-sub a2, a2, a3 # a2 = a2 - a3
-sub a1, a1, a2 # a1 = a1 - a2 
-remu a0 a0, a1 # a0 = a0 % a1
-cincoffset ca0, ca0, a0 # ca0.addr += a0
+li a0, IMM                      // a0 = imm
+cgetaddr a1, ca0                // a1 = cap.addr
+add a1, a1, a0                  // a1 = cap.addr + imm
+cgettop a2, ca0                 // a2 = cap.top
+bgeu a1, a2, 1                  // if cap.addr + imm > top: goto end
+cgetbase a2, ca0                // a2 = cap.base
+bgtu a2, a1, 1                  // if cap.base > cap.addr + imm: goto end
+cincoffsetimm ca0, ca0, IMM     // cap.addr += IMM
+1:
 ```
 ## CSeal
 This test takes two capabilities. For the test to seal `cap`, `sealing_cap` must have `PERMIT_SEAL` and it must be able
@@ -358,11 +368,42 @@ csetboundsrounddown ca0, ca0, a0
 end:
 ```
 ## CSetBoundsImm
+CSetBoundsImm takes a capability `cap` and an unsigned immediate `IMM`. The base of the result is set to `cap.addr` and
+the length to `IMM`. This test checks whether the new bounds are within the bounds of `cap` and if so executes the instruction. 
+### Pseudocode
+```python
+if cap.addr + IMM < cap.top:
+    CSetBoundsImm(cap, IMM)
+```
+### Assembly
+Requires
+- Random immediate `IMM`
+- Capability in `ca0`
+```asm
+cgetaddr a3, ca0         // a3 = cap.addr
+addi a2, a3, IMM"        // a3 = cap.addr + imm
+cgettop a4, ca0          // a4 = cap.top
+bgeu a2, a4, 1f          // if cap.addr + imm > top: goto end
+cgetbase a4, ca0         // a4 = cap.base
+bgtu a4, a3, 1f          // if cap.base > cap.addr: goto end
+csetboundsimm ca0, ca0, IMM
+1:
+```
 ## CSetHigh
 While this instruction always clears the tag bit, it can be used in conjunction with cbuildcap to build new tagged
-capabilities. 
+capabilities. As this instruction always clears the tag bit, the test just runs the instruction (knowing that the tag bit
+will be cleared).
 ### Pseudocode
+```python
+CSetHigh(cap, rand)
+```
 ### Assembly
+Requires
+- Arbitrary capability in `ca0`
+- Random word in `a0`
+```asm
+csethigh ca0, ca0, a0
+```
 ## CUnseal
 CUnseal takes two capabilities, one that is sealed `cap` and that is used to unseal it `unseal_cap`. This test checks that
 the otype of `cap` is within the bounds of `unseal_cap` and if this is the case, `unseal_cap` is used to unseal `cap`. There
