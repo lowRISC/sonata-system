@@ -135,7 +135,133 @@ Capability<void> CIncAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
       "cmove %[out_cap], ca0\n"
       : [out_cap] "=C"(right_type_cap)
       : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
-      : "ca0", "a2", "a3");
+      : "ca0", "a2", "a3", "a4");
+  out = right_type_cap;
+  return out;
+}
+
+// Testing the CSetAddr instruction
+Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart) {
+  uint32_t rand_val    = prng();
+  void* right_type_cap = cap.get();
+  Capability<void> out = root.cast<void>();
+  asm volatile(
+      "cmove ca0, %[cap]\n"  // ca0 = cap
+      "mv a2, %[rand]\n"     // a2 = rand
+      "cgetbase a3, ca0\n"   // a3 = ca0.base
+      "cgettop a4, ca0\n"    // a4 = ca0.top
+      "sub a3, a4, a3\n"     // a3 = ca0.top - ca0.base
+      "beqz a3, 1f\n"
+      "remu a2, a2, a3\n"   // a2 = a2 % a4
+      "cgetbase a3, ca0\n"  // a3 = ca0.base()
+      "add a2, a2, a3\n"    // a2 = ca0.base() + ( rand % ca0.length() )
+      "csetaddr ca0, ca0, a2\n"
+      "1:\n"
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap)
+      : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
+      : "ca0", "a2", "a3", "a4");
+  out = right_type_cap;
+  return out;
+}
+
+// Testing the CIncAddrImm instruction
+Capability<void> CIncAddrImm_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root,
+                                  UartPtr uart) {
+  void* right_type_cap = cap.get();
+  Capability<void> out = root.cast<void>();
+  asm volatile(
+      // Loading in external values
+      "cmove ca0, %[cap]\n"  // ca0 = cap
+
+      // Main body
+      "li a2, %[imm]\n"     // a2 = imm
+      "cgetaddr a3, ca0\n"  // a3 = cap.addr
+      "add a3, a3, a2\n"    // a3 = cap.addr + imm
+      "cgettop a4, ca0\n"   // a4 = cap.top
+      "bgeu a3, a4, 1f\n"   // if cap.addr + imm > top: goto end
+      "cgetbase a4, ca0\n"  // a4 = cap.base
+      "bgtu a4, a3, 1f\n"   // if cap.base > cap.addr + imm: goto end
+      "cincoffsetimm ca0, ca0, %[imm]\n"
+      // Loading out register values
+      "1:\n"
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap)
+      : [cap] "C"(right_type_cap), [imm] "i"(IMMEDIATE)
+      : "ca0", "a2", "a3", "a4");
+  out = right_type_cap;
+  return out;
+}
+
+Capability<void> CIncAddr_representable_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root,
+                                             UartPtr uart) {
+  uint32_t rand_val    = prng();
+  void* right_type_cap = cap.get();
+  uint32_t clz         = __builtin_clz(cap.length());
+
+  Capability<void> out = root.cast<void>();
+  asm volatile(
+      "cmove ca0, %[cap]\n"  // ca0 = cap
+      "mv a2, %[rand]\n"     // a2 = rand
+      "cgetbase a4, ca0\n"   // a4 = ca0.base
+
+      "mv t0, %[clz]\n"  // t0 = clz(cap.length)
+      // t0 = MIN(t0, 23)
+      "li a3, 23\n"
+      "blt t0, a3, 1f\n"
+      "li t0, 23\n"
+      "1:"
+      "sub t0, a3, t0\n"  // e = 23 - min(clz(cap.length), 23)
+
+      "li a3, 1\n"
+      "slli a3, a3, 9\n"  // a3 = 2^9
+      "sll a3, a3, t0\n"
+      "remu a2, a2, a3\n"   // a2 = rand % (cap.top - cap.base)
+      "cgetaddr a3, ca0\n"  // a3 = cap.addr
+      "sub a3, a3, a4\n"    // a3 = cap.addr - cap.base
+      "sub a2, a2, a3\n"    // a2 = rand % (2^(e+9)) - (cap.addr - cap.base)
+                            // a2 + cap.addr = cap.base + (rand % (2^(e+9)))
+      "cincoffset ca0, ca0, a2\n"
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap)
+      : [cap] "C"(right_type_cap), [rand] "r"(rand_val), [clz] "r"(clz)
+      : "ca0", "a2", "a3", "a4", "t0");
+  out = right_type_cap;
+  return out;
+}
+
+Capability<void> CSetAddr_representable_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root,
+                                             UartPtr uart) {
+  uint32_t rand_val    = prng();
+  void* right_type_cap = cap.get();
+  uint32_t clz         = __builtin_clz(cap.length());
+
+  Capability<void> out = root.cast<void>();
+  asm volatile(
+      "cmove ca0, %[cap]\n"  // ca0 = cap
+      "mv a2, %[rand]\n"     // a2 = rand
+      "cgetbase a4, ca0\n"   // a4 = ca0.base
+
+      "mv t0, %[clz]\n"  // t0 = clz(cap.length)
+      // t0 = MIN(t0, 23)
+      "li a3, 23\n"
+      "blt t0, a3, 1f\n"
+      "li t0, 23\n"
+      "1:"
+      "sub t0, a3, t0\n"  // e = 23 - min(clz(cap.length), 23)
+
+      "li a3, 1\n"
+      "slli a3, a3, 9\n"  // a3 = 2^9
+      "sll a3, a3, t0\n"
+      "remu a2, a2, a3\n"  // a2 = rand % (2^(e+9))
+
+      "cgetbase a4, ca0\n"
+      "add a2, a2, a4\n"
+      "csetaddr ca0, ca0, a2\n"
+      "cmove %[out_cap], ca0\n"
+      : [out_cap] "=C"(right_type_cap)
+      : [cap] "C"(right_type_cap), [rand] "r"(rand_val), [clz] "r"(clz)
+      : "ca0", "a2", "a3", "a4", "t0");
   out = right_type_cap;
   return out;
 }
@@ -214,6 +340,17 @@ Capability<void> CSetBoundsExact_test(Capability<void> cap, ds::xoroshiro::P64R3
                            //      "mv  a2, t1\n"              //a2 = 24
                            //      "1:\n"
       "mv %[test_v], a2\n"
+
+      "li t0, 14\n"
+      "li t1, 24\n"
+      "blt a2, t0, 4f\n"  // if ctz(addr) < 14 then e = ctz(addr) so skip rest
+      "bge a2, t1, 3f\n"
+      "li a2, 14\n"
+      "j 4f\n"
+      "3:\n"
+      "li a2, 24\n"
+      "4:\n"
+
       "li t0, 1\n"         // t0 = 1
       "sll t0, t0, a2\n"   // t0 = 1 << a2
       "addi t0, t0, -1\n"  // t0 = (1 << a2) - 1
@@ -282,31 +419,6 @@ Capability<void> CSetBoundsRoundDown_test(Capability<void> cap, ds::xoroshiro::P
   return out;
 }
 
-// Testing the CSetAddr instruction
-Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart) {
-  uint32_t rand_val    = prng();
-  void* right_type_cap = cap.get();
-  Capability<void> out = root.cast<void>();
-  asm volatile(
-      "cmove ca0, %[cap]\n"  // ca0 = cap
-      "mv a2, %[rand]\n"     // a2 = rand
-      "cgetbase a3, ca0\n"   // a3 = ca0.base
-      "cgettop a4, ca0\n"    // a4 = ca0.top
-      "sub a3, a4, a3\n"     // a3 = ca0.top - ca0.base
-      "beqz a3, 1f\n"
-      "remu a2, a2, a3\n"   // a2 = a2 % a4
-      "cgetbase a3, ca0\n"  // a3 = ca0.base()
-      "add a2, a2, a3\n"    // a2 = ca0.base() + ( rand % ca0.length() )
-      "csetaddr ca0, ca0, a2\n"
-      "1:\n"
-      "cmove %[out_cap], ca0\n"
-      : [out_cap] "=C"(right_type_cap)
-      : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
-      : "ca0", "a2", "a3", "a4");
-  out = right_type_cap;
-  return out;
-}
-
 // Testing the CSeal instruction
 Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds::xoroshiro::P64R32& prng,
                             Capability<void> root, UartPtr uart) {
@@ -333,7 +445,7 @@ Capability<void> CSeal_test(Capability<void> cap, Capability<void> seal_cap, ds:
       "beqz a3, 1f\n"
 
       // The execute permission is set. The address of ca1 should be set between 1 and 7
-      "li t0, 6\n"
+      "li t0, 7\n"
       "remu a2, a2, t0\n"
       "addi a2, a2, 1\n"
 
@@ -495,41 +607,13 @@ Capability<void> CSetBoundsImm_test(Capability<void> cap, ds::xoroshiro::P64R32&
       // Main body
       "li a2, %[imm]\n"     // a2 = imm
       "cgetaddr a3, ca0\n"  // a3 = cap.addr
-      "add a2, a3, a2\n"    // a3 = cap.addr + imm
+      "add a2, a3, a2\n"    // a2 = cap.addr + imm
       "cgettop a4, ca0\n"   // a4 = cap.top
       "bgeu a2, a4, 1f\n"   // if cap.addr + imm > top: goto end
       "cgetbase a4, ca0\n"  // a4 = cap.base
       "bgtu a4, a3, 1f\n"   // if cap.base > cap.addr: goto end
       "csetboundsimm ca0, ca0, %[imm]\n"
 
-      // Loading out register values
-      "1:\n"
-      "cmove %[out_cap], ca0\n"
-      : [out_cap] "=C"(right_type_cap)
-      : [cap] "C"(right_type_cap), [imm] "i"(IMMEDIATE)
-      : "ca0", "a2", "a3", "a4");
-  out = right_type_cap;
-  return out;
-}
-
-// Testing the CIncAddrImm instruction
-Capability<void> CIncAddrImm_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root,
-                                  UartPtr uart) {
-  void* right_type_cap = cap.get();
-  Capability<void> out = root.cast<void>();
-  asm volatile(
-      // Loading in external values
-      "cmove ca0, %[cap]\n"  // ca0 = cap
-
-      // Main body
-      "li a2, %[imm]\n"     // a2 = imm
-      "cgetaddr a3, ca0\n"  // a3 = cap.addr
-      "add a3, a3, a2\n"    // a3 = cap.addr + imm
-      "cgettop a4, ca0\n"   // a4 = cap.top
-      "bgeu a3, a4, 1f\n"   // if cap.addr + imm > top: goto end
-      "cgetbase a4, ca0\n"  // a4 = cap.base
-      "bgtu a4, a3, 1f\n"   // if cap.base > cap.addr + imm: goto end
-      "cincoffsetimm ca0, ca0, %[imm]\n"
       // Loading out register values
       "1:\n"
       "cmove %[out_cap], ca0\n"
@@ -553,6 +637,8 @@ Capability<void> test_all(Capability<void> cap, ds::xoroshiro::P64R32& prng, Cap
   cap = CAndPerm_test(cap, prng, root, uart);
   cap = CSetBoundsImm_test(cap, prng, root, uart);
   cap = CIncAddrImm_test(cap, prng, root, uart);
+  cap = CIncAddr_representable_test(cap, prng, root, uart);
+  cap = CSetAddr_representable_test(cap, prng, root, uart);
   return cap;
 }
 
@@ -609,6 +695,7 @@ extern "C" void entry_point(void* rwRoot, void* sealRoot, void* exRoot) {
       out_cap = test_all(random_unsealed_cap, prng, seal_root, root, uart);
       if (!out_cap.is_valid()) {
         write_str(uart, "Test failed\n");
+        print_capability(out_cap, uart);
         num_fails++;
         break;
       }
