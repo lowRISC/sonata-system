@@ -227,31 +227,28 @@ csetaddr ca0, ca0, a0    // ca0.addr = ca0.base + (rand % ca0.len)
 end: 
 ```
 ## CSetBounds
-CSetBounds takes a destination capability register `cd`, a source capability register `cs1` and an integer register `rs2`. The 
-destination capability is set to the source capability with its base field replaced with `cs1.address` and its length field
-replaced with the integer register `rs2`. 
+CSetBounds sets new bounds for a capability `cap`, using an integer value corresponding to the new length as input. 
+The resulting capability is set to `cap` with 
+- its base field replaced with `cap.address`
+- its length field replaced with the integer input.
 
-This test guarantees that the cs1.address is within the bounds of cs1 and further guarantees that the value in rs2 does
-not exceed the maximum possible length of the capability (cd.top cannot be greater than cs1.top). By incrementing `cap.addr`
-by `rand_base % max_increment` (where `rand_base` is a random input) the new address is guaranteed to be below `cap.top`.
-The `length` to be used in set bounds is also less than or equal to the maximum possible length by once again calculating 
-the difference between the current address and the top (`max_increment = cap.top - cap.addr`) and ensuring that the length 
-is less than or equal to this value we guarantee that the bounds of `cd` cannot exceed the bounds of `cs1`. 
+This test ensures that `cap.address` is within the bounds of `cap` and that the integer input value to `CSetBounds` does 
+not exceed the maximum permissible length of `cap`. 
+By incrementing `cap.addr` by `rand_base % max_increment` (where `rand_base` is a random input to the test) the new address is guaranteed to be below `cap.top`.
+A similar technique ensures that the integer input is less than or equal to the maximum permissible length (`cap.top - cap.addr`).
 
-The resulting bounds are not always the same as the requested bounds, but if the requested bounds are less than the possible
-bounds (bounds of `cs1`) the resulting bounds are guaranteed to be at most the bounds of `cs1`. For this reason the bounds
+The resulting bounds are not always the same as the requested bounds, but if the requested bounds are a subset of the possible
+bounds (bounds of `cap`) the resulting bounds are guaranteed to be at most the bounds of `cap`. For this reason the bounds
 check is done on the requested bounds rather than the resulting bounds. This test guarantees that the requested bounds are 
-a subset of the bounds of `cs1` and so the `CSetBounds` instruction always produces a valid capability (assuming `cs1` is
+a subset of the bounds of `cap` and so the `CSetBounds` instruction always produces a valid capability (assuming `cap` is
 valid and unsealed). 
 ### Pseudocode
 ```python
-rand_base = random_int()
-rand_length = random_int()
-max_increment = cap.top - cap.addr
-if max_increment > 0:
-    increment = rand_base % max_increment
-    cap.addr += increment
-max_increment = cap.top - cap.addr
+max_increment = cap.top - cap.addr      // Maximum value by which the address can be incremented
+if max_increment > 0:                   // if this value is 0, skip
+    increment = rand_base % max_increment       // use the random word to produce a random increment
+    cap.addr += increment           // Increment the address by a random value
+max_increment = cap.top - cap.addr      // Calculate the new maximum length of the capability
 if max_increment > 0:
     length = rand_length % max_increment
     new_cap = set_bounds(cap, top)
@@ -383,7 +380,7 @@ Requires
 - Capability in `ca0`
 ```asm
 cgetaddr a3, ca0         // a3 = cap.addr
-addi a2, a3, IMM"        // a3 = cap.addr + imm
+addi a2, a3, IMM         // a3 = cap.addr + imm
 cgettop a4, ca0          // a4 = cap.top
 bgeu a2, a4, 1f          // if cap.addr + imm > top: goto end
 cgetbase a4, ca0         // a4 = cap.base
