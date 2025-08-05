@@ -140,7 +140,6 @@ uint32_t read_elf(SpiFlash &flash, uint32_t addr, UartRef uart, CHERI::Capabilit
  */
 extern "C" uint32_t rom_loader_entry(void *rwRoot) {
   CHERI::Capability<void> root{rwRoot};
-
   // Create a bounded capability to the UART
   CHERI::Capability<volatile OpenTitanUart> uart = root.cast<volatile OpenTitanUart>();
   uart.address()                                 = UART_ADDRESS;
@@ -195,7 +194,7 @@ extern "C" uint32_t rom_loader_entry(void *rwRoot) {
 
   write_str(uart, prefix);
   write_str(uart, "Booting into program, hopefully.\r\n");
-  return entrypoint;
+  return 0; //entrypoint;
 }
 
 extern "C" void exception_handler(void *rwRoot) {
