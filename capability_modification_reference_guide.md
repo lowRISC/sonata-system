@@ -274,17 +274,22 @@ csetbounds ca0, ca0, a0
 end:
 ```
 ## CSetBoundsExact
-CSetBoundsExact takes a destination capability register `cd`, a source capability register and an integer register `rs2`.
-Capability register `cd` is set to `cs1` with its base (and address) as `cs1.address` and its length as `rs2`. If this cannot be represented
-exactly the tag bit is cleared. Like with CSetBounds, if the requested bounds for `cd` are larger than the bounds for `cs1`
-the tag bit is cleared.
+`CSetBoundsExact` sets precise new bounds for a capability `cap`, using an integer value corresponding to the new length as input.
+Unlike `CSetBounds`, this instruction will fail (clear the tag bit), if the requested bounds cannot be represented exactly due 
+to coding constraints. 
+The resulting capability is set to `cap` with its 
+- base field replaced with `cap.address`
+- length field replaced with the integer input.
 
-For the bounds to be represented exactly, the number of leading zeroes of the length must be greater than or equal to the
-number of trailing zeroes of the base. The length of the capability `cd` is determined by the integer register `rs2` and the 
-base of `cd` is determined by `cs1.address`. There are many different ways to manipulate random inputs for this test to ensure the instruction succeeds.
+This test ensures that `cap.address` is within the bounds of `cap` and that the integer input value to `CSetBounds` does
+not exceed the maximum permissible length of `cap`.
+By incrementing `cap.addr` by `rand_base % max_increment` (where `rand_base` is a random input to the test) the new address is guaranteed to be below `cap.top`.
+A similar technique ensures that the integer input is less than or equal to the maximum permissible length (`cap.top - cap.addr`).
 
-The following test takes two random 32-bit word inputs, called `rand_base` and `rand_length`, because they are used to determine
-the base and length of `cd` respectively.  The address of `cd` is calculated as $cs1.address + (rand\_base \bmod cs1.length)$.
+The resulting bounds are always the same as the requested bounds. When this is not representable, the tag bit is cleared. 
+
+The test takes two random 32-bit word inputs, called `rand_base` and `rand_length`, used to determine
+the base and length of the resulting capability `cd` respectively.  The address of `cd` is calculated as $cap.address + (rand\_base \bmod cap.length)$.
 From this the value of the exponent `e` that will be used to represent the bounds internally is then calculated as the number
 of trailing zeroes of this address. `e` cannot be greater than the number of trailing zeroes as the encoding of `base` will then
 not be exact (exactness is required for this instruction). `e` could be less than the number of trailing zeroes and this 
@@ -295,8 +300,6 @@ should then be taken with both es can this should be used when zeroing the botto
 many test cases.-->
 ### Pseudocode
 ```python
-rand_base = random_int()
-rand_length = random_int()
 max_increment = cap.top - cap.addr
 if max_increment > 0:
     increment = rand_base % max_increment
@@ -346,6 +349,16 @@ csetboundsexact ca0, ca0, a1  // ca0.bounds = rand % (ca0.base() + ca0.bounds() 
 CSetBoundsRoundDown can be tested in exactly the same way as CSetBounds but will have slightly different behaviour (rounding 
 the bounds down instead of up).
 ### Pseudocode
+```python
+max_increment = cap.top - cap.addr      // Maximum value by which the address can be incremented
+if max_increment > 0:                   // if this value is 0, skip
+    increment = rand_base % max_increment       // use the random word to produce a random increment
+    cap.addr += increment           // Increment the address by a random value
+max_increment = cap.top - cap.addr      // Calculate the new maximum length of the capability
+if max_increment > 0:
+    length = rand_length % max_increment
+    new_cap = set_bounds(cap, top)
+```
 ### Assembly
 Requires:
 - Random 32-bit word in `a0`
@@ -389,7 +402,7 @@ csetboundsimm ca0, ca0, IMM
 1:
 ```
 ## CSetHigh
-While this instruction always clears the tag bit, it can be used in conjunction with cbuildcap to build new tagged
+While `CSetHigh` always clears the tag bit, it can be used in conjunction with `CBuildCap` to build new tagged
 capabilities. As this instruction always clears the tag bit, the test just runs the instruction (knowing that the tag bit
 will be cleared).
 ### Pseudocode
