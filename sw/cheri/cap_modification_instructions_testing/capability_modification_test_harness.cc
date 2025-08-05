@@ -6,7 +6,7 @@
 #define CHERIOT_NO_AMBIENT_MALLOC
 #define CHERIOT_NO_NEW_DELETE
 #define CHERIOT_PLATFORM_CUSTOM_UART
-#define IMMEDIATE -1234
+#define IMMEDIATE 1234
 
 #include <stdint.h>
 
@@ -128,11 +128,14 @@ Capability<void> CIncAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
     asm volatile(
       "cmove ca0, %[cap]\n"      // ca0 = cap
       "mv a2, %[rand]\n"         // a2 = rand
-      "cgettop a3, ca0\n"        // a3 = ca0.top()
-      "cgetaddr a4, ca0\n"       // a4 = ca0.addr()
-      "sub a3, a3, a4\n"         // a4 = ca0.top() - ca0.addr()
+      "cgettop a3, ca0\n"        // a3 = ca0.top
+      "cgetbase a4, ca0\n"       // a4 = ca0.base
+      "sub a3, a3, a4\n"         // a3 = ca0.top - ca0.addr
       "beqz a3, 1f\n"            // if a3 == 0 goto 1
-      "remu a2, a2, a3\n"
+      "remu a2, a2, a3\n"        // a2 = rand % (cap.top - cap.base)
+      "cgetaddr a3, ca0\n"       // a3 = cap.addr
+      "sub a3, a3, a4\n"         // a3 = cap.addr - cap.base
+      "sub a2, a2, a3\n"         // a2 = rand % (cap.top - cap.base) - (cap.addr - cap.base)
       "cincoffset ca0, ca0, a2\n"
       "1:\n"
       "cmove %[out_cap], ca0\n"
@@ -281,13 +284,14 @@ Capability<void> CSetBoundsRoundDown_test(Capability<void> cap, ds::xoroshiro::P
 // Testing the CSetAddr instruction
 Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> root, UartPtr uart){
     uint32_t rand_val = prng();
-    uint32_t e;
     void* right_type_cap = cap.get();
     Capability<void> out = root.cast<void>();
     asm volatile(
       "cmove ca0, %[cap]\n"      // ca0 = cap
       "mv a2, %[rand]\n"         // a2 = rand
-      "cgetlen a3, ca0\n"        // a3 = ca0.length()
+      "cgetbase a3, ca0\n"        // a3 = ca0.base
+      "cgettop a4, ca0\n"        // a4 = ca0.top
+      "sub a3, a4, a3\n"        // a3 = ca0.top - ca0.base
       "beqz a3, 1f\n"
       "remu a2, a2, a3\n"        // a2 = a2 % a4
       "cgetbase a3, ca0\n"       // a3 = ca0.base()
@@ -297,7 +301,7 @@ Capability<void> CSetAddr_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
       "cmove %[out_cap], ca0\n"
       : [out_cap] "=C"(right_type_cap)
       : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
-      : "ca0", "a2", "a3"
+      : "ca0", "a2", "a3", "a4"
     );
     out = right_type_cap;
     return out;
@@ -590,7 +594,7 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exR
   int num_fails = 0;
   int num_passes = 0;
 
-  for (int iterations = 0; iterations < 0x100; iterations++){
+  for (int iterations = 0; iterations < 0x1000; iterations++){
     cap = root.cast<void>();
     seal_cap = seal_root.cast<void>();
     ex_cap = execute_root.cast<void>();
@@ -598,21 +602,12 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot, void *sealRoot, void *exR
     random_sealed_cap = produce_random_sealed_cap(prng, root, seal_root, uart);
 
     for (int i = 0; i <0x1; i++){
-       out_cap = CIncAddrImm_test(random_unsealed_cap, prng, root, uart);
-//       cap = CSetBounds_test(cap, prng, root, uart);
-
-       //seal_cap = CIncAddr_test(seal_cap, prng, root, uart);
-       //out_cap = CUnseal_test(random_sealed_cap, seal_cap, prng, root, uart);
-       //out_cap = CAndPerm_test(out_cap, prng, root, uart);
-
-       //cap = CSetAddr_test(cap, prng, root, uart);
+       out_cap = CIncAddr_test(random_unsealed_cap, prng, root, uart);
        if (!out_cap.is_valid()){
-//          print_capability(out_cap, uart);
           write_str(uart, "Test failed\n");
           num_fails++;
           break;
        }
-       print_capability(out_cap, uart);
     }
     if (out_cap.is_valid()){
         num_passes++;

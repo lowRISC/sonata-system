@@ -44,13 +44,13 @@ This instruction clears the tag of a capability.
 ## CIncAddr
 The `CIncAddr` instruction increments the address of a capability `cap` by a signed integer. To ensure that the resulting address 
 remains with the bounds of the capability, the test firstly calculates the maximum value by which the address of `cap` can be incremented and remain valid. 
-This is $cap.top - cap.addr$. A random integer `rand` is then used to generate an integer that is below the maximum value 
-by which the capability's address can be safely incremented.
+A random integer `rand` is then used to generate an integer that is below the maximum value and above the minimum value by which the capability's address can be safely incremented.
 ### Pseudocode
 ```
-max_increment = cap.top - cap.addr          // The maximum value by which the address can be incremented 
-if max_increment > 0:                       // if max_increment is 0 then no increment is possible and the instruction is not run
+range = cap.top - cap.base                  // the length of the bounds
+if range > 0:                               // if max_increment is 0 then no increment is possible and the instruction is not run
     increment = rand % max_increment        // Use rand to generate a random number below max_increment 
+    increment -= (cap.addr - cap.base)      // increment = cap.base + (rand % max_increment)
     cap.addr += increment                   // run CIncAddr
 ```
 ### Assembly
@@ -59,13 +59,16 @@ Requires
 - Arbitrary capability in ca0
 
 ```asm
-cgettop a1, ca0 # a1 = ca0.top
-cgetaddr a2, ca0 # a2 = ca0.addr
-sub a1, a1, a2 # a1 = ca0.top - ca0.addr  // a1 = max_increment
-beqz a1, end                              // if max_increment = 0 skip the rest
-remu a0 a0, a1 # a0 = a0 % a1             // increment = rand % max_increment
-cincoffset ca0, ca0, a0 # ca0.addr += a0  // cap.addr += increment
-end:
+cgettop a1, ca0        // a1 = ca0.top
+cgetbase a2, ca0       // a2 = ca0.base
+sub a1, a1, a2         // a1 = ca0.top - ca0.addr
+beqz a2, 1f            // if a1 == 0 goto 1
+remu a0, a0, a1        // a0 = rand % (cap.top - cap.base)
+cgetaddr a1, ca0       // a1 = cap.addr
+sub a1, a1, a2         // a1 = cap.addr - cap.base
+sub a0, a0, a1         // a0 = rand % (cap.top - cap.base) - (cap.addr - cap.base)
+cincoffset ca0, ca0, a0
+1:
 ```
 ## CIncAddrImm
 The `CIncAddrImm` instruction increments the address of a capability `cap` by a signed immediate `IMM`. To ensure that the resulting address
@@ -218,13 +221,15 @@ Requires
 - Random 32-bit word in a0
 - Arbitrary capability in ca0
 ```asm
-cgetlen a1, ca0          // a0 = ca0.len
-beqz a1, end             // if ca0.len == 0: end
-remu a0, a0, a1          // a0 = rand % ca0.len
-cgetbase a1, ca0         // a1 = ca0.base
-add a0, a0, a1           // a0 = ca0.base + (rand % ca0.len)
-csetaddr ca0, ca0, a0    // ca0.addr = ca0.base + (rand % ca0.len)
-end: 
+cgetbase a1, ca0        // a1 = ca0.base
+cgettop a2, ca0         // a2 = ca0.top
+sub a1, a2, a1          // a1 = ca0.top - ca0.base
+beqz a1, 1f
+remu a0, a0, a1         // a0 = a0 % a1
+cgetbase a1, ca0        // a1 = ca0.base()
+add a0, a0, a1          // a0 = ca0.base() + ( rand % ca0.length() )
+csetaddr ca0, ca0, a0
+1: 
 ```
 ## CSetBounds
 CSetBounds sets new bounds for a capability `cap`, using an integer value corresponding to the new length as input. 
