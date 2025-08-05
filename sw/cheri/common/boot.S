@@ -89,6 +89,14 @@ start:
 	csetaddr         cgp, cs0, t0
 
 	cmove            ca0, cs0
+	cspecialr        cs0, mscratchc
+	cmove 			 ca1, cs0
+
+	auipcc 			 cs1, 0              // Get PCC with offset = 0 (i.e., code root)
+	li 				 t0, 0
+	csetaddr		 cs1, cs1, t0		 // Setting the address of the execute root to 0
+	cmove   	     ca2, cs1            // Pass it in ca2
+
 	ccall            entry_point
 
 	// Infinite loop if the entry point ever returns
