@@ -27,7 +27,7 @@ The `CAndPerm` instruction performs a bitwise AND between the permission bits of
 If the resulting permissions cannot be represented (by the permission encoding) the result will be a subset of the ANDed permissions.
 Different behaviour occurs if `cap` is sealed: if the integer input codes for clearing any permission apart from PERMIT_GLOBAL then the tag bit of the result is cleared.
 This test checks if `cap` is sealed.
-If it is the test sets every bit of its random word input, `rand`, apart from the bit associated with PERMIT_GLOBAL, ensuring the tag bit of `cap` will not be cleared.
+If so, the test sets every bit of its random word input, `rand`, apart from the bit associated with PERMIT_GLOBAL, ensuring the tag bit of `cap` will not be cleared.
 
 ### Pseudocode
 
@@ -64,11 +64,20 @@ This instruction clears the tag of a capability and so there is no test where th
 ## CIncAddr
 
 The `CIncAddr` instruction increments the address of a capability `cap` by a signed integer.
+This test has two variations.
+1. Bounds variant: this version ensures that the resulting address remains within the bounds of the capability.
+This means that the resulting capability can be used to access memory without causing an error, but limits randomness.
+2. Representable range variant: this version ensures that the resulting address remains within the representable range of the capability.
+Although the resulting capability cannot safely be used for memory access, this version tests the full range of addresses to which the capability can be set without clearing its tag.
+
+### Bounds variant
+
 To ensure that the resulting address remains with the bounds of the capability, the test firstly calculates the difference between the top and base of the capability.
 A random integer `rand` is then used to generate a signed integer that, when added to the address, yields an address within the bounds of `cap`.
 $$inc = (cap.base - cap.address) + (rand \bmod (cap.top - cap.base))$$
 $$cap.address + inc = cap.base + (rand \bmod (cap.top - cap.base))$$
 **Note:** The new address is between the base and top of `cap`. This is a subset of the representable range, which goes from the $cap.base$ to $cap.base + 2^{e+9}$ where $e$ is the exponent used to encode the bounds. This choice was made so that the capability can then be used without causing an exception. The same decision has been made for `CIncAddrImm` and `CSetAddr`.
+
 ### Pseudocode
 
 ```
@@ -83,7 +92,7 @@ if range > 0:                               // if max_increment is 0 then no inc
 
 ```asm
 // Constrained CIncAddr routine that will maintain the tag bit of a given capability
-// while incrementing its address using a given random word
+// while incrementing its address using a given random word, to a value in its bounds
 //
 // ca0    = capability to modify
 // a2     = random 32-bit word
@@ -92,13 +101,60 @@ valid_cincaddr:
 cgettop a3, ca0        
 cgetbase a4, ca0       
 sub a3, a3, a4         // range = cap.top - cap.base
-beqz a4, end            // if cap.top - cap.base is 0, the address cannot be changed and these rest of the test is skipped 
+beqz a3, end            // if cap.top - cap.base is 0, the address cannot be changed and these rest of the test is skipped 
 remu a2, a2, a3        // inc = rand % range
 cgetaddr a3, ca0       
 sub a3, a3, a4         // a3 = cap.addr - cap.base
 sub a2, a2, a3         // inc = inc - (cap.addr - cap.base)
 cincoffset ca0, ca0, a2
 end:
+```
+
+### Representable range variant
+
+To ensure that the resulting address remains within the representable range of the capability, the test must calculate this range.
+The representable range is defined to be $[b, b + 2^{e+9}]$ where $e$ is the exponent in the capability encoding and $b$ is the base of the capability. 
+A random integer `rand` is then used to generate a signed integer that, when added to the address, yields an address within the representable range of `cap`.
+
+### Pseudocode
+
+```
+e = 23 - min(23, clz(cap.range))
+if e > 14:
+    e = 24
+repr_range = 2^(e+9)
+increment = rand % repr_range        // Use rand to generate a random number below repr_range
+increment -= (cap.addr - cap.base)      // increment = cap.base + (rand % repr_range)
+cap.addr += increment                   // run CIncAddr
+```
+
+### Assembly
+
+```asm
+// Constrained CIncAddr routine that will maintain the tag bit of a given capability
+// while incrementing its address using a given random word, to a value in its representable range
+//
+// ca0    = capability to modify
+// a2     = random 32-bit word
+// return = modified capability
+valid_cincaddr_repr:
+cgetbase a4, ca0
+cgetlen t0, ca0
+clz t0, t0             // t0 = clz(ca0.len)
+// t0 = min(t0, 23)
+li a3 23
+blt t0, a3, 1f
+li t0, 23
+1:
+sub t0, a3, t0         // e = 23 - min(clz(ca0.len), 23)
+li a3, 1
+slli a3, a3, 9
+sll a3, a3, t0
+remu a2, a2, a3        // inc = rand % range
+cgetaddr a3, ca0       
+sub a3, a3, a4         // a3 = cap.addr - cap.base
+sub a2, a2, a3         // inc = inc - (cap.addr - cap.base)
+cincoffset ca0, ca0, a2
 ```
 
 ## CIncAddrImm
@@ -137,19 +193,19 @@ end:
 ## CSeal
 
 The `CSeal` instruction seals a capability `cap` using another capability `sealing_cap`.
-For the operation to be successful, `sealing_cap` must have `PERMIT_SEAL` and it must be able to set its address to $[0,7]$
+For the operation to be successful, `sealing_cap` must have `PERMIT_SEAL` and it must be able to set its address to $[1,7]$
 or $[9,15]$ depending on whether the capability in `cap` is  executable.
-If `cap` is executable then the address of `sealing_cap` must be set to $[0, 7]$ and otherwise the address of `sealing_cap` must be set to $[9, 15]$.
+If `cap` is executable then the address of `sealing_cap` must be set to $[1, 7]$ and otherwise the address of `sealing_cap` must be set to $[9, 15]$.
 In this test, `rand` is used to set the address of `sealing_cap`, which determines the `otype` of `cap` when sealed.
 
 ### Pseudocode
 
 ```
-// Check that the capability that is to be used for sealing can set its address to a valid otype (0-7 or 9-16)
+// Check that the capability that is to be used for sealing can set its address to a valid otype (1-7 or 9-16)
 if cap.PERMIT_EXECUTE:
-    // check that some address in the range [0, 7] is is the bounds of sealing_cap
+    // check that some address in the range [1, 7] is is the bounds of sealing_cap
     if cap.base <= 7 and cap.top > 1:
-        cap.addr = (rand % 8)
+        cap.addr = 1 + (rand % 7)
         cap.addr = min(max(cap.base, cap.addr), cap.top - 1)
     else:
         return
@@ -163,6 +219,7 @@ else:
 
 CSEAL(cap, cap, sealing_cap)
 ```
+
 ### Assembly
 
 ```asm
@@ -185,9 +242,9 @@ and t0, t0, t1             // t0 = t0 & t1
 beqz t0, 1f
 
 // The execute permission is set. The address of ca1 should be set between 1 and 7
-li t2, 6
-remu a4, a4, t2
-addi a4, a4, 1
+li t2, 7
+remu a2, a2, t2
+addi a2, a2, 1
 
 // Now check that the base is below 7 and the top is above 1
 li t2, 8
@@ -200,28 +257,28 @@ bgeu t2, t3, 3f
 
 // This now needs to be constrained within the bounds of the capability
 cgettop t2, ca1
-bgeu a4, t2, 4f
+bgeu a2, t2, 4f
 j 5f
 4:
-mv a4, t2
+mv a2, t2
 5:
 
 cgetbase t2, ca1
-bgeu t2, a4, 6f
+bgeu t2, a2, 6f
 j 7f
 6:
-mv a4, t2
+mv a2, t2
 7:
 
 // The address can now be set
-csetaddr ca1, ca1, a4
+csetaddr ca1, ca1, a2
 j 2f
 
 // The execute permission is not set
 1:
 li t2, 7
-remu a4, a4, t2
-addi a4, a4, 9
+remu a2, a2, t2
+addi a2, a2, 9
 
 // Now check that the base is below 15 and the top is above 9
 li t2, 16
@@ -234,19 +291,19 @@ bgeu t2, t3, 3f
 
 // This now needs to be constrained within the bounds of the capability
 cgettop t2, ca1
-bgeu a4, t2, 8f
+bgeu a2, t2, 8f
 j 9f
 8:
-mv a4, t2
+mv a2, t2
 9:
 
 cgetbase t2, ca1
-bgeu t2, a4, 10f
+bgeu t2, a2, 10f
 j 11f
 10:
-mv a4, t2
+mv a2, t2
 11:
-csetaddr ca1, ca1, a4
+csetaddr ca1, ca1, a2
 
 // Seal
 
@@ -260,13 +317,20 @@ cseal ca0, ca0, ca1
 ## CSetAddr
 
 The `CSetAddr` instruction sets the address of a capability `cap` to an integer value.
+This test has two variations.
+1. Bounds variant: this version ensures that the resulting address remains within the bounds of the capability.
+   This means that the resulting capability can be used to access memory without causing an error, but limits randomness.
+2. Representable range variant: this version ensures that the resulting address remains within the representable range of the capability.
+   Although the resulting capability cannot safely be used for memory access, this version tests the full range of addresses to which the capability can be set without clearing its tag.
+
+### Bounds variant
+
 The test uses the random integer `rand` to generate an integer between `cap.base` and `cap.top` (ensuring `cap` remains tagged) which is used in the `CSetAddr` instruction.
 
 ### Pseudocode
 
 ```
-new_address = cap.base + (rand % cap.range)
-ca0.addr = new_address
+ca0.addr = cap.base + (rand % cap.range)
 ```
 
 ### Assembly
@@ -290,6 +354,50 @@ csetaddr ca0, ca0, a2
 end:
 ```
 
+### Representable range variant
+
+To ensure that the resulting address remains within the representable range of the capability, the test must calculate this range.
+The representable range is defined to be $[b, b + 2^{e+9}]$ where $e$ is the exponent in the capability encoding and $b$ is the base of the capability.
+A random integer `rand` is then used to generate an integer that is within the representable range of `cap`.
+
+### Pseudocode
+
+```
+e = 23 - min(23, clz(cap.range))
+if e > 14:
+    e = 24
+repr_range = 2^(e+9)
+increment = repr_rand % range        // Use rand to generate a random number below repr_range
+cap.addr = cap.addr + increment                   // run CSetAddr
+```
+
+### Assembly
+
+```asm
+// Constrained CSetAddr routine that will maintain the tag bit of a given capability
+// while incrementing its address using a given random word, to a value in its representable range
+//
+// ca0    = capability to modify
+// a2     = random 32-bit word
+// return = modified capability
+valid_cincaddr_repr:
+cgetlen t0, ca0
+clz t0, t0             // t0 = clz(ca0.len)
+// t0 = min(t0, 23)
+li a3 23
+blt t0, a3, 1f
+li t0, 23
+1:
+sub t0, a3, t0         // e = 23 - min(clz(ca0.len), 23)
+li a3, 1
+slli a3, a3, 9
+sll a3, a3, t0
+remu a2, a2, a3        // inc = rand % range
+cgetbase a4, ca0
+add a2, a2, a4
+csetaddr ca0, ca0, a2
+```
+
 ## CSetBounds
 
 CSetBounds sets new bounds for a capability `cap`, using an unsigned integer value corresponding to the new length as input.
@@ -298,7 +406,8 @@ The resulting capability is set to `cap` with:
 - its length field replaced with the integer input.
 
 This test ensures that `cap.address` is within the bounds of `cap` and that the integer input value to `CSetBounds` does not exceed the maximum permissible length of `cap`.
-The test firstly sets `cap.address` to a random value within the bounds.
+The test firstly sets `cap.address` to a random value within the bounds. 
+If `cap.address` is outside the bounds of `cap`, then the resulting capability has its tag bit cleared (as then the bounds change would not be monotonic).
 The test then ensures that the integer input to `CSetBounds` is less than or equal to the maximum permissible length (`cap.top - cap.addr`).
 
 The resulting bounds are not always the same as the requested bounds, but if the requested bounds are a subset of the possible bounds (bounds of `cap`) the resulting bounds are guaranteed to be at most the bounds of `cap`.
@@ -308,12 +417,11 @@ This test guarantees that the requested bounds are a subset of the bounds of `ca
 ### Pseudocode
 
 ```
-new_address = cap.base + (rand_base % cap.range)
-ca0.addr = new_address
+cap.addr = cap.base + (rand_base % cap.range)
 max_increment = cap.top - cap.addr      // Calculate the new maximum length of the capability
 if max_increment > 0:
     length = rand_length % max_increment
-    new_cap = set_bounds(cap, top)
+    new_cap = set_bounds(cap, length)
 ```
 
 ### Assembly
@@ -329,7 +437,7 @@ if max_increment > 0:
 valid_csetbounds:
 cgetbase a4, ca0        
 cgettop t0, ca0         
-sub a4, t0, a4          // a3 = ca0.top - ca0.base
+sub a4, t0, a4          // a4 = ca0.top - ca0.base
 beqz a4, end            // if ca0.top - ca0.base == 0 then cannot shrink bounds so skip rest of test
 remu a2, a2, a4         
 cgetbase a4, ca0        
@@ -346,35 +454,36 @@ end:
 
 ## CSetBoundsExact
 
-`CSetBoundsExact` sets precise new bounds for a capability `cap`, using an integer value corresponding to the new length as input.
+`CSetBoundsExact` sets new bounds for a capability `cap`, using an integer value corresponding to the new length as input.
 Unlike `CSetBounds`, this instruction will fail (clear the tag bit), if the requested bounds cannot be represented exactly due to coding constraints.
 The resulting capability is set to `cap` with its:
 - base field replaced with `cap.address`
 - length field replaced with the integer input.
 
-This test ensures that `cap.address` is within the bounds of `cap` and that the integer input value to `CSetBounds` does not exceed the maximum permissible length of `cap`.
+This test ensures that `cap.address` is within the bounds of `cap` and that the integer input value to `CSetBoundsExact` does not exceed the maximum permissible length of `cap`.
 The test firstly sets `cap.address` to a random value within the bounds.
 The test then ensures that the integer input to `CSetBoundsExact` is less than or equal to the maximum permissible length (`cap.top - cap.addr`).
 
-The resulting bounds are always the same as the requested bounds. When this is not representable, the tag bit is cleared.
-
 The test takes two random 32-bit word inputs, called `rand_base` and `rand_length`, used to determine the base and length of the resulting capability `cd` respectively.
-The address of `cd` is calculated as $cap.address + (rand_base \bmod cap.length)$.
-From this the value of the exponent `e` that will be used to represent the bounds internally is then calculated as the number of trailing zeroes of this address.
-`e` cannot be greater than the number of trailing zeroes as the encoding of `base` will then not be exact (exactness is required for this instruction).
-`e` could be less than the number of trailing zeroes and this case is accounted for when `rand_length` is sufficiently small.
+The address of `cd` is calculated as $cap.base + (rand\_base \bmod cap.length)$.
+From this the highest possible value of the exponent `e` that could be used to represent the bounds internally is then calculated by taking the number of trailing zeroes in the address and rounding it down to 24 if it is above 24 and down to 14 if it is above 14 and below 24.
+The eventual `e` cannot be greater than the number of trailing zeroes as the encoding of `base` will then not be exact (exactness is required for this instruction to not clear the tag).
+The eventual `e` is less than the number of trailing of zeroes when the number of leading zeroes of the calculated length is greater than the proposed `e` calculated. 
 
 ### Pseudocode
 
 ```
-new_address = cap.base + (rand_base % cap.range)
-ca0.addr = new_address
-e = clz(cap.addr)
+cap.addr = cap.base + (rand_base % cap.range)
+e = ctz(cap.addr)
+if e > 14 and e < 24:
+    e = 14
+if e > 24:
+    e = 24
 max_length_bounds = cap.top - cap.addr
 if max_length_bounds > 0:
 increment = rand_length % max_length_bounds
     max_length_alignment = 2 ^ (e + 9)
-    min_length_interval = 2^e
+    min_length_interval = 2 ^ e
     increment -= (increment % max_length_alignment)
     aligned_increment = increment - (increment % min_length_interval)
     csetboundsexact(cap, aligned_increment)
@@ -393,28 +502,37 @@ increment = rand_length % max_length_bounds
 valid_csetboundsexact:
 cgetbase a4, ca0           
 cgettop t0, ca0            
-sub a4, t0, a4             // a3 = ca0.top - ca0.base
+sub a4, t0, a4             // a4 = ca0.top - ca0.base
 beqz a4, 1f                // if ca0.top - ca0.base == 0 then bounds cannot be constrained so skip rest of test 
 remu a2, a2, a4            // inc = rand_base % (ca0.top - ca0.base)
 cgetbase a4, ca0           
 add a2, a2, a4             
 csetaddr ca0, ca0, a2      // ca0.addr = ca0.base + inc
-cgettop a4, ca0            
-cgetaddr t0, ca0           
-sub a4, a4, t0             // a4 = ca0.base() + ca0.bounds() - ca0.addr()
+cgettop a4, ca0          
+cgetaddr t0, ca0
+sub a4, a4, t0             // a4 = ca0.top() - ca0.addr()
 beqz a4, 1f                // if a4 == 0 end
 remu a3, a3, a4            // a3 = rand_length % a4
-clz a4, t0                 // a4 = clz ca0.addr + rand % (ca0.top - ca0.addr)
-li t2, 1                   
-sll t2, t2, a4
-addi t2, t2, -1            // t2 = (1 << a4) - 1
-not t2, t2
-and a3, a3, t2
-li t2, 1
-sll t2, t2, a4
-slli t2, t2, 9
-addi t2, t2, -1            // t2 = ((1 << a4) << 9) - 1
-and a3, a3, t2
+ctz a4, t0                 // a4 = ctz ca0.addr
+li t0, 14
+li t1, 24
+blt a4, t0, 4f
+bge a4, t1, 3f
+li a4, 14
+j 4f
+3:
+li a2, 24
+4:
+li t1, 1                   
+sll t1, t1, a4
+addi t1, t1, -1            // t1 = (1 << a4) - 1
+not t1, t1
+and a3, a3, t1
+li t1, 1
+sll t1, t1, a4
+slli t1, t1, 9
+addi t1, t1, -1            // t1 = ((1 << a4) << 9) - 1
+and a3, a3, t1
 csetboundsexact ca0, ca0, a3
 1:
 ```
@@ -426,12 +544,11 @@ CSetBoundsRoundDown can be tested in exactly the same way as CSetBounds but will
 ### Pseudocode
 
 ```
-new_address = cap.base + (rand_base % cap.range)
-ca0.addr = new_address
+cap.addr = cap.base + (rand_base % cap.range)
 max_increment = cap.top - cap.addr      // Calculate the new maximum length of the capability
 if max_increment > 0:
     length = rand_length % max_increment
-    new_cap = set_bounds(cap, top)
+    new_cap = set_bounds(cap, length)
 ```
 
 ### Assembly
@@ -447,7 +564,7 @@ if max_increment > 0:
 valid_csetboundsrounddown:
 cgetbase a4, ca0        
 cgettop t0, ca0         
-sub a4, t0, a4          // a3 = ca0.top - ca0.base
+sub a4, t0, a4          // a4 = ca0.top - ca0.base
 beqz a4, end            // if ca0.top - ca0.base == 0 then cannot shrink bounds so skip rest of test
 remu a2, a2, a4         
 cgetbase a4, ca0        
@@ -528,7 +645,7 @@ There is no element of randomness in this test, as sealing is a binary operation
 
 ```
 if unseal_cap.base <= cap.type < unseal_cap.top:
-CUnseal(cap, cap, unseal_cap)
+    CUnseal(cap, cap, unseal_cap)
 ```
 
 ## Assembly
@@ -543,24 +660,16 @@ CUnseal(cap, cap, unseal_cap)
 valid_cunseal:
 
 // Check that the otype of cap is within the bounds on unseal_cap
-cgettype a4,
-ca0 cgetbase t0,
-ca1
+cgettype a4, ca0 
+cgetbase t0, ca1
 // if ca0.type < ca1.base end
-bgeu t0,
-a4,
-1f
+bgeu t0, a4, 1f
 
-cgettop t0,
-ca1 bgeu a4, t0,
-1f
+cgettop t0, ca1
+bgeu a4, t0, 1f
 
 // The otype of cap is within the bounds on unseal_cap
 
-cunseal ca0,
-ca0,
-ca1
-
-// Moving values out of the registers
+cunseal ca0, ca0, ca1
 1:
 ```
