@@ -174,8 +174,10 @@ targets:
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
+          # For a faster simulation using the SRAM model:
           - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator -DUSE_HYPERRAM_SRAM_MODEL"'
-          # Add "-DUSE_SEPARATED_CLOCKS" to CFLAGS for a more accurate simulation.
+          # For a more accurate simulation using the HyperBus controller itself or correct USB frequency:
+          # - '-CFLAGS "-Wall -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=top_verilator -DUSE_SEPARATED_CLOCKS"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
           - "-Wwarn-IMPERFECTSCH"
@@ -183,9 +185,12 @@ targets:
           # Verilator without increasing the unroll count (see Verilator#1266)
           - "--unroll-count 72"
     parameters:
+      # Comment out the following line when simulating with the HyperBus controller.
+      - USE_HYPERRAM_SRAM_MODEL=true
+      # Set the following line to true for HyperBus controller or correct USB frequency;
+      # use false for the SRAM model.
       - USE_SEPARATED_CLOCKS=false
       - PRIM_DEFAULT_IMPL=prim_pkg::ImplGeneric
-      - USE_HYPERRAM_SRAM_MODEL=true
 
   lint:
     <<: *default_target
