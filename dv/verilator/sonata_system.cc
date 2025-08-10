@@ -77,8 +77,8 @@ int SonataSystem::Setup(int argc, char **argv, bool &exit_app) {
   // Note: calculate the period of the higher frequency clock first because
   // the period of the 'hr' reference clock must be exactly 3 times longer
   // to maintain the phase relationship.
-  uint32_t hr3x_hperiod = (micro + 1199u) / 1200u;  // 600MHz cycle
-  uint32_t hr_hperiod = 3 * hr3x_hperiod;  // 200MHz cycle
+  uint32_t hr3x_hperiod = (micro + 599u) / 600u;  // 300MHz cycle
+  uint32_t hr_hperiod = 3 * hr3x_hperiod;  // 100MHz cycle
 
   // The HyperRAM requires a clock that is phase-shifted by 90 degress.
   uint32_t hr90p_offset = hr_hperiod / 2;
