@@ -61,87 +61,18 @@
         size_byte: "0x00000800",
       }],
     },
-    { name:  "gpio", // General purpose input and output
+    { name:  "peri",
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
-      req_fifo_pass: false,
-      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         base_addr: "0x80000000",
-        size_byte: "0x00001000",
+        size_byte: "0x00200000",
       }],
       pipeline: true,
-    },
-    { name:  "pinmux", // Pin multiplexer
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
       req_fifo_pass: false,
       rsp_fifo_pass: false,
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80005000",
-        size_byte: "0x00001000",
-      }],
-      pipeline: true,
-    },
-    { name:  "rgbled_ctrl", // RGB LED Controller
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      req_fifo_pass: false,
-      rsp_fifo_pass: false,
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80009000",
-        size_byte: "0x00001000",
-      }],
-      pipeline: true,
-    },
-    { name:  "hw_rev", // Hardware revoker control register
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x8000A000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "xadc", // XADC
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      req_fifo_pass: false,
-      rsp_fifo_pass: false,
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x8000B000",
-        size_byte: "0x00001000",
-      }],
-      pipeline: true,
-    },
-    { name:  "system_info", // System information
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x8000C000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:  "timer", // Interrupt timer
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x80040000",
-        size_byte: "0x00010000",
-      }],
     },
     { name:  "spi_lcd",
       type:  "device",
@@ -163,8 +94,12 @@
         size_byte: "0x00001000",
       }],
     },
+    // I^2C devices included here instead of in peri only because
+    // address range sizes must be a power of two.
+    // We can easily tolerate an extra cycle of access latency to them,
+    // so add pipelining to allow them to be placed further away physically.
     % for block in config.blocks:
-    % if not block.name == "gpio":
+    % if block.which_xbar == "main":
     % for i in range(block.instances):
     { name:  "${f"{block.name}{i}"}",
       type:  "device",
@@ -196,6 +131,8 @@
       type:     "device",
       clock:    "clk_sys_i",
       reset:    "rst_sys_ni",
+      req_fifo_pass: false,
+      rsp_fifo_pass: false,
       xbar:     false,
       pipeline: true,
       addr_range: [{
@@ -207,15 +144,12 @@
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
-      req_fifo_pass: false,
-      rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
         // This block is overaligned to 0x0800_0000 bytes since OpenTitan RV_PLIC block expects it.
         base_addr: "0x88000000",
         size_byte: "0x04000000",
       }],
-      pipeline: true,
     },
   ],
   connections: {
@@ -223,30 +157,24 @@
       "sram",
       "hyperram",
       "rev_tag",
-      "dbg_dev",
-      "gpio",
-      "pinmux",
-      "system_info",
-      "rgbled_ctrl",
-      "hw_rev",
-      "xadc",
-      "timer",
+      "peri",
       "spi_lcd",
       "spi_ethmac",
       % for block in config.blocks:
-      % if not block.name == "gpio":
+      % if block.which_xbar == "main":
       % for i in range(block.instances):
       "${f"{block.name}{i}"}",
       % endfor
       % endif
       % endfor
       "usbdev",
+      "dbg_dev",
       "rv_plic",
     ],
     dbg_host: [
       "sram",
       "hyperram",
-      "system_info",
+      "peri", // for system_info
     ],
   },
 }
