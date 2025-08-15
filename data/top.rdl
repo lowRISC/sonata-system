@@ -10,6 +10,9 @@
 `include "../rtl/system/autogen/rv_plic/data/rv_plic.rdl"
 
 addrmap top_sonata {
+  external mem sram { memwidth = 0x20000; } SRAM @ 0x00100000;
+  external mem hyperram { memwidth = 0x100000; } HYPERRAM @ 0x40000000;
+  external mem rev_tag { memwidth = 0x800; } REV_TAG @ 0x30000000;
   gpio GPIO @ 0x80000000;
   gpio GPIO_RPI @ 0x80000040;
   gpio GPIO_ARDUINO @ 0x80000080;
@@ -26,5 +29,6 @@ addrmap top_sonata {
   spi SPI[3]  @ 0x80302000 += 0x1000;
   usbdev USBDEV @ 0x80400000;
   rv_plic RV_PLIC @ 0x88000000;
+  external mem dgb_dev { memwidth = 0x1000; } DBG_DEV @ 0xB0000000;
 };
   
