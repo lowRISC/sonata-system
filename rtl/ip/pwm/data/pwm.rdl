@@ -1,0 +1,17 @@
+addrmap pwm {
+  reg {
+    field {
+      sw=rw;
+      reset = 0;
+      desc = "Pwm width.";
+    } value[32] = 0;
+  } WIDTH @0x00;
+
+  reg  {
+    field {
+      sw=rw;
+      reset = 0;
+      desc = "Pwm counter.";
+    } value[32] = 0;
+  } COUNTER @0x04;
+};
