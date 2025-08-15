@@ -1,0 +1,65 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap gpio #(
+  longint num_pads = 32
+){
+
+  xbar = '{
+    parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+    parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+    parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+  };
+  clk_input = '{ "clk_sys_i" };
+  rst_input = '{ "rst_sys_ni" };
+
+  // Ios pads.
+  signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios[num_pads];
+  // signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios_rpi[32];
+  // signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios_arduino[32];
+  // signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios_pmod0[32];
+  // signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios_pmod1[32];
+  // signal {sigtype=SigType::PadInOut; io_combine=IoCombine::Mux; } ios_pmodc[32];
+
+  addrmap gpio_spec_t {
+    reg {
+      field {
+        sw=w;
+        reset = 0;
+        desc = "Pins.";
+      } PINS[32] = 0;
+    } OUT @0x0000;
+
+    reg {
+      field {
+        sw=r;
+        reset = 0;
+        desc = "Pins.";
+      } PINS[32] = 0;
+    } IN @0x0004;
+
+    reg {
+      field {
+        sw=r;
+        reset = 0;
+        desc = "DBNC.";
+      } PINS[32] = 0;
+    } IN_DBNC @0x0008;
+
+    reg  {
+      field {
+        sw=rw;
+        reset = 0;
+        desc = "val";
+      } PINS[32] = 0;
+    } OUTPUT_ENABLE @0x000c;
+  };
+
+  gpio_spec_t gpio;
+  // gpio_spec_t gpio_rpi;
+  // gpio_spec_t gpio_arduino;
+  // gpio_spec_t gpio_pmod[2];
+  // gpio_spec_t gpio_pmodc;
+};

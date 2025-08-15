@@ -1,0 +1,729 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap rv_plic #(
+    longint NumSrc = 32,
+    longint NumTarget = 1,
+    longint PrioWidth = 2,
+    longint NumAlerts = 1
+){
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    reg {
+        desc = "Interrupt Source 0 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO0[1:0];
+    } PRIO0 @ 0x0;
+
+    reg {
+        desc = "Interrupt Source 1 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO1[1:0];
+    } PRIO1 @ 0x4;
+
+    reg {
+        desc = "Interrupt Source 2 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO2[1:0];
+    } PRIO2 @ 0x8;
+
+    reg {
+        desc = "Interrupt Source 3 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO3[1:0];
+    } PRIO3 @ 0xC;
+
+    reg {
+        desc = "Interrupt Source 4 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO4[1:0];
+    } PRIO4 @ 0x10;
+
+    reg {
+        desc = "Interrupt Source 5 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO5[1:0];
+    } PRIO5 @ 0x14;
+
+    reg {
+        desc = "Interrupt Source 6 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO6[1:0];
+    } PRIO6 @ 0x18;
+
+    reg {
+        desc = "Interrupt Source 7 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO7[1:0];
+    } PRIO7 @ 0x1C;
+
+    reg {
+        desc = "Interrupt Source 8 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO8[1:0];
+    } PRIO8 @ 0x20;
+
+    reg {
+        desc = "Interrupt Source 9 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO9[1:0];
+    } PRIO9 @ 0x24;
+
+    reg {
+        desc = "Interrupt Source 10 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO10[1:0];
+    } PRIO10 @ 0x28;
+
+    reg {
+        desc = "Interrupt Source 11 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO11[1:0];
+    } PRIO11 @ 0x2C;
+
+    reg {
+        desc = "Interrupt Source 12 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO12[1:0];
+    } PRIO12 @ 0x30;
+
+    reg {
+        desc = "Interrupt Source 13 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO13[1:0];
+    } PRIO13 @ 0x34;
+
+    reg {
+        desc = "Interrupt Source 14 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO14[1:0];
+    } PRIO14 @ 0x38;
+
+    reg {
+        desc = "Interrupt Source 15 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO15[1:0];
+    } PRIO15 @ 0x3C;
+
+    reg {
+        desc = "Interrupt Source 16 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO16[1:0];
+    } PRIO16 @ 0x40;
+
+    reg {
+        desc = "Interrupt Source 17 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO17[1:0];
+    } PRIO17 @ 0x44;
+
+    reg {
+        desc = "Interrupt Source 18 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO18[1:0];
+    } PRIO18 @ 0x48;
+
+    reg {
+        desc = "Interrupt Source 19 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO19[1:0];
+    } PRIO19 @ 0x4C;
+
+    reg {
+        desc = "Interrupt Source 20 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO20[1:0];
+    } PRIO20 @ 0x50;
+
+    reg {
+        desc = "Interrupt Source 21 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO21[1:0];
+    } PRIO21 @ 0x54;
+
+    reg {
+        desc = "Interrupt Source 22 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO22[1:0];
+    } PRIO22 @ 0x58;
+
+    reg {
+        desc = "Interrupt Source 23 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO23[1:0];
+    } PRIO23 @ 0x5C;
+
+    reg {
+        desc = "Interrupt Source 24 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO24[1:0];
+    } PRIO24 @ 0x60;
+
+    reg {
+        desc = "Interrupt Source 25 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO25[1:0];
+    } PRIO25 @ 0x64;
+
+    reg {
+        desc = "Interrupt Source 26 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO26[1:0];
+    } PRIO26 @ 0x68;
+
+    reg {
+        desc = "Interrupt Source 27 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO27[1:0];
+    } PRIO27 @ 0x6C;
+
+    reg {
+        desc = "Interrupt Source 28 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO28[1:0];
+    } PRIO28 @ 0x70;
+
+    reg {
+        desc = "Interrupt Source 29 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO29[1:0];
+    } PRIO29 @ 0x74;
+
+    reg {
+        desc = "Interrupt Source 30 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO30[1:0];
+    } PRIO30 @ 0x78;
+
+    reg {
+        desc = "Interrupt Source 31 Priority";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } PRIO31[1:0];
+    } PRIO31 @ 0x7C;
+
+    reg {
+        desc = "Threshold of priority for Target 0";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } THRESHOLD0[1:0];
+    } THRESHOLD0 @ 0x200000;
+
+    external reg {
+        hwre = true;
+        desc = "Claim interrupt by read, complete interrupt by write for Target 0.Value read/written is interrupt ID. Reading a value of 0 means no pending interrupts.";
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+        } CC0[4:0];
+    } CC0 @ 0x200004;
+
+    reg {
+        desc = "msip for Hart 0.Write 1 to here asserts software interrupt for Hart msip_o[0], write 0 to clear.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Software Interrupt Pending register";
+        } MSIP0[0:0];
+    } MSIP0 @ 0x4000000;
+
+    reg {
+        desc = "Interrupt Pending";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_0[0:0];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_1[1:1];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_2[2:2];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_3[3:3];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_4[4:4];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_5[5:5];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_6[6:6];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_7[7:7];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_8[8:8];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_9[9:9];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_10[10:10];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_11[11:11];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_12[12:12];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_13[13:13];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_14[14:14];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_15[15:15];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_16[16:16];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_17[17:17];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_18[18:18];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_19[19:19];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_20[20:20];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_21[21:21];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_22[22:22];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_23[23:23];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_24[24:24];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_25[25:25];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_26[26:26];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_27[27:27];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_28[28:28];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_29[29:29];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_30[30:30];
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Interrupt Pending of Source";
+        } P_31[31:31];
+    } IP[1] @ 0x1000;
+
+    reg {
+        desc = "Interrupt Enable for Target 0";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_11[11:11];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_12[12:12];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_13[13:13];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_14[14:14];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_15[15:15];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_16[16:16];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_17[17:17];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_18[18:18];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_19[19:19];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_20[20:20];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_21[21:21];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_22[22:22];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_23[23:23];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_24[24:24];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_25[25:25];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_26[26:26];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_27[27:27];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_28[28:28];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_29[29:29];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_30[30:30];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Interrupt Enable of Source";
+        } E_31[31:31];
+    } IE0[1] @ 0x2000;
+
+};

@@ -1,0 +1,40 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap rv_timer {
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    reg {
+        field {
+            desc = "mtime cmp low";
+            sw = rw;
+            hw = rw;
+        } value[32];
+    }MTIMECMPL @4000;
+    reg {
+        field {
+            desc = "mtime cmp high";
+            sw = rw;
+            hw = rw;
+        } value[32];
+    }MTIMECMPH;
+
+    reg {
+        field {
+            desc = "mtime low";
+            sw = rw;          // read-write
+            hw = rw;
+        } VALUE[32];
+    }MTIMEL @ 0xbff8;
+    reg {
+        field {
+            desc = "mtime high";
+            sw = rw;
+            hw = rw;
+            reset = 0x00000000;
+        } VALUE[32];
+    }MTIMEH;
+};

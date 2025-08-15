@@ -1,0 +1,985 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap i2c #(
+    longint FifoDepth = 8,
+    longint AcqFifoDepth = 8,
+    longint NumAlerts = 1
+){
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    signal  {
+        desc = "Raised when Format FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
+    }format_fifo_threshold;
+    signal  {
+        desc = "Raised when Receive FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
+    }receive_fifo_threshold;
+    signal  {
+        desc = "Raised when Acquire FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
+    }acquire_fifo_threshold;
+    signal  {
+        desc = "Raised when Receive FIFO overflows";
+        sigtype=SigType::Interrupt;
+    }receive_fifo_overflow;
+    signal  {
+        desc = "Raised when NACK is received";
+        sigtype=SigType::Interrupt;
+    }received_nack;
+    signal  {
+        desc = "Raised when SCL interference detected";
+        sigtype=SigType::Interrupt;
+    }scl_interference;
+    signal  {
+        desc = "Raised when SDA interference detected";
+        sigtype=SigType::Interrupt;
+    }sda_interference;
+    signal  {
+        desc = "Raised when stretch timeout occurs";
+        sigtype=SigType::Interrupt;
+    }stretch_timeout;
+    signal  {
+        desc = "Raised when SDA line is unstable";
+        sigtype=SigType::Interrupt;
+    }sda_unstable;
+    signal  {
+        desc = "Raised when command completes";
+        sigtype=SigType::Interrupt;
+    }command_complete;
+    signal  {
+        desc = "Raised when transmit stretch occurs";
+        sigtype=SigType::Interrupt;
+    }transmit_stretch;
+    signal  {
+        desc = "Raised when transmit FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
+    }transmit_threshold;
+    signal  {
+        desc = "Raised when acquire FIFO is full";
+        sigtype=SigType::Interrupt;
+    }acquire_fifo_full;
+    signal  {
+        desc = "Raised when unexpected stop is detected";
+        sigtype=SigType::Interrupt;
+    }unexpected_stop;
+    signal  {
+        desc = "Raised when host timeout occurs";
+        sigtype=SigType::Interrupt;
+    }host_timeout;
+
+    // Ios pads.
+    signal {sigtype=SigType::PadInOut; io_combine=IoCombine::And; } scl;
+    signal {sigtype=SigType::PadInOut; io_combine=IoCombine::And; } sda;
+
+    reg {
+        desc = "Interrupt State Register";
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: asserted whilst the FMT FIFO level is below the low threshold. This is a level status interrupt.";
+        } FMT_THRESHOLD[0:0];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: asserted whilst the RX FIFO level is above the high threshold. This is a level status interrupt.";
+        } RX_THRESHOLD[1:1];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: asserted whilst the ACQ FIFO level is above the high threshold. This is a level status interrupt.";
+        } ACQ_THRESHOLD[2:2];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if the RX FIFO has overflowed.";
+        } RX_OVERFLOW[3:3];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if the controller FSM is halted, such as on an unexpected NACK or lost arbitration.Check !!CONTROLLER_EVENTS for the reason.The interrupt will be released when the bits in !!CONTROLLER_EVENTS are cleared.";
+        } CONTROLLER_HALT[4:4];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if the SCL line drops early (not supported without clock synchronization).";
+        } SCL_INTERFERENCE[5:5];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if the SDA line goes low when host is trying to assert high";
+        } SDA_INTERFERENCE[6:6];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if target stretches the clock beyond the allowed timeout period";
+        } STRETCH_TIMEOUT[7:7];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host mode interrupt: raised if the target does not assert a constant value of SDA during transmission.";
+        } SDA_UNSTABLE[8:8];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "host and target mode interrupt.In host mode, raised if the host issues a repeated START or terminates the transaction by issuing STOP.In target mode, raised if the external host issues a STOP or repeated START.";
+        } CMD_COMPLETE[9:9];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: raised if the target is stretching clocks for a read command. This is a level status interrupt.";
+        } TX_STRETCH[10:10];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: asserted whilst the TX FIFO level is below the low threshold. This is a level status interrupt.";
+        } TX_THRESHOLD[11:11];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: raised if the target is stretching clocks due to full ACQ FIFO or zero count in !!TARGET_ACK_CTRL.NBYTES (if enabled). This is a level status interrupt.";
+        } ACQ_STRETCH[12:12];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: raised if STOP is received without a preceding NACK during an external host read.";
+        } UNEXP_STOP[13:13];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "target mode interrupt: raised if the host stops sending the clock during an ongoing transaction.";
+        } HOST_TIMEOUT[14:14];
+    } INTR_STATE @ 0x0;
+
+    reg {
+        desc = "Interrupt Enable Register";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.fmt_threshold is set.";
+        } FMT_THRESHOLD[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_threshold is set.";
+        } RX_THRESHOLD[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.acq_threshold is set.";
+        } ACQ_THRESHOLD[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_overflow is set.";
+        } RX_OVERFLOW[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.controller_halt is set.";
+        } CONTROLLER_HALT[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.scl_interference is set.";
+        } SCL_INTERFERENCE[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.sda_interference is set.";
+        } SDA_INTERFERENCE[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.stretch_timeout is set.";
+        } STRETCH_TIMEOUT[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.sda_unstable is set.";
+        } SDA_UNSTABLE[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.cmd_complete is set.";
+        } CMD_COMPLETE[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.tx_stretch is set.";
+        } TX_STRETCH[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.tx_threshold is set.";
+        } TX_THRESHOLD[11:11];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.acq_stretch is set.";
+        } ACQ_STRETCH[12:12];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.unexp_stop is set.";
+        } UNEXP_STOP[13:13];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.host_timeout is set.";
+        } HOST_TIMEOUT[14:14];
+    } INTR_ENABLE @ 0x4;
+
+    external reg {
+        desc = "Interrupt Test Register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.fmt_threshold to 1.";
+        } FMT_THRESHOLD[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_threshold to 1.";
+        } RX_THRESHOLD[1:1];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.acq_threshold to 1.";
+        } ACQ_THRESHOLD[2:2];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_overflow to 1.";
+        } RX_OVERFLOW[3:3];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.controller_halt to 1.";
+        } CONTROLLER_HALT[4:4];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.scl_interference to 1.";
+        } SCL_INTERFERENCE[5:5];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.sda_interference to 1.";
+        } SDA_INTERFERENCE[6:6];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.stretch_timeout to 1.";
+        } STRETCH_TIMEOUT[7:7];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.sda_unstable to 1.";
+        } SDA_UNSTABLE[8:8];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.cmd_complete to 1.";
+        } CMD_COMPLETE[9:9];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.tx_stretch to 1.";
+        } TX_STRETCH[10:10];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.tx_threshold to 1.";
+        } TX_THRESHOLD[11:11];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.acq_stretch to 1.";
+        } ACQ_STRETCH[12:12];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.unexp_stop to 1.";
+        } UNEXP_STOP[13:13];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.host_timeout to 1.";
+        } HOST_TIMEOUT[14:14];
+    } INTR_TEST @ 0x8;
+
+    external reg {
+        desc = "Alert Test Register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to trigger one alert event of this kind.";
+        } FATAL_FAULT[0:0];
+    } ALERT_TEST @ 0xC;
+
+    reg {
+        desc = "I2C Control Register";
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable Host I2C functionality";
+        } ENABLEHOST[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable Target I2C functionality";
+        } ENABLETARGET[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable I2C line loopback testIf line loopback is enabled, the internal design sees ACQ and RX data as \"1\"";
+        } LLPBK[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable NACKing the address on a stretch timeout.This is a Target mode feature.If enabled (1), a stretch timeout will cause the device to NACK the address byte.If disabled (0), a stretch timeout will cause the device to ACK the address byte.SMBus requires that devices always ACK their address, even for read commands.However, non-SMBus protocols may have a different approach and can choose to NACK instead.Note that both cases handle data bytes the same way.For writes, the Target module will NACK all subsequent data bytes until it receives a Stop.For reads, the Target module will release SDA, causing 0xff to be returned for all data bytes until it receives a Stop.";
+        } NACK_ADDR_AFTER_TIMEOUT[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable I2C Target ACK Control Mode.ACK Control Mode works together with !!TARGET_ACK_CTRL.NBYTES to allow software to control upper-layer protocol (N)ACKing (e.g. as in SMBus).This bit enables the mode when 1, and !!TARGET_ACK_CTRL.NBYTES limits how many bytes may be automatically ACK'd while the ACQ FIFO has space.If it is 0, the decision to ACK or NACK is made only from stretching timeouts and !!CTRL.NACK_ADDR_AFTER_TIMEOUT.";
+        } ACK_CTRL_EN[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Enable the bus monitor in multi-controller mode.If a 0->1 transition happens while !!CTRL.ENABLEHOST and !!CTRL.ENABLETARGET are both 0, the bus monitor will enable and begin in the \"bus busy\" state.To transition to a bus free state, !!HOST_TIMEOUT_CTRL must be nonzero, so the bus monitor may count out idle cycles to confirm the freedom to transmit.In addition, the bus monitor will track whether the bus is free based on the enabled timeouts and detected Stop symbols.For multi-controller mode, ensure !!CTRL.MULTI_CONTROLLER_MONITOR_EN becomes 1 no later than !!CTRL.ENABLEHOST or !!CTRL.ENABLETARGET.This bit can be set at the same time as either or both of the other two, though.Note that if !!CTRL.MULTI_CONTROLLER_MONITOR_EN is set after !!CTRL.ENABLEHOST or !!CTRL.ENABLETARGET, the bus monitor will begin in the \"bus free\" state instead.This would violate the proper protocol for a controller to join a multi-controller environment.However, if this controller is known to be the first to join, this ordering will enable skipping the idle wait.When 0, the bus monitor will report that the bus is always free, so the controller FSM is never blocked from transmitting.";
+        } MULTI_CONTROLLER_MONITOR_EN[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "If set to 1, this bit causes a read transfer addressed to this target to set the corresponding bit in !!TARGET_EVENTS.While !!TARGET_EVENTS.TX_PENDING is 1, subsequent read transactions will stretch the clock, even if there is data in the TX FIFO.If enabled, this function allows software to confirm the data in the TX FIFO should be released for the current read.This may be useful for cases where the TX FIFO has data that does not apply to the current transfer.For example, the transaction could've targeted an alternate function via another address.";
+        } TX_STRETCH_CTRL_EN[6:6];
+    } CTRL @ 0x10;
+
+    external reg {
+        desc = "I2C Live Status Register for Host and Target modes";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Host mode FMT FIFO is full";
+        } FMTFULL[0:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Host mode RX FIFO is full";
+        } RXFULL[1:1];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Host mode FMT FIFO is empty";
+        } FMTEMPTY[2:2];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Host functionality is idle. No Host transaction is in progress";
+        } HOSTIDLE[3:3];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Target functionality is idle. No Target transaction is in progress";
+        } TARGETIDLE[4:4];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Host mode RX FIFO is empty";
+        } RXEMPTY[5:5];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Target mode TX FIFO is full";
+        } TXFULL[6:6];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Target mode receive FIFO is full";
+        } ACQFULL[7:7];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Target mode TX FIFO is empty";
+        } TXEMPTY[8:8];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Target mode receive FIFO is empty";
+        } ACQEMPTY[9:9];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Target mode stretching at (N)ACK phase due to zero count in !!TARGET_ACK_CTRL.NBYTES";
+        } ACK_CTRL_STRETCH[10:10];
+    } STATUS @ 0x14;
+
+    external reg {
+        hwre = true;
+        desc = "I2C Read Data";
+        field {
+            sw = r;
+            hw = rw;
+        } RDATA[7:0];
+    } RDATA @ 0x18;
+
+    reg {
+        desc = "I2C Host Format DataWrites to this register are used to define and drive Controller-Mode transactions.";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Format Byte.If no flags are set, hardware will transmit this byte directly.If READB is set, this field becomes the number of bytes hardware will automaticallyread from the bus.";
+        } FBYTE[7:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Issue a START condition before transmitting FBYTE.";
+        } START[8:8];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Issue a STOP condition after transmitting FBYTE.";
+        } STOP[9:9];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Transfer Direction Indicator.If unset, this write to FDATA defines a controller-transmitter operation (WRITE).A single byte of data (FBYTE) is written to the bus.If set, this write to FDATA defines a controller-receiver operation (READ).The value of FBYTE defines the number of bytes read from the bus. (256 if FBYTE==0)\"After this number of bytes are read, the final byte will be NACKed to end the transferunless RCONT is also set.";
+        } READB[10:10];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Do not NACK the last byte read, let the read operation continue.";
+        } RCONT[11:11];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "For the currrent controller-transmitter byte (WRITE), do not halt via CONTROLLER_EVENTSor assert the 'controller_halt' interrupt if the current byte is not ACK'd.";
+        } NAKOK[12:12];
+    } FDATA @ 0x1C;
+
+    reg {
+        desc = "I2C FIFO control register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "RX fifo reset. Write 1 to the register resets RX_FIFO. Read returns 0";
+        } RXRST[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "FMT fifo reset. Write 1 to the register resets FMT_FIFO. Read returns 0";
+        } FMTRST[1:1];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "ACQ FIFO reset. Write 1 to the register resets it. Read returns 0";
+        } ACQRST[7:7];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "TX FIFO reset. Write 1 to the register resets it. Read returns 0";
+        } TXRST[8:8];
+    } FIFO_CTRL @ 0x20;
+
+    reg {
+        desc = "Host mode FIFO configuration";
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Threshold level for RX interrupts. Whilst the level of data in the RX FIFOis above this setting, the rx_threshold interrupt will be asserted.";
+        } RX_THRESH[11:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Threshold level for FMT interrupts. Whilst the number of used entries in theFMT FIFO is below this setting, the fmt_threshold interrupt will be asserted.";
+        } FMT_THRESH[27:16];
+    } HOST_FIFO_CONFIG @ 0x24;
+
+    reg {
+        desc = "Target mode FIFO configuration";
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Threshold level for TX interrupts. Whilst the number of used entries in theTX FIFO is below this setting, the tx_threshold interrupt will be asserted.";
+        } TX_THRESH[11:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Threshold level for ACQ interrupts. Whilst the level of data in the ACQ FIFOis above this setting, the acq_threshold interrupt will be asserted.";
+        } ACQ_THRESH[27:16];
+    } TARGET_FIFO_CONFIG @ 0x28;
+
+    external reg {
+        desc = "Host mode FIFO status register";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Current fill level of FMT fifo";
+        } FMTLVL[11:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Current fill level of RX fifo";
+        } RXLVL[27:16];
+    } HOST_FIFO_STATUS @ 0x2C;
+
+    external reg {
+        desc = "Target mode FIFO status register";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Current fill level of TX fifo";
+        } TXLVL[11:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Current fill level of ACQ fifo";
+        } ACQLVL[27:16];
+    } TARGET_FIFO_STATUS @ 0x30;
+
+    reg {
+        desc = "I2C Override Control Register";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Override the SDA and SCL TX signals.";
+        } TXOVRDEN[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Value for SCL Override. Set to 0 to drive TX Low, and set to 1 for high-Z";
+        } SCLVAL[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Value for SDA Override. Set to 0 to drive TX Low, and set to 1 for high-Z";
+        } SDAVAL[2:2];
+    } OVRD @ 0x34;
+
+    external reg {
+        desc = "Oversampled RX values";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Last 16 oversampled values of SCL. Most recent bit is bit 0, oldest 15.";
+        } SCL_RX[15:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Last 16 oversampled values of SDA. Most recent bit is bit 16, oldest 31.";
+        } SDA_RX[31:16];
+    } VAL @ 0x38;
+
+    reg {
+        desc = "Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.These must be greater than 2 in order for the change in SCL to propagate to the input of the FSM so that acknowledgements are detected correctly.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The actual time to hold SCL high in a given pulse.This field is sized to have a range of at least Standard Mode's 4.0 us max with a core clock at 1 GHz.";
+        } THIGH[12:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The actual time to hold SCL low between any two SCL pulses.This field is sized to have a range of at least Standard Mode's 4.7 us max with a core clock at 1 GHz.";
+        } TLOW[28:16];
+    } TIMING0 @ 0x3C;
+
+    reg {
+        desc = "Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The nominal rise time to anticipate for the bus (depends on capacitance).This field is sized to have a range of at least Standard Mode's 1000 ns max with a core clock at 1 GHz.";
+        } T_R[9:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The nominal fall time to anticipate for the bus (influences SDA hold times).This field is sized to have a range of at least Standard Mode's 300 ns max with a core clock at 1 GHz.";
+        } T_F[24:16];
+    } TIMING1 @ 0x40;
+
+    reg {
+        desc = "Detailed I2C Timings (directly corresponding to table 10 in the I2C Specification).All values are expressed in units of the input clock period.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual setup time for repeated start signals.This field is sized to have a range of at least Standard Mode's 4.7 us max with a core clock at 1 GHz.";
+        } TSU_STA[12:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual hold time for start signals.This field is sized to have a range of at least Standard Mode's 4.0 us max with a core clock at 1 GHz.";
+        } THD_STA[28:16];
+    } TIMING2 @ 0x44;
+
+    reg {
+        desc = "Detailed I2C Timings (directly corresponding to table 10, in the I2C Specification).All values are expressed in units of the input clock period.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual setup time for data (or ack) bits.This field is sized to have a range of at least Standard Mode's 250 ns max with a core clock at 1 GHz.";
+        } TSU_DAT[8:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual hold time for data (or ack) bits.(Note, where required, the parameters TVD_DAT is taken to be THD_DAT+T_F)This field is sized to have a range that accommodates Standard Mode's 3.45 us max for TVD_DAT with a core clock at 1 GHz.However, this field is generally expected to represent a time substantially shorter than that.It should be long enough to cover the maximum round-trip latency from output pins, through pads and voltage transitions on the board, and back to the input pins, but it should not be substantially greater.";
+        } THD_DAT[28:16];
+    } TIMING3 @ 0x48;
+
+    reg {
+        desc = "Detailed I2C Timings (directly corresponding to table 10, in the I2C Specification).All values are expressed in units of the input clock period.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual setup time for stop signals.This field is sized to have a range of at least Standard Mode's 4.0 us max with a core clock at 1 GHz.";
+        } TSU_STO[12:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Actual time between each STOP signal and the following START signal.This field is sized to have a range of at least Standard Mode's 4.7 us max with a core clock at 1 GHz.";
+        } T_BUF[28:16];
+    } TIMING4 @ 0x4C;
+
+    reg {
+        desc = "I2C clock stretching and bus timeout control.This timeout must be enabled by setting !!TIMEOUT_CTRL.EN to 1, and the behavior of this feature depends on the value of !!TIMEOUT_CTRL.MODE.If the mode is \"STRETCH_TIMEOUT\", this is used in I2C controller mode to detect whether a connected target is stretching a single low time beyond the timeout value.Configured as such, this timeout is more informative and doesn't do more than assert the \"stretch_timeout\" interrupt.If the mode is \"BUS_TIMEOUT\", it is used to detect whether the clock has been held low for too long instead, inclusive of the controller's clock low time.This is useful for an SMBus context, where the VAL programmed should be tTIMEOUT:MIN.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Clock stretching timeout value (in units of input clock frequency)";
+        } VAL[29:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Selects the timeout mode, between a stretch timeout and a bus timeout.Between the two modes, the primary difference is how much of the clock low period is counted.For a stretch timeout, only the time that another device holds the clock low will be counted.For a bus timeout, the entire clock low time is counted, consistent with the SMBus tTIMEOUT type.!!TIMEOUT_CTRL.EN must be 1 for either of these features to be enabled.";
+        } MODE[30:30];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable stretch timeout or bus timeout feature";
+        } EN[31:31];
+    } TIMEOUT_CTRL @ 0x50;
+
+    reg {
+        desc = "I2C target address and mask pairs";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "I2C target address number 0";
+        } ADDRESS0[6:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "I2C target mask number 0.At least one bit in MASK0 must be set to 1 for ADDRESS0 to be used.";
+        } MASK0[13:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "I2C target address number 1";
+        } ADDRESS1[20:14];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "I2C target mask number 1.At least one bit in MASK1 must be set to 1 for ADDRESS1 to be used.";
+        } MASK1[27:21];
+    } TARGET_ID @ 0x54;
+
+    external reg {
+        hwre = true;
+        desc = "I2C target acquired data";
+        field {
+            sw = r;
+            hw = rw;
+            desc = "Address for accepted transaction or acquired byte";
+        } ABYTE[7:0];
+        field {
+            sw = r;
+            hw = rw;
+            desc = "Indicates any control symbols associated with the ABYTE.For the STOP symbol, a stretch timeout or other unexpected events will cause a NACK_STOP to appear in the ACQ FIFO.If the ACQ FIFO doesn't have enough space to record a START and a STOP, the transaction will be dropped entirely on a stretch timeout.In that case, the START byte will not appear (neither as START nor NACK_START), but a standalone NACK_STOP may, if there was space.Software can discard any standalone NACK_STOP that appears.See the associated values for more information about the contents.";
+        } SIGNAL[10:8];
+    } ACQDATA @ 0x58;
+
+    reg {
+        desc = "I2C target transmit data";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+        } TXDATA[7:0];
+    } TXDATA @ 0x5C;
+
+    reg {
+        desc = "I2C host clock generation timeout value (in units of input clock frequency).In an active transaction in Target-Mode, if the Controller ceases to send SCL pulsesfor this number of cycles then the \"host_timeout\" interrupt will be asserted.In multi-controller monitoring mode, !!HOST_TIMEOUT_CTRL is required to be nonzero to transition out of the initial busy state.Set this CSR to 0 to disable this behaviour.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+        } HOST_TIMEOUT_CTRL[19:0];
+    } HOST_TIMEOUT_CTRL @ 0x60;
+
+    reg {
+        desc = "I2C target internal stretching timeout control.When the target has stretched beyond this time it will send a NACK for incoming data bytes or release SDA for outgoing data bytes.The behavior for the address byte is configurable via !!CTRL.ACK_ADDR_AFTER_TIMEOUT.Note that the count accumulates stretching time over the course of a transaction.In other words, this is equivalent to the SMBus cumulative target clock extension time.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Clock stretching timeout value (in units of input clock frequency)";
+        } VAL[30:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable timeout feature and send NACK once the timeout has been reached";
+        } EN[31:31];
+    } TARGET_TIMEOUT_CTRL @ 0x64;
+
+    reg {
+        desc = "Number of times the I2C target has NACK'ed a new transaction since the last read of this register.Reading this register clears it.This is useful because when the ACQ FIFO is full the software know that a NACK has occurred, but without this register would not know how many transactions it missed.When it reaches its maximum value it will stay at that value.";
+        field {
+            sw = rw;
+            onread = rclr;
+            hw = rw;
+            reset = 0x0;
+        } TARGET_NACK_COUNT[7:0];
+    } TARGET_NACK_COUNT @ 0x68;
+
+    external reg {
+        desc = "Controls for mid-transfer (N)ACK phase handling";
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "Remaining number of bytes the Target module may ACK automatically.If !!CTRL.ACK_CTRL_EN is set to 1, the Target module will stretch the clock at the (N)ACK phase of a byte if this CSR is 0, awaiting software's instructions.At the beginning of each Write transfer, this byte count is reset to 0.Writes to this CSR also are only accepted while the Target module is stretching the clock.The Target module will always ACK its address if the ACQ FIFO has space.For data bytes afterwards, it will stop at the (N)ACK phase and stretch the clock when this CSR is 0.For each data byte that is ACK'd in a transaction, the byte count will decrease by 1.Note that a full ACQ FIFO can still cause the Target module to halt at the beginning of a new byte.The ACK Control Mode provides an additional synchronization point, during the (N)ACK phase instead of after.For both cases, !!TARGET_TIMEOUT_CTRL applies, and stretching past the timeout will produce an automatic NACK.This mode can be used to implement the mid-transfer (N)ACK responses required by various SMBus protocols.";
+        } NBYTES[8:0];
+        field {
+            sw = w;
+            hw = r;
+            swmod = true;
+            desc = "When the Target module stretches on the (N)ACK phase of a Write due to !!TARGET_ACK_CTRL.NBYTES being 0, writing a 1 here will cause it to send a NACK.If software chooses to NACK, note that the NACKing behavior is the same as if a stretch timeout occurred.The rest of the transaction will be NACK'd, including subsequent transfers.For the address byte, the (N)ACK phase of subsequent transfers will follow the behavior specified by !!CTRL.NACK_ADDR_AFTER_TIMEOUT.Automatically clears to 0.";
+        } NACK[31:31];
+    } TARGET_ACK_CTRL @ 0x6C;
+
+    external reg {
+        desc = "The data byte pending to be written to the ACQ FIFO.This CSR is only valid while the Target module is stretching in the (N)ACK phase, indicated by !!STATUS.ACK_CTRL_STRETCH .It is intended to be used with ACK Control Mode, so software may check the current byte.";
+        field {
+            sw = r;
+            hw = w;
+        } ACQ_FIFO_NEXT_DATA[7:0];
+    } ACQ_FIFO_NEXT_DATA @ 0x70;
+
+    reg {
+        desc = "Timeout in Host-Mode for an unhandled NACK before hardware automatically ends the transaction.(in units of input clock frequency)If an active Controller-Transmitter transfer receives a NACK from the Target, the !!CONTROLLER_EVENTS.NACK bit is set.In turn, this causes the Controller FSM to halt awaiting software intervention, and the 'controller_halt' interrupt may assert.Software must clear the !!CONTROLLER_EVENTS.NACK bit to allow the state machine to continue, typically after clearing out the FMTFIFO to start a new transfer.While halted, the active transaction is not ended (no STOP (P) condition is created), and the block asserts SCL and leaves SDA released.This timeout can be used to automatically produce a STOP condition, whether as a backstop for slow software responses (longer timeout) or as a convenience (short timeout).If the timeout expires, the Controller FSM will issue a STOP (P) condition on the bus to end the active transaction.Additionally, the !!CONTROLLER_EVENTS.UNHANDLED_NACK_TIMEOUT bit is set to alert software, and the FSM will return to the idle state and halt until the bit is cleared.The enable bit must be set for this feature to operate.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Unhandled NAK timeout value (in units of input clock frequency)";
+        } VAL[30:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Timeout enable";
+        } EN[31:31];
+    } HOST_NACK_HANDLER_TIMEOUT @ 0x74;
+
+    reg {
+        desc = "Latched events that explain why the controller halted.Any bits that are set must be written (with a 1) to clear the CONTROLLER_HALT interrupt.";
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "Received an unexpected NACK";
+        } NACK[0:0];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A Host-Mode active transaction has been ended by the !!HOST_NACK_HANDLER_TIMEOUT mechanism.";
+        } UNHANDLED_NACK_TIMEOUT[1:1];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A Host-Mode active transaction has terminated due to a bus timeout activated by !!TIMEOUT_CTRL.";
+        } BUS_TIMEOUT[2:2];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A Host-Mode active transaction has terminated due to lost arbitration.";
+        } ARBITRATION_LOST[3:3];
+    } CONTROLLER_EVENTS @ 0x78;
+
+    reg {
+        desc = "Latched events that can cause the target module to stretch the clock at the beginning of a read transfer.These events cause TX FIFO-related stretching even when the TX FIFO has data available.Any bits that are set must be written (with a 1) to clear the tx_stretch interrupt.This CSR serves as a gate to prevent the Target module from responding to a read command with unrelated, leftover data.";
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A new Target-Mode read transfer has arrived that addressed this target.This bit is used by software to confirm the release of the contents in the TX FIFO.If the contents do not apply, software should first reset the TX FIFO, then load it with the correct data, then clear this bit.Optionally enabled by !!CTRL.TX_STRETCH_CTRL_EN.";
+        } TX_PENDING[0:0];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A Target-Mode read transfer has terminated due to a bus timeout activated by !!TIMEOUT_CTRL.";
+        } BUS_TIMEOUT[1:1];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "A Target-Mode read transfer has terminated due to lost arbitration.";
+        } ARBITRATION_LOST[2:2];
+    } TARGET_EVENTS @ 0x7C;
+
+};
