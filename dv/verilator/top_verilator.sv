@@ -342,6 +342,10 @@ module top_verilator #(
   wire [7:0] user_sw_n = '0;
   wire [2:0] sel_sw_n = '0;
 
+  // Sonata Trace Port functionality.
+  logic [3:0] strace;
+  wire strace_unused_ = ^strace;
+
   // Instantiating the Sonata System.
   sonata_system #(
     .CheriErrWidth   ( CheriErrWidth   ),
@@ -453,7 +457,9 @@ module top_verilator #(
     .out_to_pins_o      (out_to_pins     ),
     .inout_from_pins_i  (inout_from_pins ),
     .inout_to_pins_o    (inout_to_pins   ),
-    .inout_to_pins_en_o (inout_to_pins_en)
+    .inout_to_pins_en_o (inout_to_pins_en),
+
+    .strace_o           (strace)
   );
 
   // I2C HAT ID DPI - this I2C bus is to the ID EEPROM of a Raspberry Pi HAT.
