@@ -59,8 +59,12 @@ module sonata_xbar_main
   input  tlul_pkg::tl_d2h_t tl_rv_plic_i
 );
 
+  // Inter-xbar interfaces
+  tlul_pkg::tl_h2d_t tl_main_to_peri;
+  tlul_pkg::tl_d2h_t tl_peri_to_main;
+
   xbar_main xbar (
-        // Clock and reset.
+    // Clock and reset.
     .clk_sys_i        (clk_sys_i),
     .rst_sys_ni       (rst_sys_ni),
     .clk_usb_i        (clk_usb_i),
@@ -79,6 +83,40 @@ module sonata_xbar_main
     .tl_hyperram_i    (tl_hyperram_i),
     .tl_rev_tag_o     (tl_rev_tag_o),
     .tl_rev_tag_i     (tl_rev_tag_i),
+    .tl_peri_o        (tl_main_to_peri),
+    .tl_peri_i        (tl_peri_to_main),
+    .tl_spi_lcd_i     (tl_spi_lcd_i),
+    .tl_spi_lcd_o     (tl_spi_lcd_o),
+    .tl_spi_ethmac_i  (tl_spi_ethmac_i),
+    .tl_spi_ethmac_o  (tl_spi_ethmac_o),
+    % for block in config.blocks:
+    % if block.name in ["i2c", "spi"]:
+    % for i in range(block.instances):
+    .tl_${block.name}${i}_o        (tl_${block.name}_o[${i}]),
+    .tl_${block.name}${i}_i        (tl_${block.name}_i[${i}]),
+    % endfor
+    % endif
+    % endfor
+    .tl_usbdev_o      (tl_usbdev_o),
+    .tl_usbdev_i      (tl_usbdev_i),
+    .tl_dbg_dev_o     (tl_dbg_dev_o),
+    .tl_dbg_dev_i     (tl_dbg_dev_i),
+    .tl_rv_plic_o     (tl_rv_plic_o),
+    .tl_rv_plic_i     (tl_rv_plic_i),
+
+    .scanmode_i       (prim_mubi_pkg::MuBi4False)
+  );
+
+  xbar_peri xbar2 (
+    // Clock and reset.
+    .clk_sys_i        (clk_sys_i),
+    .rst_sys_ni       (rst_sys_ni),
+
+    // Host interfaces.
+    .tl_main_i    (tl_main_to_peri),
+    .tl_main_o    (tl_peri_to_main),
+
+    // Device interfaces.
     .tl_gpio_o        (tl_gpio_o),
     .tl_gpio_i        (tl_gpio_i),
     .tl_pinmux_o      (tl_pinmux_o),
@@ -93,24 +131,14 @@ module sonata_xbar_main
     .tl_xadc_i        (tl_xadc_i),
     .tl_timer_o       (tl_timer_o),
     .tl_timer_i       (tl_timer_i),
-    .tl_spi_lcd_i     (tl_spi_lcd_i),
-    .tl_spi_lcd_o     (tl_spi_lcd_o),
-    .tl_spi_ethmac_i  (tl_spi_ethmac_i),
-    .tl_spi_ethmac_o  (tl_spi_ethmac_o),
     % for block in config.blocks:
-    % if not block.name == "gpio":
+    % if block.name not in ["gpio", "i2c", "spi"]:
     % for i in range(block.instances):
     .tl_${block.name}${i}_o        (tl_${block.name}_o[${i}]),
     .tl_${block.name}${i}_i        (tl_${block.name}_i[${i}]),
     % endfor
     % endif
     % endfor
-    .tl_usbdev_o      (tl_usbdev_o),
-    .tl_usbdev_i      (tl_usbdev_i),
-    .tl_dbg_dev_o     (tl_dbg_dev_o),
-    .tl_dbg_dev_i     (tl_dbg_dev_i),
-    .tl_rv_plic_o     (tl_rv_plic_o),
-    .tl_rv_plic_i     (tl_rv_plic_i),
 
     .scanmode_i       (prim_mubi_pkg::MuBi4False)
   );
