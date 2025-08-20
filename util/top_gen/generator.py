@@ -345,7 +345,7 @@ def generate_top(config: TopConfig) -> None:
         ),
     }
     for template_file, output_file in (
-        ("data/xbar_main.hjson", "data/xbar_main_generated.hjson"),
+        ("data/xbar_main.hjson.tpl", "data/xbar_main_generated.hjson"),
         (
             "rtl/templates/sonata_xbar_main.sv.tpl",
             "rtl/bus/sonata_xbar_main.sv",
