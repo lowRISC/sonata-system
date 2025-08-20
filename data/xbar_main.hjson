@@ -213,7 +213,7 @@
       addr_range: [{
         // This block is overaligned to 0x0800_0000 bytes since OpenTitan RV_PLIC block expects it.
         base_addr: "0x88000000",
-        size_byte: "0x04000000",
+        size_byte: "0x08000000",
       }],
       pipeline: true,
     },

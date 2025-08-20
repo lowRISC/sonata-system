@@ -54,7 +54,7 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_SPI2        = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_USBDEV      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_DBG_DEV     = 32'h 00000fff;
-  localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 03ffffff;
+  localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 07ffffff;
 
   localparam int N_HOST   = 2;
   localparam int N_DEVICE = 24;
