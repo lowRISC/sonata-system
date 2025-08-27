@@ -13,10 +13,12 @@ module pinmux
   input logic rst_ni,
 
   % for block in config.blocks:
+    % if block.muxed_instances > 0:
   // ${block.name.upper()} IOs
-  % for port_definition in block_port_definitions(block):
+    % for port_definition in block_port_definitions(block):
   ${port_definition},
-  % endfor
+    % endfor
+  % endif
 
   % endfor
   // Pin Signals
