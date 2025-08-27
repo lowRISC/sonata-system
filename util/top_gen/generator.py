@@ -43,7 +43,7 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def name(self) -> str:
         uid = self.uid
-        suffix = f"_{uid.io_index}" if uid.io_index is not None else ""
+        suffix = "" if uid.io_index in [None, 1] else f"_{uid.io_index}"
         return f"{uid.block}_{uid.io}_{uid.instance}{suffix}"
 
     @property
@@ -55,7 +55,7 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def doc_name(self) -> str:
         uid = self.uid
-        suffix = f"_{uid.io_index}" if uid.io_index is not None else ""
+        suffix = "" if uid.io_index in [None, 1] else f"_{uid.io_index}"
         if self.only_instance:
             return f"{uid.block}_{uid.io}{suffix}"
         else:
@@ -78,14 +78,14 @@ class PinFlat:
 
     @property
     def name(self) -> str:
-        if self.group_index is None:
+        if self.group_index in [None, 1]:
             return f"{self.group_name}"
         else:
             return f"{self.group_name}_{self.group_index}"
 
     @property
     def doc_name(self) -> str:
-        if self.group_index is None:
+        if self.group_index in [None, 1]:
             return f"{self.group_name}"
         else:
             return f"{self.group_name}[{self.group_index}]"
@@ -147,7 +147,7 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
     for block in blocks:
         for instance in range(block.instances):
             for io in block.ios:
-                if io.length is None:
+                if io.length in [None, 1]:
                     yield BlockIoFlat(
                         uid=BlockIoUid(
                             block.name,
@@ -193,7 +193,7 @@ def flatten_pins(
 
     for pin in pins:
         direction = pin_direction(pin)
-        if pin.length is None:
+        if pin.length in [None, 1]:
             yield PinFlat(
                 pin.name,
                 pin.block_ios,
@@ -309,7 +309,7 @@ def block_port_definitions(block: Block) -> Iterator[str]:
     instances_param = f"{block.name.upper()}_NUM"
     for io in block.ios:
         name = f"{block.name}_{io.name}"
-        width = "" if io.length is None else f"[{io.length - 1}:0] "
+        width = "" if io.length in [None, 1] else f"[{io.length - 1}:0] "
         match io.type:
             case Direction.INPUT:
                 yield f"output {width}{name}_o[{instances_param}]"

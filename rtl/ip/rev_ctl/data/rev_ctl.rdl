@@ -1,6 +1,7 @@
-`include "../../../../rdl/udp.rdl"
-
 addrmap rev_ctl {
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
     reg {
         desc = "Start address for the hardware revoker.";
         field {

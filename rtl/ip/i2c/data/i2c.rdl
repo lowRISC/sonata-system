@@ -3,51 +3,78 @@ addrmap i2c #(
     longint AcqFifoDepth = 8,
     longint NumAlerts = 1
 ){
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
     signal  {
         desc = "Raised when Format FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
     }format_fifo_threshold;
     signal  {
         desc = "Raised when Receive FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
     }receive_fifo_threshold;
     signal  {
         desc = "Raised when Acquire FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
     }acquire_fifo_threshold;
     signal  {
         desc = "Raised when Receive FIFO overflows";
+        sigtype=SigType::Interrupt;
     }receive_fifo_overflow;
     signal  {
         desc = "Raised when NACK is received";
+        sigtype=SigType::Interrupt;
     }received_nack;
     signal  {
         desc = "Raised when SCL interference detected";
+        sigtype=SigType::Interrupt;
     }scl_interference;
     signal  {
         desc = "Raised when SDA interference detected";
+        sigtype=SigType::Interrupt;
     }sda_interference;
     signal  {
         desc = "Raised when stretch timeout occurs";
+        sigtype=SigType::Interrupt;
     }stretch_timeout;
     signal  {
         desc = "Raised when SDA line is unstable";
+        sigtype=SigType::Interrupt;
     }sda_unstable;
     signal  {
         desc = "Raised when command completes";
+        sigtype=SigType::Interrupt;
     }command_complete;
     signal  {
         desc = "Raised when transmit stretch occurs";
+        sigtype=SigType::Interrupt;
     }transmit_stretch;
     signal  {
         desc = "Raised when transmit FIFO reaches threshold";
+        sigtype=SigType::Interrupt;
     }transmit_threshold;
     signal  {
         desc = "Raised when acquire FIFO is full";
+        sigtype=SigType::Interrupt;
     }acquire_fifo_full;
     signal  {
         desc = "Raised when unexpected stop is detected";
+        sigtype=SigType::Interrupt;
     }unexpected_stop;
     signal  {
         desc = "Raised when host timeout occurs";
+        sigtype=SigType::Interrupt;
     }host_timeout;
+
+    // Ios pads.
+    signal {sigtype=SigType::PadInOut; io_combine=IoCombine::And; } scl;
+    signal {sigtype=SigType::PadInOut; io_combine=IoCombine::And; } sda;
 
     reg {
         desc = "Interrupt State Register";

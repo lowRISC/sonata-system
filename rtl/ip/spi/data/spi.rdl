@@ -2,6 +2,15 @@
 addrmap spi #(
     longint MaxPeripherals = 4
 ){
+    // Ios pads.
+    signal {sigtype=SigType::PadInput;} cipo;
+    signal {sigtype=SigType::PadOutput;} copi;
+    signal {sigtype=SigType::PadOutput;} sclk;
+    signal {sigtype=SigType::PadOutput;} cs[4];
+
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
     reg {
         desc = "Interrupt State Register";
         field {

@@ -2,6 +2,9 @@ addrmap usbdev #(
     longint NEndpoints = 12,
     longint NumAlerts = 1
 ){
+    clk_input = '{ "clk_usb_i" };
+    rst_input = '{ "rst_usb_ni" };
+
     reg {
         desc = "Interrupt State Register";
         field {

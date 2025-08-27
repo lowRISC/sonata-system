@@ -5,6 +5,14 @@ addrmap rv_plic #(
     longint PrioWidth = 2,
     longint NumAlerts = 1
 ){
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
     reg {
         desc = "Interrupt Source 0 Priority";
         field {

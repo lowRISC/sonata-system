@@ -1,4 +1,22 @@
 addrmap pwm {
+
+  xbar = '{
+    parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+    parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+    parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+  };
+
+  clk_input = '{
+    "clk_sys_i"
+  };
+
+  rst_input = '{
+    "rst_sys_ni"
+  };
+
+  // Ios pads.
+  signal {sigtype=SigType::PadOutput;} out[7];
+
   reg {
     field {
       sw=rw;

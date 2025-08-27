@@ -1,7 +1,7 @@
 /* Copyright lowRISC contributors (OpenTitan project).
-* Licensed under the Apache License, Version 2.0; see LICENSE for details.
-* SPDX-License-Identifier: Apache-2.0
-*/
+ * Licensed under the Apache License, Version 2.0; see LICENSE for details.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /**
  * 4-bits boolean values
@@ -96,6 +96,12 @@ property async_clk {
   default = false;
 };
 
+property clk_input {
+  type = string[];
+  component = addrmap|regfile|reg|mem;
+  default = '{};
+};
+
 /* If true, integrity bits are passed through directly from the memory.
  */
 property integrity_bypass {
@@ -103,3 +109,11 @@ property integrity_bypass {
   component = mem;
   default = false;
 };
+
+property rst_input {
+  type = string[];
+  component = addrmap|regfile|reg|mem;
+  default = '{};
+};
+
+

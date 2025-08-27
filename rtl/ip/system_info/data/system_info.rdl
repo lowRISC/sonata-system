@@ -1,5 +1,8 @@
 
 addrmap system_info {
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
     external reg {
         desc = "This contains the git hash of the Sonata System repository when this bitstream was generated.   This is useful to determine the configuration of the RTL.";
         field {

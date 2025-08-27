@@ -8,5 +8,7 @@ from pathlib import Path
 from top_gen import generator, parser
 
 if __name__ == "__main__":
-    config = parser.parse_top_config(Path("data/top_config.toml"))
+    config = parser.parse_top_config(
+        Path("data/top_config.toml"), Path("autogen/rdl.json")
+    )
     generator.generate_top(config)

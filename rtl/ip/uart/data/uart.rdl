@@ -3,14 +3,27 @@ addrmap uart #(
     longint TxFifoDepth = 8,
     longint NumAlerts = 1
 ){
-    signal { desc = "Raised when TX FIFO reaches watermark";} tx_watermark;
-    signal { desc = "Raised when RX FIFO reaches watermark";} rx_watermark;
-    signal { desc = "Raised when TX FIFO becomes empty";} tx_empty;
-    signal { desc = "Raised when RX FIFO overflows";} rx_overflow;
-    signal { desc = "Raised on RX frame error";} rx_frame_err;
-    signal { desc = "Raised on RX break condition";} rx_break_err;
-    signal { desc = "Raised on RX timeout";} rx_timeout;
-    signal { desc = "Raised on RX parity error";} rx_parity_err;
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    // Interrupts
+    signal { desc = "Raised when TX FIFO reaches watermark"; sigtype=SigType::Interrupt;} tx_watermark;
+    signal { desc = "Raised when RX FIFO reaches watermark";sigtype=SigType::Interrupt;} rx_watermark;
+    signal { desc = "Raised when TX FIFO becomes empty";sigtype=SigType::Interrupt;} tx_empty;
+    signal { desc = "Raised when RX FIFO overflows";sigtype=SigType::Interrupt;} rx_overflow;
+    signal { desc = "Raised on RX frame error";sigtype=SigType::Interrupt;} rx_frame_err;
+    signal { desc = "Raised on RX break condition";sigtype=SigType::Interrupt;} rx_break_err;
+    signal { desc = "Raised on RX timeout";sigtype=SigType::Interrupt;} rx_timeout;
+    signal { desc = "Raised on RX parity error";sigtype=SigType::Interrupt;} rx_parity_err;
+
+    // Ios pads.
+    signal {sigtype=SigType::PadInput;} rx;
+    signal {sigtype=SigType::PadOutput;} tx;
 
     reg {
         desc = "Interrupt State Register";
