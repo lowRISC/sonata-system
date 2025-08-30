@@ -41,16 +41,6 @@
         size_byte: "0x00020000",
       }],
     },
-    { name:  "hyperram", // HyperRAM memory
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "0x40000000",
-        size_byte: "0x00100000",
-      }],
-    },
     { name:  "rev_tag", // Revocation tag memory
       type:  "device",
       clock: "clk_sys_i",
@@ -59,6 +49,16 @@
       addr_range: [{
         base_addr: "0x30000000",
         size_byte: "0x00000800",
+      }],
+    },
+    { name:  "hyperram", // HyperRAM memory
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "0x40000000",
+        size_byte: "0x00100000",
       }],
     },
     % for block in config.blocks:
@@ -151,6 +151,25 @@
         size_byte: "0x00010000",
       }],
     },
+    % for block in config.blocks:
+    % if not block.name == "gpio":
+    % for i in range(block.instances):
+    { name:  "${f"{block.name}{i}"}",
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      addr_range: [{
+        base_addr: "${hex(block.memory_start + i * block.memory_size)}",
+        size_byte: "${hex(block.memory_size)}",
+      }],
+      % for (setting, value) in block.xbar.items():
+      ${setting}: ${value},
+      % endfor
+    },
+    % endfor
+    % endif
+    % endfor
     { name:  "spi_lcd",
       type:  "device",
       clock: "clk_sys_i",
@@ -171,25 +190,6 @@
         size_byte: "0x00001000",
       }],
     },
-    % for block in config.blocks:
-    % if not block.name == "gpio":
-    % for i in range(block.instances):
-    { name:  "${f"{block.name}{i}"}",
-      type:  "device",
-      clock: "clk_sys_i",
-      reset: "rst_sys_ni",
-      xbar:  false,
-      addr_range: [{
-        base_addr: "${hex(block.memory_start + i * block.memory_size)}",
-        size_byte: "${hex(block.memory_size)}",
-      }],
-      % for (setting, value) in block.xbar.items():
-      ${setting}: ${value},
-      % endfor
-    },
-    % endfor
-    % endif
-    % endfor
     { name:  "usbdev", // USB device
       type:  "device",
       clock: "clk_usb_i",
@@ -197,17 +197,6 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x80400000",
-        size_byte: "0x00001000",
-      }],
-    },
-    { name:     "dbg_dev", // Debug module fetch interface
-      type:     "device",
-      clock:    "clk_sys_i",
-      reset:    "rst_sys_ni",
-      xbar:     false,
-      pipeline: true,
-      addr_range: [{
-        base_addr: "0xB0000000",
         size_byte: "0x00001000",
       }],
     },
@@ -225,28 +214,39 @@
       }],
       pipeline: true,
     },
+    { name:  "dbg_dev", // Debug module fetch interface
+      type:  "device",
+      clock: "clk_sys_i",
+      reset: "rst_sys_ni",
+      xbar:  false,
+      pipeline: true,
+      addr_range: [{
+        base_addr: "0xB0000000",
+        size_byte: "0x00001000",
+      }],
+    },
   ],
   connections: {
     ibex_lsu: [
       "sram",
-      "hyperram",
       "rev_tag",
-      "dbg_dev",
+      "hyperram",
       "pinmux",
-      "system_info",
       "rgbled_ctrl",
       "hw_rev",
       "xadc",
+      "system_info",
       "timer",
-      "spi_lcd",
-      "spi_ethmac",
       % for block in config.blocks:
       % for i in range(block.instances):
       "${f"{block.name}{i}"}",
       % endfor
       % endfor
+      "spi_lcd",
+      "spi_ethmac",
       "usbdev",
       "rv_plic",
+      "dbg_dev",
     ],
     dbg_host: [
       "sram",
