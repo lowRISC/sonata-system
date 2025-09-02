@@ -9,8 +9,11 @@
 // particular require Xilinx encrypted IP models).
 
 module hyperram import tlul_pkg::*; #(
-  parameter HyperRAMClkFreq = 200_000_000,
-  parameter HyperRAMSize    = 1024 * 1024,
+  parameter int unsigned HyperRAMClkFreq = 200_000_000,
+  // Mapped size of the HyperRAM, in bytes.
+  parameter int unsigned HyperRAMSize    = 8 * 1024 * 1024, // 8 MiB
+  // Mapped portion of the HyperRAM that can store capabilities, in bytes.
+  parameter int unsigned HyperRAMTagSize = 4 * 1024 * 1024, // 4 MiB
   // Number of access ports.
   parameter int unsigned NumPorts = 2
 ) (
@@ -37,7 +40,7 @@ module hyperram import tlul_pkg::*; #(
   // behaviour/timing of the HyperRAM is not required. It is also required in synthesis for
   // the Sonata XL board because that has no HyperRAM.
   localparam int SRAMModelAddrWidth = $clog2(HyperRAMSize);
-  localparam int UnusedParams = HyperRAMClkFreq + HyperRAMSize;
+  localparam int UnusedParams = HyperRAMClkFreq + HyperRAMSize + HyperRAMTagSize;
 
   logic       unused_clk_hr;
   logic       unused_clk_hr90p;
@@ -120,7 +123,8 @@ module hyperram import tlul_pkg::*; #(
     .C_DQ0_IDELAY_TAPS_VALUE(0),
     .C_ISERDES_CLOCKING_MODE(0),
     .NumPorts(NumPorts),
-    .HyperRAMSize(HyperRAMSize)
+    .HyperRAMSize(HyperRAMSize),
+    .HyperRAMTagSize(HyperRAMTagSize)
   ) u_hbmc_tl_top (
     .clk_i(clk_i),
     .rst_ni(rst_ni),

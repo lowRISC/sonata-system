@@ -116,20 +116,21 @@ module sonata_system
   // Signals, types and parameters for system. //
   ///////////////////////////////////////////////
 
-  localparam int unsigned MemSize       = 128 * 1024; // 128 KiB
-  localparam int unsigned SRAMAddrWidth = $clog2(MemSize);
-  localparam int unsigned HyperRAMSize  = 1024 * 1024; // 1 MiB
-  localparam int unsigned PwmCtrSize    = 8;
-  localparam int unsigned BusAddrWidth  = 32;
-  localparam int unsigned BusByteEnable = 4;
-  localparam int unsigned BusDataWidth  = 32;
-  localparam int unsigned DRegAddrWidth = 12; // Debug module uses 12 bits of addressing.
-  localparam int unsigned TRegAddrWidth = 16; // Timer uses more address bits.
-  localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
-  localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
-  localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
-  localparam int unsigned TotalGpioNum  = GPIO_NUM + FixedGpioNum; // The total number of GPIO instances
-  localparam int unsigned TAccessLatency = 0; // Cycles of read data latency.
+  localparam int unsigned MemSize         = 128 * 1024; // 128 KiB
+  localparam int unsigned SRAMAddrWidth   = $clog2(MemSize);
+  localparam int unsigned HyperRAMSize    = 8 * 1024 * 1024; // 8 MiB
+  localparam int unsigned HyperRAMTagSize = 4 * 1024 * 1024; // 4 MiB which can hold capabilities.
+  localparam int unsigned PwmCtrSize      = 8;
+  localparam int unsigned BusAddrWidth    = 32;
+  localparam int unsigned BusByteEnable   = 4;
+  localparam int unsigned BusDataWidth    = 32;
+  localparam int unsigned DRegAddrWidth   = 12; // Debug module uses 12 bits of addressing.
+  localparam int unsigned TRegAddrWidth   = 16; // Timer uses more address bits.
+  localparam int unsigned FixedSpiNum     = 2; // Number of SPI devices that don't pass through the pinmux
+  localparam int unsigned TotalSpiNum     = SPI_NUM + FixedSpiNum; // The total number of SPI devices
+  localparam int unsigned FixedGpioNum    = 1; // Number of GPIO instances that don't pass through the pinmux
+  localparam int unsigned TotalGpioNum    = GPIO_NUM + FixedGpioNum; // The total number of GPIO instances
+  localparam int unsigned TAccessLatency  = 0; // Cycles of read data latency.
 
   // The number of data bits controlled by each mask bit; since the CPU requires
   // only byte level access, explicitly grouping the data bits makes the inferred
@@ -521,6 +522,7 @@ module sonata_system
   hyperram #(
     .HyperRAMClkFreq ( HyperRAMClkFreq ),
     .HyperRAMSize    ( HyperRAMSize    ),
+    .HyperRAMTagSize ( HyperRAMTagSize ),
     .NumPorts        ( 2               )
   ) u_hyperram (
     .clk_i  (clk_sys_i),
