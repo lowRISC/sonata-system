@@ -249,3 +249,9 @@ memset_cd_8fix:
   bgtz  a2, memset_b_desc_tail
   cret
 
+// Utility function returning the `pcc` at which an exception occurred.
+  .globl get_mepcc
+  .p2align 5
+get_mepcc:
+  cspecialr ca0, mepcc
+  cret

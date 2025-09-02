@@ -77,9 +77,12 @@ using PinmuxPtrs = std::pair<PinSinksPtr, BlockSinksPtr>;
 }
 
 [[maybe_unused]] static HyperramPtr hyperram_ptr(CapRoot root) {
+  // Unfortunately it is not possible to construct a capability that covers exactly the 8MiB range
+  // of the HyperRAM because of the encoding limitations of the CHERIoT capabilities.
+  // We therefore leave the final 16KiB inaccessible.
   CHERI::Capability<volatile uint32_t> hyperram = root.cast<volatile uint32_t>();
   hyperram.address()                            = HYPERRAM_ADDRESS;
-  hyperram.bounds()                             = HYPERRAM_BOUNDS;
+  hyperram.bounds()                             = HYPERRAM_BOUNDS - 0x4000u;
   return hyperram;
 }
 

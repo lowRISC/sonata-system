@@ -23,10 +23,59 @@
 
 #include "hyperram_memset.h"
 
+// Simulation is much slower than execution on FPGA and these tests are primarily intended for
+// FPGA-based testing. Define this to 1 for use in simulation.
+#define SIMULATION 1
+
 using namespace CHERI;
 
 const int RandTestBlockSize = 256;
-const int HyperramSize      = (1024 * 1024) / 4;
+#if SIMULATION
+// Note that this means many of the tests will be exercising only small fraction of the mapped
+// HyperRAM address range.
+const unsigned HyperramSize = HYPERRAM_BOUNDS / 1024;
+#else
+// Number of 32-bit words within the mapped HyperRAM.
+const unsigned HyperramSize = HYPERRAM_BOUNDS / 4;
+#endif
+
+// The amount of HyperRAM that supports capability stores.
+const unsigned HyperramTagSize = HYPERRAM_TAG_BOUNDS / 4;
+
+// Logging from the exception handling code.
+static Log *exc_log = NULL;
+
+// Signals whether an exception should be trapped and the faulting instruction skipped.
+static volatile bool trap_err = false;
+
+// Records whether an attempt to store a capability to the HyperRAM resulted in a
+// TL-UL bus error and thus an exception.
+static volatile bool act_err = false;
+
+// TODO: #429 Presently the debugger cannot perform sub-word writes, so pad the BSS to 4 bytes.
+volatile uint16_t dummy;
+
+extern "C" void exception_handler(void) {
+  if (trap_err) {
+    // Record the fact that an exception occurred.
+    act_err = true;
+    // Advance over the failing instruction; this is a `csc` instruction but it may or may not be
+    // compressed.
+    __asm volatile(
+        "         cspecialr ct0, mepcc\n"
+        "         lh        t2, 0(ct0)\n"
+        "         li        t1, 3\n"
+        "         and       t2, t2, t1\n"
+        "         bne       t2, t1, instr16\n"
+        "         cincoffset ct0, ct0, 2\n"
+        "instr16: cincoffset ct0, ct0, 2\n"
+        "update:  cspecialw  mepcc, ct0");
+  } else if (exc_log) {
+    uint32_t exc_addr = __builtin_cheri_address_get(get_mepcc());
+    exc_log->println("Unexpected exception occurred at {:#x}", exc_addr);
+    while (1) asm volatile(" ");
+  }
+}
 
 // Ensure that all writing of code to memory has completed before commencing execution
 // of that code. Code has been written to [start, end] with both addresses being
@@ -129,10 +178,10 @@ int rand_cap_test(Capability<volatile uint32_t> hyperram_area,
     Capability<volatile uint32_t> read_cap;
 
     do {
-      rand_index = prng() % HyperramSize;
+      rand_index = prng() % HyperramTagSize;
 
       // Capability is double word in size.
-      rand_cap_index = prng() % (HyperramSize / 2);
+      rand_cap_index = prng() % (HyperramTagSize / 2);
     } while (rand_index / 2 == rand_cap_index);
 
     rand_val = prng();
@@ -670,6 +719,110 @@ int linear_execution_test(Capability<volatile uint32_t> hyperram_w_area, ds::xor
   return failures;
 }
 
+// Simple test of whether the full HyperRAM is mapped, as well checking that capabilities can
+// only be stored to the intended portion of this mapped range.
+int mapped_tagged_range_test(Capability<volatile uint32_t> hyperram_w_area,
+                             Capability<Capability<volatile uint32_t>> hyperram_cap_area, ds::xoroshiro::P64R32 &prng,
+                             Log &log, int iterations = 1) {
+  const bool verbose = false;
+  int failures       = 0;
+
+  // In the event that the entire HyperRAM supports capabilities, we must reduce two of our
+  // directed choices to be within bounds.
+  uint32_t tag_bounds_plus_8 = HYPERRAM_TAG_BOUNDS + 8;
+  uint32_t tag_bounds        = HYPERRAM_TAG_BOUNDS;
+  if (tag_bounds_plus_8 >= HYPERRAM_BOUNDS) {
+    tag_bounds_plus_8 = HYPERRAM_BOUNDS - 8;
+    tag_bounds        = HYPERRAM_BOUNDS - 16;
+  }
+
+  for (int iter = 0; iter < iterations; ++iter) {
+    Capability<volatile uint32_t> read_cap;
+    unsigned rand_choice = prng() & 7u;
+    uint32_t rand_addr;
+
+    switch (rand_choice) {
+      // Directed choices.
+      case 0u:
+        rand_addr = tag_bounds;
+        break;
+      case 1u:
+        rand_addr = HYPERRAM_TAG_BOUNDS - 8;
+        break;
+      case 2u:
+        rand_addr = HYPERRAM_BOUNDS - 8;
+        break;
+      case 3u:
+        rand_addr = tag_bounds_plus_8;
+        break;
+      case 4u:
+        rand_addr = 0u;
+        break;
+      // Randomised choices.
+      default:
+        rand_addr = prng() & (HYPERRAM_BOUNDS - 8u);
+        break;
+    }
+
+    // Predict whether we should see a TL-UL error in response; only the first portion of the
+    // mapped HyperRAM supports tag bits. Anything at a higher address should raise a TL-UL error.
+    bool exp_err = (rand_addr >= HYPERRAM_TAG_BOUNDS);
+    if (verbose) {
+      log.println("addr {:#x}", rand_addr);
+    }
+
+    // We are expecting to generate a TL-UL error with some store operations.
+    trap_err = true;
+    // First store some data that does not constitute a sensible capability.
+    const uint32_t exp_data1              = 0x87654321u;
+    const uint32_t exp_data0              = ~0u;
+    hyperram_w_area[rand_addr >> 2]       = exp_data0;
+    hyperram_w_area[(rand_addr >> 2) + 1] = exp_data1;
+
+    // Attempt to store a capability to the chosen address.
+    // The capability stored doesn't really matter; just use the HyperRAM base.
+    act_err                           = false;
+    hyperram_cap_area[rand_addr >> 3] = hyperram_w_area;
+    trap_err                          = false;
+    if (verbose) {
+      log.println("done write");
+    }
+    read_cap = hyperram_cap_area[rand_addr >> 3];
+
+    // Check that an error occurred iff expected.
+    failures += (act_err != exp_err);
+    if (verbose) {
+      log.println("Act err {}, exp err {}", (int)act_err, (int)exp_err);
+    }
+
+    // Check the memory contents.
+    if (exp_err) {
+      // If an error occurred then we expect _not_ to have performed the write, so the test data
+      // should still be intact.
+      uint32_t act_data1 = hyperram_w_area[(rand_addr >> 2) + 1];
+      uint32_t act_data0 = hyperram_w_area[rand_addr >> 2];
+      if (verbose) {
+        log.println("Wrote {:#x}:{:#x}, read back {:#x}:{:#x}", exp_data0, exp_data1, act_data0, act_data1);
+      }
+      if (exp_data0 != act_data0 || exp_data1 != act_data1) {
+        failures++;
+      }
+    } else {
+      // If there was no error, the capability should have been stored as expected.
+      if (verbose) {
+        volatile uint32_t *exp = hyperram_w_area.get();
+        volatile uint32_t *act = read_cap.get();
+        log.println("Wrote {:#x}, read back {:#x}", (uint32_t)exp, (uint32_t)act);
+      }
+      if (read_cap != hyperram_w_area) {
+        failures++;
+      }
+    }
+  }
+
+  return failures;
+}
+
 /**
  * C++ entry point for the loader.  This is called from assembly, with the
  * read-write root in the first argument.
@@ -685,6 +838,8 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   uart0->init(BAUD_RATE);
   WriteUart uart{uart0};
   Log log(uart);
+  // Make logging available to the exception handler.
+  exc_log = &log;
 
   set_console_mode(log, CC_BOLD);
   log.print("\r\n\r\nGet hyped for hyperram!\r\n");
@@ -694,24 +849,32 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);
 
   // Default is word-based accesses, which is sufficient for most tests.
+  //
+  // Unfortunately it is not possible to construct a capability that covers exactly the 8MiB range
+  // of the HyperRAM because of the encoding limitations of the CHERIoT capabilities.
+  //
+  // Here, in this manually-invoked test, we resort to mapping twice that address range because
+  // it is more important that we test all of the physical HyperRAM connectivity and logic, rather
+  // than the CHERIoT capabilities.
   Capability<volatile uint32_t> hyperram_area = root.cast<volatile uint32_t>();
+  uint32_t bounds                             = 2 * HYPERRAM_BOUNDS;
   hyperram_area.address()                     = HYPERRAM_ADDRESS;
-  hyperram_area.bounds()                      = HYPERRAM_BOUNDS;
+  hyperram_area.bounds()                      = bounds;
 
   Capability<Capability<volatile uint32_t>> hyperram_cap_area = root.cast<Capability<volatile uint32_t>>();
   hyperram_cap_area.address()                                 = HYPERRAM_ADDRESS;
-  hyperram_cap_area.bounds()                                  = HYPERRAM_BOUNDS;
+  hyperram_cap_area.bounds()                                  = bounds;
 
   // We also want byte, hword and dword access for some tests.
   Capability<volatile uint8_t> hyperram_b_area  = root.cast<volatile uint8_t>();
   hyperram_b_area.address()                     = HYPERRAM_ADDRESS;
-  hyperram_b_area.bounds()                      = HYPERRAM_BOUNDS;
+  hyperram_b_area.bounds()                      = bounds;
   Capability<volatile uint16_t> hyperram_h_area = root.cast<volatile uint16_t>();
   hyperram_h_area.address()                     = HYPERRAM_ADDRESS;
-  hyperram_h_area.bounds()                      = HYPERRAM_BOUNDS;
+  hyperram_h_area.bounds()                      = bounds;
   Capability<volatile uint64_t> hyperram_d_area = root.cast<volatile uint64_t>();
   hyperram_d_area.address()                     = HYPERRAM_ADDRESS;
-  hyperram_d_area.bounds()                      = HYPERRAM_BOUNDS;
+  hyperram_d_area.bounds()                      = bounds;
 
   // Run indefinitely, soak testing until we observe one or more failures.
   int failures = 0;
@@ -820,6 +983,10 @@ extern "C" [[noreturn]] void entry_point(void *rwRoot) {
                               (WriteTestType)test_type, 0x400u);
     }
     log.print("  result...");
+    write_test_result(log, failures);
+
+    log.println("Running mapped/tagged range test...");
+    failures += mapped_tagged_range_test(hyperram_area, hyperram_cap_area, prng, log, 0x400u);
     write_test_result(log, failures);
   }
 

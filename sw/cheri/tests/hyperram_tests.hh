@@ -33,19 +33,24 @@ using namespace CHERI;
  * It can be overwride with a compilation flag
  */
 #ifndef TEST_COVERAGE_AREA
-// Test only 1% of the total memory to be fast enough for Verilator.
-#define TEST_COVERAGE_AREA 1
+// Test only n/1024 of the total memory to be fast enough for Verilator.
+//
+// Note: we are deliberately using power-of-two quantities here because of the addressing
+//       limitations of CHERIoT capabilities. There is 8MiB available but we must keep the
+//       testing short, so we choose to use just ca. 0.2%
+#define TEST_COVERAGE_AREA 2
 #endif
-_Static_assert(TEST_COVERAGE_AREA <= 100, "TEST_COVERAGE_AREA Should be less than 100");
+static_assert(TEST_COVERAGE_AREA <= 1024, "TEST_COVERAGE_AREA Should be less than 1024");
 
 #define TEST_BLOCK_SIZE 256
-#define HYPERRAM_SIZE (1024 * 1024) / 4
+// Size of mapped, tag-capable portion of HyperRAM, in 32-bit words.
+#define HYPERRAM_TAG_SIZE (HYPERRAM_TAG_BOUNDS / 4)
 
 /*
  * Compute the number of addresses that will be tested.
  * We mask the LSB 8bits to makes sure it is aligned.
  */
-#define HYPERRAM_TEST_SIZE (uint32_t)((HYPERRAM_SIZE * TEST_COVERAGE_AREA / 100) & ~0xFF)
+#define HYPERRAM_TEST_SIZE (uint32_t)((HYPERRAM_TAG_SIZE * TEST_COVERAGE_AREA / 0x400u) & ~0xFF)
 
 /*
  * Write random values to a block of memory (size given by 'TEST_BLOCK_SIZE'
@@ -301,11 +306,15 @@ int perf_burst_test(Capability<volatile uint32_t> hyperram_area, ds::xoroshiro::
 }
 
 void hyperram_tests(CapRoot root, Log &log) {
-  auto hyperram_area = hyperram_ptr(root);
+  // Unfortunately it is not possible to construct a capability that covers exactly the 8MiB range
+  // of the HyperRAM because of the encoding limitations of the CHERIoT capabilities, but here we
+  // are only concerned with testing a much smaller portion of the address range anyway.
+  const uint32_t hr_bounds = HYPERRAM_TEST_SIZE * 4u;
+  auto hyperram_area       = hyperram_ptr(root);
 
   Capability<Capability<volatile uint32_t>> hyperram_cap_area = root.cast<Capability<volatile uint32_t>>();
   hyperram_cap_area.address()                                 = HYPERRAM_ADDRESS;
-  hyperram_cap_area.bounds()                                  = HYPERRAM_BOUNDS;
+  hyperram_cap_area.bounds()                                  = hr_bounds;
 
   ds::xoroshiro::P64R32 prng;
   prng.set_state(0xDEADBEEF, 0xBAADCAFE);

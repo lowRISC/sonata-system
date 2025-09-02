@@ -13,7 +13,9 @@
 #define SRAM_BOUNDS (0x0002'0000)
 
 #define HYPERRAM_ADDRESS (0x4000'0000)
-#define HYPERRAM_BOUNDS (0x0010'0000)
+#define HYPERRAM_BOUNDS (0x0080'0000)
+// The portion of the HyperRAM that can support capabilities.
+#define HYPERRAM_TAG_BOUNDS (0x0040'0000)
 
 #define SYSTEM_INFO_ADDRESS (0x8000'C000)
 #define SYSTEM_INFO_BOUNDS (0x0000'0020)
