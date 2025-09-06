@@ -6,6 +6,7 @@
 from enum import Enum
 from pathlib import Path
 
+import json
 import toml
 from pydantic import BaseModel, field_validator, model_validator
 from pydantic.dataclasses import dataclass
@@ -25,6 +26,17 @@ class Direction(str, Enum):
                 return self
             case _:
                 return Direction.INOUT
+
+    @staticmethod
+    def from_rdl_sigtype(sigtype: str) -> "Direction":
+        match sigtype:
+            case "PadInOut":
+                return Direction("inout")
+            case "PadInput":
+                return Direction("input")
+            case "PadOutput":
+                return Direction("output")
+        return None
 
 
 class BlockIoCombine(str, Enum):
@@ -51,9 +63,9 @@ class BlockIo(BaseModel, frozen=True):
 class Block(BaseModel, frozen=True):
     name: str
     instances: int
-    ios: list[BlockIo]
-    memory_start: int
-    memory_size: int
+    ios: list[BlockIo] = []
+    memory_start: int = 0
+    memory_size: int = 0
     xbar: dict[str, str] = {}
 
     @field_validator("instances")
@@ -69,7 +81,7 @@ class BlockIoUid:
     block: str
     instance: int
     io: str
-    io_index: int | None = None
+    io_index: int|None = None 
     """Used to index into an arrayed block IO."""
 
 
@@ -111,9 +123,64 @@ class TopConfig(BaseModel, frozen=True):
             print(f"A pin named '{name}' could not be found.")
             exit(3)
 
+def next_power_of_two(x):
+    return 1 << (x-1).bit_length()
 
-def parse_top_config(filename: Path) -> TopConfig:
+def _make_ios(device: dict) -> list:
+    ios = []
+    for pad in device.get("pads", []):
+        # Todo: Try to remove the thanslation.
+        io = {
+            "name": pad["name"],
+            "length": pad.get("width", 1),
+        }
+        if type_ := pad["type"]:
+            io["type"] = Direction.from_rdl_sigtype(type_).value
+        if val := pad.get("combine"):
+            io["combine"] = val.lower()
+        ios.append(io)
+    return ios
+        
+
+def parse_top_config(cfg_file: Path, rdl_file: Path) -> TopConfig:
     """Load the top configuration from the given TOML file."""
-    with filename.open() as file:
+    with cfg_file.open() as file:
         config_dict = toml.load(file)
+
+    with rdl_file.open() as file:
+        rdl_dict = json.load(file)
+
+    for device in rdl_dict["devices"]:
+        if device["type"] == "mem":
+            instances = 1
+            mem_start = device["offset"]
+        else:
+            instances = len(device["offsets"])
+            mem_start = device["offsets"][0]
+        size = next_power_of_two(max(0x1000, device.get("size", 0x1000)))
+
+        obj = {
+                "name": device["name"].lower(),
+                "instances": instances,
+                "memory_start": mem_start,
+                "memory_size": size,
+                "ios" : _make_ios(device),
+            }
+        if udps := device.get("udps"):
+            if "xbar" in udps:
+                obj["xbar"] = dict((item["name"], item["value"]) for item in udps["xbar"])
+
+            if "clk_input" in udps:
+                obj.setdefault("xbar",{})["clock"] = udps["clk_input"][0]
+
+            if "rst_input" in udps:
+                obj.setdefault("xbar",{})["reset"] = udps["rst_input"][0]
+
+
+
+        config_dict.setdefault("blocks",[]).append(obj)
+
+    # Sort the blocks by the start address.
+    Path("/tmp/log_top_config.txt").write_text(str(TopConfig(**config_dict)))
+    config_dict["blocks"].sort(key=lambda b: b["memory_start"])
     return TopConfig(**config_dict)
