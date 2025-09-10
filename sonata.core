@@ -55,6 +55,7 @@ filesets:
       - dv/dpi/spidpi/spi_microsd.cc: { file_type: cppSource }
       - dv/dpi/spidpi/spi_microsd.hh: { file_type: cppSource, is_include_file: true }
       - dv/models/hyperram/rtl/hyperram_W956.sv: { file_type: systemVerilogSource }
+      - dv/models/fpga/rtl/DNA_PORT.v: { file_type: systemVerilogSource }
       - dv/models/fpga/rtl/IOBUF.v: { file_type: systemVerilogSource }
       - dv/models/fpga/rtl/ISERDESE2.v: { file_type: systemVerilogSource }
       - dv/models/fpga/rtl/OBUF.v: { file_type: systemVerilogSource }

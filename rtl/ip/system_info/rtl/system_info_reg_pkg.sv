@@ -7,11 +7,21 @@
 package system_info_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 6;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
+
+  typedef struct packed {
+    logic        q;
+    logic        qe;
+  } system_info_reg2hw_dna_capture_reg_t;
+
+  typedef struct packed {
+    logic        q;
+    logic        re;
+  } system_info_reg2hw_dna_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -45,27 +55,58 @@ package system_info_reg_pkg;
     logic [7:0]  d;
   } system_info_hw2reg_spi_info_reg_t;
 
+  typedef struct packed {
+    logic        d;
+  } system_info_hw2reg_dna_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
+  } system_info_hw2reg_mem_size_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
+  } system_info_hw2reg_hyperram_size_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
+  } system_info_hw2reg_hyperram_tag_size_reg_t;
+
+  // Register -> HW type
+  typedef struct packed {
+    system_info_reg2hw_dna_capture_reg_t dna_capture; // [3:2]
+    system_info_reg2hw_dna_reg_t dna; // [1:0]
+  } system_info_reg2hw_t;
+
   // HW -> register type
   typedef struct packed {
-    system_info_hw2reg_rtl_commit_hash_0_reg_t rtl_commit_hash_0; // [128:97]
-    system_info_hw2reg_rtl_commit_hash_1_reg_t rtl_commit_hash_1; // [96:65]
-    system_info_hw2reg_rtl_commit_dirty_reg_t rtl_commit_dirty; // [64:64]
-    system_info_hw2reg_system_frequency_reg_t system_frequency; // [63:32]
-    system_info_hw2reg_gpio_info_reg_t gpio_info; // [31:24]
-    system_info_hw2reg_uart_info_reg_t uart_info; // [23:16]
-    system_info_hw2reg_i2c_info_reg_t i2c_info; // [15:8]
-    system_info_hw2reg_spi_info_reg_t spi_info; // [7:0]
+    system_info_hw2reg_rtl_commit_hash_0_reg_t rtl_commit_hash_0; // [225:194]
+    system_info_hw2reg_rtl_commit_hash_1_reg_t rtl_commit_hash_1; // [193:162]
+    system_info_hw2reg_rtl_commit_dirty_reg_t rtl_commit_dirty; // [161:161]
+    system_info_hw2reg_system_frequency_reg_t system_frequency; // [160:129]
+    system_info_hw2reg_gpio_info_reg_t gpio_info; // [128:121]
+    system_info_hw2reg_uart_info_reg_t uart_info; // [120:113]
+    system_info_hw2reg_i2c_info_reg_t i2c_info; // [112:105]
+    system_info_hw2reg_spi_info_reg_t spi_info; // [104:97]
+    system_info_hw2reg_dna_reg_t dna; // [96:96]
+    system_info_hw2reg_mem_size_reg_t mem_size; // [95:64]
+    system_info_hw2reg_hyperram_size_reg_t hyperram_size; // [63:32]
+    system_info_hw2reg_hyperram_tag_size_reg_t hyperram_tag_size; // [31:0]
   } system_info_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET = 5'h 0;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET = 5'h 4;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET = 5'h 8;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET = 5'h c;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_GPIO_INFO_OFFSET = 5'h 10;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_UART_INFO_OFFSET = 5'h 14;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_I2C_INFO_OFFSET = 5'h 18;
-  parameter logic [BlockAw-1:0] SYSTEM_INFO_SPI_INFO_OFFSET = 5'h 1c;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET = 6'h 0;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET = 6'h 4;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET = 6'h 8;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET = 6'h c;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_GPIO_INFO_OFFSET = 6'h 10;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_UART_INFO_OFFSET = 6'h 14;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_I2C_INFO_OFFSET = 6'h 18;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_SPI_INFO_OFFSET = 6'h 1c;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_DNA_CAPTURE_OFFSET = 6'h 20;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_DNA_OFFSET = 6'h 24;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_MEM_SIZE_OFFSET = 6'h 28;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_HYPERRAM_SIZE_OFFSET = 6'h 2c;
+  parameter logic [BlockAw-1:0] SYSTEM_INFO_HYPERRAM_TAG_SIZE_OFFSET = 6'h 30;
 
   // Reset values for hwext registers and their fields
   parameter logic [31:0] SYSTEM_INFO_RTL_COMMIT_HASH_0_RESVAL = 32'h 0;
@@ -77,6 +118,11 @@ package system_info_reg_pkg;
   parameter logic [7:0] SYSTEM_INFO_UART_INFO_RESVAL = 8'h 0;
   parameter logic [7:0] SYSTEM_INFO_I2C_INFO_RESVAL = 8'h 0;
   parameter logic [7:0] SYSTEM_INFO_SPI_INFO_RESVAL = 8'h 0;
+  parameter logic [0:0] SYSTEM_INFO_DNA_CAPTURE_RESVAL = 1'h 0;
+  parameter logic [0:0] SYSTEM_INFO_DNA_RESVAL = 1'h 0;
+  parameter logic [31:0] SYSTEM_INFO_MEM_SIZE_RESVAL = 32'h 0;
+  parameter logic [31:0] SYSTEM_INFO_HYPERRAM_SIZE_RESVAL = 32'h 0;
+  parameter logic [31:0] SYSTEM_INFO_HYPERRAM_TAG_SIZE_RESVAL = 32'h 0;
 
   // Register index
   typedef enum int {
@@ -87,19 +133,29 @@ package system_info_reg_pkg;
     SYSTEM_INFO_GPIO_INFO,
     SYSTEM_INFO_UART_INFO,
     SYSTEM_INFO_I2C_INFO,
-    SYSTEM_INFO_SPI_INFO
+    SYSTEM_INFO_SPI_INFO,
+    SYSTEM_INFO_DNA_CAPTURE,
+    SYSTEM_INFO_DNA,
+    SYSTEM_INFO_MEM_SIZE,
+    SYSTEM_INFO_HYPERRAM_SIZE,
+    SYSTEM_INFO_HYPERRAM_TAG_SIZE
   } system_info_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SYSTEM_INFO_PERMIT [8] = '{
-    4'b 1111, // index[0] SYSTEM_INFO_RTL_COMMIT_HASH_0
-    4'b 1111, // index[1] SYSTEM_INFO_RTL_COMMIT_HASH_1
-    4'b 0001, // index[2] SYSTEM_INFO_RTL_COMMIT_DIRTY
-    4'b 1111, // index[3] SYSTEM_INFO_SYSTEM_FREQUENCY
-    4'b 0001, // index[4] SYSTEM_INFO_GPIO_INFO
-    4'b 0001, // index[5] SYSTEM_INFO_UART_INFO
-    4'b 0001, // index[6] SYSTEM_INFO_I2C_INFO
-    4'b 0001  // index[7] SYSTEM_INFO_SPI_INFO
+  parameter logic [3:0] SYSTEM_INFO_PERMIT [13] = '{
+    4'b 1111, // index[ 0] SYSTEM_INFO_RTL_COMMIT_HASH_0
+    4'b 1111, // index[ 1] SYSTEM_INFO_RTL_COMMIT_HASH_1
+    4'b 0001, // index[ 2] SYSTEM_INFO_RTL_COMMIT_DIRTY
+    4'b 1111, // index[ 3] SYSTEM_INFO_SYSTEM_FREQUENCY
+    4'b 0001, // index[ 4] SYSTEM_INFO_GPIO_INFO
+    4'b 0001, // index[ 5] SYSTEM_INFO_UART_INFO
+    4'b 0001, // index[ 6] SYSTEM_INFO_I2C_INFO
+    4'b 0001, // index[ 7] SYSTEM_INFO_SPI_INFO
+    4'b 0001, // index[ 8] SYSTEM_INFO_DNA_CAPTURE
+    4'b 0001, // index[ 9] SYSTEM_INFO_DNA
+    4'b 1111, // index[10] SYSTEM_INFO_MEM_SIZE
+    4'b 1111, // index[11] SYSTEM_INFO_HYPERRAM_SIZE
+    4'b 1111  // index[12] SYSTEM_INFO_HYPERRAM_TAG_SIZE
   };
 
 endpackage
