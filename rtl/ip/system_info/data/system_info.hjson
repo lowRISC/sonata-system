@@ -130,5 +130,74 @@
         },
       ],
     },
+    { name: "DNA_CAPTURE",
+      desc: '''Capture the `DNA value` of this Sonata device for reading via the `DNA` register.
+               A write to this register will present the first bit of the DNA value in `DNA.`
+               The value written does not matter.''',
+      swaccess: "wo",
+      hwaccess: "hro",
+      hwqe: "true",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "CAPTURE"
+          desc: '''Initiate reading of `DNA value`.''',
+        },
+      ]
+    }
+    { name: "DNA",
+      desc: '''The next bit of the DNA value.
+               Reading of the DNA value should be initiated by writing to `DNA_CAPTURE.`
+               A single bit of the 57-bit DNA value is presented per read of the `DNA` register.
+               Up to 32 FPGA devices within a family may have the same DNA value.''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwre: "true",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "DNA"
+          desc: '''Next bit of DNA value.''',
+        },
+      ]
+    }
+    { name: "MEM_SIZE",
+      desc: '''Size of main memory (SRAM) in KiB.''',
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "31:0",
+          name: "SIZE",
+          desc: '''Size of main memory in KiB.''',
+        },
+      ]
+    }
+    { name: "HYPERRAM_SIZE",
+      desc: '''Size of HyperRAM in KiB.''',
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "31:0",
+          name: "SIZE",
+          desc: '''Size of HyperRAM in KiB.''',
+        },
+      ]
+    }
+    { name: "HYPERRAM_TAG_SIZE",
+      desc: '''Size of tagged portion of HyperRAM in KiB.
+               It may be the case that only the first portion of the HyperRAM supports tags.
+               Storing a capability within the remainder of the HyperRAM will raise an error.''',
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "31:0",
+          name: "SIZE",
+          desc: '''Size of tagged portion of HyperRAM in KiB.''',
+        },
+      ]
+    }
   ],
 }

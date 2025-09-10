@@ -1216,11 +1216,14 @@ module sonata_system
   assign host_wcap[DbgHost] = 1'b0;
 
   system_info #(
-    .SysClkFreq (   SysClkFreq ),
-    .GpioNum    ( TotalGpioNum ),
-    .UartNum    (     UART_NUM ),
-    .I2cNum     (      I2C_NUM ),
-    .SpiNum     (  TotalSpiNum )
+    .SysClkFreq       (      SysClkFreq ),
+    .GpioNum          (    TotalGpioNum ),
+    .UartNum          (        UART_NUM ),
+    .I2cNum           (         I2C_NUM ),
+    .SpiNum           (     TotalSpiNum ),
+    .MemSize          (         MemSize ),
+    .HyperRAMSize     (    HyperRAMSize ),
+    .HyperRAMTagSize  ( HyperRAMTagSize )
   ) u_system_info (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),
