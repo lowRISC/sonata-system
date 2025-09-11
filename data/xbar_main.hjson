@@ -48,7 +48,7 @@
       xbar:  false,
       addr_range: [{
         base_addr: "0x40000000",
-        size_byte: "0x00100000",
+        size_byte: "0x00800000",
       }],
     },
     { name:  "rev_tag", // Revocation tag memory

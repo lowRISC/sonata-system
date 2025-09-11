@@ -31,7 +31,6 @@
 // ca0 -> destination (word-aligned)
 // ca1 -> source (word-aligned)
 // a2  =  number of bytes to copy
-// return -> beyond destination data.
 hyperram_copy_block:
   srl   a3, a2, 5
   andi  a2, a2, 31  // 0-31 bytes remaining after 32-byte loop.

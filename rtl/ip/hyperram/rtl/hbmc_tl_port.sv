@@ -7,15 +7,23 @@
 // in the event that writes are supported.
 //
 // An instruction port need not support write operations and does not require tag bits.
+//
+// Tag bits may be supported for only part of the mapped HyperRAM address range, in which case
+// case an attempt to set a tag bit at an address that is outside that range will result in a
+// TL-UL error being returned and the write will not occur.
+
 module hbmc_tl_port import tlul_pkg::*; #(
+  // Width of HyperRAM address, in bits.
   parameter int unsigned HyperRAMAddrW = 20,
+  // Address width of the portion that can store capabilities, in bits.
+  parameter int unsigned HyperRAMTagAddrW = 19,
   // log2(burst length in bytes)
   parameter int unsigned Log2BurstLen = 5,  // 32-byte bursts.
   parameter int unsigned NumBufs = 4,
   parameter int unsigned PortIDWidth = 1,
   parameter int unsigned Log2MaxBufs = 2,
   parameter int unsigned SeqWidth = 6,
-  //
+
   // Does this port need to support TileLink write operations?
   parameter bit SupportWrites = 1,
   // Coalesce write transfers into burst writes to the HBMC?
@@ -25,57 +33,57 @@ module hbmc_tl_port import tlul_pkg::*; #(
   localparam int unsigned ABIT = $clog2(top_pkg::TL_DW / 8),
   localparam int unsigned BBIT = Log2BurstLen
 ) (
-  input                               clk_i,
-  input                               rst_ni,
+  input                                   clk_i,
+  input                                   rst_ni,
 
   // Constant indicating port number.
-  input             [PortIDWidth-1:0] portid_i,
+  input                 [PortIDWidth-1:0] portid_i,
 
   // TL-UL interface.
-  input  tl_h2d_t                     tl_i,
-  output tl_d2h_t                     tl_o,
+  input  tl_h2d_t                         tl_i,
+  output tl_d2h_t                         tl_o,
 
   // Write notification input.
-  input                               wr_notify_i,
-  input        [HyperRAMAddrW-1:ABIT] wr_notify_addr_i,
-  input         [top_pkg::TL_DBW-1:0] wr_notify_mask_i,
-  input          [top_pkg::TL_DW-1:0] wr_notify_data_i,
+  input                                   wr_notify_i,
+  input            [HyperRAMAddrW-1:ABIT] wr_notify_addr_i,
+  input             [top_pkg::TL_DBW-1:0] wr_notify_mask_i,
+  input              [top_pkg::TL_DW-1:0] wr_notify_data_i,
 
   // Write notification output.
-  output logic                        wr_notify_o,
-  output logic  [top_pkg::TL_DBW-1:0] wr_notify_mask_o,
-  output logic   [top_pkg::TL_DW-1:0] wr_notify_data_o,
-  output logic [HyperRAMAddrW-1:ABIT] wr_notify_addr_o,
+  output logic                            wr_notify_o,
+  output logic      [top_pkg::TL_DBW-1:0] wr_notify_mask_o,
+  output logic       [top_pkg::TL_DW-1:0] wr_notify_data_o,
+  output logic     [HyperRAMAddrW-1:ABIT] wr_notify_addr_o,
 
   // Command data to the HyperRAM controller; command, address and burst length
-  output logic                        cmd_req_o,
-  input                               cmd_wready_i,
-  output logic [HyperRAMAddrW-1:ABIT] cmd_mem_addr_o,
-  output logic  [Log2BurstLen-ABIT:0] cmd_word_cnt_o,
-  output logic                        cmd_wr_not_rd_o,
-  output logic                        cmd_wrap_not_incr_o,
-  output logic         [SeqWidth-1:0] cmd_seq_o,
+  output logic                            cmd_req_o,
+  input                                   cmd_wready_i,
+  output logic     [HyperRAMAddrW-1:ABIT] cmd_mem_addr_o,
+  output logic      [Log2BurstLen-ABIT:0] cmd_word_cnt_o,
+  output logic                            cmd_wr_not_rd_o,
+  output logic                            cmd_wrap_not_incr_o,
+  output logic             [SeqWidth-1:0] cmd_seq_o,
 
-  output logic                        tag_cmd_req,
-  output logic [HyperRAMAddrW-1:ABIT] tag_cmd_mem_addr,
-  output logic                        tag_cmd_wr_not_rd,
-  output                              tag_cmd_wcap,
+  output logic                            tag_cmd_req,
+  output logic  [HyperRAMTagAddrW-1:ABIT] tag_cmd_mem_addr,
+  output logic                            tag_cmd_wr_not_rd,
+  output                                  tag_cmd_wcap,
 
-  output logic                        dfifo_wr_ena_o,
-  input                               dfifo_wr_full_i,
-  output        [top_pkg::TL_DBW-1:0] dfifo_wr_strb_o,
-  output         [top_pkg::TL_DW-1:0] dfifo_wr_din_o,
+  output logic                            dfifo_wr_ena_o,
+  input                                   dfifo_wr_full_i,
+  output            [top_pkg::TL_DBW-1:0] dfifo_wr_strb_o,
+  output             [top_pkg::TL_DW-1:0] dfifo_wr_din_o,
 
   // Read data from the HyperRAM
-  output                              ufifo_rd_ena,
-  input                               ufifo_rd_empty,
-  input          [top_pkg::TL_DW-1:0] ufifo_rd_dout,
-  input                [SeqWidth-1:0] ufifo_rd_seq,
-  input                               ufifo_rd_last,
+  output                                  ufifo_rd_ena,
+  input                                   ufifo_rd_empty,
+  input              [top_pkg::TL_DW-1:0] ufifo_rd_dout,
+  input                    [SeqWidth-1:0] ufifo_rd_seq,
+  input                                   ufifo_rd_last,
 
   // Tag read data interface.
-  output                              tag_rdata_rready,
-  input                               tl_tag_bit
+  output                                  tag_rdata_rready,
+  input                                   tl_tag_bit
 );
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
@@ -84,10 +92,15 @@ module hbmc_tl_port import tlul_pkg::*; #(
   logic tl_req_fifo_le1;
   logic wr_notify_match;
   logic dfifo_wr_full;
+  logic rdbuf_matches;  // Address matches within the read buffer.
+  logic rdbuf_valid;    // Valid data is available within the read buffer.
   logic cmd_wready;
   logic can_accept;
   logic rdbuf_hit;
   logic rdbuf_re;
+  logic wr_err;
+  logic wr_req;
+  logic rd_req;
   logic issue;
 
   // We can accept an incoming TileLink transaction when we've got space in the hyperram, tag
@@ -106,10 +119,22 @@ module hbmc_tl_port import tlul_pkg::*; #(
                      (tl_i.a_opcode == Get || ~dfifo_wr_full) &
                      ~(wr_notify_i & wr_notify_match);
 
+  // Return an error response for any capability write to an address that cannot support tags.
+  wire untagged_addr = |(tl_i.a_address[HyperRAMAddrW:0] >> HyperRAMTagAddrW) &
+                         tl_i.a_user.capability;
+
 /*----------------------------------------------------------------------------------------------------------------------------*/
 
-  wire rd_req = tl_i.a_valid & (tl_i.a_opcode == Get);
-  wire wr_req = tl_i.a_valid & (tl_i.a_opcode == PutFullData || tl_i.a_opcode == PutPartialData);
+  // Valid read request?
+  assign rd_req = tl_i.a_valid & (tl_i.a_opcode == Get);
+  // Valid write request?
+  assign wr_req = tl_i.a_valid & (tl_i.a_opcode == PutFullData || tl_i.a_opcode == PutPartialData) &
+                 (SupportWrites & !untagged_addr);
+
+/*----------------------------------------------------------------------------------------------------------------------------*/
+  // Invalid write request?
+  assign wr_err = tl_i.a_valid & (tl_i.a_opcode == PutFullData || tl_i.a_opcode == PutPartialData) &
+                 (untagged_addr | !SupportWrites);
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
   if (SupportWrites) begin
@@ -138,10 +163,8 @@ module hbmc_tl_port import tlul_pkg::*; #(
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
 
-  logic rdbuf_matches;  // Address matches within the read buffer.
-  logic rdbuf_valid;    // Valid data is available within the read buffer.
   logic [SeqWidth-1:0] rdbuf_seq;  // Sequence number of read buffer contents.
-  logic [top_pkg::TL_DW-1:0]  rdbuf_dout;
+  logic [top_pkg::TL_DW-1:0] rdbuf_dout;
 
   // Invalidate the read buffer contents when a write occurs.
   //
@@ -219,12 +242,21 @@ module hbmc_tl_port import tlul_pkg::*; #(
   localparam int unsigned TL_REQ_FIFO_DEPTH = 4;
   localparam int unsigned TLReqFifoDepthW = prim_util_pkg::vbits(TL_REQ_FIFO_DEPTH+1);
 
-  // Metadata from inbound TileLink transactions that needs to be saved to produce the response
+  // Verdict on the TL-UL request.
+  typedef enum logic [1:0] {
+    TLRspRdBuf,   // Return buffered read data.
+    TLRspRdFetch, // Fetching read data from HBMC.
+    TLRspWrOk,    // Valid write.
+    TLRspWrErr    // Return error on write.
+  } tl_rsp_type_e;
+
+  // Description of a queued TL-UL request-response.
   typedef struct packed {
+    // Metadata from inbound TileLink transactions that needs to be saved to produce the response.
     logic [top_pkg::TL_AIW-1:0] tl_source;
     logic [top_pkg::TL_SZW-1:0] tl_size;
-    logic                       cmd_fetch;
-    logic                       cmd_wr_not_rd;
+    // Response to be returned.
+    tl_rsp_type_e               rsp_type;
   } tl_req_info_t;
 
   tl_req_info_t tl_req_fifo_wdata, tl_req_fifo_rdata;
@@ -242,7 +274,7 @@ module hbmc_tl_port import tlul_pkg::*; #(
   // To be a contender in the arbitration among all ports, we need to express our intention
   // to write into the command buffer.
   wire cmd_req = tl_i.a_valid && tl_req_fifo_wready && !rdbuf_hit &&
-                (tl_i.a_opcode == Get || ~dfifo_wr_full);
+                (tl_i.a_opcode == Get || (!dfifo_wr_full & !wr_err));
 
   assign issue = tl_i.a_valid & can_accept;
 
@@ -257,26 +289,24 @@ module hbmc_tl_port import tlul_pkg::*; #(
 
     if (issue) begin
       // Write to the relevant FIFOs and indicate ready on TileLink A channel
-      tag_cmd_req        = 1'b1;
+      // - no tag request if the write was rejected.
+      tag_cmd_req        = !wr_err;
       tl_req_fifo_wvalid = 1'b1;
-
-      if (tl_i.a_opcode != Get) begin
-        dfifo_wr_ena      = 1'b1;
-      end
+      // Write into the downstream FIFO only for a valid write.
+      dfifo_wr_ena       = wr_req;
     end
   end
 
   assign tag_cmd_wr_not_rd = cmd_wr_not_rd;
-  assign tag_cmd_mem_addr = tl_i.a_address[HyperRAMAddrW-1:ABIT];
+  assign tag_cmd_mem_addr = tl_i.a_address[HyperRAMTagAddrW-1:ABIT];
 
-  wire tl_cmd_fetch = ~(rd_req & rdbuf_valid);
-  wire tl_cmd_wr_not_rd = (tl_i.a_opcode != Get);
-
+  // Decide on the type of response to be sent; encoded using an enumeration to reduce FIFO width.
+  tl_rsp_type_e tl_cmd_rsp = (rd_req ? (rdbuf_valid ? TLRspRdBuf : TLRspRdFetch)
+                                     : (wr_err      ? TLRspWrErr : TLRspWrOk));
   assign tl_req_fifo_wdata = '{
     tl_source     : tl_i.a_source,
     tl_size       : tl_i.a_size,
-    cmd_fetch     : tl_cmd_fetch,
-    cmd_wr_not_rd : tl_cmd_wr_not_rd
+    rsp_type      : tl_cmd_rsp
   };
 
   // We decant the read data from the 'Upstream FIFO' into the read buffer as soon as possible,
@@ -300,6 +330,11 @@ module hbmc_tl_port import tlul_pkg::*; #(
   logic [top_pkg::TL_DW-1:0] ufifo_dout_first;
   assign ufifo_dout_first = ufifo_rd_dout[top_pkg::TL_DW-1:0];
 
+  // Decode control signals from the response type.
+  wire tl_rsp_wr_not_rd   = (tl_req_fifo_rdata.rsp_type == TLRspWrOk ||
+                             tl_req_fifo_rdata.rsp_type == TLRspWrErr);
+  wire tl_rsp_rd_buffered = (tl_req_fifo_rdata.rsp_type == TLRspRdBuf);
+
   // If the data from the read buffer is not accepted immediately by the host we must register it
   // to prevent it being invalidated by another read.
   logic rdata_valid_q;
@@ -311,9 +346,9 @@ module hbmc_tl_port import tlul_pkg::*; #(
       if (tl_i.d_ready) rdata_valid_q <= 1'b0;  // Response sent.
       else begin
         // Capture read data and keep it stable until it is accepted by the host.
-        rdata_valid_q <= !tl_req_fifo_rdata.cmd_wr_not_rd;
+        rdata_valid_q <= !tl_rsp_wr_not_rd;
         if (!rdata_valid_q) begin
-          rdata_q <= tl_req_fifo_rdata.cmd_fetch ? ufifo_dout_first : rdbuf_dout;
+          rdata_q <= tl_rsp_rd_buffered ? rdbuf_dout : ufifo_dout_first;
         end
       end
     end
@@ -328,23 +363,23 @@ module hbmc_tl_port import tlul_pkg::*; #(
     tl_o_int           = '0;
     if (tl_req_fifo_rvalid) begin
       // We have an incoming request that needs a response
-      if (tl_req_fifo_rdata.cmd_wr_not_rd) begin
+      if (tl_rsp_wr_not_rd) begin
         // If it's a write then return an immediate response (early response is reasonable as any
         // read that could observe the memory cannot occur until the write has actually happened)
         tl_o_int.d_valid   = 1'b1;
       end else begin
         // Otherwise wait until we have the first word of data to return.
         tl_o_int.d_valid   = |{ufifo_rd_ena & ~ufifo_rd_bursting,  // Initial word of burst read.
-                               ~tl_req_fifo_rdata.cmd_fetch,  // From read buffer.
+                               tl_rsp_rd_buffered,  // From read buffer.
                                rdata_valid_q};  // Holding read data stable until accepted.
       end
     end
-
-    tl_o_int.d_opcode          = tl_req_fifo_rdata.cmd_wr_not_rd ? AccessAck : AccessAckData;
+    tl_o_int.d_error           = (tl_req_fifo_rdata.rsp_type == TLRspWrErr);
+    tl_o_int.d_opcode          = tl_rsp_wr_not_rd ? AccessAck : AccessAckData;
     tl_o_int.d_size            = tl_req_fifo_rdata.tl_size;
     tl_o_int.d_source          = tl_req_fifo_rdata.tl_source;
     tl_o_int.d_data            = rdata_valid_q ? rdata_q :
-                                (tl_req_fifo_rdata.cmd_fetch ? ufifo_dout_first : rdbuf_dout);
+                                (tl_rsp_rd_buffered ? rdbuf_dout : ufifo_dout_first);
     tl_o_int.d_user.capability = tl_tag_bit;
     tl_o_int.a_ready           = issue;
   end
@@ -354,7 +389,7 @@ module hbmc_tl_port import tlul_pkg::*; #(
   assign tl_req_fifo_rready = tl_o_int.d_valid & tl_i.d_ready;
 
   // Discard the tag read data once the _read_ data is accepted.
-  assign tag_rdata_rready = tl_o_int.d_valid & tl_i.d_ready & ~tl_req_fifo_rdata.cmd_wr_not_rd;
+  assign tag_rdata_rready = tl_o_int.d_valid & tl_i.d_ready & ~tl_rsp_wr_not_rd;
 
   // Generate integrity for outgoing response.
   tlul_rsp_intg_gen #(

@@ -10,6 +10,7 @@ module system_info_reg_top (
   input clk_i,
   input rst_ni,
   // To HW
+  output system_info_reg_pkg::system_info_reg2hw_t reg2hw, // Write
   input  system_info_reg_pkg::system_info_hw2reg_t hw2reg, // Read
 
   input  tlul_pkg::tl_h2d_t tl_i,
@@ -18,7 +19,7 @@ module system_info_reg_top (
 
   import system_info_reg_pkg::* ;
 
-  localparam int AW = 5;
+  localparam int AW = 6;
   localparam int DW = 32;
   localparam int DBW = DW/8;                    // Byte Width
 
@@ -101,6 +102,16 @@ module system_info_reg_top (
   logic [7:0] i2c_info_qs;
   logic spi_info_re;
   logic [7:0] spi_info_qs;
+  logic dna_capture_we;
+  logic dna_capture_wd;
+  logic dna_re;
+  logic dna_qs;
+  logic mem_size_re;
+  logic [31:0] mem_size_qs;
+  logic hyperram_size_re;
+  logic [31:0] hyperram_size_qs;
+  logic hyperram_tag_size_re;
+  logic [31:0] hyperram_tag_size_qs;
 
   // Register instances
   // R[rtl_commit_hash_0]: V(True)
@@ -231,18 +242,107 @@ module system_info_reg_top (
   );
 
 
+  // R[dna_capture]: V(True)
+  logic dna_capture_qe;
+  logic [0:0] dna_capture_flds_we;
+  assign dna_capture_qe = &dna_capture_flds_we;
+  prim_subreg_ext #(
+    .DW    (1)
+  ) u_dna_capture (
+    .re     (1'b0),
+    .we     (dna_capture_we),
+    .wd     (dna_capture_wd),
+    .d      ('0),
+    .qre    (),
+    .qe     (dna_capture_flds_we[0]),
+    .q      (reg2hw.dna_capture.q),
+    .ds     (),
+    .qs     ()
+  );
+  assign reg2hw.dna_capture.qe = dna_capture_qe;
 
-  logic [7:0] addr_hit;
+
+  // R[dna]: V(True)
+  prim_subreg_ext #(
+    .DW    (1)
+  ) u_dna (
+    .re     (dna_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.dna.d),
+    .qre    (reg2hw.dna.re),
+    .qe     (),
+    .q      (reg2hw.dna.q),
+    .ds     (),
+    .qs     (dna_qs)
+  );
+
+
+  // R[mem_size]: V(True)
+  prim_subreg_ext #(
+    .DW    (32)
+  ) u_mem_size (
+    .re     (mem_size_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.mem_size.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (mem_size_qs)
+  );
+
+
+  // R[hyperram_size]: V(True)
+  prim_subreg_ext #(
+    .DW    (32)
+  ) u_hyperram_size (
+    .re     (hyperram_size_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.hyperram_size.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (hyperram_size_qs)
+  );
+
+
+  // R[hyperram_tag_size]: V(True)
+  prim_subreg_ext #(
+    .DW    (32)
+  ) u_hyperram_tag_size (
+    .re     (hyperram_tag_size_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.hyperram_tag_size.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .ds     (),
+    .qs     (hyperram_tag_size_qs)
+  );
+
+
+
+  logic [12:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET);
-    addr_hit[1] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET);
-    addr_hit[2] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET);
-    addr_hit[3] = (reg_addr == SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET);
-    addr_hit[4] = (reg_addr == SYSTEM_INFO_GPIO_INFO_OFFSET);
-    addr_hit[5] = (reg_addr == SYSTEM_INFO_UART_INFO_OFFSET);
-    addr_hit[6] = (reg_addr == SYSTEM_INFO_I2C_INFO_OFFSET);
-    addr_hit[7] = (reg_addr == SYSTEM_INFO_SPI_INFO_OFFSET);
+    addr_hit[ 0] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_0_OFFSET);
+    addr_hit[ 1] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_HASH_1_OFFSET);
+    addr_hit[ 2] = (reg_addr == SYSTEM_INFO_RTL_COMMIT_DIRTY_OFFSET);
+    addr_hit[ 3] = (reg_addr == SYSTEM_INFO_SYSTEM_FREQUENCY_OFFSET);
+    addr_hit[ 4] = (reg_addr == SYSTEM_INFO_GPIO_INFO_OFFSET);
+    addr_hit[ 5] = (reg_addr == SYSTEM_INFO_UART_INFO_OFFSET);
+    addr_hit[ 6] = (reg_addr == SYSTEM_INFO_I2C_INFO_OFFSET);
+    addr_hit[ 7] = (reg_addr == SYSTEM_INFO_SPI_INFO_OFFSET);
+    addr_hit[ 8] = (reg_addr == SYSTEM_INFO_DNA_CAPTURE_OFFSET);
+    addr_hit[ 9] = (reg_addr == SYSTEM_INFO_DNA_OFFSET);
+    addr_hit[10] = (reg_addr == SYSTEM_INFO_MEM_SIZE_OFFSET);
+    addr_hit[11] = (reg_addr == SYSTEM_INFO_HYPERRAM_SIZE_OFFSET);
+    addr_hit[12] = (reg_addr == SYSTEM_INFO_HYPERRAM_TAG_SIZE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -250,14 +350,19 @@ module system_info_reg_top (
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[0] & (|(SYSTEM_INFO_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(SYSTEM_INFO_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(SYSTEM_INFO_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(SYSTEM_INFO_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(SYSTEM_INFO_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(SYSTEM_INFO_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(SYSTEM_INFO_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(SYSTEM_INFO_PERMIT[7] & ~reg_be)))));
+              ((addr_hit[ 0] & (|(SYSTEM_INFO_PERMIT[ 0] & ~reg_be))) |
+               (addr_hit[ 1] & (|(SYSTEM_INFO_PERMIT[ 1] & ~reg_be))) |
+               (addr_hit[ 2] & (|(SYSTEM_INFO_PERMIT[ 2] & ~reg_be))) |
+               (addr_hit[ 3] & (|(SYSTEM_INFO_PERMIT[ 3] & ~reg_be))) |
+               (addr_hit[ 4] & (|(SYSTEM_INFO_PERMIT[ 4] & ~reg_be))) |
+               (addr_hit[ 5] & (|(SYSTEM_INFO_PERMIT[ 5] & ~reg_be))) |
+               (addr_hit[ 6] & (|(SYSTEM_INFO_PERMIT[ 6] & ~reg_be))) |
+               (addr_hit[ 7] & (|(SYSTEM_INFO_PERMIT[ 7] & ~reg_be))) |
+               (addr_hit[ 8] & (|(SYSTEM_INFO_PERMIT[ 8] & ~reg_be))) |
+               (addr_hit[ 9] & (|(SYSTEM_INFO_PERMIT[ 9] & ~reg_be))) |
+               (addr_hit[10] & (|(SYSTEM_INFO_PERMIT[10] & ~reg_be))) |
+               (addr_hit[11] & (|(SYSTEM_INFO_PERMIT[11] & ~reg_be))) |
+               (addr_hit[12] & (|(SYSTEM_INFO_PERMIT[12] & ~reg_be)))));
   end
 
   // Generate write-enables
@@ -269,6 +374,13 @@ module system_info_reg_top (
   assign uart_info_re = addr_hit[5] & reg_re & !reg_error;
   assign i2c_info_re = addr_hit[6] & reg_re & !reg_error;
   assign spi_info_re = addr_hit[7] & reg_re & !reg_error;
+  assign dna_capture_we = addr_hit[8] & reg_we & !reg_error;
+
+  assign dna_capture_wd = reg_wdata[0];
+  assign dna_re = addr_hit[9] & reg_re & !reg_error;
+  assign mem_size_re = addr_hit[10] & reg_re & !reg_error;
+  assign hyperram_size_re = addr_hit[11] & reg_re & !reg_error;
+  assign hyperram_tag_size_re = addr_hit[12] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -304,6 +416,26 @@ module system_info_reg_top (
 
       addr_hit[7]: begin
         reg_rdata_next[7:0] = spi_info_qs;
+      end
+
+      addr_hit[8]: begin
+        reg_rdata_next[0] = '0;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[0] = dna_qs;
+      end
+
+      addr_hit[10]: begin
+        reg_rdata_next[31:0] = mem_size_qs;
+      end
+
+      addr_hit[11]: begin
+        reg_rdata_next[31:0] = hyperram_size_qs;
+      end
+
+      addr_hit[12]: begin
+        reg_rdata_next[31:0] = hyperram_tag_size_qs;
       end
 
       default: begin

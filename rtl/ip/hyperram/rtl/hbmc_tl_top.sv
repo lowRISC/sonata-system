@@ -60,7 +60,10 @@ module hbmc_tl_top import tlul_pkg::*; #(
   parameter [4:0]   C_DQ0_IDELAY_TAPS_VALUE  = 0,
 
   parameter int unsigned NumPorts = 2,
-  parameter integer HyperRAMSize = 1024 * 1024 // 1 MiB
+  // Mapped size of the HyperRAM, in bytes.
+  parameter int unsigned HyperRAMSize = 8 * 1024 * 1024, // 8 MiB
+  // Mapped portion of the HyperRAM that can store capabilities, in bytes.
+  parameter int unsigned HyperRAMTagSize = 4 * 1024 * 1024 // 4 MiB
 )
 (
   input  clk_i,
@@ -97,8 +100,10 @@ module hbmc_tl_top import tlul_pkg::*; #(
   // bits to identify the buffer number, and a further bit for the port number of
   // the requester.
   localparam int unsigned SeqWidth = PortIDWidth + Log2MaxBufs + 3;
-
+  // Width of HyperRAM address, in bits.
   localparam int unsigned HyperRAMAddrW = $clog2(HyperRAMSize);
+  // Address width of the portion that can store capabilities, in bits.
+  localparam int unsigned HyperRAMTagAddrW = $clog2(HyperRAMTagSize);
   // LSB of word address.
   localparam int unsigned ABIT = $clog2(top_pkg::TL_DW / 8);
   // Use 32-byte bursts for performance, whilst reducing the penalty of wasted burst reads.
@@ -256,7 +261,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
   logic [NumPorts-1:0]                    dfifo_all_wr_full;
 
   logic [NumPorts-1:0] tag_all_cmd_req;
-  logic [NumPorts-1:0][HyperRAMAddrW-1:ABIT] tag_all_cmd_mem_addr;
+  logic [NumPorts-1:0][HyperRAMTagAddrW-1:ABIT] tag_all_cmd_mem_addr;
   logic [NumPorts-1:0] tag_all_cmd_wr_not_rd;
   logic [NumPorts-1:0] tag_all_rdata_rready;
 
@@ -290,13 +295,14 @@ module hbmc_tl_top import tlul_pkg::*; #(
 
   for (genvar p = 0; p < NumPorts; p++) begin : gen_ports
     hbmc_tl_port #(
-      .HyperRAMAddrW  (HyperRAMAddrW),
-      .Log2BurstLen   (Log2BurstLen),
-      .NumBufs        (MaxBufs),
-      .PortIDWidth    (PortIDWidth),
-      .Log2MaxBufs    (Log2MaxBufs),
-      .SeqWidth       (SeqWidth),
-      .SupportWrites  (p == PortD)  // Only the data port supports writing.
+      .HyperRAMAddrW    (HyperRAMAddrW),
+      .HyperRAMTagAddrW (HyperRAMTagAddrW),
+      .Log2BurstLen     (Log2BurstLen),
+      .NumBufs          (MaxBufs),
+      .PortIDWidth      (PortIDWidth),
+      .Log2MaxBufs      (Log2MaxBufs),
+      .SeqWidth         (SeqWidth),
+      .SupportWrites    (p == PortD)  // Only the data port supports writing.
     ) u_port(
       .clk_i              (clk_i),
       .rst_ni             (rst_ni),
@@ -574,8 +580,8 @@ module hbmc_tl_top import tlul_pkg::*; #(
   // Command FIFO provides reads and writes from tilelink requests. Writes just happen without any
   // response and reads writes to rdata_fifo to be picked up by the tilelink response.
 
-  // 1 tag bit per 64 bits so divide HyperRAMSize by 8
-  localparam TAG_ADDR_W = $clog2(HyperRAMSize) - 3;
+  // 1 tag bit per 64 bits so divide HyperRAMTagSize by 8
+  localparam TAG_ADDR_W = HyperRAMTagAddrW - 3;
   localparam TAG_FIFO_DEPTH = 4;
 
   typedef struct packed {
@@ -590,7 +596,7 @@ module hbmc_tl_top import tlul_pkg::*; #(
 
   // Only the Data port requires capability tags.
   tag_cmd_t tag_cmd;
-  assign tag_cmd.addr  = tag_all_cmd_mem_addr[PortD][HyperRAMAddrW-1:ABIT+1];
+  assign tag_cmd.addr  = tag_all_cmd_mem_addr[PortD][HyperRAMTagAddrW-1:ABIT+1];
   assign tag_cmd.write = tag_all_cmd_wr_not_rd[PortD];
   assign tag_cmd.wdata = tag_all_cmd_wcap[PortD];
 
