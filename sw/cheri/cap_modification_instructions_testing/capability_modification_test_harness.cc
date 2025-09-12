@@ -579,10 +579,13 @@ Capability<void> CAndPerm_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
 
       // Main body
       "cgettype a3, ca0\n"  // a3 = ca0.type --- checking if ca0 is sealed
-      "beqz a3, 1f\n"       // if ca0 is unsealed skip to candperm
-
+//      "beqz a3, 1f\n"       // if ca0 is unsealed skip to candperm
+      "li a4, 0\n"
+      "sltu a3, a4, a3\n"
+      "li a4, -2\n"
+      "mul a3, a3, a4\n"
       // Set all bits of a2 to 1 apart from the global bit
-      "ori a2, a2, -2\n"
+      "or a2, a2, a3\n"
 
       "1:\n"
       "candperm ca0, ca0, a2\n"
@@ -590,7 +593,7 @@ Capability<void> CAndPerm_test(Capability<void> cap, ds::xoroshiro::P64R32& prng
       "cmove %[out_cap], ca0\n"
       : [out_cap] "=C"(right_type_cap)
       : [cap] "C"(right_type_cap), [rand] "r"(rand_val)
-      : "ca0", "a2", "a3");
+      : "ca0", "a2", "a3", "a4");
   out = right_type_cap;
   return out;
 }
@@ -628,6 +631,7 @@ Capability<void> CSetBoundsImm_test(Capability<void> cap, ds::xoroshiro::P64R32&
 Capability<void> test_all(Capability<void> cap, ds::xoroshiro::P64R32& prng, Capability<void> un_seal_cap,
                           Capability<void> root, UartPtr uart) {
   cap = CSeal_test(cap, un_seal_cap, prng, root, uart);
+  cap = CAndPerm_test(cap, prng, root, uart);
   cap = CUnseal_test(cap, un_seal_cap, prng, root, uart);
   cap = CIncAddr_test(cap, prng, root, uart);
   cap = CSetBounds_test(cap, prng, root, uart);
@@ -684,7 +688,7 @@ extern "C" void entry_point(void* rwRoot, void* sealRoot, void* exRoot) {
   int num_fails  = 0;
   int num_passes = 0;
 
-  for (int iterations = 0; iterations < 0x1000; iterations++) {
+  for (int iterations = 0; iterations < 0x10000; iterations++) {
     cap                 = root.cast<void>();
     seal_cap            = seal_root.cast<void>();
     ex_cap              = execute_root.cast<void>();

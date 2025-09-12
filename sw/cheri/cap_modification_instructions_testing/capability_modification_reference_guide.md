@@ -40,8 +40,8 @@ CAndPerm(cap, rand)
 ### Assembly
 
 ```asm
-// Constrained CAndPerm routine that will maintain the tag bit of a given capability 
-// while modifying its permissions using a given random word
+// Constrained CAndPerm routine that will maintain the tag bit of a given capability
+// while modifying its permissions using a given random word without branching
 //
 // ca0    = capability to modify
 // a2     = random 32-bit word
@@ -49,11 +49,11 @@ CAndPerm(cap, rand)
 valid_candperm:
 // if given capability is unsealed then go to candperm instruction
 cgettype a3, ca0 // a3 = ca0.type
-beqz a3, valid_candperm_do
-// Set all bits of a2 apart from the global bit
-ori a2, a2, -2 // Note -2 = 0xFFFFFFFE
-
-valid_candperm_do:
+li a4, 0
+sltu a3, a4, a3
+li a4, -2
+mul a3, a3, a4
+or a2, a2, a3
 candperm ca0, ca0, a2
 ```
 
@@ -481,10 +481,10 @@ if e > 24:
     e = 24
 max_length_bounds = cap.top - cap.addr
 if max_length_bounds > 0:
-increment = rand_length % max_length_bounds
+    increment = rand_length % max_length_bounds
     max_length_alignment = 2 ^ (e + 9)
     min_length_interval = 2 ^ e
-    increment -= (increment % max_length_alignment)
+    increment = increment % max_length_alignment
     aligned_increment = increment - (increment % min_length_interval)
     csetboundsexact(cap, aligned_increment)
 ```
