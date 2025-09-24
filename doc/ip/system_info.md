@@ -13,3 +13,8 @@ These values are useful to know what the parameters were when a bitstream was ge
 | 0x0014 | UART info of which least significant byte is the number of instances.
 | 0x0018 | I2C info of which least significant byte is the number of instances.
 | 0x001C | SPI info of which least significant byte is the number of instances.
+| 0x0020 | Initiate capture of 'DNA value' identifying the specific device.
+| 0x0024 | Next bit of the 57-bit 'DNA value' may be read in the least significant bit.
+| 0x0028 | Size of the main memory in kibibytes (KiB).
+| 0x002C | Size of the HyperRAM in kibibytes (KiB).
+| 0x0030 | Size of the tagged (capability aware) portion of the HyperRAM (KiB).
