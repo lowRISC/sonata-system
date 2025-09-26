@@ -13,9 +13,9 @@ module pinmux
   input logic rst_ni,
 
   // GPIO IOs
-  output [31:0] gpio_ios_o   [GPIO_NUM],
-  input  [31:0] gpio_ios_i   [GPIO_NUM],
-  input  [31:0] gpio_ios_en_i[GPIO_NUM],
+  output [31:0] gpio_ios_o   [GPIO_NUM-1],
+  input  [31:0] gpio_ios_i   [GPIO_NUM-1],
+  input  [31:0] gpio_ios_en_i[GPIO_NUM-1],
 
   // PWM IOs
   input  [6:0] pwm_out_i   [PWM_NUM],

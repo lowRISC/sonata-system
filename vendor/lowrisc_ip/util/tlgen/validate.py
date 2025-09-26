@@ -116,7 +116,7 @@ Crossbar configuration format.
 # by inspecting the base addresses. Note that the validation
 # script also ensures that base addresses are aligned with
 # to this granularity.
-MIN_DEVICE_SPACING = 0x1000
+MIN_DEVICE_SPACING = 0x4
 
 
 def check_keys(obj: Dict[Any, Any],
@@ -331,7 +331,6 @@ def validate(obj: Dict[Any, Any]) -> Optional[Xbar]:
                         " Check the config. Addr(0x%x - 0x%x)"
                         % (addr_entry[0], addr_entry[1]))
                     raise SystemExit("Base/size overlapping error occurred")
-
                 if checkAddressOverlap(addr_entry, addr_ranges):
                     log.error(
                         "Address is overlapping. Check the config. Addr(0x%x - 0x%x). "

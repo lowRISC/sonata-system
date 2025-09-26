@@ -9,7 +9,12 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_SPACE_SRAM        = 32'h 00100000;
   localparam logic [31:0] ADDR_SPACE_HYPERRAM    = 32'h 40000000;
   localparam logic [31:0] ADDR_SPACE_REV_TAG     = 32'h 30000000;
-  localparam logic [31:0] ADDR_SPACE_GPIO        = 32'h 80000000;
+  localparam logic [31:0] ADDR_SPACE_GPIO0       = 32'h 80000000;
+  localparam logic [31:0] ADDR_SPACE_GPIO1       = 32'h 80000040;
+  localparam logic [31:0] ADDR_SPACE_GPIO2       = 32'h 80000080;
+  localparam logic [31:0] ADDR_SPACE_GPIO3       = 32'h 800000c0;
+  localparam logic [31:0] ADDR_SPACE_GPIO4       = 32'h 80000100;
+  localparam logic [31:0] ADDR_SPACE_GPIO5       = 32'h 80000140;
   localparam logic [31:0] ADDR_SPACE_PINMUX      = 32'h 80005000;
   localparam logic [31:0] ADDR_SPACE_RGBLED_CTRL = 32'h 80009000;
   localparam logic [31:0] ADDR_SPACE_HW_REV      = 32'h 8000a000;
@@ -34,7 +39,12 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_SRAM        = 32'h 0001ffff;
   localparam logic [31:0] ADDR_MASK_HYPERRAM    = 32'h 000fffff;
   localparam logic [31:0] ADDR_MASK_REV_TAG     = 32'h 000007ff;
-  localparam logic [31:0] ADDR_MASK_GPIO        = 32'h 00000fff;
+  localparam logic [31:0] ADDR_MASK_GPIO0       = 32'h 0000003f;
+  localparam logic [31:0] ADDR_MASK_GPIO1       = 32'h 0000003f;
+  localparam logic [31:0] ADDR_MASK_GPIO2       = 32'h 0000003f;
+  localparam logic [31:0] ADDR_MASK_GPIO3       = 32'h 0000003f;
+  localparam logic [31:0] ADDR_MASK_GPIO4       = 32'h 0000003f;
+  localparam logic [31:0] ADDR_MASK_GPIO5       = 32'h 0000003f;
   localparam logic [31:0] ADDR_MASK_PINMUX      = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_RGBLED_CTRL = 32'h 00000fff;
   localparam logic [31:0] ADDR_MASK_HW_REV      = 32'h 00000fff;
@@ -57,33 +67,38 @@ package tl_main_pkg;
   localparam logic [31:0] ADDR_MASK_RV_PLIC     = 32'h 07ffffff;
 
   localparam int N_HOST   = 2;
-  localparam int N_DEVICE = 24;
+  localparam int N_DEVICE = 29;
 
   typedef enum int {
     TlSram = 0,
     TlHyperram = 1,
     TlRevTag = 2,
-    TlGpio = 3,
-    TlPinmux = 4,
-    TlRgbledCtrl = 5,
-    TlHwRev = 6,
-    TlXadc = 7,
-    TlSystemInfo = 8,
-    TlTimer = 9,
-    TlSpiLcd = 10,
-    TlSpiEthmac = 11,
-    TlPwm0 = 12,
-    TlUart0 = 13,
-    TlUart1 = 14,
-    TlUart2 = 15,
-    TlI2C0 = 16,
-    TlI2C1 = 17,
-    TlSpi0 = 18,
-    TlSpi1 = 19,
-    TlSpi2 = 20,
-    TlUsbdev = 21,
-    TlDbgDev = 22,
-    TlRvPlic = 23
+    TlGpio0 = 3,
+    TlGpio1 = 4,
+    TlGpio2 = 5,
+    TlGpio3 = 6,
+    TlGpio4 = 7,
+    TlGpio5 = 8,
+    TlPinmux = 9,
+    TlRgbledCtrl = 10,
+    TlHwRev = 11,
+    TlXadc = 12,
+    TlSystemInfo = 13,
+    TlTimer = 14,
+    TlSpiLcd = 15,
+    TlSpiEthmac = 16,
+    TlPwm0 = 17,
+    TlUart0 = 18,
+    TlUart1 = 19,
+    TlUart2 = 20,
+    TlI2C0 = 21,
+    TlI2C1 = 22,
+    TlSpi0 = 23,
+    TlSpi1 = 24,
+    TlSpi2 = 25,
+    TlUsbdev = 26,
+    TlDbgDev = 27,
+    TlRvPlic = 28
   } tl_device_e;
 
   typedef enum int {
