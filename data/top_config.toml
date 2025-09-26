@@ -1,6 +1,6 @@
 [[blocks]]
 name = "gpio"
-instances = 5 # RPi, Ard, Pmod0, Pmod1, PmodC
+instances = 6 # RPi, Ard, Pmod0, Pmod1, PmodC
 ios = [
   {
     name = "ios",
@@ -9,8 +9,9 @@ ios = [
     length = 32
   },
 ]
-memory_start = 0x80000040
+memory_start = 0x80000000
 memory_size  = 0x00000040
+xbar = { pipeline = "true"}
 
 [[blocks]]
 name = "pwm"
