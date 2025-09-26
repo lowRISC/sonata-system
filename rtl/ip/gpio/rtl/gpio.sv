@@ -13,8 +13,8 @@ module gpio #(
   input  logic clk_i,
   input  logic rst_ni,
 
-  input  tlul_pkg::tl_h2d_t tl_i,
-  output tlul_pkg::tl_d2h_t tl_o,
+  input  tlul_pkg::tl_h2d_t tl_i[NumInstances],
+  output tlul_pkg::tl_d2h_t tl_o[NumInstances],
 
   input  logic [GpiMaxWidth-1:0] gp_i[NumInstances],
   output logic [GpoMaxWidth-1:0] gp_o[NumInstances],
@@ -78,6 +78,7 @@ module gpio #(
     end
   end
 
+  for (genvar inst_idx = 0; inst_idx < NumInstances; inst_idx++) begin : gen_tlul_adapter
   tlul_adapter_reg #(
     .AccessLatency ( 0            ),
     .RegAw         ( RegAddrWidth ),
@@ -87,8 +88,8 @@ module gpio #(
     .rst_ni,
 
     // TL-UL interface.
-    .tl_i,
-    .tl_o,
+    .tl_i(tl_i[inst_idx]),
+    .tl_o(tl_o[inst_idx]),
 
     // Control interface.
     .en_ifetch_i  (prim_mubi_pkg::MuBi4False),
@@ -104,4 +105,5 @@ module gpio #(
     .rdata_i      (device_rdata),
     .error_i      (1'b0)
   );
+end
 endmodule

@@ -25,6 +25,7 @@ class Xbar:
     def get_node(self, node: str) -> Node:
         result = [x for x in self.nodes if x.name == node]
         if len(result) != 1:
+            print(f"Node {node} not found.");
             raise  # Exception
 
         return result[0]
