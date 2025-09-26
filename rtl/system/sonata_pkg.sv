@@ -7,7 +7,7 @@
 package sonata_pkg;
 
   // Number of Instances
-  localparam int unsigned GPIO_NUM = 5;
+  localparam int unsigned GPIO_NUM = 6;
   localparam int unsigned PWM_NUM = 1;
   localparam int unsigned UART_NUM = 3;
   localparam int unsigned I2C_NUM = 2;
@@ -21,8 +21,8 @@ package sonata_pkg;
   // Instance-specific GPIO core input/output widths.
   // Include the fixed (non-pinmux) GPIO used for on-board peripherals.
   // Each must be less than GPIO_IOS_WIDTH.
-  localparam int unsigned GPIO_INST_IN_WIDTH[GPIO_NUM+1]  = {17, 28, 14, 8, 8, 6};
-  localparam int unsigned GPIO_INST_OUT_WIDTH[GPIO_NUM+1] = { 8, 28, 14, 8, 8, 6};
+  localparam int unsigned GPIO_INST_IN_WIDTH[GPIO_NUM]  = {17, 28, 14, 8, 8, 6};
+  localparam int unsigned GPIO_INST_OUT_WIDTH[GPIO_NUM] = { 8, 28, 14, 8, 8, 6};
 
   // Number of input, output, and inout pins
   localparam int unsigned IN_PIN_NUM = 8;

@@ -302,7 +302,7 @@ def combined_input_block_ios_iter(
 
 
 def block_port_definitions(block: Block) -> Iterator[str]:
-    instances_param = f"{block.name.upper()}_NUM"
+    instances_param = f"{block.muxed_instances}"
     for io in block.ios:
         name = f"{block.name}_{io.name}"
         width = "" if io.length is None else f"[{io.length - 1}:0] "
@@ -318,12 +318,30 @@ def block_port_definitions(block: Block) -> Iterator[str]:
                 yield f"input  {width}{name}_en_i[{instances_param}]"
 
 
+def set_muxed_instances(config: TopConfig, mapping: BlockIoToPinsMap) -> None:
+    """Compute how many instances of each block have pins connected to
+    pinmux.
+    """
+
+    muxed_blocks = {(b.block, b.instance) for b in mapping}
+    for block in config.blocks:
+        block.muxed_instances = len(
+            list(filter(lambda b: b[0] == block.name, muxed_blocks))
+        )
+        if block.muxed_instances > block.instances:
+            err_msg = f"""The number of muxed instances can't exceed the
+                       number of instances for block {block.name}"""
+            raise Exception(err_msg)
+
+
 def generate_top(config: TopConfig) -> None:
     """Generate a top from a top configuration."""
 
     block_ios: list[BlockIoFlat] = list(flatten_block_ios(config.blocks))
     pins: list[PinFlat] = list(flatten_pins(config.pins, block_ios))
     block_io_to_pins: BlockIoToPinsMap = block_io_to_pin_map(block_ios, pins)
+
+    set_muxed_instances(config, block_io_to_pins)
 
     template_variables = {
         "config": config,
