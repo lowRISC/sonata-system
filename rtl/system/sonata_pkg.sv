@@ -7,15 +7,44 @@
 package sonata_pkg;
 
   // Number of Instances
+  localparam int unsigned SRAM_NUM = 1;
+  localparam int unsigned REV_TAG_NUM = 1;
+  localparam int unsigned HYPERRAM_NUM = 1;
   localparam int unsigned GPIO_NUM = 6;
   localparam int unsigned PWM_NUM = 1;
+  localparam int unsigned PINMUX_NUM = 1;
+  localparam int unsigned RGBLED_CTRL_NUM = 1;
+  localparam int unsigned HW_REV_NUM = 1;
+  localparam int unsigned XADC_NUM = 1;
+  localparam int unsigned SYSTEM_INFO_NUM = 1;
+  localparam int unsigned TIMER_NUM = 1;
   localparam int unsigned UART_NUM = 3;
   localparam int unsigned I2C_NUM = 2;
+  localparam int unsigned SPI_LCD_NUM = 1;
+  localparam int unsigned SPI_ETHMAC_NUM = 1;
   localparam int unsigned SPI_NUM = 3;
+  localparam int unsigned USBDEV_NUM = 1;
+  localparam int unsigned RV_PLIC_NUM = 1;
+  localparam int unsigned DBG_DEV_NUM = 1;
 
   // Width of block IO arrays
   localparam int unsigned GPIO_IOS_WIDTH = 32;
   localparam int unsigned PWM_OUT_WIDTH = 7;
+  localparam int unsigned UART_RX_WIDTH = 1;
+  localparam int unsigned UART_TX_WIDTH = 1;
+  localparam int unsigned I2C_SCL_WIDTH = 1;
+  localparam int unsigned I2C_SDA_WIDTH = 1;
+  localparam int unsigned SPI_LCD_CIPO_WIDTH = 1;
+  localparam int unsigned SPI_LCD_COPI_WIDTH = 1;
+  localparam int unsigned SPI_LCD_SCLK_WIDTH = 1;
+  localparam int unsigned SPI_LCD_CS_WIDTH = 4;
+  localparam int unsigned SPI_ETHMAC_CIPO_WIDTH = 1;
+  localparam int unsigned SPI_ETHMAC_COPI_WIDTH = 1;
+  localparam int unsigned SPI_ETHMAC_SCLK_WIDTH = 1;
+  localparam int unsigned SPI_ETHMAC_CS_WIDTH = 4;
+  localparam int unsigned SPI_CIPO_WIDTH = 1;
+  localparam int unsigned SPI_COPI_WIDTH = 1;
+  localparam int unsigned SPI_SCLK_WIDTH = 1;
   localparam int unsigned SPI_CS_WIDTH = 4;
 
   // Instance-specific GPIO core input/output widths.

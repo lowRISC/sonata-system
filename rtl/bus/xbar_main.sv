@@ -13,6 +13,13 @@
 //     -> rev_tag
 //     -> sm1_33
 //       -> hyperram
+//     -> gpio0
+//     -> gpio1
+//     -> gpio2
+//     -> gpio3
+//     -> gpio4
+//     -> gpio5
+//     -> pwm
 //     -> pinmux
 //     -> rgbled_ctrl
 //     -> hw_rev
@@ -20,23 +27,16 @@
 //     -> sm1_34
 //       -> system_info
 //     -> timer
-//     -> gpio0
-//     -> gpio1
-//     -> gpio2
-//     -> gpio3
-//     -> gpio4
-//     -> gpio5
-//     -> pwm0
 //     -> uart0
 //     -> uart1
 //     -> uart2
 //     -> i2c0
 //     -> i2c1
+//     -> spi_lcd
+//     -> spi_ethmac
 //     -> spi0
 //     -> spi1
 //     -> spi2
-//     -> spi_lcd
-//     -> spi_ethmac
 //     -> asf_35
 //       -> usbdev
 //     -> rv_plic
@@ -81,6 +81,8 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_gpio4_i,
   output tlul_pkg::tl_h2d_t tl_gpio5_o,
   input  tlul_pkg::tl_d2h_t tl_gpio5_i,
+  output tlul_pkg::tl_h2d_t tl_pwm_o,
+  input  tlul_pkg::tl_d2h_t tl_pwm_i,
   output tlul_pkg::tl_h2d_t tl_pinmux_o,
   input  tlul_pkg::tl_d2h_t tl_pinmux_i,
   output tlul_pkg::tl_h2d_t tl_rgbled_ctrl_o,
@@ -93,8 +95,6 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_system_info_i,
   output tlul_pkg::tl_h2d_t tl_timer_o,
   input  tlul_pkg::tl_d2h_t tl_timer_i,
-  output tlul_pkg::tl_h2d_t tl_pwm0_o,
-  input  tlul_pkg::tl_d2h_t tl_pwm0_i,
   output tlul_pkg::tl_h2d_t tl_uart0_o,
   input  tlul_pkg::tl_d2h_t tl_uart0_i,
   output tlul_pkg::tl_h2d_t tl_uart1_o,
@@ -105,16 +105,16 @@ module xbar_main (
   input  tlul_pkg::tl_d2h_t tl_i2c0_i,
   output tlul_pkg::tl_h2d_t tl_i2c1_o,
   input  tlul_pkg::tl_d2h_t tl_i2c1_i,
+  output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
+  input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
+  output tlul_pkg::tl_h2d_t tl_spi_ethmac_o,
+  input  tlul_pkg::tl_d2h_t tl_spi_ethmac_i,
   output tlul_pkg::tl_h2d_t tl_spi0_o,
   input  tlul_pkg::tl_d2h_t tl_spi0_i,
   output tlul_pkg::tl_h2d_t tl_spi1_o,
   input  tlul_pkg::tl_d2h_t tl_spi1_i,
   output tlul_pkg::tl_h2d_t tl_spi2_o,
   input  tlul_pkg::tl_d2h_t tl_spi2_i,
-  output tlul_pkg::tl_h2d_t tl_spi_lcd_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_lcd_i,
-  output tlul_pkg::tl_h2d_t tl_spi_ethmac_o,
-  input  tlul_pkg::tl_d2h_t tl_spi_ethmac_i,
   output tlul_pkg::tl_h2d_t tl_usbdev_o,
   input  tlul_pkg::tl_d2h_t tl_usbdev_i,
   output tlul_pkg::tl_h2d_t tl_rv_plic_o,
@@ -190,44 +190,44 @@ module xbar_main (
   assign tl_sm1_33_us_h2d[0] = tl_s1n_31_ds_h2d[2];
   assign tl_s1n_31_ds_d2h[2] = tl_sm1_33_us_d2h[0];
 
-  assign tl_pinmux_o = tl_s1n_31_ds_h2d[3];
-  assign tl_s1n_31_ds_d2h[3] = tl_pinmux_i;
+  assign tl_gpio0_o = tl_s1n_31_ds_h2d[3];
+  assign tl_s1n_31_ds_d2h[3] = tl_gpio0_i;
 
-  assign tl_rgbled_ctrl_o = tl_s1n_31_ds_h2d[4];
-  assign tl_s1n_31_ds_d2h[4] = tl_rgbled_ctrl_i;
+  assign tl_gpio1_o = tl_s1n_31_ds_h2d[4];
+  assign tl_s1n_31_ds_d2h[4] = tl_gpio1_i;
 
-  assign tl_hw_rev_o = tl_s1n_31_ds_h2d[5];
-  assign tl_s1n_31_ds_d2h[5] = tl_hw_rev_i;
+  assign tl_gpio2_o = tl_s1n_31_ds_h2d[5];
+  assign tl_s1n_31_ds_d2h[5] = tl_gpio2_i;
 
-  assign tl_xadc_o = tl_s1n_31_ds_h2d[6];
-  assign tl_s1n_31_ds_d2h[6] = tl_xadc_i;
+  assign tl_gpio3_o = tl_s1n_31_ds_h2d[6];
+  assign tl_s1n_31_ds_d2h[6] = tl_gpio3_i;
 
-  assign tl_sm1_34_us_h2d[0] = tl_s1n_31_ds_h2d[7];
-  assign tl_s1n_31_ds_d2h[7] = tl_sm1_34_us_d2h[0];
+  assign tl_gpio4_o = tl_s1n_31_ds_h2d[7];
+  assign tl_s1n_31_ds_d2h[7] = tl_gpio4_i;
 
-  assign tl_timer_o = tl_s1n_31_ds_h2d[8];
-  assign tl_s1n_31_ds_d2h[8] = tl_timer_i;
+  assign tl_gpio5_o = tl_s1n_31_ds_h2d[8];
+  assign tl_s1n_31_ds_d2h[8] = tl_gpio5_i;
 
-  assign tl_gpio0_o = tl_s1n_31_ds_h2d[9];
-  assign tl_s1n_31_ds_d2h[9] = tl_gpio0_i;
+  assign tl_pwm_o = tl_s1n_31_ds_h2d[9];
+  assign tl_s1n_31_ds_d2h[9] = tl_pwm_i;
 
-  assign tl_gpio1_o = tl_s1n_31_ds_h2d[10];
-  assign tl_s1n_31_ds_d2h[10] = tl_gpio1_i;
+  assign tl_pinmux_o = tl_s1n_31_ds_h2d[10];
+  assign tl_s1n_31_ds_d2h[10] = tl_pinmux_i;
 
-  assign tl_gpio2_o = tl_s1n_31_ds_h2d[11];
-  assign tl_s1n_31_ds_d2h[11] = tl_gpio2_i;
+  assign tl_rgbled_ctrl_o = tl_s1n_31_ds_h2d[11];
+  assign tl_s1n_31_ds_d2h[11] = tl_rgbled_ctrl_i;
 
-  assign tl_gpio3_o = tl_s1n_31_ds_h2d[12];
-  assign tl_s1n_31_ds_d2h[12] = tl_gpio3_i;
+  assign tl_hw_rev_o = tl_s1n_31_ds_h2d[12];
+  assign tl_s1n_31_ds_d2h[12] = tl_hw_rev_i;
 
-  assign tl_gpio4_o = tl_s1n_31_ds_h2d[13];
-  assign tl_s1n_31_ds_d2h[13] = tl_gpio4_i;
+  assign tl_xadc_o = tl_s1n_31_ds_h2d[13];
+  assign tl_s1n_31_ds_d2h[13] = tl_xadc_i;
 
-  assign tl_gpio5_o = tl_s1n_31_ds_h2d[14];
-  assign tl_s1n_31_ds_d2h[14] = tl_gpio5_i;
+  assign tl_sm1_34_us_h2d[0] = tl_s1n_31_ds_h2d[14];
+  assign tl_s1n_31_ds_d2h[14] = tl_sm1_34_us_d2h[0];
 
-  assign tl_pwm0_o = tl_s1n_31_ds_h2d[15];
-  assign tl_s1n_31_ds_d2h[15] = tl_pwm0_i;
+  assign tl_timer_o = tl_s1n_31_ds_h2d[15];
+  assign tl_s1n_31_ds_d2h[15] = tl_timer_i;
 
   assign tl_uart0_o = tl_s1n_31_ds_h2d[16];
   assign tl_s1n_31_ds_d2h[16] = tl_uart0_i;
@@ -244,20 +244,20 @@ module xbar_main (
   assign tl_i2c1_o = tl_s1n_31_ds_h2d[20];
   assign tl_s1n_31_ds_d2h[20] = tl_i2c1_i;
 
-  assign tl_spi0_o = tl_s1n_31_ds_h2d[21];
-  assign tl_s1n_31_ds_d2h[21] = tl_spi0_i;
+  assign tl_spi_lcd_o = tl_s1n_31_ds_h2d[21];
+  assign tl_s1n_31_ds_d2h[21] = tl_spi_lcd_i;
 
-  assign tl_spi1_o = tl_s1n_31_ds_h2d[22];
-  assign tl_s1n_31_ds_d2h[22] = tl_spi1_i;
+  assign tl_spi_ethmac_o = tl_s1n_31_ds_h2d[22];
+  assign tl_s1n_31_ds_d2h[22] = tl_spi_ethmac_i;
 
-  assign tl_spi2_o = tl_s1n_31_ds_h2d[23];
-  assign tl_s1n_31_ds_d2h[23] = tl_spi2_i;
+  assign tl_spi0_o = tl_s1n_31_ds_h2d[23];
+  assign tl_s1n_31_ds_d2h[23] = tl_spi0_i;
 
-  assign tl_spi_lcd_o = tl_s1n_31_ds_h2d[24];
-  assign tl_s1n_31_ds_d2h[24] = tl_spi_lcd_i;
+  assign tl_spi1_o = tl_s1n_31_ds_h2d[24];
+  assign tl_s1n_31_ds_d2h[24] = tl_spi1_i;
 
-  assign tl_spi_ethmac_o = tl_s1n_31_ds_h2d[25];
-  assign tl_s1n_31_ds_d2h[25] = tl_spi_ethmac_i;
+  assign tl_spi2_o = tl_s1n_31_ds_h2d[25];
+  assign tl_s1n_31_ds_d2h[25] = tl_spi2_i;
 
   assign tl_asf_35_us_h2d = tl_s1n_31_ds_h2d[26];
   assign tl_s1n_31_ds_d2h[26] = tl_asf_35_us_d2h;
@@ -311,55 +311,55 @@ module xbar_main (
       dev_sel_s1n_31 = 5'd2;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_PINMUX)) == ADDR_SPACE_PINMUX) begin
+                  ~(ADDR_MASK_GPIO0)) == ADDR_SPACE_GPIO0) begin
       dev_sel_s1n_31 = 5'd3;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_RGBLED_CTRL)) == ADDR_SPACE_RGBLED_CTRL) begin
+                  ~(ADDR_MASK_GPIO1)) == ADDR_SPACE_GPIO1) begin
       dev_sel_s1n_31 = 5'd4;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_HW_REV)) == ADDR_SPACE_HW_REV) begin
+                  ~(ADDR_MASK_GPIO2)) == ADDR_SPACE_GPIO2) begin
       dev_sel_s1n_31 = 5'd5;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_XADC)) == ADDR_SPACE_XADC) begin
+                  ~(ADDR_MASK_GPIO3)) == ADDR_SPACE_GPIO3) begin
       dev_sel_s1n_31 = 5'd6;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SYSTEM_INFO)) == ADDR_SPACE_SYSTEM_INFO) begin
+                  ~(ADDR_MASK_GPIO4)) == ADDR_SPACE_GPIO4) begin
       dev_sel_s1n_31 = 5'd7;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
+                  ~(ADDR_MASK_GPIO5)) == ADDR_SPACE_GPIO5) begin
       dev_sel_s1n_31 = 5'd8;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO0)) == ADDR_SPACE_GPIO0) begin
+                  ~(ADDR_MASK_PWM)) == ADDR_SPACE_PWM) begin
       dev_sel_s1n_31 = 5'd9;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO1)) == ADDR_SPACE_GPIO1) begin
+                  ~(ADDR_MASK_PINMUX)) == ADDR_SPACE_PINMUX) begin
       dev_sel_s1n_31 = 5'd10;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO2)) == ADDR_SPACE_GPIO2) begin
+                  ~(ADDR_MASK_RGBLED_CTRL)) == ADDR_SPACE_RGBLED_CTRL) begin
       dev_sel_s1n_31 = 5'd11;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO3)) == ADDR_SPACE_GPIO3) begin
+                  ~(ADDR_MASK_HW_REV)) == ADDR_SPACE_HW_REV) begin
       dev_sel_s1n_31 = 5'd12;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO4)) == ADDR_SPACE_GPIO4) begin
+                  ~(ADDR_MASK_XADC)) == ADDR_SPACE_XADC) begin
       dev_sel_s1n_31 = 5'd13;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_GPIO5)) == ADDR_SPACE_GPIO5) begin
+                  ~(ADDR_MASK_SYSTEM_INFO)) == ADDR_SPACE_SYSTEM_INFO) begin
       dev_sel_s1n_31 = 5'd14;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_PWM0)) == ADDR_SPACE_PWM0) begin
+                  ~(ADDR_MASK_TIMER)) == ADDR_SPACE_TIMER) begin
       dev_sel_s1n_31 = 5'd15;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
@@ -383,23 +383,23 @@ module xbar_main (
       dev_sel_s1n_31 = 5'd20;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI0)) == ADDR_SPACE_SPI0) begin
+                  ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
       dev_sel_s1n_31 = 5'd21;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI1)) == ADDR_SPACE_SPI1) begin
+                  ~(ADDR_MASK_SPI_ETHMAC)) == ADDR_SPACE_SPI_ETHMAC) begin
       dev_sel_s1n_31 = 5'd22;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI2)) == ADDR_SPACE_SPI2) begin
+                  ~(ADDR_MASK_SPI0)) == ADDR_SPACE_SPI0) begin
       dev_sel_s1n_31 = 5'd23;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_LCD)) == ADDR_SPACE_SPI_LCD) begin
+                  ~(ADDR_MASK_SPI1)) == ADDR_SPACE_SPI1) begin
       dev_sel_s1n_31 = 5'd24;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
-                  ~(ADDR_MASK_SPI_ETHMAC)) == ADDR_SPACE_SPI_ETHMAC) begin
+                  ~(ADDR_MASK_SPI2)) == ADDR_SPACE_SPI2) begin
       dev_sel_s1n_31 = 5'd25;
 
     end else if ((tl_s1n_31_us_h2d.a_address &
@@ -438,10 +438,10 @@ end
   tlul_socket_1n #(
     .HReqDepth (4'h0),
     .HRspDepth (4'h0),
-    .DReqPass  (29'h7e001a7),
-    .DRspPass  (29'h7e001a7),
-    .DReqDepth (116'h11000000111111111111001011000),
-    .DRspDepth (116'h11000000111111111111001011000),
+    .DReqPass  (29'h7e0d007),
+    .DRspPass  (29'h7e0d007),
+    .DReqDepth (116'h11000000111110010111111111000),
+    .DRspDepth (116'h11000000111110010111111111000),
     .N         (29)
   ) u_s1n_31 (
     .clk_i        (clk_sys_i),
