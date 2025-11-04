@@ -12,6 +12,15 @@ wheels = [
 ]
 
 [[package]]
+name = "antlr4-python3-runtime"
+version = "4.13.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/5f/2cdf6f7aca3b20d3f316e9f505292e1f256a32089bd702034c29ebde6242/antlr4_python3_runtime-4.13.2.tar.gz", hash = "sha256:909b647e1d2fc2b70180ac586df3933e38919c85f98ccc656a96cd3f25ef3916", size = 117467, upload-time = "2024-08-03T19:00:12.757Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/03/a851e84fcbb85214dc637b6378121ef9a0dd61b4c65264675d8a5c9b1ae7/antlr4_python3_runtime-4.13.2-py3-none-any.whl", hash = "sha256:fe3835eb8d33daece0e799090eda89719dbccee7aa39ef94eed3818cafa5a7e8", size = 144462, upload-time = "2024-08-03T19:00:11.134Z" },
+]
+
+[[package]]
 name = "anytree"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -30,6 +39,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6b/5c/685e6633917e101e5dcb62b9dd76946cbb57c26e133bae9e0cd36033c0a9/attrs-25.4.0.tar.gz", hash = "sha256:16d5969b87f0859ef33a48b35d55ac1be6e42ae49d5e853b597db70c35c57e11", size = 934251, upload-time = "2025-10-06T13:54:44.725Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3a/2a/7cc015f5b9f5db42b7d48157e23356022889fc354a2813c15934b7cb5c0e/attrs-25.4.0-py3-none-any.whl", hash = "sha256:adcf7e2a1fb3b36ac48d97835bb6d8ade15b8dcce26aba8bf1d14847b57a3373", size = 67615, upload-time = "2025-10-06T13:54:43.17Z" },
+]
+
+[[package]]
+name = "click"
+version = "8.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/61/de6cd827efad202d7057d93e0fed9294b96952e188f7384832791c7b2254/click-8.3.0.tar.gz", hash = "sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4", size = 276943, upload-time = "2025-09-18T17:32:23.696Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/d3/9dcc0f5797f070ec8edf30fbadfb200e71d9db6b84d211e3b2085a7589a0/click-8.3.0-py3-none-any.whl", hash = "sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc", size = 107295, upload-time = "2025-09-18T17:32:22.42Z" },
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
 ]
 
 [[package]]
@@ -124,6 +154,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9e/38/bd5b78a920a64d708fe6bc8e0a2c075e1389d53bef8413725c63ba041535/mako-1.3.10.tar.gz", hash = "sha256:99579a6f39583fa7e5630a28c3c1f440e4e97a414b80372649c0ce338da2ea28", size = 392474, upload-time = "2025-04-10T12:44:31.16Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/87/fb/99f81ac72ae23375f22b7afdb7642aba97c00a713c217124420147681a2f/mako-1.3.10-py3-none-any.whl", hash = "sha256:baef24a52fc4fc514a0887ac600f9f1cff3d82c61d4d700a1fa84d597b88db59", size = 78509, upload-time = "2025-04-10T12:50:53.297Z" },
+]
+
+[[package]]
+name = "markdown"
+version = "3.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/ab/7dd27d9d863b3376fcf23a5a13cb5d024aed1db46f963f1b5735ae43b3be/markdown-3.10.tar.gz", hash = "sha256:37062d4f2aa4b2b6b32aefb80faa300f82cc790cb949a35b8caede34f2b68c0e", size = 364931, upload-time = "2025-11-03T19:51:15.007Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/81/54e3ce63502cd085a0c556652a4e1b919c45a446bd1e5300e10c44c8c521/markdown-3.10-py3-none-any.whl", hash = "sha256:b5b99d6951e2e4948d939255596523444c0e677c669700b1d17aa4a8a464cb7c", size = 107678, upload-time = "2025-11-03T19:51:13.887Z" },
 ]
 
 [[package]]
@@ -523,6 +562,20 @@ wheels = [
 ]
 
 [[package]]
+name = "rdl2ot"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "jinja2" },
+    { name = "systemrdl-compiler" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c8/6c/c7577b187ce6e28f90090af3ee4d190af2ec20b8d19a4bf83ae862f458ef/rdl2ot-0.3.0.tar.gz", hash = "sha256:6f187a4dcb6ec2f672dfb25fe9b88896bdf6edad004e29840cb8da69a22dc116", size = 37890, upload-time = "2025-11-04T17:30:56.178Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1b/3b/127e8426c564c764bc12d185c9cdcb1ea1035e4c9a024f0d6d114a3777bb/rdl2ot-0.3.0-py3-none-any.whl", hash = "sha256:1c335fefdb1d1d82e46d0c43d9bedb6b03bc360f92e11f6ddda1d4496349b946", size = 19889, upload-time = "2025-11-04T17:30:54.821Z" },
+]
+
+[[package]]
 name = "ruff"
 version = "0.5.7"
 source = { registry = "https://pypi.org/simple" }
@@ -615,6 +668,7 @@ dependencies = [
     { name = "pycryptodome" },
     { name = "pydantic" },
     { name = "pyserial" },
+    { name = "rdl2ot" },
     { name = "ruff" },
     { name = "semantic-version" },
     { name = "setuptools" },
@@ -638,12 +692,35 @@ requires-dist = [
     { name = "pycryptodome", specifier = ">=3.23.0,<4" },
     { name = "pydantic", specifier = ">=2.8.2,<3" },
     { name = "pyserial", specifier = "==3.5" },
+    { name = "rdl2ot", specifier = ">=0.3.0" },
     { name = "ruff", specifier = "==0.5.7" },
     { name = "semantic-version", specifier = ">=2.10.0,<3" },
     { name = "setuptools", specifier = ">=80.9.0" },
     { name = "tabulate", specifier = ">=0.9.0,<0.10" },
     { name = "toml", specifier = "==0.10.2" },
     { name = "wheel", specifier = "==0.41.2" },
+]
+
+[[package]]
+name = "systemrdl-compiler"
+version = "1.30.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "antlr4-python3-runtime" },
+    { name = "colorama" },
+    { name = "markdown" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/31/8ca0c5748e7dd566088e9ad84ca129627dc54421ba4397ade3bcc3beea84/systemrdl_compiler-1.30.1.tar.gz", hash = "sha256:ba8411aa53052da52fe5f4de3061905360154a48c1855236aecbb377b08b9654", size = 483996, upload-time = "2025-09-24T04:58:18.994Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a7/10/cb0bc743910fcf80859c90cf0b0754527c2e5cf6caadfc7e3bab3bb1d166/systemrdl_compiler-1.30.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:51f2c8c56bc4552b5751f08e2bef511ba10cb5a65cab79e3c4b44591d176eb99", size = 1170794, upload-time = "2025-09-24T04:58:02.172Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/fa/d26431aa07b0d1d1784c6ab5077736b832a30dc647212e8535f1484c18ed/systemrdl_compiler-1.30.1-cp37-abi3-macosx_11_0_x86_64.whl", hash = "sha256:276f4fce1254c5f57da4cfd7cacd0872d84134a1bb210a46bd7f79d04a7e0329", size = 1174880, upload-time = "2025-09-24T04:58:04.029Z" },
+    { url = "https://files.pythonhosted.org/packages/47/ee/9c76699bb24adf5400a7fea305b9fcc46b70b12aa70eaa6f4e00cf17ad1e/systemrdl_compiler-1.30.1-cp37-abi3-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:281f411e74663d4c7bf2fd73db63ba1887d5cc55accbe67fa373aaba05848613", size = 10844382, upload-time = "2025-09-24T04:58:05.704Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/9f/de0b43c4e662256aa1955d116e7703b647fc4b83289d6a57baea9a540a38/systemrdl_compiler-1.30.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1f639d551567a136ff1ed5d62b17162e5c2e2cd51c0c4c1488cde0712e73cb4a", size = 11019356, upload-time = "2025-09-24T04:58:08.276Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/93/7d00173f47396a49be7f99a3f8239707620e86253702236d330fae627134/systemrdl_compiler-1.30.1-cp37-abi3-musllinux_1_2_i686.whl", hash = "sha256:a43e8f1a0afeb35f56a748471fc1d0cac60cf0f04cefd14fedb1b53f8abeab6f", size = 11260909, upload-time = "2025-09-24T04:58:11.171Z" },
+    { url = "https://files.pythonhosted.org/packages/48/18/be05a311f89838e30aca12cb5b10d4ed5d9a91ec3c8c11b78250e6dbc8c7/systemrdl_compiler-1.30.1-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:c9ef2b2480c02e30f6627731d700f174039c1407bb5ae33b1817d06a39e080b0", size = 11301190, upload-time = "2025-09-24T04:58:13.53Z" },
+    { url = "https://files.pythonhosted.org/packages/af/71/9c47aed48dc2be6ce36fa41b092749fce8228812186040277929fe94b750/systemrdl_compiler-1.30.1-cp37-abi3-win32.whl", hash = "sha256:b8583e0210619fbcfebea2e03fa780fd7604188b83afbba47fd8e559944f8667", size = 922325, upload-time = "2025-09-24T04:58:15.534Z" },
+    { url = "https://files.pythonhosted.org/packages/46/6a/08297441b88c0e0f5b352964d3376bd386f17b4194e077d356e8346ff322/systemrdl_compiler-1.30.1-cp37-abi3-win_amd64.whl", hash = "sha256:59d580b235dc30224c3ae6038fac05c0c6c0d7f96abe6ad3979550c89a6bec99", size = 955160, upload-time = "2025-09-24T04:58:17.25Z" },
 ]
 
 [[package]]
