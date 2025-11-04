@@ -12,10 +12,20 @@
       url = "git+https://codeberg.org/HU90m/mdutils.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
+    };
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
     };
     zermio = {
       url = "github:engdoreis/zermio?ref=v0.2.0";
@@ -52,18 +62,24 @@
       inherit (pkgs.lib) fileset getExe;
       zermio-cli = inputs.zermio.packages.${system}.default;
 
-      pythonEnv = let
-        poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
-        poetryOverrides = lowrisc-nix.lib.poetryOverrides {inherit pkgs;};
-      in
-        poetry2nix.mkPoetryEnv {
-          projectDir = ./.;
+      workspace = inputs.uv2nix.lib.workspace.loadWorkspace {workspaceRoot = ./.;};
+      overlay = workspace.mkPyprojectOverlay {
+        sourcePreference = "wheel";
+      };
+
+      pythonSet =
+        (pkgs.callPackage inputs.pyproject-nix.build.packages {
           python = pkgs.python310;
-          overrides = [
-            poetryOverrides
-            poetry2nix.defaultPoetryOverrides
-          ];
-        };
+        }).overrideScope
+        (
+          pkgs.lib.composeManyExtensions [
+            inputs.pyproject-build-systems.overlays.default
+            overlay
+            (lowrisc-nix.lib.pyprojectOverrides {inherit pkgs;})
+          ]
+        );
+
+      pythonEnv = pythonSet.mkVirtualEnv "python-env" workspace.deps.default;
 
       sonata-documentation = lrDoc.buildMdbookSite {
         version = "";
@@ -183,6 +199,7 @@
             gtkwave
             openfpgaloader
             openocd
+            uv
           ])
           ++ cheriotPkgs
           ++ (with lrPkgs; [
