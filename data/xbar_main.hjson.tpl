@@ -61,7 +61,10 @@
         size_byte: "0x00000800",
       }],
     },
-    { name:  "gpio", // General purpose input and output
+    % for block in config.blocks:
+      % if block.name == "gpio":
+        % for i in range(block.instances):
+    { name:  "${f"{block.name}{i}"}",
       type:  "device",
       clock: "clk_sys_i",
       reset: "rst_sys_ni",
@@ -69,11 +72,16 @@
       rsp_fifo_pass: false,
       xbar:  false,
       addr_range: [{
-        base_addr: "0x80000000",
-        size_byte: "0x00001000",
+        base_addr: "${hex(block.memory_start + i * block.memory_size)}",
+        size_byte: "${hex(block.memory_size)}",
       }],
-      pipeline: true,
+            % for (setting, value) in block.xbar.items():
+      ${setting}: ${value},
+            % endfor
     },
+          % endfor
+        % endif
+      % endfor
     { name:  "pinmux", // Pin multiplexer
       type:  "device",
       clock: "clk_sys_i",
@@ -224,7 +232,6 @@
       "hyperram",
       "rev_tag",
       "dbg_dev",
-      "gpio",
       "pinmux",
       "system_info",
       "rgbled_ctrl",
@@ -234,11 +241,9 @@
       "spi_lcd",
       "spi_ethmac",
       % for block in config.blocks:
-      % if not block.name == "gpio":
       % for i in range(block.instances):
       "${f"{block.name}{i}"}",
       % endfor
-      % endif
       % endfor
       "usbdev",
       "rv_plic",
