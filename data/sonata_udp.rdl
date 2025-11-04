@@ -1,0 +1,50 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+/* Indicates what the signal is used for.
+ */
+enum SigType {
+  None; 
+  PadInOut; // Signal is a pad for In and Out. i.e: i2c.sda.
+  PadInput; // Signal is a pad for Input. i.e: uart.rx
+  PadOutput; // Signal is a pad for Output. i.e: uart.tx
+  Interrupt;// Signal is an Interrupt
+};
+
+/* Indicates what the signal will be used for.
+ */
+property sigtype {
+  type = SigType;
+  component = signal;
+  default = SigType::None;
+};
+
+enum IoCombine {
+  None;
+  Mux;
+  And;
+  Or;
+};
+
+/* 
+ */
+property io_combine {
+  type = IoCombine;
+  component = signal;
+  default = IoCombine::None;
+};
+
+struct parameter {
+  string type_;
+  string name;
+  string value;
+};
+
+property xbar {
+  type = parameter[];
+  component = addrmap|mem;
+  default = '{};
+};
+

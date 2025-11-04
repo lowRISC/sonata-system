@@ -1,0 +1,1746 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap usbdev #(
+    longint NEndpoints = 12,
+    longint NumAlerts = 1
+){
+    clk_input = '{ "clk_usb_i" };
+    rst_input = '{ "rst_usb_ni" };
+
+    reg {
+        desc = "Interrupt State Register";
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a packet was received using an OUT or SETUP transaction.This interrupt is directly tied to whether the RX FIFO is empty, so it should be cleared only after handling the FIFO entry.";
+        } PKT_RECEIVED[0:0];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a packet was sent as part of an IN transaction.This interrupt is directly tied to whether a sent packet has not been acknowledged in the !!in_sent register.It should be cleared only after clearing all bits in the !!in_sent register.";
+        } PKT_SENT[1:1];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if VBUS is lost, thus the link is disconnected.";
+        } DISCONNECTED[2:2];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if link is active but SOF was not received from host for 4.096 ms. The SOF should be every 1 ms.";
+        } HOST_LOST[3:3];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if the link is at SE0 longer than 3 us indicating a link reset (host asserts for min 10 ms, device can react after 2.5 us).";
+        } LINK_RESET[4:4];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if the line has signaled J for longer than 3ms and is therefore in suspend state.";
+        } LINK_SUSPEND[5:5];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised when the link becomes active again after being suspended.";
+        } LINK_RESUME[6:6];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Raised when the Available OUT Buffer FIFO is empty and the device interface is enabled.This interrupt is directly tied to the FIFO status, so the Available OUT Buffer FIFO must be provided with a free buffer before the interrupt can be cleared.";
+        } AV_OUT_EMPTY[7:7];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Raised when the RX FIFO is full and the device interface is enabled.This interrupt is directly tied to the FIFO status, so the RX FIFO must have an entry removed before the interrupt is cleared.If the condition is not cleared, the interrupt can re-assert.";
+        } RX_FULL[8:8];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a write was done to either the Available OUT Buffer FIFO or the Available SETUP Buffer FIFO when the FIFO was full.";
+        } AV_OVERFLOW[9:9];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a packet to an IN endpoint started to be received but wasthen dropped due to an error. After transmitting the IN payload,the USB device expects a valid ACK handshake packet. This error israised if either the packet or CRC is invalid, leading to a NAK instead,or if a different token was received.";
+        } LINK_IN_ERR[10:10];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a CRC error occurred on a received packet.";
+        } RX_CRC_ERR[11:11];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if an invalid Packet IDentifier (PID) was received.";
+        } RX_PID_ERR[12:12];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if an invalid bitstuffing was received.";
+        } RX_BITSTUFF_ERR[13:13];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised when the USB frame number is updated with a valid SOF.";
+        } FRAME[14:14];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if VBUS is applied.";
+        } POWERED[15:15];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "Raised if a packet to an OUT endpoint started to be received but was then dropped due to an error.This error is raised if the data toggle, token, packet and/or CRC are invalid, or if the appropriate Available OUT Buffer FIFO is empty and/or the Received Buffer FIFO is full when a packet should have been received.";
+        } LINK_OUT_ERR[16:16];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Raised when the Available SETUP Buffer FIFO is empty and the device interface is enabled.This interrupt is directly tied to the FIFO status, so the Available SETUP Buffer FIFO must be provided with a free buffer before the interrupt can be cleared.";
+        } AV_SETUP_EMPTY[17:17];
+    } INTR_STATE @ 0x0;
+
+    reg {
+        desc = "Interrupt Enable Register";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.pkt_received is set.";
+        } PKT_RECEIVED[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.pkt_sent is set.";
+        } PKT_SENT[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.disconnected is set.";
+        } DISCONNECTED[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.host_lost is set.";
+        } HOST_LOST[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.link_reset is set.";
+        } LINK_RESET[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.link_suspend is set.";
+        } LINK_SUSPEND[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.link_resume is set.";
+        } LINK_RESUME[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.av_out_empty is set.";
+        } AV_OUT_EMPTY[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_full is set.";
+        } RX_FULL[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.av_overflow is set.";
+        } AV_OVERFLOW[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.link_in_err is set.";
+        } LINK_IN_ERR[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_crc_err is set.";
+        } RX_CRC_ERR[11:11];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_pid_err is set.";
+        } RX_PID_ERR[12:12];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_bitstuff_err is set.";
+        } RX_BITSTUFF_ERR[13:13];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.frame is set.";
+        } FRAME[14:14];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.powered is set.";
+        } POWERED[15:15];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.link_out_err is set.";
+        } LINK_OUT_ERR[16:16];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.av_setup_empty is set.";
+        } AV_SETUP_EMPTY[17:17];
+    } INTR_ENABLE @ 0x4;
+
+    external reg {
+        desc = "Interrupt Test Register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.pkt_received to 1.";
+        } PKT_RECEIVED[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.pkt_sent to 1.";
+        } PKT_SENT[1:1];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.disconnected to 1.";
+        } DISCONNECTED[2:2];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.host_lost to 1.";
+        } HOST_LOST[3:3];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.link_reset to 1.";
+        } LINK_RESET[4:4];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.link_suspend to 1.";
+        } LINK_SUSPEND[5:5];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.link_resume to 1.";
+        } LINK_RESUME[6:6];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.av_out_empty to 1.";
+        } AV_OUT_EMPTY[7:7];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_full to 1.";
+        } RX_FULL[8:8];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.av_overflow to 1.";
+        } AV_OVERFLOW[9:9];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.link_in_err to 1.";
+        } LINK_IN_ERR[10:10];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_crc_err to 1.";
+        } RX_CRC_ERR[11:11];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_pid_err to 1.";
+        } RX_PID_ERR[12:12];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_bitstuff_err to 1.";
+        } RX_BITSTUFF_ERR[13:13];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.frame to 1.";
+        } FRAME[14:14];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.powered to 1.";
+        } POWERED[15:15];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.link_out_err to 1.";
+        } LINK_OUT_ERR[16:16];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.av_setup_empty to 1.";
+        } AV_SETUP_EMPTY[17:17];
+    } INTR_TEST @ 0x8;
+
+    external reg {
+        desc = "Alert Test Register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to trigger one alert event of this kind.";
+        } FATAL_FAULT[0:0];
+    } ALERT_TEST @ 0xC;
+
+    reg {
+        desc = "USB Control";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Set to connect the USB interface (i.e. assert the pullup).";
+        } ENABLE[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write a 1 to this bit to instruct usbdev to jump to the LinkResuming state.The write will only have an effect when the device is in the LinkPowered state.Its intention is to handle a resume-from-suspend event after the IP has been powered down.";
+        } RESUME_LINK_ACTIVE[1:1];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "Device address set by host (this should be copied fromthe Set Device ID SETUP packet).This will be zeroed by the hardware when the link resets.";
+        } DEVICE_ADDRESS[22:16];
+    } USBCTRL @ 0x10;
+
+    external reg {
+        desc = "USB Status";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Frame index received from host. On an active link, this will increment every milisecond.";
+        } FRAME[10:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Start of frame not received from host for 4.096 ms and the line is active.";
+        } HOST_LOST[11:11];
+        field {
+            sw = r;
+            hw = w;
+            desc = "State of USB link, decoded from line.";
+        } LINK_STATE[14:12];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Reflects the state of the sense pin.1 indicates that the host is providing VBUS.Note that this bit always shows the state of the actual pin and does not take account of the override control.";
+        } SENSE[15:15];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of buffers in the Available OUT Buffer FIFO.These buffers are available for receiving OUT DATA packets.";
+        } AV_OUT_DEPTH[19:16];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of buffers in the Available SETUP Buffer FIFO.These buffers are available for receiving SETUP DATA packets.";
+        } AV_SETUP_DEPTH[22:20];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Available OUT Buffer FIFO is full.";
+        } AV_OUT_FULL[23:23];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of buffers in the Received Buffer FIFO.These buffers have packets that have been received andshould be popped from the FIFO and processed.";
+        } RX_DEPTH[27:24];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Available SETUP Buffer FIFO is full.";
+        } AV_SETUP_FULL[30:30];
+        field {
+            sw = r;
+            hw = w;
+            reset = true;
+            desc = "Received Buffer FIFO is empty.";
+        } RX_EMPTY[31:31];
+    } USBSTAT @ 0x1C;
+
+    external reg {
+        desc = "Available OUT Buffer FIFO";
+        field {
+            sw = w;
+            hw = r;
+            swmod = true;
+            desc = "This field contains the buffer ID being passed to the USB receive engine.If the Available OUT Buffer FIFO is full, any write operations are discarded.";
+        } BUFFER[4:0];
+    } AVOUTBUFFER @ 0x20;
+
+    external reg {
+        desc = "Available SETUP Buffer FIFO";
+        field {
+            sw = w;
+            hw = r;
+            swmod = true;
+            desc = "This field contains the buffer ID being passed to the USB receive engine.If the Available SETUP Buffer FIFO is full, any write operations are discarded.";
+        } BUFFER[4:0];
+    } AVSETUPBUFFER @ 0x24;
+
+    external reg {
+        hwre = true;
+        desc = "Received Buffer FIFO";
+        field {
+            sw = r;
+            hw = rw;
+            desc = "This field contains the buffer ID that data was received into.On read the buffer ID is popped from the Received Buffer FIFO and returned to software.";
+        } BUFFER[4:0];
+        field {
+            sw = r;
+            hw = rw;
+            desc = "This field contains the data length in bytes of the packet written to the buffer.";
+        } SIZE[14:8];
+        field {
+            sw = r;
+            hw = rw;
+            desc = "This bit indicates if the received transaction is of type SETUP (1) or OUT (0).";
+        } SETUP[19:19];
+        field {
+            sw = r;
+            hw = rw;
+            desc = "This field contains the endpoint ID to which the packet was directed.";
+        } EP[23:20];
+    } RXFIFO @ 0x28;
+
+    external reg {
+        desc = "OUT Endpoints Data Toggles";
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "Reading returns the current state of the OUT endpoint Data Toggle flags.Writing sets the Data Toggle flag for each endpoint if the corresponding mask bitin the upper half of this register is set.";
+        } STATUS[11:0];
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "Reads as zero.When writing, a set bit will cause the Data Toggle flag of the correspondingOUT endpoint to be updated. A clear bit will leave the flag for the correspondingendpoint unchanged.";
+        } MASK[27:16];
+    } OUT_DATA_TOGGLE @ 0x7C;
+
+    external reg {
+        desc = "IN Endpoints Data Toggles";
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "Reading returns the current state of the IN endpoint Data Toggle flags.Writing sets the Data Toggle flag for each endpoint if the corresponding mask bitin the upper half of this register is set.";
+        } STATUS[11:0];
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "Reads as zero.When writing, a set bit will cause the Data Toggle flag of the correspondingIN endpoint to be updated. A clear bit will leave the flag for the correspondingendpoint unchanged.";
+        } MASK[27:16];
+    } IN_DATA_TOGGLE @ 0x80;
+
+    external reg {
+        desc = "USB PHY pins sense.This register can be used to read out the state of the USB device inputs and outputs from software.This is designed to be used for debugging purposes or during chip testing.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB D+ input.";
+        } RX_DP_I[0:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB D- input.";
+        } RX_DN_I[1:1];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB data input from an external differential receiver, if available.";
+        } RX_D_I[2:2];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB transmit D+ output (readback).";
+        } TX_DP_O[8:8];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB transmit D- output (readback).";
+        } TX_DN_O[9:9];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB transmit data value (readback).";
+        } TX_D_O[10:10];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB single-ended zero output (readback).";
+        } TX_SE0_O[11:11];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB OE output (readback).";
+        } TX_OE_O[12:12];
+        field {
+            sw = r;
+            hw = w;
+            desc = "USB power sense signal.";
+        } PWR_SENSE[16:16];
+    } PHY_PINS_SENSE @ 0x84;
+
+    reg {
+        desc = "USB PHY pins drive.This register can be used to control the USB device inputs and outputs from software.This is designed to be used for debugging purposes or during chip testing.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB transmit D+ output, used with dn_o.";
+        } DP_O[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB transmit D- output, used with dp_o.";
+        } DN_O[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB transmit data output, encoding K and J when se0_o is 0.";
+        } D_O[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB single-ended zero output.";
+        } SE0_O[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB OE output.";
+        } OE_O[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable differential receiver.";
+        } RX_ENABLE_O[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB D+ pullup enable output.";
+        } DP_PULLUP_EN_O[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "USB D- pullup enable output.";
+        } DN_PULLUP_EN_O[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "0: Outputs are controlled by the hardware block.1: Outputs are controlled with this register.";
+        } EN[16:16];
+    } PHY_PINS_DRIVE @ 0x88;
+
+    reg {
+        desc = "USB PHY Configuration";
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Detect received K and J symbols from the usb_rx_d signal, which must be driven from an external differential receiver.If 1, make use of the usb_rx_d input.If 0, the usb_rx_d input is ignored and the usb_rx_dp and usb_rx_dn pair are used to detect K and J (useful for some environments, but will be unlikely to pass full USB compliance).Regardless of the state of this field usb_rx_dp and usb_rx_dn are always used to detect SE0.This bit also feeds the rx_enable pin, activating the receiver when the device is not suspended.";
+        } USE_DIFF_RCVR[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "If 1, select the d and se0 TX interface.If 0, select the dp and dn TX interface.This directly controls the output pin of the same name.It is intended to be used to enable the use of a variety of external transceivers, to select an encoding that matches the transceiver.";
+        } TX_USE_D_SE0[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = true;
+            desc = "Recognize a single SE0 bit as an end of packet, otherwise two successive bits are required.";
+        } EOP_SINGLE_BIT[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Flip the D+/D- pins.Particularly useful if D+/D- are mapped to SBU1/SBU2 pins of USB-C.";
+        } PINFLIP[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "0: Enable reference signal generation for clock synchronization, 1: disable it by forcing the associated signals to zero.";
+        } USB_REF_DISABLE[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            desc = "Disable (0) or enable (1) oscillator test mode.If enabled, the device constantly transmits a J/K pattern, which is useful for testing the USB clock.Note that while in oscillator test mode, the device no longer receives SOFs and consequently does not generate the reference signal for clock synchronization.The clock might drift off.";
+        } TX_OSC_TEST_MODE[7:7];
+    } PHY_CONFIG @ 0x8C;
+
+    external reg {
+        desc = "USB wake module control for suspend / resume";
+        async_clk = true;
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Suspend request to the wake detection module.Trigger the wake detection module to begin monitoring for wake-from-suspend events.When written with a 1, the wake detection module will activate.Activation may not happen immediately, and its status can be verified by checking wake_events.module_active.";
+        } SUSPEND_REQ[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Wake acknowledgement.Signal to the wake detection module that it may release control of the pull-ups back to the main block and return to an inactive state.The release back to normal state may not happen immediately.The status can be confirmed via wake_events.module_active.Note that this bit can also be used without powering down, such as when usbdev detects resume signaling before transitions to low power states have begun.";
+        } WAKE_ACK[1:1];
+    } WAKE_CONTROL @ 0x90;
+
+    reg {
+        desc = "USB wake module events and debug";
+        async_clk = true;
+        field {
+            sw = r;
+            hw = w;
+            reset = false;
+            desc = "USB aon wake module is active, monitoring events and controlling the pull-ups.";
+        } MODULE_ACTIVE[0:0];
+        field {
+            sw = r;
+            hw = w;
+            reset = false;
+            desc = "USB aon wake module detected VBUS was interrupted while monitoring events.";
+        } DISCONNECTED[8:8];
+        field {
+            sw = r;
+            hw = w;
+            reset = false;
+            desc = "USB aon wake module detected a bus reset while monitoring events.";
+        } BUS_RESET[9:9];
+        field {
+            sw = r;
+            hw = w;
+            reset = false;
+            desc = "USB aon wake module detected a non-idle bus while monitoring events.";
+        } BUS_NOT_IDLE[10:10];
+    } WAKE_EVENTS @ 0x94;
+
+    reg {
+        desc = "FIFO control register";
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Software reset of the Available OUT Buffer FIFO. This must be used only when the USB deviceis not connected to the USB.";
+        } AVOUT_RST[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Software reset of the Available SETUP Buffer FIFO. This must be used only when the USB deviceis not connected to the USB.";
+        } AVSETUP_RST[1:1];
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "Software reset the of Rx Buffer FIFO. This must be used only when the USB device is notconnected to the USB.";
+        } RX_RST[2:2];
+    } FIFO_CTRL @ 0x98;
+
+    external reg {
+        desc = "Counter for OUT side USB events.";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Number of events counted.";
+        } COUNT[7:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the OUT transactions for which the USB device acknowledged the OUT packetand dropped it internally, which is the correct response to a packet transmittedwith an incorrect Data Toggle.The expectation is that this packet is a retry of the previous packet transmissionand that the handshake response was not received intact by the USB host, indicatingunreliable communications.Other causes of Data Toggle synchronization failure may result in data loss.";
+        } DATATOG_OUT[12:12];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the SETUP/OUT packets ignored, dropped or NAKed because the RX FIFO was full.SETUP packets have been ignored, Isochronous OUT packets have been dropped, andnon-Isochronous OUT packets have been NAKed.";
+        } DROP_RX[13:13];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the OUT packets that could not be accepted because there was no buffer in theAv OUT FIFO. Non-Isochronous OUT packets have been NAKed.Isochronous OUT packets were ignored.";
+        } DROP_AVOUT[14:14];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the SETUP packets that were ignored because there was no buffer in theAv SETUP FIFO.";
+        } IGN_AVSETUP[15:15];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Set of OUT endpoints for which this counter is enabled.";
+        } ENDPOINTS[27:16];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to reset the counter.";
+        } RST[31:31];
+    } COUNT_OUT @ 0x9C;
+
+    external reg {
+        desc = "Counter for IN side USB events.";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Number of events counted.";
+        } COUNT[7:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the IN transactions that were attempted when there was no packet availablein the corresponding 'configin' register(s). This is not necessarily an errorcondition, and the counter primarily offers some visibility into when the INtraffic is underusing the available bus bandwidth.It is of particular utility to Isochronous IN endpoints.";
+        } NODATA[13:13];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the IN transactions rejected by the host responding with a NAK handshake.";
+        } NAK[14:14];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count the IN transactions for which the USB host did not respond with a handshake,and the transactions timed out. This indicates that the host did not receive itand decode it as a valid packet, suggesting that communication is unreliable.Isochronous IN transactions are excluded from this count because there is nohandshake response to Isochronous packet transfers.";
+        } TIMEOUT[15:15];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Set of endpoints for which this counter is enabled.";
+        } ENDPOINTS[27:16];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to reset the counter.";
+        } RST[31:31];
+    } COUNT_IN @ 0xA0;
+
+    external reg {
+        desc = "Count of IN transactions for which no packet data was available.This secondary register allows some partitioning of endpoints among the twocounters, for more targeted measurement, eg. endpoints may be grouped according tothe expected bandwidth usage, or Isochronous vs. non-Isochronous transfers.";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Number of IN transactions that were attempted when there was no packet availablein the corresponding 'configin' register(s).";
+        } COUNT[7:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Set of endpoints for which this counter is enabled.";
+        } ENDPOINTS[27:16];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to reset the counter.";
+        } RST[31:31];
+    } COUNT_NODATA_IN @ 0xA4;
+
+    external reg {
+        desc = "Count of error conditions detected on token packets from the host.";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x0;
+            desc = "Number of events counted.";
+        } COUNT[7:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Number of Invalid PIDs detected on packets from the host. Invalid PIDs mayindicate very unreliable communication and/or a substantial frequency mismatchbetween the host and the device.";
+        } PID_INVALID[27:27];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Number of SETUP/OUT packets that were ignored, dropped or NAKed because aBit Stuffing error was detected.";
+        } BITSTUFF[28:28];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count SETUP/OUT DATA packets that were ignored, dropped or NAKed because aCRC16 error was detected.";
+        } CRC16[29:29];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            swmod = true;
+            desc = "Count CRC5 errors detected on token packets sent by the host. CRC5 errors ontoken packets received from the host indicate very unreliable communication andpossibly a substantial frequency mismatch between the host and the device.";
+        } CRC5[30:30];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to reset the counter.";
+        } RST[31:31];
+    } COUNT_ERRORS @ 0xA8;
+
+    reg {
+        desc = "Enable an endpoint to respond to transactions in the downstream direction.Note that as the default endpoint, endpoint 0 must be enabled in both the IN and OUT directions before enabling the USB interface to connect.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable downstream transactions to be received on the endpoint and elicit responses.If the bit is clear, any SETUP or OUT packets sent to the endpoint will be ignored.";
+        } ENABLE_11[11:11];
+    } EP_OUT_ENABLE[1] @ 0x14;
+
+    reg {
+        desc = "Enable an endpoint to respond to transactions in the upstream direction.Note that as the default endpoint, endpoint 0 must be enabled in both the IN and OUT directions before enabling the USB interface to connect.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable upstream transactions to be received on the endpoint and elicit responses.If the bit is clear then any IN packets sent to the endpoint will be ignored.";
+        } ENABLE_11[11:11];
+    } EP_IN_ENABLE[1] @ 0x18;
+
+    reg {
+        desc = "Receive SETUP transaction enable";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "This bit must be set to enable SETUP transactions to bereceived on the endpoint. If the bit is clear then aSETUP packet will be ignored. The bit should be set forcontrol endpoints (and only control endpoints).";
+        } SETUP_11[11:11];
+    } RXENABLE_SETUP[1] @ 0x2C;
+
+    reg {
+        desc = "Receive OUT transaction enable";
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_0[0:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_1[1:1];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_2[2:2];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_3[3:3];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_4[4:4];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_5[5:5];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_6[6:6];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_7[7:7];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_8[8:8];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_9[9:9];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_10[10:10];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit must be set to enable OUT transactions to be received on the endpoint.If the bit is clear then an OUT request will be responded to with a NAK, if the endpoint is enabled.If set_nak_out for this endpoint is set, hardware will clear this bit whenever an OUT transaction is received on this endpoint.Software must set this bit again to receive the next OUT transaction.Until that happens, hardware will continue to NAK any OUT transaction to this endpoint.";
+        } OUT_11[11:11];
+    } RXENABLE_OUT[1] @ 0x30;
+
+    reg {
+        desc = "Set NAK after OUT transactions";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "When this bit is set, hardware will clear this endpoint's rxenable_out bit whenever an OUT transaction is received on this endpoint.This bit should not be changed while the endpoint is active.";
+        } ENABLE_11[11:11];
+    } SET_NAK_OUT[1] @ 0x34;
+
+    reg {
+        desc = "IN Transaction Sent";
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_0[0:0];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_1[1:1];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_2[2:2];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_3[3:3];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_4[4:4];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_5[5:5];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_6[6:6];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_7[7:7];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_8[8:8];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_9[9:9];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_10[10:10];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit will be set when the ACK is received fromthe host to indicate successful packet deliveryas part of an IN transaction.";
+        } SENT_11[11:11];
+    } IN_SENT[1] @ 0x38;
+
+    reg {
+        desc = "OUT Endpoint STALL control";
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_0[0:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_1[1:1];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_2[2:2];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_3[3:3];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_4[4:4];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_5[5:5];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_6[6:6];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_7[7:7];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_8[8:8];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_9[9:9];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_10[10:10];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an OUT transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_11[11:11];
+    } OUT_STALL[1] @ 0x3C;
+
+    reg {
+        desc = "IN Endpoint STALL control";
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_0[0:0];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_1[1:1];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_2[2:2];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_3[3:3];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_4[4:4];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_5[5:5];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_6[6:6];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_7[7:7];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_8[8:8];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_9[9:9];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_10[10:10];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "If this bit is set then an IN transaction to this endpoint will elicit a STALL handshake, when a non-isochronous endpoint is enabled.If the configuration has both STALL and NAK enabled, the STALL handshake will take priority.Note that SETUP transactions are always either accepted or ignored.For endpoints that accept SETUP transactions, a SETUP packet will clear the STALL flag on endpoints for both the IN and OUT directions.";
+        } ENDPOINT_11[11:11];
+    } IN_STALL[1] @ 0x40;
+
+    reg {
+        desc = "Configure IN Transaction";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The buffer ID containing the data to send when an IN transaction is received on the endpoint.";
+        } BUFFER[4:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The number of bytes to send from the buffer.If this is 0 then a CRC only packet is sent.If this is greater than 64 then 64 bytes are sent.";
+        } SIZE[14:8];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = w;
+            reset = 0x0;
+            desc = "This bit indicates that the buffer is in the process of being collected by thehost. It becomes set upon the first attempt by the host to collect a buffer fromthis endpoint when the rdy bit was set.It is cleared when the packet has been collected successfully or the pendingtransaction has been canceled by the hardware through detection of alink reset or receipt of a SETUP packet.";
+        } SENDING[29:29];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit indicates a pending transaction was canceled by the hardware.The bit is set when the rdy bit is cleared by hardware because of aSETUP packet being received or a link reset being detected.The bit remains set until cleared by being written with a 1.";
+        } PEND[30:30];
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x0;
+            desc = "This bit should be set to indicate the buffer is ready for sending.It will be cleared when the ACK is received indicating the host has accepted the data.This bit will also be cleared if an enabled SETUP transaction is received on the endpoint.This allows use of the IN channel for transfer of SETUP information.The original buffer must be resubmitted after the SETUP sequence is complete.A link reset also clears the bit.In either of the cases where the hardware cancels the transaction it will also set the pend bit.";
+        } RDY[31:31];
+    } CONFIGIN[12] @ 0x44;
+
+    reg {
+        desc = "OUT Endpoint isochronous setting";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be sent for an OUT transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_11[11:11];
+    } OUT_ISO[1] @ 0x74;
+
+    reg {
+        desc = "IN Endpoint isochronous setting";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_3[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_4[4:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_5[5:5];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_6[6:6];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_7[7:7];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_8[8:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_9[9:9];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_10[10:10];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "If this bit is set then the endpoint will be treated as an isochronous endpoint.No handshake packet will be expected for an IN transaction.Note that if a rxenable_setup is set for this endpoint's number, this bit will not take effect.Control endpoint configuration trumps isochronous endpoint configuration.";
+        } ISO_11[11:11];
+    } IN_ISO[1] @ 0x78;
+
+    external mem {
+        memwidth = 0x20;
+        mementries = 0x200;
+        sw = rw;
+    } BUFFER @ 0x800;
+
+};

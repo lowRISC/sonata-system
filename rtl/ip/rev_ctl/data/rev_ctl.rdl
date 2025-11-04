@@ -1,0 +1,77 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap rev_ctl {
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    reg {
+        desc = "Start address for the hardware revoker.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Start address.";
+        } ADDRESS[31:0];
+    } START_ADDR @ 0x0;
+
+    reg {
+        desc = "End address for the hardware revoker.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "End address.";
+        } ADDRESS[31:0];
+    } END_ADDR @ 0x4;
+
+    external reg {
+        desc = "Start the revocation engine.";
+        field {
+            sw = rw;
+            hw = rw;
+            reset = 0x55000000;
+            swmod = true;
+            desc = "Any value written here will start the engine, it always reads a constant value.";
+        } GO[31:0];
+    } GO @ 0x8;
+
+    reg {
+        desc = "Epoch to keep track of revocation cycles.";
+        field {
+            sw = r;
+            hw = rw;
+            reset = 0x0;
+            desc = "One bit indicating whether a sweep is ongoing. (0 means idle.)";
+        } RUNNING[0:0];
+        field {
+            sw = r;
+            hw = rw;
+            reset = 0x0;
+            desc = "Epoch counter that increases after each sweep.";
+        } EPOCH[31:1];
+    } EPOCH @ 0xC;
+
+    external reg {
+        desc = "Used to clear the interrupt and read it out if enabled.";
+        field {
+            sw = rw;
+            hw = rw;
+            swmod = true;
+            desc = "High when interrupt is raised and low if not.   Writing anything here will clear the interrupt.";
+        } STATUS[0:0];
+    } INTERRUPT_STATUS @ 0x10;
+
+    reg {
+        desc = "Used to clear the interrupt and read it out if enabled.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "High when interrupt is enabled and low if not.";
+        } ENABLE[0:0];
+    } INTERRUPT_ENABLE @ 0x14;
+
+};
