@@ -41,4 +41,4 @@ string(CONCAT CMAKE_C_FLAGS_INIT
 
 set(CMAKE_ASM_FLAGS_INIT "-mcpu=cheriot -mabi=cheriot -mxcheri-rvc -mrelax -fshort-wchar")
 
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-nodefaultlibs -fuse-ld=lld -T \"${LINKER_SCRIPT}\"")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-nodefaultlibs -nostartfiles -fuse-ld=lld -T \"${LINKER_SCRIPT}\"")
