@@ -3,6 +3,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Files: README.md
        *.lock
        *.md
+       *.md*
        data/*
        doc/*
        sw/cheri/sim_boot_stub/sim_boot_stub
