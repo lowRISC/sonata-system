@@ -86,7 +86,7 @@ This includes the entire design sources, available currently in Altium, with a K
 
 ## Schematic Link
 
-You can find a [direct link to the schematics](https://github.com/newaetech/sonata-pcb/blob/main/sonata-schematics-r08.pdf) for your reading pleasure.
+You can find a [direct link to the schematics](https://github.com/newaetech/sonata-pcb/blob/main/sonata-one/sonata-schematics-r09.pdf) for your reading pleasure.
 
 ## Default DIP switch settings
 
