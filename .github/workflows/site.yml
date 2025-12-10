@@ -29,12 +29,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: nixos
     steps:
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: |
-            substituters = https://nix-cache.lowrisc.org/public/ https://cache.nixos.org/
-            trusted-public-keys = nix-cache.lowrisc.org-public-1:O6JLD0yXzaJDPiQW1meVu32JIDViuaPtGDfjlOopU7o= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build Documentation
