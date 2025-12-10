@@ -126,6 +126,12 @@ jobs:
         project_id: lowrisc-cloud-compute
         workload_identity_provider: projects/281751345158/locations/global/workloadIdentityPools/github-actions/providers/github-actions
     - uses: google-github-actions/setup-gcloud@v2
+   
+    # This step is a workaround and should be removed when the container is fixed.
+    - name: Uninstall Nix
+      run: |
+        sudo rm -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf \
+        /nix ~root/.nix-channels ~root/.nix-defexpr ~root/.nix-profile ~root/.cache/nix
 
     - name: Install Nix
       uses: cachix/install-nix-action@v27
