@@ -225,10 +225,10 @@ def flatten_pins(
 def block_io_to_pin_map(
     blocks: list[BlockIoFlat], pins: list[PinFlat]
 ) -> BlockIoToPinsMap:
-    mapping: BlockIoToPinsMap = {block_io.uid: [] for block_io in blocks}
+    mapping: BlockIoToPinsMap = {}
     for pin in pins:
         for link in pin.block_io_links:
-            mapping[link].append(pin)
+            mapping.setdefault(link, []).append(pin)
     return mapping
 
 
@@ -242,16 +242,12 @@ def output_block_ios_iter(
         ):
             continue
 
-        possible_pins = block_io_to_pins[block_io.uid]
-
-        if len(possible_pins) == 0:
-            continue
-
-        yield OutputBlockIo(
-            block_io,
-            possible_pins,
-            max(len(possible_pins) + 1, 2),
-        )
+        if possible_pins := block_io_to_pins.get(block_io.uid):
+            yield OutputBlockIo(
+                block_io,
+                possible_pins,
+                max(len(possible_pins) + 1, 2),
+            )
 
 
 def output_pins_iter(
@@ -306,7 +302,7 @@ def combined_input_block_ios_iter(
 
 
 def block_port_definitions(block: Block) -> Iterator[str]:
-    instances_param = f"{block.name.upper()}_NUM"
+    instances_param = f"{block.muxed_instances}"
     for io in block.ios:
         name = f"{block.name}_{io.name}"
         width = "" if io.length is None else f"[{io.length - 1}:0] "
@@ -322,13 +318,30 @@ def block_port_definitions(block: Block) -> Iterator[str]:
                 yield f"input  {width}{name}_en_i[{instances_param}]"
 
 
+def set_muxed_instances(config: TopConfig, mapping: BlockIoToPinsMap) -> None:
+    """Compute how many instances of each block have pins connected to
+    pinmux.
+    """
+
+    muxed_blocks = {(b.block, b.instance) for b in mapping}
+    for block in config.blocks:
+        block.muxed_instances = len(
+            list(filter(lambda b: b[0] == block.name, muxed_blocks))
+        )
+        if block.muxed_instances > block.instances:
+            err_msg = f"""The number of muxed instances can't exceed the
+                       number of instances for block {block.name}"""
+            raise Exception(err_msg)
+
+
 def generate_top(config: TopConfig) -> None:
     """Generate a top from a top configuration."""
 
-    block_ios = list(flatten_block_ios(config.blocks))
-    pins = list(flatten_pins(config.pins, block_ios))
+    block_ios: list[BlockIoFlat] = list(flatten_block_ios(config.blocks))
+    pins: list[PinFlat] = list(flatten_pins(config.pins, block_ios))
+    block_io_to_pins: BlockIoToPinsMap = block_io_to_pin_map(block_ios, pins)
 
-    block_io_to_pins = block_io_to_pin_map(block_ios, pins)
+    set_muxed_instances(config, block_io_to_pins)
 
     template_variables = {
         "config": config,
