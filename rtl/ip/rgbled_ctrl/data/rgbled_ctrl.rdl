@@ -1,0 +1,90 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap rgbled_ctrl {
+    xbar = '{
+      parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+      parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+      parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+    };
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    external reg {
+        desc = "RGB for first LED";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Red";
+        } R[7:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Green";
+        } G[15:8];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Blue";
+        } B[23:16];
+    } RGBLED0 @ 0x0;
+
+    external reg {
+        desc = "RGB for second LED";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Red";
+        } R[7:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Green";
+        } G[15:8];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Blue";
+        } B[23:16];
+    } RGBLED1 @ 0x4;
+
+    external reg {
+        desc = "Control";
+        field {
+            sw = w;
+            hw = r;
+            swmod = true;
+            desc = "Write 1 to set RGB LEDs to specified colours";
+        } SETRGB[0:0];
+        field {
+            sw = w;
+            hw = r;
+            swmod = true;
+            desc = "Write 1 to turn off RGB LEDs. Write to Set to turn on again.";
+        } OFF[1:1];
+    } CTRL @ 0x8;
+
+    external reg {
+        desc = "Status";
+        field {
+            sw = r;
+            hw = w;
+            desc = "When set controller is idle and new colours can be set. When    clear writes to REGLED0/REGLED1/CTRL are ignored.";
+        } IDLE[0:0];
+    } STATUS @ 0xC;
+
+};

@@ -1,0 +1,323 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap spi #(
+    longint MaxPeripherals = 4
+){
+    // Ios pads.
+    signal {sigtype=SigType::PadInput;} cipo;
+    signal {sigtype=SigType::PadOutput;} copi;
+    signal {sigtype=SigType::PadOutput;} sclk;
+    signal {sigtype=SigType::PadOutput;} cs[4];
+
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    reg {
+        desc = "Interrupt State Register";
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Receive FIFO is full";
+        } RX_FULL[0:0];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Receive FIFO level is at or above watermark";
+        } RX_WATERMARK[1:1];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Transmit FIFO is empty";
+        } TX_EMPTY[2:2];
+        field {
+            sw = r;
+            hw = rw;
+            reset = false;
+            desc = "Transmit FIFO level is at or below watermark";
+        } TX_WATERMARK[3:3];
+        field {
+            sw = rw;
+            onwrite = woclr;
+            hw = rw;
+            reset = false;
+            desc = "On-going SPI operation has completed and the block is now idle";
+        } COMPLETE[4:4];
+    } INTR_STATE @ 0x0;
+
+    reg {
+        desc = "Interrupt Enable Register";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_full is set.";
+        } RX_FULL[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.rx_watermark is set.";
+        } RX_WATERMARK[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.tx_empty is set.";
+        } TX_EMPTY[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.tx_watermark is set.";
+        } TX_WATERMARK[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "Enable interrupt when !!INTR_STATE.complete is set.";
+        } COMPLETE[4:4];
+    } INTR_ENABLE @ 0x4;
+
+    external reg {
+        desc = "Interrupt Test Register";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_full to 1.";
+        } RX_FULL[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.rx_watermark to 1.";
+        } RX_WATERMARK[1:1];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.tx_empty to 1.";
+        } TX_EMPTY[2:2];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.tx_watermark to 1.";
+        } TX_WATERMARK[3:3];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to force !!INTR_STATE.complete to 1.";
+        } COMPLETE[4:4];
+    } INTR_TEST @ 0x8;
+
+    reg {
+        desc = "Configuration register. Controls how the SPI block transmits   and receives data. This register can only be modified   whilst the SPI block is idle. ";
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The length of a half period (i.e. positive edge to negative   edge) of the SPI clock, measured in system clock cycles   reduced by 1. At the standard Sonata 50 MHz system clock a   value of 0 gives a 25 MHz SPI clock, a value of 1 gives a   12.5 MHz SPI clock, a value of 2 gives a 8.33 MHz SPI clock   and so on.";
+        } HALF_CLK_PERIOD[15:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "State of the controller output line (COPI) when not transmitting.";
+        } COPI_IDLE[28:28];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x1;
+            desc = "When set the most significant bit (MSB) is the first bit   sent and received with each byte";
+        } MSB_FIRST[29:29];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The phase of the spi_clk signal. When CPHA is 0 data is   sampled on the leading edge and changes on the trailing   edge. The first data bit is immediately available before   the first leading edge of the clock when transmission   begins. When CPHA is 1 data is sampled on the trailing edge   and change on the leading edge.";
+        } CPHA[30:30];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            desc = "The polarity of the spi_clk signal. When CPOL is 0 clock is   low when idle and the leading edge is positive. When CPOL   is 1 clock is high when idle and the leading edge is   negative";
+        } CPOL[31:31];
+    } CFG @ 0xC;
+
+    reg {
+        desc = "Controls the operation of the SPI block. This register can   only be modified whilst the SPI block is idle.";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to clear the transmit FIFO";
+        } TX_CLEAR[0:0];
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Write 1 to clear the receive FIFO";
+        } RX_CLEAR[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "When set bytes from the transmit FIFO are sent. When clear   the state of the outgoing spi_copi is undefined whilst the   SPI clock is running.";
+        } TX_ENABLE[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "When set incoming bits are written to the receive FIFO.   When clear incoming bits are ignored.";
+        } RX_ENABLE[3:3];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "The watermark level for the transmit FIFO, depending on the   value the interrupt will trigger at different points:    * 0 - 1 or fewer items in the FIFO    * 1 - 2 or fewer items in the FIFO    * 2 - 4 or fewer items in the FIFO    * 3 - 8 or fewer items in the FIFO    * 4 - 16 or fewer items in the FIFO";
+        } TX_WATERMARK[7:4];
+        field {
+            sw = rw;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "The watermark level for the receive FIFO, depending on the   value the interrupt will trigger at different points:    * 0 - 1 or more items in the FIFO    * 1 - 2 or more items in the FIFO    * 2 - 4 or more items in the FIFO    * 3 - 8 or more items in the FIFO    * 4 - 16 or more items in the FIFO    * 5 - 32 or more items in the FIFO    * 6 - 56 or more items in the FIFO";
+        } RX_WATERMARK[11:8];
+        field {
+            sw = rw;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "When set the CIPO line is internally connected to the COPI line,   providing loopback functionality which may be useful in testing.   Note that the COPI line is unaffected and still carries data so   test software should normally leave the CS lines deasserted.   This bit shall be changed only when the SPI core is idle.";
+        } INT_LOOPBACK[30:30];
+        field {
+            sw = w;
+            hw = r;
+            reset = false;
+            swmod = true;
+            desc = "When a 1 is written to this field a reset of the controller logic   is performed.   This shall be used only to recover from error conditions.   The TX FIFO shall be cleared before resetting the controller logic;   then clear the RX FIFO after the controller reset.   The bit self-clears and always reads as zero.";
+        } SW_RESET[31:31];
+    } CONTROL @ 0x10;
+
+    external reg {
+        desc = "Status information about the SPI block";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of items in the transmit FIFO";
+        } TX_FIFO_LEVEL[7:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of items in the receive FIFO";
+        } RX_FIFO_LEVEL[15:8];
+        field {
+            sw = r;
+            hw = w;
+            desc = "When set the transmit FIFO is full and any data written to it   will be ignored.";
+        } TX_FIFO_FULL[16:16];
+        field {
+            sw = r;
+            hw = w;
+            desc = "When set the receive FIFO is empty and any data read from it   will be undefined.";
+        } RX_FIFO_EMPTY[17:17];
+        field {
+            sw = r;
+            hw = w;
+            desc = "When set the SPI block is idle and can accept a new start   command.";
+        } IDLE[18:18];
+    } STATUS @ 0x14;
+
+    reg {
+        desc = "When written begins an SPI operation. Writes are ignored when the   SPI block is active.";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Number of bytes to receive/transmit in the SPI operation";
+        } BYTE_COUNT[10:0];
+    } START @ 0x18;
+
+    external reg {
+        hwre = true;
+        desc = "Data from the receive FIFO. When read the data is popped from the   FIFO. If the FIFO is empty data read is undefined.";
+        field {
+            sw = r;
+            hw = rw;
+            desc = "Byte popped from the FIFO";
+        } DATA[7:0];
+    } RX_FIFO @ 0x1C;
+
+    reg {
+        desc = "Bytes written here are pushed to the transmit FIFO. If the FIFO   is full writes are ignored.";
+        field {
+            sw = w;
+            hw = r;
+            reset = 0x0;
+            swmod = true;
+            desc = "Byte to push to the FIFO";
+        } DATA[7:0];
+    } TX_FIFO @ 0x20;
+
+    external reg {
+        desc = "Returns information on the SPI controller.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Maximum number of items in the transmit FIFO.";
+        } TX_FIFO_DEPTH[7:0];
+        field {
+            sw = r;
+            hw = w;
+            desc = "Maximum number of items in the receive FIFO.";
+        } RX_FIFO_DEPTH[15:8];
+    } INFO @ 0x24;
+
+    reg {
+        desc = "Specifies which peripherals are selected for transmit/receive operations.   An operation may select multiple peripherals simultaneously but this functionality   shall be used only for transmit operations.   This register shall be changed only when the SPI controller is idle, not whilst   a transmit/receive operation may be in progress.";
+        field {
+            sw = rw;
+            hw = r;
+            reset = true;
+            desc = "If this bit is clear the peripheral is selected for transmit/receive operations.";
+        } CS_0[0:0];
+        field {
+            sw = rw;
+            hw = r;
+            reset = true;
+            desc = "If this bit is clear the peripheral is selected for transmit/receive operations.";
+        } CS_1[1:1];
+        field {
+            sw = rw;
+            hw = r;
+            reset = true;
+            desc = "If this bit is clear the peripheral is selected for transmit/receive operations.";
+        } CS_2[2:2];
+        field {
+            sw = rw;
+            hw = r;
+            reset = true;
+            desc = "If this bit is clear the peripheral is selected for transmit/receive operations.";
+        } CS_3[3:3];
+    } CS[1] @ 0x28;
+
+};

@@ -166,9 +166,9 @@ Besides the output pin selectors, there are also selectors for which pin should 
 | 0x83d | `gpio_4_ios_3` | 0, `pmodc_4` |
 | 0x83e | `gpio_4_ios_4` | 0, `pmodc_5` |
 | 0x83f | `gpio_4_ios_5` | 0, `pmodc_6` |
-| 0x840 | `uart_0_rx` | 1, `ser0_rx` |
-| 0x841 | `uart_1_rx` | 1, `ser1_rx`, `rph_rxd0`, `ah_tmpio0`, `mb8`, `pmod0_3` |
-| 0x842 | `uart_2_rx` | 1, `ser1_rx`, `rs232_rx`, `rs485_rx`, `pmod1_3` |
+| 0x840 | `uart_0_rx` | 0, `ser0_rx` |
+| 0x841 | `uart_1_rx` | 0, `ser1_rx`, `rph_rxd0`, `ah_tmpio0`, `mb8`, `pmod0_3` |
+| 0x842 | `uart_2_rx` | 0, `ser1_rx`, `rs232_rx`, `rs485_rx`, `pmod1_3` |
 | 0x843 | `spi_0_cipo` | 0, `appspi_d1`, `microsd_dat0` |
 | 0x844 | `spi_1_cipo` | 0, `rph_g9`, `ah_tmpio12`, `pmod0_3` |
 | 0x845 | `spi_2_cipo` | 0, `rph_g19`, `mb3`, `pmod1_3` |

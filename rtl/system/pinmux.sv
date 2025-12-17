@@ -12,36 +12,50 @@ module pinmux
   input logic clk_i,
   input logic rst_ni,
 
+
+
+
   // GPIO IOs
-  output [31:0] gpio_ios_o   [GPIO_NUM],
-  input  [31:0] gpio_ios_i   [GPIO_NUM],
-  input  [31:0] gpio_ios_en_i[GPIO_NUM],
+  output [31:0] gpio_ios_o   [5],
+  input  [31:0] gpio_ios_i   [5],
+  input  [31:0] gpio_ios_en_i[5],
 
   // PWM IOs
-  input  [6:0] pwm_out_i   [PWM_NUM],
-  input  [6:0] pwm_out_en_i[PWM_NUM],
+  input  [6:0] pwm_out_i   [1],
+  input  [6:0] pwm_out_en_i[1],
+
+
+
+
+
+
 
   // UART IOs
-  output uart_rx_o[UART_NUM],
-  input  uart_tx_i   [UART_NUM],
-  input  uart_tx_en_i[UART_NUM],
+  output uart_rx_o[3],
+  input  uart_tx_i   [3],
+  input  uart_tx_en_i[3],
 
   // I2C IOs
-  output i2c_scl_o   [I2C_NUM],
-  input  i2c_scl_i   [I2C_NUM],
-  input  i2c_scl_en_i[I2C_NUM],
-  output i2c_sda_o   [I2C_NUM],
-  input  i2c_sda_i   [I2C_NUM],
-  input  i2c_sda_en_i[I2C_NUM],
+  output i2c_scl_o   [2],
+  input  i2c_scl_i   [2],
+  input  i2c_scl_en_i[2],
+  output i2c_sda_o   [2],
+  input  i2c_sda_i   [2],
+  input  i2c_sda_en_i[2],
+
+
 
   // SPI IOs
-  output spi_cipo_o[SPI_NUM],
-  input  spi_copi_i   [SPI_NUM],
-  input  spi_copi_en_i[SPI_NUM],
-  input  spi_sclk_i   [SPI_NUM],
-  input  spi_sclk_en_i[SPI_NUM],
-  input  [3:0] spi_cs_i   [SPI_NUM],
-  input  [3:0] spi_cs_en_i[SPI_NUM],
+  output spi_cipo_o[3],
+  input  spi_copi_i   [3],
+  input  spi_copi_en_i[3],
+  input  spi_sclk_i   [3],
+  input  spi_sclk_en_i[3],
+  input  [3:0] spi_cs_i   [3],
+  input  [3:0] spi_cs_en_i[3],
+
+
+
 
   // Pin Signals
   input  sonata_in_pins_t  in_from_pins_i,
@@ -6491,7 +6505,7 @@ module pinmux
     .clk_i,
     .rst_ni,
     .in_i({
-      1'b1,
+      1'b0,
       in_from_pins_i[IN_PIN_SER0_RX]
     }),
     .sel_i(uart_rx_0_sel),
@@ -6525,7 +6539,7 @@ module pinmux
     .clk_i,
     .rst_ni,
     .in_i({
-      1'b1,
+      1'b0,
       in_from_pins_i[IN_PIN_SER1_RX],
       inout_from_pins_i[INOUT_PIN_RPH_RXD0],
       inout_from_pins_i[INOUT_PIN_AH_TMPIO0],
@@ -6563,7 +6577,7 @@ module pinmux
     .clk_i,
     .rst_ni,
     .in_i({
-      1'b1,
+      1'b0,
       in_from_pins_i[IN_PIN_SER1_RX],
       in_from_pins_i[IN_PIN_RS232_RX],
       in_from_pins_i[IN_PIN_RS485_RX],
