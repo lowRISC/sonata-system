@@ -863,11 +863,47 @@ module sonata_system
   logic i2c_scl_h2d   [I2C_NUM];
   logic i2c_scl_en_h2d[I2C_NUM];
   logic i2c_scl_d2h   [I2C_NUM];
+  logic i2c_scl_d2h_f [I2C_NUM];
   logic i2c_sda_h2d   [I2C_NUM];
   logic i2c_sda_en_h2d[I2C_NUM];
   logic i2c_sda_d2h   [I2C_NUM];
+  logic i2c_sda_d2h_f [I2C_NUM];
+  // Calculate the number whole clock cycles that fit in a 50 ns period.
+  // Round downwards (rather then to the nearest) to avoid violating the 50 ns
+  // maximum pulse width specification for the filter.
+  localparam int unsigned I2CFilterCycles = int'($floor(50e-9 * SysClkFreq));
   for (genvar i = 0; i < I2C_NUM; i++) begin : gen_i2c_hosts
-    i2c u_i2c (
+    // SCL & SDA input glitch filters for I^2C Fast-mode.
+    // Enable asynchronous input synchronisers in filters to avoid
+    // metastability issues.
+    prim_filter #(
+      .AsyncOn ( 1 ),
+      .Cycles  ( I2CFilterCycles )
+    ) u_i2c_filter_scl (
+      .clk_i    (clk_sys_i),
+      .rst_ni   (rst_sys_ni),
+      .enable_i (1'b1),
+      .filter_i (i2c_scl_d2h[i]),
+      .filter_o (i2c_scl_d2h_f[i])
+    );
+    prim_filter #(
+      .AsyncOn ( 1 ),
+      .Cycles  ( I2CFilterCycles )
+    ) u_i2c_filter_sda (
+      .clk_i    (clk_sys_i),
+      .rst_ni   (rst_sys_ni),
+      .enable_i (1'b1),
+      .filter_i (i2c_sda_d2h[i]),
+      .filter_o (i2c_sda_d2h_f[i])
+    );
+
+    // I^2C host.
+    // Async input synchronisation done in filters, so removed from i2c_core
+    // with a vendoring patch file.
+    // Need to account for extra delay introduced by filter and external sync.
+    i2c #(
+      .InputDelayCycles ( 2 + I2CFilterCycles )
+    ) u_i2c (
       .clk_i                   (clk_sys_i),
       .rst_ni                  (rst_sys_ni),
       .ram_cfg_i               (10'b0),
@@ -877,10 +913,10 @@ module sonata_system
       .tl_o                    (tl_i2c_d2h[i]),
 
       // Generic IO.
-      .cio_scl_i               (i2c_scl_d2h   [i]),
+      .cio_scl_i               (i2c_scl_d2h_f [i]),
       .cio_scl_o               (i2c_scl_h2d   [i]),
       .cio_scl_en_o            (i2c_scl_en_h2d[i]),
-      .cio_sda_i               (i2c_sda_d2h   [i]),
+      .cio_sda_i               (i2c_sda_d2h_f [i]),
       .cio_sda_o               (i2c_sda_h2d   [i]),
       .cio_sda_en_o            (i2c_sda_en_h2d[i]),
 
