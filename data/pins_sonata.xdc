@@ -239,6 +239,12 @@ set_property PULLTYPE PULLUP [get_ports rph_g1]
 set_property PULLTYPE PULLUP [get_ports rph_g0]
 
 ## Arduino Shield
+## ICSP - hijacked for Sonata Trace port.
+set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio14]
+set_property -dict { PACKAGE_PIN P14 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio15]
+set_property -dict { PACKAGE_PIN M13 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio17]
+## GPIO
+set_property -dict { PACKAGE_PIN N17 IOSTANDARD LVCMOS33 } [get_ports ah_tmpio16]
 ## SPI SCLK
 set_property -dict { PACKAGE_PIN R17 IOSTANDARD LVCMOS33 IO_BUFFER_TYPE NONE } [get_ports ah_tmpio13]
 ## SPI CIPO
