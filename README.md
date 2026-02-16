@@ -1,12 +1,12 @@
 # Sonata system
 
 Sonata is a system for evaluating the usage of [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
-The system contain a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
+The system contains a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
+It is designed for use on FPGA and specifically targets the [Sonata FPGA board](https://github.com/newaetech/sonata-pcb), but as the entire design is open-source (from PCB to software), it can be run on any similar system.
 
-It is designed for use on FPGA and specifically targets the [Sonata FPGA board](https://github.com/newaetech/sonata-pcb), but as the entire design (from example PCB to software) is open-source it can be run on any similar system.
-
-This project is designed to look like a normal microcontroller in terms of usability, including SDK, examples, and normal capabilities such as debuggers. But underneath that the [CHERIoT](https://www.microsoft.com/en-us/research/publication/cheriot-rethinking-security-for-low-cost-embedded-systems/) capabilities provides a high level of "default security" that simplifies designing embedded systems in a secure manner. You can see the [complete documentation](https://lowrisc.org/sonata-system/) for the project, but note it is under active development so substantial improvements are to be made.
-
+This project is designed to look like a normal microcontroller in terms of usability, including SDK, examples, and normal capabilities such as debuggers.
+But underneath that the [CHERIoT](https://www.microsoft.com/en-us/research/publication/cheriot-rethinking-security-for-low-cost-embedded-systems/) capabilities provides a high level of "default security" that simplifies designing embedded systems in a secure manner.
+You can see the [complete documentation](https://lowrisc.org/sonata-system/) for the project.
 Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
 
 ![The sonata development system](doc/img/sonata-development-system.svg)
