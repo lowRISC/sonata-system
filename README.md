@@ -1,12 +1,12 @@
 # Sonata system
 
-Sonata is a system for evaluating the usage of [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
+Sonata is a system for evaluating the usage of the [CHERIoT Ibex core](https://github.com/microsoft/cheriot-ibex) as a microcontroller for embedded, IoT and Operational Technology applications.
 The system contains a number of peripherals (I2C, SPI, GPIO, USB, and UART) and the CHERIoT Ibex core itself.
 It is designed for use on FPGA and specifically targets the [Sonata FPGA board](https://github.com/newaetech/sonata-pcb), but as the entire design is open-source (from PCB to software), it can be run on any similar system.
 
 This project is designed to look like a normal microcontroller in terms of usability, including SDK, examples, and normal capabilities such as debuggers.
 But underneath that the [CHERIoT](https://www.microsoft.com/en-us/research/publication/cheriot-rethinking-security-for-low-cost-embedded-systems/) capabilities provides a high level of "default security" that simplifies designing embedded systems in a secure manner.
-You can see the [complete documentation](https://lowrisc.org/sonata-system/) for the project.
+You can see the [complete documentation](https://lowrisc.github.io/sonata-system/) for the project.
 Sonata is part of the [Sunburst Project](https://www.sunburst-project.org) funded by [UKRI](https://www.ukri.org/) / [DSbD](https://www.dsbd.tech/) under grant number 107540.
 
 ![The sonata development system](doc/img/sonata-development-system.svg)
@@ -43,7 +43,7 @@ You can also work with a simulated environment, and there is a nice guide on thi
 
 ## Documentation introduction
 
-This documentation is built using [mdBook](https://rust-lang.github.io/mdBook/). If you are reading this file in GitHub, you should instead see the pre-built documentation on the [lowRISC Website](https://lowrisc.org/sonata-system/) which includes the full documentation.
+This documentation is built using [mdBook](https://rust-lang.github.io/mdBook/). If you are reading this file in GitHub, you should instead see the pre-built documentation on the [lowRISC Website](https://lowrisc.github.io/sonata-system/) which includes the full documentation.
 
 If you'd like to build a copy of the documentation locally, see the [Building Documentation](doc/dev/building-doc.md) page.
 
