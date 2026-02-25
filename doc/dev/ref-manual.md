@@ -59,7 +59,7 @@ For all registers in this section, the functionality is mapped onto the least si
 | 0x8030_0000  |   1 MiB | [SPI host][]         |
 | 0x8040_0000  |   1 MiB | [USB device][]       |
 | 0x8800_0000  |  64 MiB | [PLIC][]             |
-| 0xB000_0000  |   4 KiB | Reserved for debug module |
+| 0xB000_0000  |   4 KiB | [Debug module][]     |
 
 [GPIO]: ../ip/gpio.md
 [PWM]: ../ip/pwm.md
