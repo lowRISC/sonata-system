@@ -32,6 +32,7 @@ filesets:
       - lowrisc:dv_dpi_sv:uartdpi:0.1
       - lowrisc:dv_dpi_c:usbdpi:0.1
       - lowrisc:dv_dpi_sv:usbdpi:0.1
+      - lowrisc:sonata:spidevicedpi
     files:
       - rtl/system/rs485_ctrl.sv: { file_type: systemVerilogSource }
       - dv/dpi/i2cdpi/i2c_lsm9ds1.cc: { file_type: cppSource }
@@ -45,15 +46,6 @@ filesets:
       - dv/dpi/i2cdpi/i2cdpi.sv: { file_type: systemVerilogSource }
       - dv/dpi/i2cdpi/i2cdpi.cc: { file_type: cppSource }
       - dv/dpi/i2cdpi/i2cdpi.hh: { file_type: cppSource, is_include_file: true }
-      - dv/dpi/spidpi/spidpi.sv: { file_type: systemVerilogSource }
-      - dv/dpi/spidpi/spidpi.cc: { file_type: cppSource }
-      - dv/dpi/spidpi/spidpi.hh: { file_type: cppSource, is_include_file: true }
-      - dv/dpi/spidpi/spi_flash.cc: { file_type: cppSource }
-      - dv/dpi/spidpi/spi_flash.hh: { file_type: cppSource, is_include_file: true }
-      - dv/dpi/spidpi/spi_lcd.cc: { file_type: cppSource }
-      - dv/dpi/spidpi/spi_lcd.hh: { file_type: cppSource, is_include_file: true }
-      - dv/dpi/spidpi/spi_microsd.cc: { file_type: cppSource }
-      - dv/dpi/spidpi/spi_microsd.hh: { file_type: cppSource, is_include_file: true }
       - dv/models/hyperram/rtl/hyperram_W956.sv: { file_type: systemVerilogSource }
       - dv/models/fpga/rtl/DNA_PORT.v: { file_type: systemVerilogSource }
       - dv/models/fpga/rtl/IOBUF.v: { file_type: systemVerilogSource }

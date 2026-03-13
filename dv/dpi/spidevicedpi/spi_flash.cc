@@ -22,7 +22,7 @@ enum {
 };
 
 void spi_flash::reset() {
-  spidpi::reset();
+  spidevicedpi::reset();
   bProgramming = false;
   bReading = false;
   bErasing = false;

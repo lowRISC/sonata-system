@@ -10,7 +10,7 @@
 #include "spi_lcd.hh"
 #include "spi_microsd.hh"
 
-void spidpi::reset() {
+void spidevicedpi::reset() {
   // Write data to device (COPI).
   inByte = 0u;
   inBits = 0u;
@@ -23,7 +23,7 @@ void spidpi::reset() {
 // Sampling transition occurred on the SCK line.
 // - the function is supplied with the CS, the new COPI data for a write operation as well as the
 //   Out-Of-Band input signals.
-void spidpi::sampleEdge(uint32_t cs, uint32_t copi, uint32_t oobIn) {
+void spidevicedpi::sampleEdge(uint32_t cs, uint32_t copi, uint32_t oobIn) {
   // Suppress traffic if CS is high because the current SPI model ignores CS.
   if ((cs & 1u)) {
     return;
@@ -41,7 +41,7 @@ void spidpi::sampleEdge(uint32_t cs, uint32_t copi, uint32_t oobIn) {
 // - the function is supplied with the CS, and the Out-Of-Band input signals.
 // - the result sets the Out-of-Band output signals (upper bits) and the CIPO data lines (LSBs) if
 //   the device is producing read data.
-uint32_t spidpi::launchEdge(uint32_t cs, uint32_t oobIn) {
+uint32_t spidevicedpi::launchEdge(uint32_t cs, uint32_t oobIn) {
   unsigned cipo = 1;
   // Suppress traffic if CS is high because the current SPI model ignores CS.
   if (cs & 1u) {
@@ -61,13 +61,13 @@ uint32_t spidpi::launchEdge(uint32_t cs, uint32_t oobIn) {
 }
 
 // Transition on one or more CS lines.
-void spidpi::csEdge(uint32_t cs, uint32_t oobIn) {
+void spidevicedpi::csEdge(uint32_t cs, uint32_t oobIn) {
   // Inform the appropriate device(s) of the change the CS line state.
   csChanged(!(cs & 1u), oobIn);
 }
 
 // Logging utility function.
-void spidpi::logText(const char *fmt, ...) {
+void spidevicedpi::logText(const char *fmt, ...) {
   if (logging) {
     va_list va;
     va_start(va, fmt);
@@ -79,12 +79,12 @@ void spidpi::logText(const char *fmt, ...) {
 // Interface is using vanilla C, so these functions collect the object pointer.
 extern "C" {
 // SPI DPI initialisation.
-void *spidpi_create(const char *id,      // Bus identification.
+void *spidevicedpi_create(const char *id,      // Bus identification.
                     unsigned ndevices,   // Number of devices on bus (=number of selects).
                     unsigned dataW,      // Number of data lines.
                     unsigned oobInW,     // Width of Out-Of-Band input data (bits).
                     unsigned oobOutW) {  // Width of Out-Of-Band output data (bits).
-  spidpi *ctx = nullptr;
+  spidevicedpi *ctx = nullptr;
   // TODO: at present we attach only a single device to each SPI bus.
   assert(ndevices == 1u);
   // Attach the appropriate devices to this bus.
@@ -97,7 +97,7 @@ void *spidpi_create(const char *id,      // Bus identification.
   } else if (!strcmp(id, "pmod_sf3")) {
     ctx = new spi_flash(dataW, oobInW, oobOutW, 0x20ba19);
   } else {
-    ctx = new spidpi(dataW, oobInW, oobOutW, true);
+    ctx = new spidevicedpi(dataW, oobInW, oobOutW, true);
     ctx->logText("Warning: SPI bus '%s' not recognised", id);
   }
   assert(ctx);
@@ -105,22 +105,22 @@ void *spidpi_create(const char *id,      // Bus identification.
 }
 
 // SPI DPI finalisation.
-void spidpi_destroy(void *ctx_v) {
-  spidpi *ctx = (spidpi*)ctx_v;
+void spidevicedpi_destroy(void *ctx_v) {
+  spidevicedpi *ctx = (spidevicedpi*)ctx_v;
   assert(ctx);
   delete ctx;
 }
 
 // Sampling transition on the SCK line.
-void spidpi_sampleEdge(void *ctx_v, uint32_t cs, uint32_t copi, uint32_t oobIn) {
-  spidpi *ctx = (spidpi*)ctx_v;
+void spidevicedpi_sampleEdge(void *ctx_v, uint32_t cs, uint32_t copi, uint32_t oobIn) {
+  spidevicedpi *ctx = (spidevicedpi*)ctx_v;
   assert(ctx);
   ctx->sampleEdge(cs, copi, oobIn);
 }
 
 // Launch transition on the SCK line.
-uint32_t spidpi_launchEdge(void *ctx_v, uint32_t cs, uint32_t oobIn) {
-  spidpi *ctx = (spidpi*)ctx_v;
+uint32_t spidevicedpi_launchEdge(void *ctx_v, uint32_t cs, uint32_t oobIn) {
+  spidevicedpi *ctx = (spidevicedpi*)ctx_v;
   assert(ctx);
   return ctx->launchEdge(cs, oobIn);
 }
@@ -128,8 +128,8 @@ uint32_t spidpi_launchEdge(void *ctx_v, uint32_t cs, uint32_t oobIn) {
 // Note: This interface is presently inadequate for modelling some devices because they will need
 // to know when the CS signal becomes deasserted, and there will not necessarily be a clock
 // assertion whilst CS is deasserted.
-void spidpi_csEdge(void *ctx_v, uint32_t cs, uint32_t oobIn) {
-  spidpi *ctx = (spidpi*)ctx_v;
+void spidevicedpi_csEdge(void *ctx_v, uint32_t cs, uint32_t oobIn) {
+  spidevicedpi *ctx = (spidevicedpi*)ctx_v;
   assert(ctx);
   return ctx->csEdge(cs, oobIn);
 }

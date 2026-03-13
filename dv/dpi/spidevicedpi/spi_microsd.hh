@@ -4,17 +4,17 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include "spidpi.hh"
+#include "spidevicedpi.hh"
 
 // -------------------------- SPI microSD model -------------------------------
-class spi_microsd : public spidpi {
+class spi_microsd : public spidevicedpi {
 public:
   spi_microsd(unsigned dataW,      // Number of data lines.
               unsigned oobInW,     // Width of Out-Of-Band input data (bits).
               unsigned oobOutW,    // Width of Out-Of-Band output data (bits).
               const char *sdFile,  // Filename of the SD card image.
               bool log = false) :  // Enable diagnostic logging?
-              spidpi(dataW, oobInW, oobOutW, log) {
+              spidevicedpi(dataW, oobInW, oobOutW, log) {
       assert(sdFile);
       logText("microSD model attempting to open image '%s'\n", sdFile);
       sd = fopen(sdFile, "r+b");
