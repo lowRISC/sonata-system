@@ -562,13 +562,13 @@ module top_verilator #(
   );
 
   // SPI connection to flash.
-  spidpi #(
+  spidevicedpi #(
     .ID       ("flash"),
     .NDevices (1),
     .DataW    (1),
     .OOB_InW  (2),
     .OOB_OutW (1)
-  ) u_spidpi_flash (
+  ) u_spidevicedpi_flash (
     .rst_ni   (rst_ni),
 
     .sck      (appspi_clk),
@@ -581,13 +581,13 @@ module top_verilator #(
   );
 
   // SPI connection to LCD.
-  spidpi #(
+  spidevicedpi #(
     .ID       ("lcd"),
     .NDevices (1),
     .DataW    (1),
     .OOB_InW  (3),
     .OOB_OutW (1)
-  ) u_spidpi_lcd (
+  ) u_spidevicedpi_lcd (
     .rst_ni   (rst_ni),
 
     .sck      (lcd_clk),
@@ -600,13 +600,13 @@ module top_verilator #(
   );
 
   // SPI connection to microSD card.
-  spidpi #(
+  spidevicedpi #(
     .ID       ("microsd"),
     .NDevices (1),
     .DataW    (1),
     .OOB_InW  (1),
     .OOB_OutW (1)
-  ) u_spidpi_microsd (
+  ) u_spidevicedpi_microsd (
     .rst_ni   (rst_ni),
 
     .sck      (microsd_clk),
@@ -619,13 +619,13 @@ module top_verilator #(
   );
 
   // SPI connection to PMOD SF3 flash via PMOD1 pins
-  spidpi #(
+  spidevicedpi #(
     .ID       ("pmod_sf3"),
     .NDevices (1),
     .DataW    (1),
     .OOB_InW  (2),
     .OOB_OutW (1)
-  ) u_spidpi_pmod_sf3 (
+  ) u_spidevicedpi_pmod_sf3 (
     .rst_ni   (rst_ni),
 
     .sck      (sck_pmod1_out),

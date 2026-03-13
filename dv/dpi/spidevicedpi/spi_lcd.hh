@@ -6,15 +6,15 @@
 
 #include <string>
 
-#include "spidpi.hh"
+#include "spidevicedpi.hh"
 
 // -------------------- ST7735 LCD model --------------------
-class spi_lcd : public spidpi {
+class spi_lcd : public spidevicedpi {
 public:
   spi_lcd(unsigned dataW,      // Number of data lines.
           unsigned oobInW,     // Width of Out-Of-Band input data (bits).
           unsigned oobOutW) :  // Width of Out-Of-Band output data (bits).
-          spidpi(dataW, oobInW, oobOutW) {
+          spidevicedpi(dataW, oobInW, oobOutW) {
     reset();
   }
 

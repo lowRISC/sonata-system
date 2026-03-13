@@ -4,16 +4,16 @@
 
 #include <string.h>
 
-#include "spidpi.hh"
+#include "spidevicedpi.hh"
 
 // ----------------------- SPI Flash model ---------------------
-class spi_flash : public spidpi {
+class spi_flash : public spidevicedpi {
 public:
   spi_flash(unsigned dataW,      // Number of data lines.
             unsigned oobInW,     // Width of Out-Of-Band input data (bits).
             unsigned oobOutW,    // Width of Out-Of-Band output data (bits).
             uint32_t jedec_id) : // The JEDEC ID of the flash device.
-            spidpi(dataW, oobInW, oobOutW), jedec_id(jedec_id) {
+            spidevicedpi(dataW, oobInW, oobOutW), jedec_id(jedec_id) {
       reset();
    }
 
