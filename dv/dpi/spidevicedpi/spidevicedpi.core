@@ -1,0 +1,28 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:sonata:spidevicedpi"
+description: "SPI device DPI model"
+
+filesets:
+  files_rtl:
+    files:
+      - spidevicedpi.sv: { file_type: systemVerilogSource }
+
+  files_c:
+    files:
+      - spidevicedpi.cc: { file_type: cppSource }
+      - spidevicedpi.hh: { file_type: cppSource, is_include_file: true }
+      - spi_flash.cc: { file_type: cppSource }
+      - spi_flash.hh: { file_type: cppSource, is_include_file: true }
+      - spi_lcd.cc: { file_type: cppSource }
+      - spi_lcd.hh: { file_type: cppSource, is_include_file: true }
+      - spi_microsd.cc: { file_type: cppSource }
+      - spi_microsd.hh: { file_type: cppSource, is_include_file: true }
+
+targets:
+  default:
+    filesets:
+      - files_rtl
+      - files_c
