@@ -45,7 +45,7 @@ enum {
 static const bool kMustHaveSD = false;
 
 void spi_microsd::reset() {
-  spidpi::reset();
+  spidevicedpi::reset();
   cmdBytes = 0u;
   responding = false;
   reading = false;

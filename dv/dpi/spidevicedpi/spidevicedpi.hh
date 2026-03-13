@@ -2,28 +2,28 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef __DV_DPI_SPIDPI_H_
-#define __DV_DPI_SPIDPI_H_
+#ifndef __DV_DPI_SPIDEVICEDPI_H_
+#define __DV_DPI_SPIDEVICEDPI_H_
 #include <stdint.h>
 
 // SPI DPI model - this model is supplied with all of the signals and information required to
 // support multiple devices on a single SPI bus, but presently the Sonata system employs only a
-// single device per bus. Therefore, at present, the SPI device models derive from `spidpi`
+// single device per bus. Therefore, at present, the SPI device models derive from `spidevicedpi`
 // directly.
 //
 // If multiple devices are required to share a single bus then a `spi_device` base class may be
-// introduced and an instance of `spidpi` will handling the mapping from `cs` line to `spi_device`
+// introduced and an instance of `spidevicedpi` will handling the mapping from `cs` line to `spi_device`
 // object.
-class spidpi {
+class spidevicedpi {
 public:
-  spidpi(unsigned dataw,    // Number of data lines.
+  spidevicedpi(unsigned dataw,    // Number of data lines.
          unsigned oobInw,   // Width of Out-Of-Band input data (bits).
          unsigned oobOutw,  // Width of Out-Of-Band output data (bits).
          bool log = false) {
     logging = log;
     reset();
   }
-  virtual ~spidpi() { }
+  virtual ~spidevicedpi() { }
 
   // Sampling transition occurred on the SCK line.
   void sampleEdge(uint32_t cs, uint32_t copi, uint32_t oobIn);
@@ -71,4 +71,4 @@ private:
   // Most recent Out-Of-Band output data.
   uint32_t oobOut;
 };
-#endif  // __DV_DPI_SPIDPI_H_
+#endif  // __DV_DPI_SPIDEVICEDPI_H_
