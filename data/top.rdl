@@ -1,0 +1,79 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+`include "udp.rdl"
+`include "sonata_udp.rdl"
+`include "../rtl/ip/system_info/data/system_info.rdl"
+`include "../rtl/ip/spi/data/spi.rdl"
+`include "../rtl/ip/rgbled_ctrl/data/rgbled_ctrl.rdl"
+`include "../rtl/ip/pwm/data/pwm.rdl"
+`include "../rtl/ip/gpio/data/gpio.rdl"
+`include "../rtl/ip/usbdev/data/usbdev.rdl"
+`include "../rtl/ip/i2c/data/i2c.rdl"
+`include "../rtl/ip/uart/data/uart.rdl"
+`include "../rtl/ip/xadc/data/xadc.rdl"
+`include "../rtl/ip/rev_ctl/data/rev_ctl.rdl"
+`include "../rtl/system/data/rv_plic.rdl"
+`include "../rtl/system/data/pinmux.rdl"
+`include "../rtl/system/data/rv_timer.rdl"
+
+addrmap top_sonata {
+  external mem sram {
+    mementries = 0x20000; memwidth=8;
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+  } SRAM @ 0x00100000;
+
+  external mem hyperram {
+    mementries = 0x100000; memwidth=8;
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+  } HYPERRAM @ 0x40000000;
+
+  external mem rev_tag {
+    mementries = 0x800; memwidth=8;
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+  } REV_TAG @ 0x30000000;
+
+  gpio GPIO[6] @ 0x80000000 += 0x40;
+
+  pwm PWM[1] @ 0x80001000 += 0x1000;
+
+  pinmux PINMUX @ 0x80005000;
+
+  rgbled_ctrl RGBLED_CTRL @ 0x80009000;
+
+  rev_ctl HW_REV @ 0x8000A000;
+
+  xadc XADC @ 0x8000B000;
+
+  system_info SYSTEM_INFO @ 0x8000C000;
+
+  rv_timer TIMER @ 0x80040000;
+
+  uart uart[3] @ 0x80100000 += 0x1000;
+
+  i2c I2C[2] @ 0x80200000 += 0x1000;
+
+  spi SPI_LCD @ 0x80300000;
+
+  spi SPI_ETHMAC @ 0x80301000;
+
+  spi SPI[3]  @ 0x80302000 += 0x1000;
+
+  usbdev USBDEV @ 0x80400000;
+
+  // This block is overaligned to 0x0800_0000 bytes since OpenTitan RV_PLIC block expects it.
+  rv_plic RV_PLIC @ 0x88000000;
+
+  external mem dgb_dev { 
+    mementries = 0x1000; memwidth=8;
+    xbar = '{ parameter'{ type_: "bool", name: "pipeline", value:  "true" }};
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+  } DBG_DEV @ 0xB0000000;
+};
+  

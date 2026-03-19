@@ -1,0 +1,83 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap system_info {
+    clk_input = '{ "clk_sys_i" };
+    rst_input = '{ "rst_sys_ni" };
+
+    external reg {
+        desc = "This contains the git hash of the Sonata System repository when this bitstream was generated.   This is useful to determine the configuration of the RTL.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "First 32-bits of the git SHA hash.";
+        } HASH[31:0];
+    } RTL_COMMIT_HASH_0 @ 0x0;
+
+    external reg {
+        desc = "Extension of the RTL_COMMIT_HASH_0 register.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Second 32-bits of the git SHA hash.";
+        } HASH[31:0];
+    } RTL_COMMIT_HASH_1 @ 0x4;
+
+    external reg {
+        desc = "This contains whether the repository was dirty when the bitstream was generated.";
+        field {
+            sw = r;
+            hw = w;
+            reset = 0x1;
+            desc = "One if the git repository was dirty when generating the bitstream.   Zero if the git repository was clean.   This should be used in combination with the RTL_COMMIT_HASH register.";
+        } DIRTY[0:0];
+    } RTL_COMMIT_DIRTY @ 0x8;
+
+    external reg {
+        desc = "Contains the system frequency.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "The frequency of the system clock in Hz.";
+        } FREQUENCY[31:0];
+    } SYSTEM_FREQUENCY @ 0xC;
+
+    external reg {
+        desc = "Contains information about the GPIO blocks in Sonata.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of GPIO block instances.";
+        } INSTANCES[7:0];
+    } GPIO_INFO @ 0x10;
+
+    external reg {
+        desc = "Contains information about the UART blocks in Sonata.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of UART block instances.";
+        } INSTANCES[7:0];
+    } UART_INFO @ 0x14;
+
+    external reg {
+        desc = "Contains information about the I2C blocks in Sonata.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of I2C block instances.";
+        } INSTANCES[7:0];
+    } I2C_INFO @ 0x18;
+
+    external reg {
+        desc = "Contains information about the SPI blocks in Sonata.";
+        field {
+            sw = r;
+            hw = w;
+            desc = "Number of SPI block instances.";
+        } INSTANCES[7:0];
+    } SPI_INFO @ 0x1C;
+
+};

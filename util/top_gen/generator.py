@@ -43,7 +43,7 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def name(self) -> str:
         uid = self.uid
-        suffix = f"_{uid.io_index}" if uid.io_index is not None else ""
+        suffix = "" if uid.io_index in [None] else f"_{uid.io_index}"
         return f"{uid.block}_{uid.io}_{uid.instance}{suffix}"
 
     @property
@@ -55,7 +55,7 @@ class BlockIoFlat(BaseModel, frozen=True):
     @property
     def doc_name(self) -> str:
         uid = self.uid
-        suffix = f"_{uid.io_index}" if uid.io_index is not None else ""
+        suffix = "" if uid.io_index in [None] else f"_{uid.io_index}"
         if self.only_instance:
             return f"{uid.block}_{uid.io}{suffix}"
         else:
@@ -78,14 +78,14 @@ class PinFlat:
 
     @property
     def name(self) -> str:
-        if self.group_index is None:
+        if self.group_index in [None]:
             return f"{self.group_name}"
         else:
             return f"{self.group_name}_{self.group_index}"
 
     @property
     def doc_name(self) -> str:
-        if self.group_index is None:
+        if self.group_index in [None]:
             return f"{self.group_name}"
         else:
             return f"{self.group_name}[{self.group_index}]"
@@ -147,7 +147,7 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
     for block in blocks:
         for instance in range(block.instances):
             for io in block.ios:
-                if io.length is None:
+                if io.length in [None, 1]:
                     yield BlockIoFlat(
                         uid=BlockIoUid(
                             block.name,
@@ -160,7 +160,7 @@ def flatten_block_ios(blocks: list[Block]) -> Iterator[BlockIoFlat]:
                         combine=io.combine,
                     )
                 else:
-                    for io_index in range(io.length):
+                    for io_index in range(io.length if io.length else 0):
                         yield BlockIoFlat(
                             uid=BlockIoUid(
                                 block.name,
@@ -193,7 +193,7 @@ def flatten_pins(
 
     for pin in pins:
         direction = pin_direction(pin)
-        if pin.length is None:
+        if pin.length in [None, 1]:
             yield PinFlat(
                 pin.name,
                 pin.block_ios,
@@ -201,7 +201,7 @@ def flatten_pins(
                 no_default_out=pin.no_default_out,
             )
         else:
-            for group_index in range(pin.length):
+            for group_index in range(pin.length if pin.length else 0):
                 block_io_links = [
                     BlockIoUid(
                         block_io.block,
@@ -225,10 +225,10 @@ def flatten_pins(
 def block_io_to_pin_map(
     blocks: list[BlockIoFlat], pins: list[PinFlat]
 ) -> BlockIoToPinsMap:
-    mapping: BlockIoToPinsMap = {block_io.uid: [] for block_io in blocks}
+    mapping: BlockIoToPinsMap = {}
     for pin in pins:
         for link in pin.block_io_links:
-            mapping[link].append(pin)
+            mapping.setdefault(link, []).append(pin)
     return mapping
 
 
@@ -242,16 +242,12 @@ def output_block_ios_iter(
         ):
             continue
 
-        possible_pins = block_io_to_pins[block_io.uid]
-
-        if len(possible_pins) == 0:
-            continue
-
-        yield OutputBlockIo(
-            block_io,
-            possible_pins,
-            max(len(possible_pins) + 1, 2),
-        )
+        if possible_pins := block_io_to_pins.get(block_io.uid):
+            yield OutputBlockIo(
+                block_io,
+                possible_pins,
+                max(len(possible_pins) + 1, 2),
+            )
 
 
 def output_pins_iter(
@@ -306,10 +302,12 @@ def combined_input_block_ios_iter(
 
 
 def block_port_definitions(block: Block) -> Iterator[str]:
-    instances_param = f"{block.name.upper()}_NUM"
+    instances_param = f"{block.muxed_instances}"
     for io in block.ios:
         name = f"{block.name}_{io.name}"
-        width = "" if io.length is None else f"[{io.length - 1}:0] "
+        width = ""
+        if (length := io.length) and (io.length > 1):
+            width = f"[{length - 1}:0] "
         match io.type:
             case Direction.INPUT:
                 yield f"output {width}{name}_o[{instances_param}]"
@@ -322,13 +320,30 @@ def block_port_definitions(block: Block) -> Iterator[str]:
                 yield f"input  {width}{name}_en_i[{instances_param}]"
 
 
+def set_muxed_instances(config: TopConfig, mapping: BlockIoToPinsMap) -> None:
+    """Compute how many instances of each block have pins connected to
+    pinmux.
+    """
+
+    muxed_blocks = {(b.block, b.instance) for b in mapping}
+    for block in config.blocks:
+        block.muxed_instances = len(
+            list(filter(lambda b: b[0] == block.name, muxed_blocks))
+        )
+        if block.muxed_instances > block.instances:
+            err_msg = f"""The number of muxed instances can't exceed the
+                       number of instances for block {block.name}"""
+            raise Exception(err_msg)
+
+
 def generate_top(config: TopConfig) -> None:
     """Generate a top from a top configuration."""
 
-    block_ios = list(flatten_block_ios(config.blocks))
-    pins = list(flatten_pins(config.pins, block_ios))
+    block_ios: list[BlockIoFlat] = list(flatten_block_ios(config.blocks))
+    pins: list[PinFlat] = list(flatten_pins(config.pins, block_ios))
+    block_io_to_pins: BlockIoToPinsMap = block_io_to_pin_map(block_ios, pins)
 
-    block_io_to_pins = block_io_to_pin_map(block_ios, pins)
+    set_muxed_instances(config, block_io_to_pins)
 
     template_variables = {
         "config": config,
