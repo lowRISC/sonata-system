@@ -84,6 +84,7 @@
       sonata-documentation = lrDoc.buildMdbookSite {
         version = "";
         pname = "sonata-documentation";
+        nativeBuildInputs = [pkgs.python311];
         src = fileset.toSource {
           root = ./.;
           fileset = fileset.unions [
