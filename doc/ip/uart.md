@@ -1,7 +1,8 @@
 # Universal asynchronous receiver/transmitter (UART)
 
-The Sonata system uses [the OpenTitan UART](https://opentitan.org/book/hw/ip/uart/index.html).
-You can find [the register definitions here](https://opentitan.org/book/hw/ip/uart/doc/registers.html).
+The Sonata system uses the OpenTitan UART.
+The version of the IP that is vendored in has documentation that you can find [here](https://github.com/lowRISC/opentitan/tree/a78922f14a8cc20c7ee569f322a04626f2ac6127/hw/ip/uart/doc).
+You can find [the register definitions here](https://github.com/lowRISC/opentitan/blob/a78922f14a8cc20c7ee569f322a04626f2ac6127/hw/ip/uart/doc/registers.md).
 
 There are multiple UART instances in Sonata to connect to any of the following targets:
 - USB
