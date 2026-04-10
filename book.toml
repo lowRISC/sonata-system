@@ -26,7 +26,7 @@ additional-css = [
 ]
 
 [preprocessor.wavejson]
-command = "./util/mdbook_wavejson.py"
+command = "python3 ./util/mdbook_wavejson.py"
 
 [preprocessor.replace]
 after = ["links"]
