@@ -34,8 +34,6 @@ To begin an SPI transaction write to the [`START`](#start) register.
 Bytes do not need to be immediately available in the transmit FIFO nor space available in the receive FIFO to begin the transaction.
 The SPI block will only run the clock when its able to proceed.
 
-**Note Interrupts are not yet implemented**
-
 
 ## Register Table
 
