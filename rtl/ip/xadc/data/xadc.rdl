@@ -1,0 +1,51 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap xadc {
+  xbar = '{
+    parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+    parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+    parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+  };
+  clk_input = '{ "clk_sys_i" };
+  rst_input = '{ "rst_sys_ni" };
+
+  regfile status{
+    reg status_reg_t {regwidth = 8; field {sw=r;} val; };
+
+    status_reg_t TEMPERATURE;
+    status_reg_t VCCINT;
+    status_reg_t VCCAUX;
+    status_reg_t VPVN;
+    status_reg_t VREFP;
+    status_reg_t VREFN;
+    status_reg_t VCCBRAM;
+    status_reg_t SUPPY_A_OFFSET @ 0x08;
+    status_reg_t ADC_A_OFFSET;
+    status_reg_t ACD_A_GAIN ;
+    status_reg_t VCCPINT @ 0x0D;
+    status_reg_t VCCPAUX;
+    status_reg_t VCCO_DDR;
+    status_reg_t VAUXP[16];
+    status_reg_t MAX_TEMP;
+    status_reg_t MAX_V_CCINT;
+    status_reg_t MAX_V_CCAUX;
+    status_reg_t MAX_VCCBRAM;
+    status_reg_t MIN_TEMP;
+    status_reg_t MIN_V_CCINT;
+    status_reg_t MIN_V_CCAUX;
+    status_reg_t MIN_VCCBRAM;
+  };
+
+  reg { 
+    regwidth = 8;
+    field {} cfg;
+  } CONFIG[3] @ 0x40;
+
+  reg { 
+    regwidth = 8;
+    field {} tr;
+  } TEST_REG[4] @ 0x43;
+};

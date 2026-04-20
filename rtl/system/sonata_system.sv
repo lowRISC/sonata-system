@@ -129,7 +129,7 @@ module sonata_system
   localparam int unsigned FixedSpiNum   = 2; // Number of SPI devices that don't pass through the pinmux
   localparam int unsigned TotalSpiNum   = SPI_NUM + FixedSpiNum; // The total number of SPI devices
   localparam int unsigned FixedGpioNum  = 1; // Number of GPIO instances that don't pass through the pinmux
-  localparam int unsigned TotalGpioNum  = GPIO_NUM + FixedGpioNum; // The total number of GPIO instances
+  localparam int unsigned TotalGpioNum  = GPIO_NUM; // The total number of GPIO instances
   localparam int unsigned TAccessLatency = 0; // Cycles of read data latency.
 
   // The number of data bits controlled by each mask bit; since the CPU requires
@@ -301,8 +301,8 @@ module sonata_system
   tlul_pkg::tl_d2h_t tl_sram_b_d2h;
   tlul_pkg::tl_h2d_t tl_hyperram_h2d[2];
   tlul_pkg::tl_d2h_t tl_hyperram_d2h[2];
-  tlul_pkg::tl_h2d_t tl_gpio_h2d;
-  tlul_pkg::tl_d2h_t tl_gpio_d2h;
+  tlul_pkg::tl_h2d_t tl_gpio_h2d[GPIO_NUM];
+  tlul_pkg::tl_d2h_t tl_gpio_d2h[GPIO_NUM];
   tlul_pkg::tl_h2d_t tl_xadc_h2d;
   tlul_pkg::tl_d2h_t tl_xadc_d2h;
   tlul_pkg::tl_h2d_t tl_uart_h2d[UART_NUM];
@@ -360,8 +360,8 @@ module sonata_system
     .tl_rev_tag_i     (tl_rev_tag_d2h),
     .tl_gpio_o        (tl_gpio_h2d),
     .tl_gpio_i        (tl_gpio_d2h),
-    .tl_pwm_o         ('{tl_pwm_h2d}),
-    .tl_pwm_i         ('{tl_pwm_d2h}),
+    .tl_pwm_o         (tl_pwm_h2d),
+    .tl_pwm_i         (tl_pwm_d2h),
     .tl_system_info_o (tl_system_info_h2d),
     .tl_system_info_i (tl_system_info_d2h),
     .tl_pinmux_o      (tl_pinmux_h2d),
@@ -1263,9 +1263,9 @@ module sonata_system
     .spi_cs_i(spi_cs),
     .spi_cs_en_i('{default: '1}), // All continuously enabled.
 
-    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM]),
-    .gpio_ios_i(gpio_to_pins[1:GPIO_NUM]),
-    .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM]),
+    .gpio_ios_o(gpio_from_pins[1:GPIO_NUM-FixedGpioNum]),
+    .gpio_ios_i(gpio_to_pins[1:GPIO_NUM-FixedGpioNum]),
+    .gpio_ios_en_i(gpio_to_pins_enable[1:GPIO_NUM-FixedGpioNum]),
 
     .in_from_pins_i,
     .out_to_pins_o(out_to_pins_data),

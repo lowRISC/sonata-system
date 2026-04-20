@@ -1,0 +1,40 @@
+/* Copyright lowRISC contributors.
+* Licensed under the Apache License, Version 2.0; see LICENSE for details.
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+addrmap pwm {
+
+  xbar = '{
+    parameter'{ type_: "bool", name: "pipeline", value:  "true" },
+    parameter'{ type_: "bool", name: "req_fifo_pass", value:  "false" },
+    parameter'{ type_: "bool", name: "rsp_fifo_pass", value:  "false" }
+  };
+
+  clk_input = '{
+    "clk_sys_i"
+  };
+
+  rst_input = '{
+    "rst_sys_ni"
+  };
+
+  // Ios pads.
+  signal {sigtype=SigType::PadOutput;} out[7];
+
+  reg {
+    field {
+      sw=rw;
+      reset = 0;
+      desc = "Pwm width.";
+    } value[32] = 0;
+  } WIDTH @0x00;
+
+  reg  {
+    field {
+      sw=rw;
+      reset = 0;
+      desc = "Pwm counter.";
+    } value[32] = 0;
+  } COUNTER @0x04;
+};
