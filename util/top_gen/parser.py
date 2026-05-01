@@ -48,13 +48,14 @@ class BlockIo(BaseModel, frozen=True):
         return self
 
 
-class Block(BaseModel, frozen=True):
+class Block(BaseModel, frozen=False):
     name: str
     instances: int
     ios: list[BlockIo]
     memory_start: int
     memory_size: int
     xbar: dict[str, str] = {}
+    muxed_instances: int = 0
 
     @field_validator("instances")
     @staticmethod
@@ -92,7 +93,7 @@ class Pin(BaseModel, frozen=True):
         return self
 
 
-class TopConfig(BaseModel, frozen=True):
+class TopConfig(BaseModel, frozen=False):
     blocks: list[Block]
     pins: list[Pin]
 
