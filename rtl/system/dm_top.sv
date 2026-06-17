@@ -13,21 +13,21 @@
 `include "prim_assert.sv"
 
 module dm_top #(
-  parameter int          NrHarts = 1,
+  parameter int          NrHarts     = 1,
   parameter logic [31:0] IdcodeValue = 32'h 0000_0001,
-  parameter int          BusWidth = 32
+  parameter int          BusWidth    = 32
 ) (
-  input  logic               clk_i,       // clock
-  input  logic               rst_ni,      // asynchronous reset active low, connect PoR
-                                          // here, not the system reset
+  input  logic               clk_i,         // clock
+  input  logic               rst_ni,        // asynchronous reset active low, connect PoR
+                                            // here, not the system reset
   input  logic               testmode_i,
-  output logic               ndmreset_o,  // non-debug module reset
-  output logic               dmactive_o,  // debug module is active
-  output logic [NrHarts-1:0] debug_req_o, // async debug request
+  output logic               ndmreset_o,    // non-debug module reset
+  output logic               dmactive_o,    // debug module is active
+  output logic [NrHarts-1:0] debug_req_o,   // async debug request
   input  logic [NrHarts-1:0] unavailable_i, // communicate whether the hart is unavailable
                                             // (e.g.: power down)
 
-  input  logic               cheri_en_i, // CHERIoT enabled?
+  input  logic               cheri_en_i,    // CHERIoT enabled?
 
   // bus device with debug memory, for an execution based technique
   input  logic                  device_req_i,
@@ -241,26 +241,26 @@ module dm_top #(
   dmi_jtag #(
     .IdcodeValue ( IdcodeValue )
   ) dap (
-    .clk_i            (clk_i        ),
-    .rst_ni           (rst_ni       ),
-    .testmode_i       (testmode_i   ),
+    .clk_i                   ( clk_i                 ),
+    .rst_ni                  ( rst_ni                ),
+    .testmode_i              ( testmode_i            ),
 
-    .dmi_rst_no       (dmi_rst_n    ),
-    .dmi_req_o        (dmi_req      ),
-    .dmi_req_valid_o  (dmi_req_valid),
-    .dmi_req_ready_i  (dmi_req_ready),
+    .dmi_rst_no              ( dmi_rst_n             ),
+    .dmi_req_o               ( dmi_req               ),
+    .dmi_req_valid_o         ( dmi_req_valid         ),
+    .dmi_req_ready_i         ( dmi_req_ready         ),
 
-    .dmi_resp_i       (dmi_rsp      ),
-    .dmi_resp_ready_o (dmi_rsp_ready),
-    .dmi_resp_valid_i (dmi_rsp_valid),
+    .dmi_resp_i              ( dmi_rsp               ),
+    .dmi_resp_ready_o        ( dmi_rsp_ready         ),
+    .dmi_resp_valid_i        ( dmi_rsp_valid         ),
 
     //JTAG
-    .tck_i,
-    .tms_i,
-    .trst_ni,
-    .td_i,
-    .td_o,
-    .tdo_oe_o ()
+    .tck_i                   ( tck_i                 ),
+    .tms_i                   ( tms_i                 ),
+    .trst_ni                 ( trst_ni               ),
+    .td_i                    ( td_i                  ),
+    .td_o                    ( td_o                  ),
+    .tdo_oe_o                (                       )
   );
 
 endmodule
