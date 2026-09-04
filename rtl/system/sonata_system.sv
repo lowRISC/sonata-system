@@ -11,6 +11,7 @@ module sonata_system
   parameter int unsigned ArdAniWidth     = 6,
   parameter int unsigned CheriErrWidth   = 9,
   parameter string SRAMInitFile          = "",
+  parameter string HRAMInitFile          = "",
   parameter int unsigned SysClkFreq      = 30_000_000,
   parameter int unsigned HyperRAMClkFreq = 100_000_000
 ) (
@@ -522,7 +523,8 @@ module sonata_system
   hyperram #(
     .HyperRAMClkFreq ( HyperRAMClkFreq ),
     .HyperRAMSize    ( HyperRAMSize    ),
-    .NumPorts        ( 2               )
+    .NumPorts        ( 2               ),
+    .InitFile        ( HRAMInitFile    )
   ) u_hyperram (
     .clk_i  (clk_sys_i),
     .rst_ni (rst_sys_ni),

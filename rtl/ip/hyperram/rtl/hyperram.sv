@@ -12,7 +12,9 @@ module hyperram import tlul_pkg::*; #(
   parameter HyperRAMClkFreq = 200_000_000,
   parameter HyperRAMSize    = 1024 * 1024,
   // Number of access ports.
-  parameter int unsigned NumPorts = 2
+  parameter int unsigned NumPorts = 2,
+  // VMEM file for SRAM model initialisation (simulation only).
+  parameter InitFile = ""
 ) (
   input             clk_i,
   input             rst_ni,
@@ -59,7 +61,8 @@ module hyperram import tlul_pkg::*; #(
     sram #(
       .AddrWidth       ( SRAMModelAddrWidth ),
       .DataWidth       ( 32                 ),
-      .DataBitsPerMask ( 8                  )
+      .DataBitsPerMask ( 8                  ),
+      .InitFile        ( InitFile           )
     ) u_hyperram_model (
       .clk_i,
       .rst_ni,
@@ -77,7 +80,8 @@ module hyperram import tlul_pkg::*; #(
     sram #(
       .AddrWidth       ( SRAMModelAddrWidth ),
       .DataWidth       ( 32                 ),
-      .DataBitsPerMask ( 8                  )
+      .DataBitsPerMask ( 8                  ),
+      .InitFile        ( InitFile           )
     ) u_hyperram_model (
       .clk_i,
       .rst_ni,
