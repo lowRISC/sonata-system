@@ -32,7 +32,7 @@ union CfgReg {
   /* The length of a half period (i.e. positive edge to negative edge) of the SPI clock, measured in system clock cycles
    * reduced by 1. At the standard Sonata 50 MHz system clock a value of 0 gives a 25 MHz SPI clock, a value of 1 gives
    * a 12.5 MHz SPI clock, a value of 2 gives a 8.33 MHz SPI clock and so on. */
-  zermio::BitField<16, 13, zermio::Permissions::ReadWrite> half_clk_period;
+  zermio::BitField<0, 16, zermio::Permissions::ReadWrite> half_clk_period;
   constexpr CfgReg(uintptr_t addr) : reg_{.addr = addr} {}
 
   inline void commit() { reg_.commit(); }
@@ -61,11 +61,11 @@ union CtrlReg {
                           6: 56 or more items in the FIFO\n */
   zermio::BitField<8, 4, zermio::Permissions::ReadWrite> rx_watermark;
   /* The watermark level for the transmit FIFO, depending on the value the interrupt will trigger at different points:\n
-                          0: 1 or more items in the FIFO\n
-                          1: 2 or more items in the FIFO\n
-                          2: 4 or more items in the FIFO\n
-                          3: 8 or more items in the FIFO\n
-                          4: 16 or more items in the FIFO\n */
+                          0: 1 or fewer items in the FIFO\n
+                          1: 2 or fewer items in the FIFO\n
+                          2: 4 or fewer items in the FIFO\n
+                          3: 8 or fewer items in the FIFO\n
+                          4: 16 or fewer items in the FIFO\n */
   zermio::BitField<4, 4, zermio::Permissions::ReadWrite> tx_watermark;
   /* When set incoming bits are written to the receive FIFO. When clear incoming bits are ignored. */
   zermio::BitField<3, 1, zermio::Permissions::ReadWrite> rx_enable;
@@ -195,7 +195,7 @@ union CsReg {
 
  public:
   /* These bits are zero when the corresponding peripheral is selected for transmit/receive operations. */
-  zermio::BitField<0, 5, zermio::Permissions::ReadWrite> cs;
+  zermio::BitField<0, 4, zermio::Permissions::ReadWrite> cs;
   constexpr CsReg(uintptr_t addr) : reg_{.addr = addr} {}
 
   inline void commit() { reg_.commit(); }
