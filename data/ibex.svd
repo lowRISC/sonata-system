@@ -382,7 +382,7 @@
 						<field>
 							<name>HALF_CLK_PERIOD</name>
 							<description>The length of a half period (i.e. positive edge to negative edge) of the SPI clock, measured in system clock cycles reduced by 1. At the standard Sonata 50 MHz system clock a value of 0 gives a 25 MHz SPI clock, a value of 1 gives a 12.5 MHz SPI clock, a value of 2 gives a 8.33 MHz SPI clock and so on.</description>
-							<bitRange>[28:16]</bitRange>
+							<bitRange>[15:0]</bitRange>
 							<access>read-write</access>
 						</field>
 					</fields>
@@ -415,11 +415,11 @@
 						<field>
 							<name>TX_WATERMARK</name>
 							<description>The watermark level for the transmit FIFO, depending on the value the interrupt will trigger at different points:\n
-                            0: 1 or more items in the FIFO\n
-                            1: 2 or more items in the FIFO\n
-                            2: 4 or more items in the FIFO\n
-                            3: 8 or more items in the FIFO\n
-                            4: 16 or more items in the FIFO\n
+                            0: 1 or fewer items in the FIFO\n
+                            1: 2 or fewer items in the FIFO\n
+                            2: 4 or fewer items in the FIFO\n
+                            3: 8 or fewer items in the FIFO\n
+                            4: 16 or fewer items in the FIFO\n
               </description>
 							<bitRange>[7:4]</bitRange>
 							<access>read-write</access>
@@ -559,7 +559,7 @@
             <field>
               <name>CS</name>
               <description>These bits are zero when the corresponding peripheral is selected for transmit/receive operations.</description>
-              <bitRange>[4:0]</bitRange>
+              <bitRange>[3:0]</bitRange>
               <access>read-write</access>
             </field>
           </fields>
